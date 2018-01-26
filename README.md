@@ -10,3 +10,4 @@ The Wikibook Project is an aim to standardize and improve [the original wikibook
 * Have exports in the form of pdf and html
 * The content of the wikibook should be in between the current wikibook and an exhaustive survey of linux programming
 * Have ownership of the book in case it should go into syndication or something similar
+* Have travis build so people don't need to install a bunch of pre-reqs to get started.
