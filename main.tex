@@ -1,0 +1,50 @@
+\documentclass{article}
+
+\usepackage[T1]{fontenc}
+\usepackage{microtype}
+\usepackage[charter]{mathdesign}
+\usepackage[margin=1in]{geometry}
+\usepackage{fancyhdr}
+\usepackage[compact]{titlesec}
+\usepackage[usenames,dvipsnames]{color}
+\usepackage{xcolor}
+\usepackage{mdframed}
+\usepackage{setspace}
+\usepackage{listings}
+\usepackage{mfirstuc}
+\lstset{
+basicstyle=\ttfamily,
+columns=flexible,
+breaklines=true
+}
+
+\singlespacing
+\titleformat{\section}{\vspace{1em}\large\bfseries}{\thesection. }{0em}{}
+
+\newcounter{ChapterCounter}
+
+\newcommand{\inputchapter}[2]{\section{#2}\input{#1}\newpage}
+
+\begin{document}
+
+\pagestyle{fancy}
+\fancyhf{}
+
+Main page
+
+\inputchapter{introduction/introduction.tex}{Introduction}
+\inputchapter{introc/introc.tex}{Introduction to C}
+\inputchapter{processes/processes.tex}{Processes}
+\inputchapter{malloc/malloc.tex}{Memory Allocators}
+\inputchapter{threads/threads.tex}{Threading}
+\inputchapter{synchronization/synchronization.tex}{Synchronization}
+\inputchapter{deadlock/deadlock.tex}{Deadlock}
+\inputchapter{scheduling/scheduling.tex}{Scheduling}
+\inputchapter{ipc/ipc.tex}{Interprocess Communication}
+\inputchapter{networking/networking.tex}{Networking}
+\inputchapter{filesystems/filesystems.tex}{Filesystems}
+\inputchapter{signals/signals.tex}{Signals}
+\inputchapter{review/review.tex}{Review}
+\inputchapter{appendix/appendix.tex}{Appendix}
+
+\end{document}
