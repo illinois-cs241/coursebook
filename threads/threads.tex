@@ -1,1 +1,691 @@
-./threads
+\section{Intro to Threads}\label{intro-to-threads}
+
+\subsection{What is a thread?}\label{what-is-a-thread}
+
+A thread is short for `thread-of-execution'. It represents the sequence
+of instructions that the CPU has (and will) execute. To remember how to
+return from function calls, and to store the values of automatic
+variables and parameters a thread uses a stack.
+
+\subsection{What is a Lightweight Process (LWP)? How does it relate to
+threads?}\label{what-is-a-lightweight-process-lwp-how-does-it-relate-to-threads}
+
+Well for all intents and purposes a thread is a process (meaning that
+creating a thread is similar to \texttt{fork}) except there is
+\textbf{no copying} meaning no copy on write. What this allows is for a
+process to share the same address space, variables, heap, file
+descriptors and etc.
+
+The actual system call to create a thread is similar to \texttt{fork};
+it's \texttt{clone}. We won't go into the specifics but you can read the
+\href{http://man7.org/linux/man-pages/man2/clone.2.html}{man pages}
+keeping in mind that it is outside the direct scope of this course.
+
+LWP or threads are preferred to forking for a lot of scenarios because
+there is a lot less overhead creating them. But in some cases (notably
+python uses this) multiprocessing is the way to make your code faster.
+
+\subsection{How does the thread's stack
+work?}\label{how-does-the-threads-stack-work}
+
+Your main function (and other functions you might call) has automatic
+variables. We will store them in memory using a stack and keep track of
+how large the stack is by using a simple pointer (the ``stack
+pointer''). If the thread calls another function, we move our stack
+pointer down, so that we have more space for parameters and automatic
+variables. Once it returns from a function, we can move the stack
+pointer back up to its previous value. We keep a copy of the old stack
+pointer value - on the stack! This is why returning from a function is
+very quick - it's easy to `free' the memory used by automatic variables
+- we just need to change the stack pointer.
+
+In a multi threaded program, there are multiple stack but only one
+address space. The pthread library allocates some stack space (either in
+the heap or using a part of the main program's stack) and uses the
+\texttt{clone} function call to start the thread at that stack address.
+The total address space may look something like this.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics{https://i.imgur.com/ac2QDwu.png}
+\caption{}
+\end{figure}
+
+\subsection{How many threads can my process
+have?}\label{how-many-threads-can-my-process-have}
+
+You can have more than one thread running inside a process. You get the
+first thread for free! It runs the code you write inside `main'. If you
+need more threads you can call \texttt{pthread\_create} to create a new
+thread using the pthread library. You'll need to pass a pointer to a
+function so that the thread knows where to start.
+
+The threads you create all live inside the same virtual memory because
+they are part of the same process. Thus they can all see the heap, the
+global variables and the program code etc. Thus you can have two (or
+more) CPUs working on your program at the same time and inside the same
+process. It's up to the operating system to assign the threads to CPUs.
+If you have more active threads than CPUs then the kernel will assign
+the thread to a CPU for a short duration (or until it runs out of things
+to do) and then will automatically switch the CPU to work on another
+thread. For example, one CPU might be processing the game AI while
+another thread is computing the graphics output.
+
+\section{Simple Usage}\label{simple-usage}
+
+\subsection{Hello world pthread
+example}\label{hello-world-pthread-example}
+
+To use pthreads you will need to include \texttt{pthread.h} AND you need
+to compile with \texttt{-pthread} (or \texttt{-lpthread}) compiler
+option. This option tells the compiler that your program requires
+threading support
+
+To create a thread use the function \texttt{pthread\_create}. This
+function takes four arguments:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\DataTypeTok{int} \NormalTok{pthread_create(pthread_t *thread, }\DataTypeTok{const} \NormalTok{pthread_attr_t *attr,}
+                   \DataTypeTok{void} \NormalTok{*(*start_routine) (}\DataTypeTok{void} \NormalTok{*), }\DataTypeTok{void} \NormalTok{*arg);}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{itemize}
+\tightlist
+\item
+  The first is a pointer to a variable that will hold the id of the
+  newly created thread.
+\item
+  The second is a pointer to attributes that we can use to tweak and
+  tune some of the advanced features of pthreads.
+\item
+  The third is a pointer to a function that we want to run
+\item
+  Fourth is a pointer that will be given to our function
+\end{itemize}
+
+The argument \texttt{void\ *(*start\_routine)\ (void\ *)} is difficult
+to read! It means a pointer that takes a \texttt{void\ *} pointer and
+returns a \texttt{void\ *} pointer. It looks like a function declaration
+except that the name of the function is wrapped with
+\texttt{(*\ ....\ )}
+
+Here's the simplest example:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{#include <stdio.h>}
+\OtherTok{#include <pthread.h>}
+\CommentTok{// remember to set compilation option -pthread}
+
+\DataTypeTok{void} \NormalTok{*busy(}\DataTypeTok{void} \NormalTok{*ptr) \{}
+\CommentTok{// ptr will point to "Hi"}
+    \NormalTok{puts(}\StringTok{"Hello World"}\NormalTok{);}
+    \KeywordTok{return} \NormalTok{NULL;}
+\NormalTok{\}}
+\DataTypeTok{int} \NormalTok{main() \{}
+    \NormalTok{pthread_t id;}
+    \NormalTok{pthread_create(&id, NULL, busy, }\StringTok{"Hi"}\NormalTok{);}
+    \KeywordTok{while} \NormalTok{(}\DecValTok{1}\NormalTok{) \{\} }\CommentTok{// Loop forever}
+\NormalTok{\}}
+\end{Highlighting}
+\end{Shaded}
+
+If we want to wait for our thread to finish use \texttt{pthread\_join}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\DataTypeTok{void} \NormalTok{*result;}
+\NormalTok{pthread_join(id, &result);}
+\end{Highlighting}
+\end{Shaded}
+
+In the above example, \texttt{result} will be \texttt{null} because the
+busy function returned \texttt{null}. We need to pass the address-of
+result because \texttt{pthread\_join} will be writing into the contents
+of our pointer.
+
+\section{More pthread functions}\label{more-pthread-functions}
+
+\subsection{How do I create a pthread?}\label{how-do-i-create-a-pthread}
+
+See
+\href{https://github.com/angrave/SystemProgramming/wiki/Pthreads,-Part-1:-Introduction}{Pthreads
+Part 1} which introduces \texttt{pthread\_create} and
+\texttt{pthread\_join}
+
+\subsection{\texorpdfstring{If I call \texttt{pthread\_create} twice,
+how many stacks does my process
+have?}{If I call pthread\_create twice, how many stacks does my process have?}}\label{if-i-call-pthreadux5fcreate-twice-how-many-stacks-does-my-process-have}
+
+Your process will contain three stacks - one for each thread. The first
+thread is created when the process starts, and you created two more.
+Actually there can be more stacks than this, but let's ignore that
+complication for now. The important idea is that each thread requires a
+stack because the stack contains automatic variables and the old CPU PC
+register, so that it can back to executing the calling function after
+the function is finished.
+
+\subsection{What is the difference between a full process and a
+thread?}\label{what-is-the-difference-between-a-full-process-and-a-thread}
+
+In addition, unlike processes, threads within the same process can share
+the same global memory (data and heap segments).
+
+\subsection{\texorpdfstring{What does \texttt{pthread\_cancel}
+do?}{What does pthread\_cancel do?}}\label{what-does-pthreadux5fcancel-do}
+
+Stops a thread. Note the thread may not actually be stopped immediately.
+For example it can be terminated when the thread makes an operating
+system call (e.g. \texttt{write}).
+
+In practice, \texttt{pthread\_cancel} is rarely used because it does not
+give a thread an opportunity to clean up after itself (for example, it
+may have opened some files). An alternative implementation is to use a
+boolean (int) variable whose value is used to inform other threads that
+they should finish and clean up.
+
+\subsection{\texorpdfstring{What is the difference between \texttt{exit}
+and
+\texttt{pthread\_exit}?}{What is the difference between exit and pthread\_exit?}}\label{what-is-the-difference-between-exit-and-pthreadux5fexit}
+
+\texttt{exit(42)} exits the entire process and sets the processes exit
+value. This is equivalent to \texttt{return\ 42} in the main method. All
+threads inside the process are stopped.
+
+\texttt{pthread\_exit(void\ *)} only stops the calling thread i.e.~the
+thread never returns after calling \texttt{pthread\_exit}. The pthread
+library will automatically finish the process if there are no other
+threads running. \texttt{pthread\_exit(...)} is equivalent to returning
+from the thread's function; both finish the thread and also set the
+return value (void *pointer) for the thread.
+
+Calling \texttt{pthread\_exit} in the the \texttt{main} thread is a
+common way for simple programs to ensure that all threads finish. For
+example, in the following program, the \texttt{myfunc} threads will
+probably not have time to get started.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\DataTypeTok{int} \NormalTok{main() \{}
+  \NormalTok{pthread_t tid1, tid2;}
+  \NormalTok{pthread_create(&tid1, NULL, myfunc, }\StringTok{"Jabberwocky"}\NormalTok{);}
+  \NormalTok{pthread_create(&tid2, NULL, myfunc, }\StringTok{"Vorpel"}\NormalTok{);}
+  \NormalTok{exit(}\DecValTok{42}\NormalTok{); }\CommentTok{//or return 42;}
+
+  \CommentTok{// No code is run after exit}
+\NormalTok{\}}
+\end{Highlighting}
+\end{Shaded}
+
+The next two programs will wait for the new threads to finish-
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\DataTypeTok{int} \NormalTok{main() \{}
+  \NormalTok{pthread_t tid1, tid2;}
+  \NormalTok{pthread_create(&tid1, NULL, myfunc, }\StringTok{"Jabberwocky"}\NormalTok{);}
+  \NormalTok{pthread_create(&tid2, NULL, myfunc, }\StringTok{"Vorpel"}\NormalTok{);}
+  \NormalTok{pthread_exit(NULL); }
+
+  \CommentTok{// No code is run after pthread_exit}
+  \CommentTok{// However process will continue to exist until both threads have finished}
+\NormalTok{\}}
+\end{Highlighting}
+\end{Shaded}
+
+Alternatively, we join on each thread (i.e.~wait for it to finish)
+before we return from main (or call exit).
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\DataTypeTok{int} \NormalTok{main() \{}
+  \NormalTok{pthread_t tid1, tid2;}
+  \NormalTok{pthread_create(&tid1, NULL, myfunc, }\StringTok{"Jabberwocky"}\NormalTok{);}
+  \NormalTok{pthread_create(&tid2, NULL, myfunc, }\StringTok{"Vorpel"}\NormalTok{);}
+  \CommentTok{// wait for both threads to finish :}
+  \DataTypeTok{void}\NormalTok{* result;}
+  \NormalTok{pthread_join(tid1, &result);}
+  \NormalTok{pthread_join(tid2, &result); }
+  \KeywordTok{return} \DecValTok{42}\NormalTok{;}
+\NormalTok{\}}
+\end{Highlighting}
+\end{Shaded}
+
+Note the pthread\_exit version creates thread zombies, however this is
+not a long-running processes, so we don't care. \#\# How can a thread be
+terminated? * Returning from the thread function * Calling
+\texttt{pthread\_exit} * Cancelling the thread with
+\texttt{pthread\_cancel} * Terminating the process (e.g.~SIGTERM);
+exit(); returning from \texttt{main}
+
+\subsection{What is the purpose of
+pthread\_join?}\label{what-is-the-purpose-of-pthreadux5fjoin}
+
+\begin{itemize}
+\tightlist
+\item
+  Wait for a thread to finish
+\item
+  Clean up thread resources
+\item
+  Grabs the return value of the thread
+\end{itemize}
+
+\subsection{\texorpdfstring{What happens if you don't call
+\texttt{pthread\_join}?}{What happens if you don't call pthread\_join?}}\label{what-happens-if-you-dont-call-pthreadux5fjoin}
+
+Finished threads will continue to consume resources. Eventually, if
+enough threads are created, \texttt{pthread\_create} will fail. In
+practice, this is only an issue for long-running processes but is not an
+issue for simple, short-lived processes as all thread resources are
+automatically freed when the process exits.
+
+\subsection{\texorpdfstring{Should I use \texttt{pthread\_exit} or
+\texttt{pthread\_join}?}{Should I use pthread\_exit or pthread\_join?}}\label{should-i-use-pthreadux5fexit-or-pthreadux5fjoin}
+
+Both \texttt{pthread\_exit} and \texttt{pthread\_join} will let the
+other threads finish on their own (even if called in the main thread).
+However, only \texttt{pthread\_join} will return to you when the
+specified thread finishes. \texttt{pthread\_exit} does not wait and will
+immediately end your thread and give you no chance to continue
+executing.
+
+\subsection{Can you pass pointers to stack variables from one thread to
+another?}\label{can-you-pass-pointers-to-stack-variables-from-one-thread-to-another}
+
+Yes. However you need to be very careful about the lifetime of stack
+variables.
+
+\begin{verbatim}
+pthread_t start_threads() {
+  int start = 42;
+  pthread_t tid;
+  pthread_create(&tid, 0, myfunc, &start); // ERROR!
+  return tid;
+}
+\end{verbatim}
+
+The above code is invalid because the function \texttt{start\_threads}
+will likely return before \texttt{myfunc} even starts. The function
+passes the address-of \texttt{start}, however by the time
+\texttt{myfunc} is executes, \texttt{start} is no longer in scope and
+its address will re-used for another variable.
+
+The following code is valid because the lifetime of the stack variable
+is longer than the background thread.
+
+\begin{verbatim}
+void start_threads() {
+  int start = 42;
+  void *result;
+  pthread_t tid;
+  pthread_create(&tid, 0, myfunc, &start); // OK - start will be valid!
+  pthread_join(tid, &result);
+}
+\end{verbatim}
+
+\section{Intro to Race Conditions}\label{intro-to-race-conditions}
+
+\subsection{How can I create ten threads with different starting
+values.}\label{how-can-i-create-ten-threads-with-different-starting-values.}
+
+The following code is supposed to start ten threads with values
+0,1,2,3,\ldots{}9 However, when run prints out
+\texttt{1\ 7\ 8\ 8\ 8\ 8\ 8\ 8\ 8\ 10}! Can you see why?
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{#include <pthread.h>}
+\DataTypeTok{void}\NormalTok{* myfunc(}\DataTypeTok{void}\NormalTok{* ptr) \{}
+    \DataTypeTok{int} \NormalTok{i = *((}\DataTypeTok{int} \NormalTok{*) ptr);}
+    \NormalTok{printf(}\StringTok{"%d "}\NormalTok{, i);}
+    \KeywordTok{return} \NormalTok{NULL;}
+\NormalTok{\}}
+
+\DataTypeTok{int} \NormalTok{main() \{}
+    \CommentTok{// Each thread gets a different value of i to process}
+    \DataTypeTok{int} \NormalTok{i;}
+    \NormalTok{pthread_t tid;}
+    \KeywordTok{for}\NormalTok{(i =}\DecValTok{0}\NormalTok{; i < }\DecValTok{10}\NormalTok{; i++) \{}
+        \NormalTok{pthread_create(&tid, NULL, myfunc, &i); }\CommentTok{// ERROR}
+    \NormalTok{\}}
+    \NormalTok{pthread_exit(NULL);}
+\NormalTok{\}}
+\end{Highlighting}
+\end{Shaded}
+
+The above code suffers from a \texttt{race\ condition} - the value of i
+is changing. The new threads start later (in the example output the last
+thread starts after the loop has finished).
+
+To overcome this race-condition, we will give each thread a pointer to
+it's own data area. For example, for each thread we may want to store
+the id, a starting value and an output value:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{struct} \NormalTok{T \{}
+  \NormalTok{pthread_t id;}
+  \DataTypeTok{int} \NormalTok{start;}
+  \DataTypeTok{char} \NormalTok{result[}\DecValTok{100}\NormalTok{];}
+\NormalTok{\};}
+\end{Highlighting}
+\end{Shaded}
+
+These can be stored in an array -
+
+\begin{verbatim}
+struct T *info = calloc(10 , sizeof(struct T)); // reserve enough bytes for ten T structures
+\end{verbatim}
+
+And each array element passed to each thread -
+
+\begin{verbatim}
+pthread_create(&info[i].id, NULL, func, &info[i]);
+\end{verbatim}
+
+\subsection{Why are some functions e.g. asctime,getenv, strtok, strerror
+not
+thread-safe?}\label{why-are-some-functions-e.g.-asctimegetenv-strtok-strerror-not-thread-safe}
+
+To answer this, let's look at a simple function that is also not
+`thread-safe'
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\DataTypeTok{char} \NormalTok{*to_message(}\DataTypeTok{int} \NormalTok{num) \{}
+    \DataTypeTok{char} \DataTypeTok{static} \NormalTok{result [}\DecValTok{256}\NormalTok{];}
+    \KeywordTok{if} \NormalTok{(num < }\DecValTok{10}\NormalTok{) sprintf(result, }\StringTok{"%d : blah blah"} \NormalTok{, num);}
+    \KeywordTok{else} \NormalTok{strcpy(result, }\StringTok{"Unknown"}\NormalTok{);}
+    \KeywordTok{return} \NormalTok{result;}
+\NormalTok{\}}
+\end{Highlighting}
+\end{Shaded}
+
+In the above code the result buffer is stored in global memory. This is
+good - we wouldn't want to return a pointer to an invalid address on the
+stack, but there's only one result buffer in the entire memory. If two
+threads were to use it at the same time then one would corrupt the
+other:
+
+\begin{longtable}[c]{@{}llll@{}}
+\toprule
+Time & Thread 1 & Thread 2 & Comments\tabularnewline
+\midrule
+\endhead
+1 & to\_m(5 ) &\tabularnewline
+2 & & to\_m(99) & Now both threads will see ``Unknown'' stored in the
+result buffer\tabularnewline
+\bottomrule
+\end{longtable}
+
+\subsection{What are condition variables, semaphores,
+mutexes?}\label{what-are-condition-variables-semaphores-mutexes}
+
+These are synchronization locks that are used to prevent race conditions
+and ensure proper synchronization between threads running in the same
+program. In addition, these locks are conceptually identical to the
+primitives used inside the kernel.
+
+\subsection{Are there any advantages of using threads over forking
+processes?}\label{are-there-any-advantages-of-using-threads-over-forking-processes}
+
+Yes! Sharing information between threads is easy because threads (of the
+same process) live inside the same virtual memory space. Also, creating
+a thread is significantly faster than creating(forking) a process.
+
+\subsection{Are there any dis-advantages of using threads over forking
+processes?}\label{are-there-any-dis-advantages-of-using-threads-over-forking-processes}
+
+Yes! No- isolation! As threads live inside the same process, one thread
+has access to the same virtual memory as the other threads. A single
+thread can terminate the entire process (e.g.~by trying to read address
+zero).
+
+\subsection{Can you fork a process with multiple
+threads?}\label{can-you-fork-a-process-with-multiple-threads}
+
+Yes! However the child process only has a single thread (which is a
+clone of the thread that called \texttt{fork}. We can see this as a
+simple example, where the background threads never print out a second
+message in the child process.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{#include <pthread.h>}
+\OtherTok{#include <stdio.h>}
+\OtherTok{#include <unistd.h>}
+
+\DataTypeTok{static} \NormalTok{pid_t child = -}\DecValTok{2}\NormalTok{;}
+
+\DataTypeTok{void} \NormalTok{*sleepnprint(}\DataTypeTok{void} \NormalTok{*arg) \{}
+  \NormalTok{printf(}\StringTok{"%d:%s starting up...}\CharTok{\textbackslash{}n}\StringTok{"}\NormalTok{, getpid(), (}\DataTypeTok{char} \NormalTok{*) arg);}
+
+  \KeywordTok{while} \NormalTok{(child == -}\DecValTok{2}\NormalTok{) \{sleep(}\DecValTok{1}\NormalTok{);\} }\CommentTok{/* Later we will use condition variables */}
+
+  \NormalTok{printf(}\StringTok{"%d:%s finishing...}\CharTok{\textbackslash{}n}\StringTok{"}\NormalTok{,getpid(), (}\DataTypeTok{char}\NormalTok{*)arg);}
+
+  \KeywordTok{return} \NormalTok{NULL;  }
+\NormalTok{\}}
+\DataTypeTok{int} \NormalTok{main() \{}
+  \NormalTok{pthread_t tid1, tid2;}
+  \NormalTok{pthread_create(&tid1,NULL, sleepnprint, }\StringTok{"New Thread One"}\NormalTok{);}
+  \NormalTok{pthread_create(&tid2,NULL, sleepnprint, }\StringTok{"New Thread Two"}\NormalTok{);}
+  
+  \NormalTok{child = fork();}
+  \NormalTok{printf(}\StringTok{"%d:%s}\CharTok{\textbackslash{}n}\StringTok{"}\NormalTok{,getpid(), }\StringTok{"fork()ing complete"}\NormalTok{);}
+  \NormalTok{sleep(}\DecValTok{3}\NormalTok{);}
+    
+  \NormalTok{printf(}\StringTok{"%d:%s}\CharTok{\textbackslash{}n}\StringTok{"}\NormalTok{,getpid(), }\StringTok{"Main thread finished"}\NormalTok{);}
+  
+  \NormalTok{pthread_exit(NULL);}
+  \KeywordTok{return} \DecValTok{0}\NormalTok{; }\CommentTok{/* Never executes */}
+\NormalTok{\}}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+8970:New Thread One starting up...
+8970:fork()ing complete
+8973:fork()ing complete
+8970:New Thread Two starting up...
+8970:New Thread Two finishing...
+8970:New Thread One finishing...
+8970:Main thread finished
+8973:Main thread finished
+\end{verbatim}
+
+In practice, creating threads before forking can lead to unexpected
+errors because (as demonstrated above) the other threads are immediately
+terminated when forking. Another thread might have just lock a mutex
+(e.g.~by calling malloc) and never unlock it again. Advanced users may
+find \texttt{pthread\_atfork} useful however we suggest you usually try
+to avoid creating threads before forking unless you fully understand the
+limitations and difficulties of this approach.
+
+\subsection{\texorpdfstring{Are there other reasons where \texttt{fork}
+might be preferable to creating a
+thread.}{Are there other reasons where fork might be preferable to creating a thread.}}\label{are-there-other-reasons-where-fork-might-be-preferable-to-creating-a-thread.}
+
+Creating separate processes is useful * When more security is desired
+(for example, Chrome browser uses different processes for different
+tabs) * When running an existing and complete program then a new process
+is required (e.g.~starting `gcc') * When you are running into
+synchronization primitives and each process is operating on something in
+the system
+
+\subsection{How can I find out more?}\label{how-can-i-find-out-more}
+
+See the complete example in the
+\href{http://man7.org/linux/man-pages/man3/pthread_create.3.html}{man
+page} And the
+\href{http://man7.org/linux/man-pages/man7/pthreads.7.html}{pthread
+reference guide} ALSO:
+\href{http://www.thegeekstuff.com/2012/04/terminate-c-thread/}{Concise
+third party sample code explaining create, join and exit}
+
+\section{Overview}\label{overview}
+
+The next section deals with what happens when pthreads collide, but what
+if we have each thread do something entirely different, no overlap?
+
+We have found the maximum speedup parallel problems?
+
+\subsection{Embarrassingly Parallel
+Problems}\label{embarrassingly-parallel-problems}
+
+The study of parallel algorithms has exploded over the past few years.
+An embarrassingly parallel problem is any problem that needs little
+effort to turn parallel. A lot of them have some synchronization
+concepts with them but not always. You already know a parallelizable
+algorithm, Merge Sort!
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\DataTypeTok{void} \NormalTok{merge_sort(}\DataTypeTok{int} \NormalTok{*arr, size_t len)\{}
+     \KeywordTok{if}\NormalTok{(len > }\DecValTok{1}\NormalTok{)\{}
+     \CommentTok{//Mergesort the left half}
+     \CommentTok{//Mergesort the right half}
+     \CommentTok{//Merge the two halves}
+     \NormalTok{\}}
+\end{Highlighting}
+\end{Shaded}
+
+With your new understanding of threads, all you need to do is create a
+thread for the left half, and one for the right half. Given that your
+CPU has multiple real cores, you will see a speedup in accordance with
+\href{https://en.wikipedia.org/wiki/Amdahl's_law}{Amdahl's Law}. The
+time complexity analysis gets interesting here as well. The parallel
+algorithm runs in O(log\^{}3(n)) running time (because we fancy analysis
+assuming that we have a lot of cores.
+
+In practice though, we typically do two changes. One, once the array
+gets small enough, we ditch the parallel mergesort algorithm and do a
+quicksort or other algorithm that works fast on small arrays (something
+something cache coherency). The other thing that we know is that CPUs
+don't have infinite cores. To get around that, we typically keep a
+worker pool.
+
+\subsection{Worker Pool}\label{worker-pool}
+
+We know that CPUs have a finite amount of cores. A lot of times we start
+up a number of threads and give them tasks as they idle.
+
+\subsection{Another problem, Parallel
+Map}\label{another-problem-parallel-map}
+
+Say we want to apply a function to an entire array, one element at a
+time.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+
+\DataTypeTok{int} \NormalTok{*map(}\DataTypeTok{int} \NormalTok{(*func)(}\DataTypeTok{int}\NormalTok{), }\DataTypeTok{int} \NormalTok{*arr, size_t len)\{}
+    \DataTypeTok{int} \NormalTok{*ret = malloc(len*}\KeywordTok{sizeof}\NormalTok{(*arr));}
+    \KeywordTok{for}\NormalTok{(size_t i = }\DecValTok{0}\NormalTok{; i < len; ++i) }
+        \NormalTok{ret[i] = func(arr[i]);}
+    \KeywordTok{return} \NormalTok{ret;}
+\NormalTok{\}}
+\end{Highlighting}
+\end{Shaded}
+
+Since none of the elements depend on any other element, how would you go
+about parallelizing this? What do you think would be the best way to
+split up the work between threads.
+
+\subsection{Scheduling}\label{scheduling}
+
+There are a few ways to split up the work. * static scheduling: break up
+the problems into fixed size chunks (predetermined) and have each thread
+work on each of the chunks. This works well when each of the subproblems
+take roughly the same time because there is no additional overhead. All
+you need to do is write a loop and give the map function to each
+subarray. * dynamic scheduling: as a new problem becomes available have
+a thread serve it. This is useful when you don't know how long the
+scheduling will take * guided scheduling: This is a mix of the above
+with a mix of the benefits and the tradeoffs. You start with a static
+scheduling and move slowly to dynamic if needed * runtime scheduling:
+You have absolutely no idea how long the problems are going to take.
+Instead of deciding it yourself, let the program decide what to do!
+
+\href{https://software.intel.com/en-us/articles/openmp-loop-scheduling}{source},
+but no need to memorize.
+
+\subsection{Few Drawbacks}\label{few-drawbacks}
+
+You won't see the speedup right away because of things like cache
+coherency and scheduling extra threads.
+
+\subsection{Other Problems}\label{other-problems}
+
+From
+\href{https://en.wikipedia.org/wiki/Embarrassingly_parallel}{Wikipedia}
+* Serving static files on a webserver to multiple users at once. * The
+Mandelbrot set, Perlin noise and similar images, where each point is
+calculated independently. * Rendering of computer graphics. In computer
+animation, each frame may be rendered independently (see parallel
+rendering). * Brute-force searches in cryptography.{[}8{]} Notable
+real-world examples include distributed.net and proof-of-work systems
+used in cryptocurrency. * BLAST searches in bioinformatics for multiple
+queries (but not for individual large queries) {[}9{]} * Large scale
+facial recognition systems that compare thousands of arbitrary acquired
+faces (e.g., a security or surveillance video via closed-circuit
+television) with similarly large number of previously stored faces
+(e.g., a rogues gallery or similar watch list).{[}10{]} * Computer
+simulations comparing many independent scenarios, such as climate
+models. * Evolutionary computation metaheuristics such as genetic
+algorithms. * Ensemble calculations of numerical weather prediction. *
+Event simulation and reconstruction in particle physics. * The marching
+squares algorithm * Sieving step of the quadratic sieve and the number
+field sieve. * Tree growth step of the random forest machine learning
+technique. * Discrete Fourier Transform where each harmonic is
+independently calculated.
+
+\section{Topics}\label{topics}
+
+\begin{itemize}
+\tightlist
+\item
+  pthread lifecycle
+\item
+  Each thread has a stack
+\item
+  Capturing return values from a thread
+\item
+  Using \texttt{pthread\_join}
+\item
+  Using \texttt{pthread\_create}
+\item
+  Using \texttt{pthread\_exit}
+\item
+  Under what conditions will a process exit
+\end{itemize}
+
+\section{Questions}\label{questions}
+
+\begin{itemize}
+\tightlist
+\item
+  What happens when a pthread gets created? (you don't need to go into
+  super specifics)
+\item
+  Where is each thread's stack?
+\item
+  How do you get a return value given a \texttt{pthread\_t}? What are
+  the ways a thread can set that return value? What happens if you
+  discard the return value?
+\item
+  Why is \texttt{pthread\_join} important (think stack space, registers,
+  return values)?
+\item
+  What does \texttt{pthread\_exit} do under normal circumstances (ie you
+  are not the last thread)? What other functions are called when you
+  call pthread\_exit?
+\item
+  Give me three conditions under which a multithreaded process will
+  exit. Can you think of any more?
+\item
+  What is an embarrassingly parallel problem?
+\end{itemize}

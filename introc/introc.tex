@@ -1,1 +1,1923 @@
-./introc
+
+C is the de-facto programming language to do serious system serious programming. Why? Most kernels are written in largely in C. The Linux kernel \cite{Love} and the XNU kernel \citet{xnukernel} of which Mac OS X is based off. The Windows Kernel uses C++, but doing system programming on that is much harder on windows that UNIX for beginner system programmers. Most of you have some experience with C++, but C is a different beast entirely.
+
+\section{History of C}
+
+C was developed by Dennis Ritchie and Ken Thompson at Bell Labs back in 1973 \cite{Ritchie:1993:DCL:155360.155580}. Back then, we had gems of programming languages like Fortran, ALGOL, and LISP. The goal of C was two fold. One, to target the most popular computers at the time liek the PDP-7. Two, try and remove some of the lower level constructs like managing registers, programming assembly for jumps and instead create a language that had the power to express programs procedurally (as opposed to mathematically like lisp) with more readable code all while still having the ability to interface with the operating system. It sounded like a tough feat. At first, it was only used internally at Bell Labs along with the UNIX operating system. After
+
+The first "real" standardization is with Brian Kerninghan and Dennis Ritchies book \cite{kernighan1988c}. It is still widely regarded today as the only \gls{port} set of C instructions.
+
+\section{Differences Between Other Languages}
+
+\section{Features of C}
+
+\section{Crash course intro to C}\label{crash-course-intro-to-c}
+
+The only way to start learning C is in true Kerninghan and Ritchie fashion, with dissecting a hello world program. The K\&R book is known as the de-facto standard for learning C. There have been additions to it, but they have been few and far between over the years.
+
+\subsection{How do you write a complete hello world program in
+C?}\label{how-do-you-write-a-complete-hello-world-program-in-c}
+
+The only way to start learning C is by starting with hello world. As per the original example that Kernighan and Ritchie proposed way back when, the hello world hasn't changed that much.
+
+\begin{lstlisting}[language=C]
+#include <stdio.h>
+int main(void) { 
+    printf("Hello World\n");
+    return 0; 
+}
+\end{lstlisting}
+
+\begin{enumerate}
+  \item The \texttt{\#include} directive takes the file \texttt{stdio.h} (which stands for \textbf{st}an\textbf{d}ard \textbf{i}nput and \textbf{o}utput) located somewhere in your operating system, copies the text, and substitutes it where the \texttt{\#include} was.
+  \item The \texttt{int main(void)} is a function declaration. The first word \texttt{int} tells the compiler what the return type of the function is. The part before the parens (\texttt{main}) is the function name. In C, no two functions can have the same name in a single compiled program, shared libraries are a different touchy subject. Then, what comes after is the paramater list. When we give the parameter list for regular functions \texttt{(void)} that means that the compiler should error if the function is called with any arguments. For regular functions having a declaration like \texttt{void func()} means that you are allowed to call the function like \texttt{func(1, 2, 3)} because there is no delimiter \cite{CITATION_NEEDED}. In the case of \texttt{main}, it is a special function. There are many ways of declaring \texttt{main} but the ones that you will be familiar with are \texttt{int main(void)}, \texttt{int main()}, and \texttt{int main(int argc, char *argv[])}.
+  \item \texttt{printf("Hello World\n");} is what we call a function call. \texttt{printf} is defined as a part of \texttt{stdio.h}. The function has been compiled and lives somewhere else on our machine. All we need to do is include the header and call the function with the appropriate parameters (a string literal \texttt{"Hello World\n"})
+  \item \texttt{return 0;}. \texttt{main} has to return an integer. By convention, \texttt{return 0} means success and anything else means failure \cite{CITATION_NEEDED}.
+\end{enumerate}
+
+\begin{verbatim}
+$ gcc main.c -o main
+$ ./main
+Hello World
+$
+\end{verbatim}
+
+\begin{enumerate}
+\item gcc
+\end{enumerate}
+
+\section{Preprocessor}
+
+\subsection{Parsing}
+
+\subsection{Syntactic Parsing}
+
+\section{Language Facilities}
+
+\subsection{Keywords}
+
+C has an assortment of keywords
+
+\subsection{Operators}
+
+\section{Common Functions}
+
+\subsection{Input/Output}
+
+\subsection{Parsing}
+
+\subsection{string.h}
+
+\subsection{Conventions/Errno}
+
+\section{C Memory Model}
+
+\section{Pointer Arithmetic}
+
+\begin{comment}
+
+\subsection{How are C strings represented?}\label{how-are-c-strings-represented}
+
+They are represented as characters in memory. The end of the string includes a NULL (0) byte \cite{CITATION_NEEDED}. So ``ABC'' requires four(4) bytes \texttt{{[}\textquotesingle{}A\textquotesingle{},\textquotesingle{}B\textquotesingle{},\textquotesingle{}C\textquotesingle{},\textquotesingle{}\textbackslash{}0\textquotesingle{}{]}}.
+The only way to find out the length of a C string is to keep reading memory until you find the NULL byte. C characters are always exactly one byte each.
+
+When you write a string literal \texttt{"ABC"} in an expression the string literal evaluates to a char pointer (\texttt{char\ *}), which points to the first byte/char of the string. This means \texttt{ptr} in the example below will hold the memory address of the first character in the string.
+
+\begin{lstlisting}[language=C]
+char *ptr = "ABC"
+\end{lstlisting}
+
+Some common ways to initialize a string include:
+
+\begin{lstlisting}[language=C]
+char *str = "ABC";
+char str[] = "ABC";
+char str[]={'A','B','C','\0'};
+\end{lstlisting}
+
+\subsection{How do you declare a pointer?}\label{how-do-you-declare-a-pointer}
+
+A pointer refers to a memory address. The type of the pointer is useful
+- it tells the compiler how many bytes need to be read/written. You can
+declare a pointer as follows.
+
+\begin{lstlisting}[language=C]
+int *ptr1;
+char *ptr2;
+\end{lstlisting}
+
+Due to C's grammar, an \texttt{int*} or any pointer is not actually its
+own type. You have to precede each pointer variable with an asterisk. As
+a common gotcha, the following
+
+\begin{lstlisting}[language=C]
+int* ptr3, ptr4;
+\end{lstlisting}
+
+Will only declare \texttt{*ptr3} as a pointer. \texttt{ptr4} will
+actually be a regular int variable. To fix this declaration, keep the
+\texttt{*} preceding to the pointer
+
+\begin{lstlisting}[language=C]
+int *ptr3, *ptr4;
+\end{lstlisting}
+
+\subsection{How do you use a pointer to read/write some
+memory?}\label{how-do-you-use-a-pointer-to-readwrite-some-memory}
+
+Let's say that we declare a pointer \texttt{int\ *ptr}. For the sake of
+discussion, let's say that \texttt{ptr} points to memory address
+\texttt{0x1000}. If we want to write to a pointer, we can dereference
+and assign \texttt{*ptr}.
+
+\begin{lstlisting}[language=C]
+*ptr = 0; // Writes some memory.
+\end{lstlisting}
+
+What C will do is take the type of the pointer which is an \texttt{int}
+and writes \texttt{sizeof(int)} bytes from the start of the pointer,
+meaning that bytes \texttt{0x1000}, \texttt{0x1001}, \texttt{0x1002},
+\texttt{0x1003} will all be zero. The number of bytes written depends on
+the pointer type. It is the same for all primitive types but structs are
+a little different.
+
+\subsection{What is pointer
+arithmetic?}\label{what-is-pointer-arithmetic}
+
+You can add an integer to a pointer. However, the pointer type is used
+to determine how much to increment the pointer. For char pointers this
+is trivial because characters are always one byte:
+
+\begin{lstlisting}[language=C]
+char *ptr = "Hello"; // ptr holds the memory location of 'H'
+ptr += 2; //ptr now points to the first'l'
+\end{lstlisting}
+
+If an int is 4 bytes then ptr+1 points to 4 bytes after whatever ptr is
+pointing at.
+
+\begin{lstlisting}[language=C]
+char *ptr = "ABCDEFGH";
+int *bna = (int *) ptr;
+bna +=1; // Would cause iterate by one integer space (i.e 4 bytes on some systems)
+ptr = (char *) bna;
+printf("%s", ptr);
+/* Notice how only 'EFGH' is printed. Why is that? Well as mentioned above, when performing 'bna+=1' we are increasing the **integer** pointer by 1, (translates to 4 bytes on most systems) which is equivalent to 4 characters (each character is only 1 byte)*/
+return 0;
+\end{lstlisting}
+
+Because pointer arithmetic in C is always automatically scaled by the
+size of the type that is pointed to, you can't perform pointer
+arithmetic on void pointers.
+
+You can think of pointer arithmetic in C as essentially doing the
+following
+
+If I want to do
+
+\begin{lstlisting}[language=C]
+int *ptr1 = ...;
+int *offset = ptr1 + 4;
+\end{lstlisting}
+
+Think
+
+\begin{lstlisting}[language=C]
+int *ptr1 = ...;
+char *temp_ptr1 = (char*) ptr1;
+int *offset = (int*)(temp_ptr1 + sizeof(int)*4);
+\end{lstlisting}
+
+To get the value. \textbf{Every time you do pointer arithmetic, take a
+deep breath and make sure that you are shifting over the number of bytes
+you think you are shifting over.}
+
+\subsection{What is a void pointer?}\label{what-is-a-void-pointer}
+
+A pointer without a type (very similar to a void variable). Void
+pointers are used when either a datatype you're dealing with is unknown
+or when you're interfacing C code with other programming languages. You
+can think of this as a raw pointer, or just a memory address. You cannot
+directly read or write to it because the void type does not have a size.
+For Example
+
+\begin{lstlisting}[language=C]
+void *give_me_space = malloc(10);
+char *string = give_me_space;
+\end{lstlisting}
+
+This does not require a cast because C automatically promotes
+\texttt{void*} to its appropriate type. \textbf{Note:}
+
+gcc and clang are not total ISO-C compliant, meaning that they will let
+you do arithmetic on a void pointer. They will treat it as a char
+pointer but do not do this because it may not work with all compilers!
+
+\subsection{\texorpdfstring{Does \texttt{printf} call write or does
+write call
+\texttt{printf}?}{Does printf call write or does write call printf?}}\label{does-printf-call-write-or-does-write-call-printf}
+
+\texttt{printf} calls \texttt{write}. \texttt{printf} includes an
+internal buffer so, to increase performance \texttt{printf} may not call
+\texttt{write} everytime you call \texttt{printf}. \texttt{printf} is a
+C library function. \texttt{write} is a system call and as we know
+system calls are expensive. On the other hand, \texttt{printf} uses a
+buffer which suits our needs better at that point
+
+\subsection{How do you print out pointer values? integers?
+strings?}\label{how-do-you-print-out-pointer-values-integers-strings}
+
+Use format specifiers ``\%p'' for pointers, ``\%d'' for integers and
+``\%s'' for Strings. A full list of all of the format specifiers is
+found \href{http://www.cplusplus.com/reference/cstdio/printf/}{here}
+
+Example of integer:
+
+\begin{lstlisting}[language=C]
+int num1 = 10;
+printf("%d", num1); //prints num1
+\end{lstlisting}
+
+Example of integer pointer:
+
+\begin{lstlisting}[language=C]
+int *ptr = (int *) malloc(sizeof(int));
+*ptr = 10;
+printf("%p\n", ptr); //prints the address pointed to by the pointer
+printf("%p\n", &ptr); /*prints the address of pointer -- extremely useful
+when dealing with double pointers*/
+printf("%d", *ptr); //prints the integer content of ptr
+return 0;
+\end{lstlisting}
+
+Example of string:
+
+\begin{lstlisting}[language=C]
+char *str = (char *) malloc(256 * sizeof(char));
+strcpy(str, "Hello there!");
+printf("%p\n", str); // print the address in the heap
+printf("%s", str);
+return 0;
+\end{lstlisting}
+
+\href{https://www.cs.bu.edu/teaching/c/string/intro/}{Strings as
+Pointers \& Arrays @ BU}
+
+\subsection{How would you make standard out be saved to a
+file?}\label{how-would-you-make-standard-out-be-saved-to-a-file}
+
+Simplest way: run your program and use shell redirection e.g.
+
+\begin{lstlisting}[language=C]
+./program > output.txt
+
+#To read the contents of the file,
+cat output.txt
+\end{lstlisting}
+
+More complicated way: close(1) and then use open to re-open the file
+descriptor. See
+{[}{[}http://cs-education.github.io/sys/\#chapter/0/section/3/activity/0{]}{]}
+\#\# What's the difference between a pointer and an array? Give an
+example of something you can do with one but not the other.
+
+\begin{lstlisting}[language=C]
+char ary[] = "Hello";
+char *ptr = "Hello";
+\end{lstlisting}
+
+Example
+
+The array name points to the first byte of the array. Both \texttt{ary}
+and \texttt{ptr} can be printed out:
+
+\begin{lstlisting}[language=C]
+char ary[] = "Hello";
+char *ptr = "Hello";
+// Print out address and contents
+printf("%p : %s\n", ary, ary);
+printf("%p : %s\n", ptr, ptr);
+\end{lstlisting}
+
+The array is mutable, so we can change its contents (be careful not to
+write bytes beyond the end of the array though). Fortunately, `World' is
+no longer than 'Hello"
+
+In this case, the char pointer \texttt{ptr} points to some read-only
+memory (where the statically allocated string literal is stored), so we
+cannot change those contents.
+
+\begin{lstlisting}[language=C]
+strcpy(ary, "World"); // OK
+strcpy(ptr, "World"); // NOT OK - Segmentation fault (crashes)
+\end{lstlisting}
+
+We can, however, unlike the array, we change \texttt{ptr} to point to
+another piece of memory,
+
+\begin{lstlisting}[language=C]
+ptr = "World"; // OK!
+ptr = ary; // OK!
+ary = (..anything..) ; // WONT COMPILE
+// ary is doomed to always refer to the original array.
+printf("%p : %s\n", ptr, ptr);
+strcpy(ptr, "World"); // OK because now ptr is pointing to mutable memory (the array)
+\end{lstlisting}
+
+What to take away from this is that pointers * can point to any type of
+memory while C arrays {[}{]} can only point to memory on the stack. In a
+more common case, pointers will point to heap memory in which case the
+memory referred to by the pointer CAN be modified.
+
+\subsection{\texorpdfstring{\texttt{sizeof()} returns the number of
+bytes. So using above code, what is sizeof(ary) and
+sizeof(ptr)?}{sizeof() returns the number of bytes. So using above code, what is sizeof(ary) and sizeof(ptr)?}}\label{sizeof-returns-the-number-of-bytes.-so-using-above-code-what-is-sizeofary-and-sizeofptr}
+
+\texttt{sizeof(ary)}: \texttt{ary} is an array. Returns the number of
+bytes required for the entire array (5 chars + zero byte = 6 bytes)
+\texttt{sizeof(ptr)}: Same as sizeof(char *). Returns the number bytes
+required for a pointer (e.g.~4 or 8 for a 32 bit or 64-bit machine)
+\texttt{sizeof} is a special operator. Really it's something the
+compiler substitutes in before compiling the program because the size of
+all types is known at compile time. When you have \texttt{sizeof(char*)}
+that takes the size of a pointer on your machine (8 bytes for a 64-bit
+machine and 4 for a 32 bit and so on). When you try
+\texttt{sizeof(char{[}{]})}, the compiler looks at that and substitutes
+the number of bytes that the \textbf{entire} array contains because the
+total size of the array is known at compile time.
+
+\begin{lstlisting}[language=C]
+char str1[] = "will be 11";
+char* str2 = "will be 8";
+sizeof(str1) //11 because it is an array
+sizeof(str2) //8 because it is a pointer
+\end{lstlisting}
+
+Be careful, using sizeof for the length of a string!
+
+\subsection{Which of the following code is incorrect or correct and
+why?}\label{which-of-the-following-code-is-incorrect-or-correct-and-why}
+
+\begin{lstlisting}[language=C]
+int* f1(int *p) {
+    *p = 42;
+    return p;
+} // This code is correct;
+\end{lstlisting}
+
+\begin{lstlisting}[language=C]
+char* f2() {
+    char p[] = "Hello";
+    return p;
+} // Incorrect!
+\end{lstlisting}
+
+Explanation: An array p is created on the stack for the correct size to
+hold H,e,l,l,o, and a null byte i.e. (6) bytes. This array is stored on
+the stack and is invalid after we return from f2.
+
+\begin{lstlisting}[language=C]
+char* f3() {
+    char *p = "Hello";
+    return p;
+} // OK
+\end{lstlisting}
+
+Explanation: p is a pointer. It holds the address of the string
+constant. The string constant is unchanged and valid even after f3
+returns.
+
+\begin{lstlisting}[language=C]
+char* f4() {
+    static char p[] = "Hello";
+    return p;
+} // OK
+\end{lstlisting}
+
+Explanation: The array is static meaning it exists for the lifetime of
+the process (static variables are not on the heap or the stack).
+
+\subsection{How do you look up information C library calls and system
+calls?}\label{how-do-you-look-up-information-c-library-calls-and-system-calls}
+
+Use the man pages. Note the man pages are organized into sections.
+Section 2 = System calls. Section 3 = C libraries. Web: Google ``man7
+open'' shell: man -S2 open or man -S3 printf
+
+\subsection{How do you allocate memory on the
+heap?}\label{how-do-you-allocate-memory-on-the-heap}
+
+Use malloc. There's also realloc and calloc. Typically used with sizeof.
+e.g.~enough space to hold 10 integers
+
+\begin{lstlisting}[language=C]
+int *space = malloc(sizeof(int) * 10);
+\end{lstlisting}
+
+\subsection{What's wrong with this string copy
+code?}\label{whats-wrong-with-this-string-copy-code}
+
+\begin{lstlisting}[language=C]
+void mystrcpy(char*dest, char* src) { 
+  // void means no return value   
+  while( *src ) { dest = src; src ++; dest++; }  
+}
+\end{lstlisting}
+
+In the above code it simply changes the dest pointer to point to source
+string. Also the nuls bytes are not copied. Here's a better version -
+
+\begin{lstlisting}[language=C]
+  while( *src ) { *dest = *src; src ++; dest++; } 
+  *dest = *src;
+\end{lstlisting}
+
+Note it's also usual to see the following kind of implementation, which
+does everything inside the expression test, including copying the nul
+byte.
+
+\begin{lstlisting}[language=C]
+  while( (*dest++ = *src++ )) {};
+\end{lstlisting}
+
+\subsection{How do you write a strdup
+replacement?}\label{how-do-you-write-a-strdup-replacement}
+
+\begin{lstlisting}[language=C]
+// Use strlen+1 to find the zero byte... 
+char* mystrdup(char*source) {
+   char *p = (char *) malloc ( strlen(source)+1 );
+   strcpy(p,source);
+   return p;
+}
+\end{lstlisting}
+
+\subsection{How do you unallocate memory on the
+heap?}\label{how-do-you-unallocate-memory-on-the-heap}
+
+Use free!
+
+\begin{lstlisting}[language=C]
+int *n = (int *) malloc(sizeof(int));
+*n = 10;
+//Do some work
+free(n);
+\end{lstlisting}
+
+\subsection{What is double free error? How can you avoid? What is a
+dangling pointer? How do you
+avoid?}\label{what-is-double-free-error-how-can-you-avoid-what-is-a-dangling-pointer-how-do-you-avoid}
+
+A double free error is when you accidentally attempt to free the same
+allocation twice.
+
+\begin{lstlisting}[language=C]
+int *p = malloc(sizeof(int));
+free(p);
+
+*p = 123; // Oops! - Dangling pointer! Writing to memory we don't own anymore
+
+free(p); // Oops! - Double free!
+\end{lstlisting}
+
+The fix is first to write correct programs! Secondly, it's good
+programming hygiene to reset pointers once the memory has been freed.
+This ensures the pointer can't be used incorrectly without the program
+crashing.
+
+Fix:
+
+\begin{lstlisting}[language=C]
+p = NULL; // Now you can't use this pointer by mistake
+\end{lstlisting}
+
+\subsection{What is an example of buffer
+overflow?}\label{what-is-an-example-of-buffer-overflow}
+
+Famous example: Heart Bleed (performed a memcpy into a buffer that was
+of insufficient size). Simple example: implement a strcpy and forget to
+add one to strlen, when determining the size of the memory required.
+
+\subsection{\texorpdfstring{What is `typedef' and how do you use
+it?}{What is typedef and how do you use it?}}\label{what-is-typedef-and-how-do-you-use-it}
+
+Declares an alias for a type. Often used with structs to reduce the
+visual clutter of having to write `struct' as part of the type.
+
+\begin{lstlisting}[language=C]
+typedef float real; 
+real gravity = 10;
+// Also typedef gives us an abstraction over the underlying type used. 
+// In the future, we only need to change this typedef if we
+// wanted our physics library to use doubles instead of floats.
+
+typedef struct link link_t; 
+//With structs, include the keyword 'struct' as part of the original types
+\end{lstlisting}
+
+In this class, we regularly typedef functions. A typedef for a function
+can be this for example
+
+\begin{lstlisting}[language=C]
+typedef int (*comparator)(void*,void*);
+
+int greater_than(void* a, void* b){
+    return a > b;
+}
+comparator gt = greater_than;
+\end{lstlisting}
+
+This declares a function type comparator that accepts two \texttt{void*}
+params and returns an integer.
+
+\section{Printing to Streams}\label{printing-to-streams}
+
+\subsection{How do I print strings, ints, chars to the standard output
+stream?}\label{how-do-i-print-strings-ints-chars-to-the-standard-output-stream}
+
+Use \texttt{printf}. The first parameter is a format string that
+includes placeholders for the data to be printed. Common format
+specifiers are \texttt{\%s} treat the argument as a c string pointer,
+keep printing all characters until the NULL-character is reached;
+\texttt{\%d} print the argument as an integer; \texttt{\%p} print the
+argument as a memory address.
+
+A simple example is shown below:
+
+\begin{lstlisting}[language=C]
+char *name = ... ; int score = ...;
+printf("Hello %s, your result is %d\n", name, score);
+printf("Debug: The string and int are stored at: %p and %p\n", name, &score );
+// name already is a char pointer and points to the start of the array. 
+// We need "&" to get the address of the int variable
+\end{lstlisting}
+
+By default, for performance, \texttt{printf} does not actually write
+anything out (by calling write) until its buffer is full or a newline is
+printed.
+
+\subsection{How else can I print strings and single
+characters?}\label{how-else-can-i-print-strings-and-single-characters}
+
+Use \texttt{puts(\ name\ )} and \texttt{putchar(\ c\ )} where name is a
+pointer to a C string and c is just a \texttt{char}
+
+\subsection{How do I print to other file
+streams?}\label{how-do-i-print-to-other-file-streams}
+
+Use
+\texttt{fprintf(\ \_file\_\ ,\ "Hello\ \%s,\ score:\ \%d",\ name,\ score);}
+Where \_file\_ is either predefined `stdout' `stderr' or a FILE pointer
+that was returned by \texttt{fopen} or \texttt{fdopen}
+
+\subsection{Can I use file
+descriptors?}\label{can-i-use-file-descriptors}
+
+Yes! Just use \texttt{dprintf(int\ fd,\ char*\ format\_string,\ ...);}
+Just remember the stream may be buffered, so you will need to assure
+that the data is written to the file descriptor.
+
+\subsection{How do I print data into a C
+string?}\label{how-do-i-print-data-into-a-c-string}
+
+Use \texttt{sprintf} or better \texttt{snprintf}.
+
+\begin{lstlisting}[language=C]
+char result[200];
+int len = snprintf(result, sizeof(result), "%s:%d", name, score);
+\end{lstlisting}
+
+snprintf returns the number of characters written excluding the
+terminating byte. In the above example, this would be a maximum of 199.
+
+\subsection{\texorpdfstring{What if I really really want \texttt{printf}
+to call \texttt{write} without a
+newline?}{What if I really really want printf to call write without a newline?}}\label{what-if-i-really-really-want-printf-to-call-write-without-a-newline}
+
+Use \texttt{fflush(\ FILE*\ inp\ )}. The contents of the file will be
+written. If I wanted to write ``Hello World'' with no newline, I could
+write it like this.
+
+\begin{lstlisting}[language=C]
+int main(){
+    fprintf(stdout, "Hello World");
+    fflush(stdout);
+    return 0;
+}
+\end{lstlisting}
+
+\subsection{\texorpdfstring{How is \texttt{perror}
+helpful?}{How is perror helpful?}}\label{how-is-perror-helpful}
+
+Let's say that you have a function call that just failed (because you
+checked the man page and it is a failing return code).
+\texttt{perror(const\ char*\ message)} will print the English version of
+the error to stderr
+
+\begin{lstlisting}[language=C]
+int main(){
+    int ret = open("IDoNotExist.txt", O_RDONLY);
+    if(ret < 0){
+        perror("Opening IDoNotExist:");
+    }
+    //...
+    return 0;
+}
+\end{lstlisting}
+
+\section{Parsing Input}\label{parsing-input}
+
+\subsection{How do I parse numbers from
+strings?}\label{how-do-i-parse-numbers-from-strings}
+
+Use
+\texttt{long\ int\ strtol(const\ char\ *nptr,\ char\ **endptr,\ int\ base);}
+or
+\texttt{long\ long\ int\ strtoll(const\ char\ *nptr,\ char\ **endptr,\ int\ base);}.
+
+What these functions do is take the pointer to your string
+\texttt{*nptr} and a \texttt{base} (ie binary, octal, decimal,
+hexadecimal etc) and an optional pointer \texttt{endptr} and returns a
+parsed value.
+
+\begin{lstlisting}[language=C]
+int main(){
+    const char *nptr = "1A2436";
+    char* endptr;
+    long int result = strtol(nptr, &endptr, 16);
+    return 0;
+}
+\end{lstlisting}
+
+Be careful though! Error handling is tricky because the function won't
+return an error code. If you give it a string that is not a number it
+will return 0. This means you cant differentiate between a valid ``0''
+and an invalid string. See the man page for more details on strol
+behavior with invalid and out of bounds values. A safer alternative is
+use to \texttt{sscanf} (and check the return value).
+
+\begin{lstlisting}[language=C]
+int main(){
+    const char *input = "0"; // or "!##@" or ""
+    char* endptr;
+    long int parsed = strtol(input, &endptr, 10);
+    if(parsed == 0){
+        // Either the input string was not a valid base-10 number or it really was zero!
+
+    }
+    return 0;
+}
+\end{lstlisting}
+
+\subsection{\texorpdfstring{How do I parse input using \texttt{scanf}
+into
+parameters?}{How do I parse input using scanf into parameters?}}\label{how-do-i-parse-input-using-scanf-into-parameters}
+
+Use \texttt{scanf} (or \texttt{fscanf} or \texttt{sscanf}) to get input
+from the default input stream, an arbitrary file stream or a C string
+respectively. It's a good idea to check the return value to see how many
+items were parsed. \texttt{scanf} functions require valid pointers. It's
+a common source of error to pass in an incorrect pointer value. For
+example,
+
+\begin{lstlisting}[language=C]
+int *data = (int *) malloc(sizeof(int));
+char *line = "v 10";
+char type;
+// Good practice: Check scanf parsed the line and read two values:
+int ok = 2 == sscanf(line, "%c %d", &type, &data); // pointer error
+\end{lstlisting}
+
+We wanted to write the character value into c and the integer value into
+the malloc'd memory. However, we passed the address of the data pointer,
+not what the pointer is pointing to! So \texttt{sscanf} will change the
+pointer itself. i.e.~the pointer will now point to address 10 so this
+code will later fail e.g.~when free(data) is called.
+
+\subsection{How do I stop scanf from causing a buffer
+overflow?}\label{how-do-i-stop-scanf-from-causing-a-buffer-overflow}
+
+The following code assumes the scanf won't read more than 10 characters
+(including the terminating byte) into the buffer.
+
+\begin{lstlisting}[language=C]
+char buffer[10];
+scanf("%s",buffer);
+\end{lstlisting}
+
+You can include an optional integer to specify how many characters
+EXCLUDING the terminating byte:
+
+\begin{lstlisting}[language=C]
+char buffer[10];
+scanf("%9s", buffer); // reads up to 9 charactes from input (leave room for the 10th byte to be the terminating byte)
+\end{lstlisting}
+
+\subsection{\texorpdfstring{Why is \texttt{gets} dangerous? What should
+I use
+instead?}{Why is gets dangerous? What should I use instead?}}\label{why-is-gets-dangerous-what-should-i-use-instead}
+
+The following code is vulnerable to buffer overflow. It assumes or
+trusts that the input line will be no more than 10 characters, including
+the terminating byte.
+
+\begin{lstlisting}[language=C]
+char buf[10];
+gets(buf); // Remember the array name means the first byte of the array
+\end{lstlisting}
+
+\texttt{gets} is deprecated in C99 standard and has been removed from
+the latest C standard (C11). Programs should use \texttt{fgets} or
+\texttt{getline} instead.
+
+Where each has the following structure respectively:
+
+\begin{lstlisting}[language=C]
+char *fgets (char *str, int num, FILE *stream); 
+
+ssize_t getline(char **lineptr, size_t *n, FILE *stream);
+\end{lstlisting}
+
+Here's a simple, safe way to read a single line. Lines longer than 9
+characters will be truncated:
+
+\begin{lstlisting}[language=C]
+char buffer[10];
+char *result = fgets(buffer, sizeof(buffer), stdin);
+\end{lstlisting}
+
+The result is NULL if there was an error or the end of the file is
+reached. Note, unlike \texttt{gets}, \texttt{fgets} copies the newline
+into the buffer, which you may want to discard-
+
+\begin{lstlisting}[language=C]
+if (!result) { return; /* no data - don't read the buffer contents */}
+
+int i = strlen(buffer) - 1;
+if (buffer[i] == '\n') 
+    buffer[i] = '\0';
+\end{lstlisting}
+
+\subsection{\texorpdfstring{How do I use
+\texttt{getline}?}{How do I use getline?}}\label{how-do-i-use-getline}
+
+One of the advantages of \texttt{getline} is that will automatically
+(re-) allocate a buffer on the heap of sufficient size.
+
+\begin{lstlisting}[language=C]
+// ssize_t getline(char **lineptr, size_t *n, FILE *stream);
+
+ /* set buffer and size to 0; they will be changed by getline */
+char *buffer = NULL;
+size_t size = 0;
+
+ssize_t chars = getline(&buffer, &size, stdin);
+
+// Discard newline character if it is present,
+if (chars > 0 && buffer[chars-1] == '\n') 
+    buffer[chars-1] = '\0';
+
+// Read another line.
+// The existing buffer will be re-used, or, if necessary,
+// It will be `free`'d and a new larger buffer will `malloc`'d
+chars = getline(&buffer, &size, stdin);
+
+// Later... don't forget to free the buffer!
+free(buffer);
+\end{lstlisting}
+
+What common mistakes do C programmers make?
+
+\section{Memory mistakes}\label{memory-mistakes}
+
+\subsection{String constants are
+constant}\label{string-constants-are-constant}
+
+\begin{lstlisting}[language=C]
+char array[] = "Hi!"; // array contains a mutable copy 
+strcpy(array, "OK");
+
+char *ptr = "Can't change me"; // ptr points to some immutable memory
+strcpy(ptr, "Will not work");
+\end{lstlisting}
+
+String literals are character arrays stored in the code segment of the
+program, which is immutable. Two string literals may share the same
+space in memory. An example follows:
+
+\begin{lstlisting}[language=C]
+char *str1 = "Brandon Chong is the best TA";
+char *str2 = "Brandon Chong is the best TA";
+\end{lstlisting}
+
+The strings pointed to by \texttt{str1} and \texttt{str2} may actually
+reside in the same location in memory.
+
+Char arrays, however, contain the literal value which has been copied
+from the code segment into either the stack or static memory. These
+following char arrays do not reside in the same place in memory.
+
+\begin{lstlisting}[language=C]
+char arr1[] = "Brandon Chong didn't write this";
+char arr2[] = "Brandon Chong didn't write this";
+\end{lstlisting}
+
+\subsection{Buffer overflow/ underflow}\label{buffer-overflow-underflow}
+
+\begin{lstlisting}[language=C]
+#define N (10)
+int i = N, array[N];
+for( ; i >= 0; i--) array[i] = i;
+\end{lstlisting}
+
+C does not check that pointers are valid. The above example writes into
+\texttt{array{[}10{]}} which is outside the array bounds. This can cause
+memory corruption because that memory location is probably being used
+for something else. In practice, this can be harder to spot because the
+overflow/underflow may occur in a library call e.g.
+
+\begin{lstlisting}[language=C]
+gets(array); // Let's hope the input is shorter than my array!
+\end{lstlisting}
+
+\subsection{Returning pointers to automatic
+variables}\label{returning-pointers-to-automatic-variables}
+
+\begin{lstlisting}[language=C]
+int *f() {
+    int result = 42;
+    static int imok;
+    return &imok; // OK - static variables are not on the stack
+    return &result; // Not OK
+}
+\end{lstlisting}
+
+Automatic variables are bound to stack memory only for the lifetime of
+the function. After the function returns it is an error to continue to
+use the memory. \#\# Insufficient memory allocation
+
+\begin{lstlisting}[language=C]
+struct User {
+   char name[100];
+};
+typedef struct User user_t;
+
+user_t *user = (user_t *) malloc(sizeof(user));
+\end{lstlisting}
+
+In the above example, we needed to allocate enough bytes for the struct.
+Instead, we allocated enough bytes to hold a pointer. Once we start
+using the user pointer we will corrupt memory. The correct code is shown
+below.
+
+\begin{lstlisting}[language=C]
+struct User {
+   char name[100];
+};
+typedef struct User user_t;
+
+user_t * user = (user_t *) malloc(sizeof(user_t));
+\end{lstlisting}
+
+\paragraph{\texorpdfstring{Strings require \texttt{strlen(s)+1}
+bytes}{Strings require strlen(s)+1 bytes}}\label{strings-require-strlens1-bytes}
+
+Every string must have a null byte after the last characters. To store
+the string ``Hi'' it takes 3 bytes: {[}H{]} {[}i{]} {[}\0{]}.
+
+\begin{lstlisting}[language=C]
+  char *strdup(const char *input) {  /* return a copy of 'input' */
+    char *copy;
+    copy = malloc(sizeof(char*));     /* nope! this allocates space for a pointer, not a string */
+    copy = malloc(strlen(input));     /* Almost...but what about the null terminator? */
+    copy = malloc(strlen(input) + 1); /* That's right. */
+    strcpy(copy, input);   /* strcpy will provide the null terminator */
+    return copy;
+}
+\end{lstlisting}
+
+\subsection{Using uninitialized
+variables}\label{using-uninitialized-variables}
+
+\begin{lstlisting}[language=C]
+int myfunction() {
+  int x;
+  int y = x + 2;
+...
+\end{lstlisting}
+
+Automatic variables hold garbage (whatever bit pattern happened to be in
+memory). It is an error to assume that it will always be initialized to
+zero.
+
+\subsection{Assuming Uninitialized memory will be
+zeroed}\label{assuming-uninitialized-memory-will-be-zeroed}
+
+\begin{lstlisting}[language=C]
+void myfunct() {
+   char array[10];
+   char *p = malloc(10);
+\end{lstlisting}
+
+Automatic (temporary variables) are not automatically initialized to
+zero. Heap allocations using malloc are not automatically initialized to
+zero.
+
+\subsection{Double-free}\label{double-free}
+
+\begin{lstlisting}[language=C]
+  char *p = malloc(10);
+  free(p);
+//  .. later ...
+  free(p); 
+\end{lstlisting}
+
+It is an error to free the same block of memory twice. \#\# Dangling
+pointers
+
+\begin{lstlisting}[language=C]
+  char *p = malloc(10);
+  strcpy(p, "Hello");
+  free(p);
+//  .. later ...
+  strcpy(p,"World"); 
+\end{lstlisting}
+
+Pointers to freed memory should not be used. A defensive programming
+practice is to set pointers to null as soon as the memory is freed.
+
+It is a good idea to turn free into the following snippet that
+automatically sets the freed variable to null right after:(vim -
+ultisnips)
+
+\begin{lstlisting}[language=C]
+snippet free "free(something)" b
+free(${1});
+$1 = NULL;
+${2}
+endsnippet
+\end{lstlisting}
+
+\section{Logic and Program flow
+mistakes}\label{logic-and-program-flow-mistakes}
+
+\subsection{Forgetting break}\label{forgetting-break}
+
+\begin{lstlisting}[language=C]
+int flag = 1; // Will print all three lines.
+switch(flag) {
+  case 1: printf("I'm printed\n");
+  case 2: printf("Me too\n");
+  case 3: printf("Me three\n");
+}
+\end{lstlisting}
+
+Case statements without a break will just continue onto the code of the
+next case statement. The correct code is shown below. The break for the
+last statements is unnecessary because there are no more cases to be
+executed after the last one. If more are added, it can cause some bugs.
+
+\begin{lstlisting}[language=C]
+int flag = 1; // Will print only "I'm printed\n"
+switch(flag) {
+  case 1: 
+    printf("I'm printed\n");
+    break;
+  case 2: 
+    printf("Me too\n");
+    break;
+  case 3: 
+    printf("Me three\n");
+    break; //unnecessary
+}
+\end{lstlisting}
+
+\subsection{Equal vs.~equality}\label{equal-vs.equality}
+
+\begin{lstlisting}[language=C]
+int answer = 3; // Will print out the answer.
+if (answer = 42) { printf("I've solved the answer! It's %d", answer);}
+\end{lstlisting}
+
+\subsection{Undeclared or incorrectly prototyped
+functions}\label{undeclared-or-incorrectly-prototyped-functions}
+
+\begin{lstlisting}[language=C]
+time_t start = time();
+\end{lstlisting}
+
+The system function `time' actually takes a parameter (a pointer to some
+memory that can receive the time\_t structure). The compiler did not
+catch this error because the programmer did not provide a valid function
+prototype by including \texttt{time.h}
+
+\subsection{Extra Semicolons}\label{extra-semicolons}
+
+\begin{lstlisting}[language=C]
+for(int i = 0; i < 5; i++) ; printf("I'm printed once");
+while(x < 10); x++ ; // X is never incremented
+\end{lstlisting}
+
+However, the following code is perfectly OK.
+
+\begin{lstlisting}[language=C]
+for(int i = 0; i < 5; i++){
+    printf("%d\n", i);;;;;;;;;;;;;
+}
+\end{lstlisting}
+
+It is OK to have this kind of code, because the C language uses
+semicolons (;) to separate statements. If there is no statement in
+between semicolons, then there is nothing to do and the compiler moves
+on to the next statement
+
+\section{Other Gotchas}\label{other-gotchas}
+
+\subsection{Preprocessor}\label{preprocessor}
+
+What is the preprocessor? It is an operation that the compiler performs
+\textbf{before} actually compiling the program. It is a copy and paste
+command. Meaning that if I do the following.
+
+\begin{lstlisting}[language=C]
+#define MAX_LENGTH 10
+char buffer[MAX_LENGTH]
+\end{lstlisting}
+
+After preprocessing, it'll look like this.
+
+\begin{lstlisting}[language=C]
+char buffer[10]
+\end{lstlisting}
+
+\subsection{C Preprocessor macros and
+side-effects}\label{c-preprocessor-macros-and-side-effects}
+
+\begin{lstlisting}[language=C]
+#define min(a,b) ((a)<(b) ? (a) : (b))
+int x = 4;
+if(min(x++, 100)) printf("%d is six", x);
+\end{lstlisting}
+
+Macros are simple text substitution so the above example expands to
+\texttt{x++\ \textless{}\ 100\ ?\ x++\ :\ 100} (parenthesis omitted for
+clarity)
+
+\subsection{C Preprocessor macros and
+precedence}\label{c-preprocessor-macros-and-precedence}
+
+\begin{lstlisting}[language=C]
+#define min(a,b) a<b ? a : b
+int x = 99;
+int r = 10 + min(99, 100); // r is 100!
+\end{lstlisting}
+
+Macros are simple text substitution so the above example expands to
+\texttt{10\ +\ 99\ \textless{}\ 100\ ?\ 99\ :\ 100}
+
+\subsection{C Preprocessor logical
+gotcha}\label{c-preprocessor-logical-gotcha}
+
+\begin{lstlisting}[language=C]
+#define ARRAY_LENGTH(A) (sizeof((A)) / sizeof((A)[0]))
+int static_array[10]; // ARRAY_LENGTH(static_array) = 10
+int* dynamic_array = malloc(10); // ARRAY_LENGTH(dynamic_array) = 2 or 1
+\end{lstlisting}
+
+What is wrong with the macro? Well, it works if we have a static array
+like the first array because sizeof a static array returns the bytes
+that array takes up, and dividing it by the sizeof(an\_element) would
+give you the number of entries. But if we use a pointer to a piece of
+memory, taking the sizeof the pointer and dividing it by the size of the
+first entry won't always give us the size of the array.
+
+\subsection{\texorpdfstring{Does \texttt{sizeof} do
+anything?}{Does sizeof do anything?}}\label{does-sizeof-do-anything}
+
+\begin{lstlisting}[language=C]
+int a = 0;
+size_t size = sizeof(a++);
+printf("size: %lu, a: %d", size, a);
+\end{lstlisting}
+
+What does the code print out?
+
+\begin{lstlisting}[language=C]
+size: 4, a: 0
+\end{lstlisting}
+
+Because sizeof is not actually evaluated at runtime. The compiler
+assigns the type of all expressions and discards the extra results of
+the expression.
+
+\section{Strings, Structs, and
+Gotcha's}\label{strings-structs-and-gotchas}
+
+\section{So what's a string?}\label{so-whats-a-string}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics{https://i.imgur.com/CgsxyZb.png}
+\caption{String}
+\end{figure}
+
+In C we have
+\href{https://en.wikipedia.org/wiki/Null-terminated_string}{Null
+Terminated} strings rather than
+\href{https://en.wikipedia.org/wiki/String_(computer_science)\#Length-prefixed}{Length
+Prefixed} for historical reasons. What that means for your average
+everyday programming is that you need to remember the null character! A
+string in C is defined as a bunch of bytes until you reach `\0' or the
+Null Byte.
+
+\subsection{Two places for strings}\label{two-places-for-strings}
+
+Whenever you define a constant string (ie one in the form
+\texttt{char*\ str\ =\ "constant"}) That string is stored in the
+\emph{data} or \emph{code} segment that is \textbf{read-only} meaning
+that any attempt to modify the string will cause a segfault.
+
+If one, however, \texttt{malloc}'s space, one can change that string to
+be whatever they want.
+
+\subsection{Memory Mismanagement}\label{memory-mismanagement}
+
+One common gotcha is when you write the following
+
+\begin{lstlisting}[language=C]
+char* hello_string = malloc(14);
+                       ___ ___ ___ ___ ___ ___ ___ ___ ___ ___ ___ ___ ___ ___
+// hello_string ----> | g | a | r | b | a | g | e | g | a | r | b | a | g | e |
+                       ‾‾‾ ‾‾‾ ‾‾‾ ‾‾‾ ‾‾‾ ‾‾‾ ‾‾‾ ‾‾‾ ‾‾‾ ‾‾‾ ‾‾‾ ‾‾‾ ‾‾‾ ‾‾‾
+hello_string = "Hello Bhuvan!";
+// (constant string in the text segment)
+// hello_string ----> [ "H" , "e" , "l" , "l" , "o" , " " , "B" , "h" , "u" , "v" , "a" , "n" , "!" , "\0" ]
+                       ___ ___ ___ ___ ___ ___ ___ ___ ___ ___ ___ ___ ___ ___
+// memory_leak -----> | g | a | r | b | a | g | e | g | a | r | b | a | g | e |
+                       ‾‾‾ ‾‾‾ ‾‾‾ ‾‾‾ ‾‾‾ ‾‾‾ ‾‾‾ ‾‾‾ ‾‾‾ ‾‾‾ ‾‾‾ ‾‾‾ ‾‾‾ ‾‾‾
+hello_string[9] = 't'; //segfault!!
+\end{lstlisting}
+
+What did we do? We allocated space for 14 bytes, reassigned the pointer
+and successfully segfaulted! Remember to keep track of what your
+pointers are doing. What you probably wanted to do was use a
+\texttt{string.h} function \texttt{strcpy}.
+
+\begin{lstlisting}[language=C]
+strcpy(hello_string, "Hello Bhuvan!");
+\end{lstlisting}
+
+\subsection{Remember the NULL byte!}\label{remember-the-null-byte}
+
+Forgetting to NULL terminate a string is a big affect on the strings!
+Bounds checking is important. The heart bleed bug mentioned earlier in
+the wiki book is partially because of this.
+
+\subsection{Where can I find an In-Depth and Assignment-Comprehensive
+explanation of all of these
+functions?}\label{where-can-i-find-an-in-depth-and-assignment-comprehensive-explanation-of-all-of-these-functions}
+
+\href{https://linux.die.net/man/3/string}{Right Here!}
+
+\subsection{\texorpdfstring{String Information/Comparison:
+\texttt{strlen}
+\texttt{strcmp}}{String Information/Comparison: strlen strcmp}}\label{string-informationcomparison-strlen-strcmp}
+
+\texttt{int\ strlen(const\ char\ *s)} returns the length of the string
+not including the null byte
+
+\texttt{int\ strcmp(const\ char\ *s1,\ const\ char\ *s2)} returns an
+integer determining the lexicographic order of the strings. If s1 where
+to come before s2 in a dictionary, then a -1 is returned. If the two
+strings are equal, then 0. Else, 1.
+
+With most of these functions, they expect the strings to be readable and
+not NULL but there is undefined behavior when you pass them NULL.
+
+\subsection{\texorpdfstring{String Alteration: \texttt{strcpy}
+\texttt{strcat}
+\texttt{strdup}}{String Alteration: strcpy strcat strdup}}\label{string-alteration-strcpy-strcat-strdup}
+
+\texttt{char\ *strcpy(char\ *dest,\ const\ char\ *src)} Copies the
+string at \texttt{src} to \texttt{dest}. \textbf{assumes dest has enough
+space for src}
+
+\texttt{char\ *strcat(char\ *dest,\ const\ char\ *src)} Concatenates the
+string at \texttt{src} to the end of destination. \textbf{This function
+assumes that there is enough space for \texttt{src} at the end of
+destination including the NULL byte}
+
+\texttt{char\ *strdup(const\ char\ *dest)} Returns a \texttt{malloc}'ed
+copy of the string.
+
+\subsection{\texorpdfstring{String Search: \texttt{strchr}
+\texttt{strstr}}{String Search: strchr strstr}}\label{string-search-strchr-strstr}
+
+\texttt{char\ *strchr(const\ char\ *haystack,\ int\ needle)} Returns a
+pointer to the first occurrence of \texttt{needle} in the
+\texttt{haystack}. If none found, \texttt{NULL} is returned.
+
+\texttt{char\ *strstr(const\ char\ *haystack,\ const\ char\ *needle)}
+Same as above but this time a string!
+
+\subsection{\texorpdfstring{String Tokenize:
+\texttt{strtok}}{String Tokenize: strtok}}\label{string-tokenize-strtok}
+
+A dangerous but useful function strtok takes a string and tokenizes it.
+Meaning that it will transform the strings into separate strings. This
+function has a lot of specs so please read the man pages a contrived
+example is below.
+
+\begin{lstlisting}[language=C]
+#include <stdio.h>
+#include <string.h>
+
+int main(){
+    char* upped = strdup("strtok,is,tricky,!!");
+    char* start = strtok(upped, ",");
+    do{
+        printf("%s\n", start);
+    }while((start = strtok(NULL, ",")));
+    return 0;
+}
+\end{lstlisting}
+
+\textbf{Output}
+
+\begin{lstlisting}[language=C]
+strtok
+is
+tricky
+!!
+\end{lstlisting}
+
+What happens when I change \texttt{upped} like this?
+
+\begin{lstlisting}[language=C]
+char* upped = strdup("strtok,is,tricky,,,!!");
+\end{lstlisting}
+
+\subsection{\texorpdfstring{Memory Movement: \texttt{memcpy} and
+\texttt{memmove}}{Memory Movement: memcpy and memmove}}\label{memory-movement-memcpy-and-memmove}
+
+Why are \texttt{memcpy} and \texttt{memmove} both in
+\texttt{\textless{}string.h\textgreater{}}? Because strings are
+essentially raw memory with a null byte at the end of them!
+
+\texttt{void\ *memcpy(void\ *dest,\ const\ void\ *src,\ size\_t\ n)}
+moves \texttt{n} bytes starting at \texttt{src} to \texttt{dest}.
+\textbf{Be careful}, there is undefined behavior when the memory regions
+overlap. This is one of the classic works on my machine examples because
+many times valgrind won't be able to pick it up because it will look
+like it works on your machine. When the autograder hits, fail. Consider
+the safer version which is.
+
+\texttt{void\ *memmove(void\ *dest,\ const\ void\ *src,\ size\_t\ n)}
+does the same thing as above, but if the memory regions overlap then it
+is guaranteed that all the bytes will get copied over correctly.
+
+\section{\texorpdfstring{So what's a
+\texttt{struct}?}{So what's a struct?}}\label{so-whats-a-struct}
+
+In low-level terms, a struct is just a piece of contiguous memory,
+nothing more. Just like an array, a struct has enough space to keep all
+of its members. But unlike an array, it can store different types.
+Consider the contact struct declared above
+
+\begin{lstlisting}[language=C]
+struct contact {
+    char firstname[20];
+    char lastname[20];
+    unsigned int phone;
+};
+
+struct contact bhuvan;
+\end{lstlisting}
+
+\textbf{Brief aside}
+
+\begin{lstlisting}[language=C]
+/* a lot of times we will do the following typdef
+ so we can just write contact contact1 */
+
+typedef struct contact contact;
+contact bhuvan;
+
+/* You can also declare the struct like this to get
+ it done in one statement */
+typedef struct optional_name {
+    ...
+} contact;
+\end{lstlisting}
+
+If you compile the code without any optimizations and reordering, you
+can expect the addresses of each of the variables to look like this.
+
+\begin{lstlisting}[language=C]
+&bhuvan           // 0x100
+&bhuvan.firstname // 0x100 = 0x100+0x00
+&bhuvan.lastname  // 0x114 = 0x100+0x14
+&bhuvan.phone     // 0x128 = 0x100+0x28
+\end{lstlisting}
+
+Because all your compiler does is say `hey reserve this much space, and
+I will go and calculate the offsets of whatever variables you want to
+write to'.
+
+\subsection{What do these offsets
+mean?}\label{what-do-these-offsets-mean}
+
+The offsets are where the variable starts at. The phone variables starts
+at the \texttt{0x128}th bytes and continues for sizeof(int) bytes, but
+not always. \textbf{Offsets don't determine where the variable ends
+though}. Consider the following hack that you see in a lot of kernel
+code.
+
+\begin{lstlisting}[language=C]
+
+typedef struct {
+    int length;
+    char c_str[0];
+} string;
+
+const char* to_convert = "bhuvan";
+int length = strlen(to_convert);
+
+// Let's convert to a c string
+string* bhuvan_name;
+bhuvan_name = malloc(sizeof(string) + length+1);
+/*
+Currently, our memory looks like this with junk in those black spaces
+                ___ ___ ___ ___ ___ ___ ___ ___ ___ ___ ___
+ bhuvan_name = |   |   |   |   |   |   |   |   |   |   |   |
+                ‾‾‾ ‾‾‾ ‾‾‾ ‾‾‾ ‾‾‾ ‾‾‾ ‾‾‾ ‾‾‾ ‾‾‾ ‾‾‾ ‾‾‾
+*/
+
+
+bhuvan_name->length = length;
+/*
+This writes the following values to the first four bytes
+The rest is still garbage
+                ___ ___ ___ ___ ___ ___ ___ ___ ___ ___ ___
+ bhuvan_name = | 0 | 0 | 0 | 6 |   |   |   |   |   |   |   |
+                ‾‾‾ ‾‾‾ ‾‾‾ ‾‾‾ ‾‾‾ ‾‾‾ ‾‾‾ ‾‾‾ ‾‾‾ ‾‾‾ ‾‾‾
+*/
+
+
+strcpy(bhuvan_name->c_str, to_convert);
+/*
+Now our string is filled in correctly at the end of the struct
+
+                ___ ___ ___ ___ ___ ___ ___ ___ ___ ___ ____
+ bhuvan_name = | 0 | 0 | 0 | 6 | b | h | u | v | a | n | \0 |
+                ‾‾‾ ‾‾‾ ‾‾‾ ‾‾‾ ‾‾‾ ‾‾‾ ‾‾‾ ‾‾‾ ‾‾‾ ‾‾‾ ‾‾‾‾
+*/
+
+strcmp(bhuvan_name->c_str, "bhuvan") == 0 //The strings are equal!
+\end{lstlisting}
+
+\subsection{But not all structs are
+perfect}\label{but-not-all-structs-are-perfect}
+
+Structs may require something called
+\href{http://www.catb.org/esr/structure-packing/}{padding} (tutorial).
+**We do not expect you to pack structs in this course, just know that it
+is there This is because in the early days (and even now) when you have
+to an address from memory you have to do it in 32bit or 64bit blocks.
+This also meant that you could only request addresses that were
+multiples of that. Meaning that
+
+\begin{lstlisting}[language=C]
+struct picture{
+    int height;
+    pixel** data;
+    int width;
+    char* enconding;
+}
+// You think picture looks like this
+           height      data         width     encoding
+           ___ ___ ___ ___ ___ ___ ___ ___ ___ ___ ___ ___
+picture = |       |               |       |               |
+           ‾‾‾ ‾‾‾ ‾‾‾ ‾‾‾ ‾‾‾ ‾‾‾ ‾‾‾ ‾‾‾ ‾‾‾ ‾‾‾ ‾‾‾ ‾‾‾
+\end{lstlisting}
+
+Would conceptually look like this
+
+\begin{lstlisting}[language=C]
+struct picture{
+    int height;
+    char slop1[4];
+    pixel** data;
+    int width;
+    char slop2[4];
+    char* enconding;
+}
+           height   slop1       data        width   slop2  encoding
+           ___ ___ ___ ___ ___ ___ ___ ___ ___ ___ ___ ___ ___ ___ ___ ___
+picture = |       |       |               |       |       |               |
+           ‾‾‾ ‾‾‾ ‾‾‾ ‾‾‾ ‾‾‾ ‾‾‾ ‾‾‾ ‾‾‾ ‾‾‾ ‾‾‾ ‾‾‾ ‾‾‾ ‾‾‾ ‾‾‾ ‾‾‾ ‾‾‾
+\end{lstlisting}
+
+This is on a 64-bit system. This is not always the case because
+sometimes your processor supports unaligned accesses. What does this
+mean? Well there are two options you can set an attribute
+
+\begin{lstlisting}[language=C]
+struct __attribute__((packed, aligned(4))) picture{
+    int height;
+    pixel** data;
+    int width;
+    char* enconding;
+}
+// Will look like this
+           height       data        width     encoding
+           ___ ___ ___ ___ ___ ___ ___ ___ ___ ___ ___ ___
+picture = |       |               |       |               |
+           ‾‾‾ ‾‾‾ ‾‾‾ ‾‾‾ ‾‾‾ ‾‾‾ ‾‾‾ ‾‾‾ ‾‾‾ ‾‾‾ ‾‾‾ ‾‾‾
+\end{lstlisting}
+
+But now, every time I want to access \texttt{data} or \texttt{encoding},
+I have to do two memory accesses. The other thing you can do is reorder
+the struct, although this is not always possible
+
+\begin{lstlisting}[language=C]
+struct picture{
+    int height;
+    int width;
+    pixel** data;
+    char* enconding;
+}
+// You think picture looks like this
+           height   width        data         encoding
+           ___ ___ ___ ___ ___ ___ ___ ___ ___ ___ ___ ___
+picture = |       |       |               |               |
+           ‾‾‾ ‾‾‾ ‾‾‾ ‾‾‾ ‾‾‾ ‾‾‾ ‾‾‾ ‾‾‾ ‾‾‾ ‾‾‾ ‾‾‾ ‾‾‾
+\end{lstlisting}
+
+\section{The Hitchhiker's Guide to Debugging C
+Programs}\label{the-hitchhikers-guide-to-debugging-c-programs}
+
+This is going to be a massive guide to helping you debug your C
+programs. There are different levels that you can check errors and we
+will be going through most of them. Feel free to add anything that you
+found helpful in debugging C programs including but not limited to,
+debugger usage, recognizing common error types, gotchas, and effective
+googling tips.
+
+\section{In-Code Debugging}\label{in-code-debugging}
+
+\subsection{Clean code}\label{clean-code}
+
+Make your code modular using helper functions. If there is a repeated
+task (getting the pointers to contiguous blocks in the malloc MP, for
+example), make them helper functions. And make sure each function does
+one thing very well, so that you don't have to debug twice.
+
+Let's say that we are doing selection sort by finding the minimum
+element each iteration like so,
+
+\begin{lstlisting}[language=C]
+void selection_sort(int *a, long len){
+     for(long i = len-1; i > 0; --i){
+         long max_index = i;
+         for(long j = len-1; j >= 0; --j){
+             if(a[max_index] < a[j]){
+                  max_index = j;
+             }
+         }
+         int temp = a[i];
+         a[i] = a[max_index];
+         a[max_index] = temp;
+     }
+
+}
+\end{lstlisting}
+
+Many can see the bug in the code, but it can help to refactor the above
+method into
+
+\begin{lstlisting}[language=C]
+long max_index(int *a, long start, long end);
+void swap(int *a, long idx1, long idx2);
+void selection_sort(int *a, long len);
+\end{lstlisting}
+
+And the error is specifically in one function.
+
+In the end, we are not a class about refactoring/debugging your code. In
+fact, most systems code is so atrocious that you don't want to read it.
+But for the sake of debugging, it may benefit you in the long run to
+adopt some practices.
+
+\subsection{Asserts!}\label{asserts}
+
+Use assertions to make sure your code works up to a certain point -- and
+importantly, to make sure you don't break it later. For example, if your
+data structure is a doubly linked list, you can do something like
+\texttt{assert(node-\textgreater{}size\ ==\ node-\textgreater{}next-\textgreater{}prev-\textgreater{}size)}
+to assert that the next node has a pointer to the current node. You can
+also check the pointer is pointing to an expected range of memory
+address, not null, -\textgreater{}size is reasonable etc. The
+\texttt{NDEBUG} macro will disable all assertions, so don't forget to
+set that once you finish debugging.
+http://www.cplusplus.com/reference/cassert/assert/
+
+Here's a quick example with assert. Let's say that I'm writing code
+using memcpy
+
+\begin{lstlisting}[language=C]
+assert(!(src < dest+n && dest < src+n)); //Checks overlap
+memcpy(dest, src, n);
+\end{lstlisting}
+
+This check can be turned off at compile time, but will save you
+\textbf{tons} of trouble debugging!
+
+\subsection{printfs}\label{printfs}
+
+When all else fails, print like crazy! Each of your functions should
+have an idea of what it is going to do (ie find\_min better find the
+minimum element). You want to test that each of your functions is doing
+what it set out to do and see exactly where your code breaks. In the
+case with race conditions, tsan may be able to help, but having each
+thread print out data at certain times could help you identify the race
+condition.
+
+\section{Valgrind}\label{valgrind}
+
+Valgrind is a suite of tools designed to provide debugging and profiling
+tools to make your programs more correct and detect some runtime issues.
+The most used of these tools is Memcheck, which can detect many
+memory-related errors that are common in C and C++ programs and that can
+lead to crashes and unpredictable behaviour (for example, unfreed memory
+buffers).
+
+To run Valgrind on your program:
+
+\begin{lstlisting}[language=C]
+valgrind --leak-check=yes myprogram arg1 arg2
+\end{lstlisting}
+
+or
+
+\begin{lstlisting}[language=C]
+valgrind ./myprogram
+\end{lstlisting}
+
+Arguments are optional and the default tool that will run is Memcheck.
+The output will be presented in form of number of allocations, number of
+freed allocations, and the number of errors.
+
+\textbf{Example}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics{https://i.imgur.com/ZdBWDvh.png}
+\caption{Valgrind Example}
+\end{figure}
+
+Here's an example to help you interpret the above results. Suppose we
+have a simple program like this:
+
+\begin{lstlisting}[language=C]
+  #include <stdlib.h>
+
+  void dummy_function()
+  {
+     int* x = malloc(10 * sizeof(int));
+     x[10] = 0;        // error 1:as you can see here we write to an out of bound memory address
+  }                    // error 2: memory leak the allocated x not freed
+
+  int main(void)
+  {
+     dummy_function();
+     return 0;
+  }
+\end{lstlisting}
+
+Let's see what Valgrind will output (this program compiles and run with
+no errors).
+
+\begin{lstlisting}[language=C]
+==29515== Memcheck, a memory error detector
+==29515== Copyright (C) 2002-2015, and GNU GPL'd, by Julian Seward et al.
+==29515== Using Valgrind-3.11.0 and LibVEX; rerun with -h for copyright info
+==29515== Command: ./a
+==29515== 
+==29515== Invalid write of size 4
+==29515==    at 0x400544: dummy_function (in /home/rafi/projects/exocpp/a)
+==29515==    by 0x40055A: main (in /home/rafi/projects/exocpp/a)
+==29515==  Address 0x5203068 is 0 bytes after a block of size 40 alloc'd
+==29515==    at 0x4C2DB8F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==29515==    by 0x400537: dummy_function (in /home/rafi/projects/exocpp/a)
+==29515==    by 0x40055A: main (in /home/rafi/projects/exocpp/a)
+==29515== 
+==29515== 
+==29515== HEAP SUMMARY:
+==29515==     in use at exit: 40 bytes in 1 blocks
+==29515==   total heap usage: 1 allocs, 0 frees, 40 bytes allocated
+==29515== 
+==29515== LEAK SUMMARY:
+==29515==    definitely lost: 40 bytes in 1 blocks
+==29515==    indirectly lost: 0 bytes in 0 blocks
+==29515==      possibly lost: 0 bytes in 0 blocks
+==29515==    still reachable: 0 bytes in 0 blocks
+==29515==         suppressed: 0 bytes in 0 blocks
+==29515== Rerun with --leak-check=full to see details of leaked memory
+==29515== 
+==29515== For counts of detected and suppressed errors, rerun with: -v
+==29515== ERROR SUMMARY: 1 errors from 1 contexts (suppressed: 0 from 0)
+\end{lstlisting}
+
+\textbf{Invalid write}: It detected our heap block overrun (writing
+outside of allocated block)
+
+\textbf{Definitely lost}: Memory leak---you probably forgot to free a
+memory block
+
+Valgrind is a very effective tool to check for errors at runtime. C is
+very special when it comes to such behavior, so after compiling your
+program you can use Valgrind to fix errors that your compiler may not
+catch and that usually happen when your program is running.
+
+For more information, you can refer to the
+\href{http://valgrind.org/docs/manual/quick-start.html}{official
+website}.
+
+\section{Tsan}\label{tsan}
+
+ThreadSanitizer is a tool from Google, built into clang (and gcc), to
+help you detect race conditions in your code. For more information about
+the tool, see the Github wiki.
+
+Note that running with tsan will slow your code down a bit.
+
+\begin{lstlisting}[language=C]
+#include <pthread.h>
+#include <stdio.h>
+
+int Global;
+
+void *Thread1(void *x) {
+    Global++;
+    return NULL;
+}
+
+int main() {
+    pthread_t t[2];
+    pthread_create(&t[0], NULL, Thread1, NULL);
+    Global = 100;
+    pthread_join(t[0], NULL);
+}
+// compile with gcc -fsanitize=thread -pie -fPIC -ltsan -g simple_race.c
+\end{lstlisting}
+
+We can see that there is a race condition on the variable
+\texttt{Global}. Both the main thread and the thread created with
+pthread\_create will try to change the value at the same time. But, does
+ThreadSantizer catch it?
+
+\begin{lstlisting}[language=C]
+$ ./a.out
+==================
+WARNING: ThreadSanitizer: data race (pid=28888)
+  Read of size 4 at 0x7f73ed91c078 by thread T1:
+    #0 Thread1 /home/zmick2/simple_race.c:7 (exe+0x000000000a50)
+    #1  :0 (libtsan.so.0+0x00000001b459)
+
+  Previous write of size 4 at 0x7f73ed91c078 by main thread:
+    #0 main /home/zmick2/simple_race.c:14 (exe+0x000000000ac8)
+
+  Thread T1 (tid=28889, running) created by main thread at:
+    #0  :0 (libtsan.so.0+0x00000001f6ab)
+    #1 main /home/zmick2/simple_race.c:13 (exe+0x000000000ab8)
+
+SUMMARY: ThreadSanitizer: data race /home/zmick2/simple_race.c:7 Thread1
+==================
+ThreadSanitizer: reported 1 warnings
+\end{lstlisting}
+
+If we compiled with the debug flag, then it would give us the variable
+name as well.
+
+\section{GDB}\label{gdb}
+
+Introduction: http://www.cs.cmu.edu/\textasciitilde{}gilpin/tutorial/
+
+\paragraph{Setting breakpoints
+programmatically}\label{setting-breakpoints-programmatically}
+
+A very useful trick when debugging complex C programs with GDB is
+setting breakpoints in the source code.
+
+\begin{lstlisting}[language=C]
+int main() {
+    int val = 1;
+    val = 42;
+    asm("int $3"); // set a breakpoint here
+    val = 7;
+}
+\end{lstlisting}
+
+\begin{lstlisting}[language=C]
+$ gcc main.c -g -o main && ./main
+(gdb) r
+[...]
+Program received signal SIGTRAP, Trace/breakpoint trap.
+main () at main.c:6
+6     val = 7;
+(gdb) p val
+$1 = 42
+\end{lstlisting}
+
+\paragraph{Checking memory content}\label{checking-memory-content}
+
+http://www.delorie.com/gnu/docs/gdb/gdb\_56.html
+
+For example,
+
+\begin{lstlisting}[language=C]
+int main() {
+    char bad_string[3] = {'C', 'a', 't'};
+    printf("%s", bad_string);
+}
+\end{lstlisting}
+
+\begin{lstlisting}[language=C]
+$ gcc main.c -g -o main && ./main
+$ Cat ZVQ� $
+\end{lstlisting}
+
+\begin{lstlisting}[language=C]
+(gdb) l
+1 #include <stdio.h>
+2 int main() {
+3     char bad_string[3] = {'C', 'a', 't'};
+4     printf("%s", bad_string);
+5 }
+(gdb) b 4
+Breakpoint 1 at 0x100000f57: file main.c, line 4.
+(gdb) r
+[...]
+Breakpoint 1, main () at main.c:4
+4     printf("%s", bad_string);
+(gdb) x/16xb bad_string
+0x7fff5fbff9cd: 0x63  0x61  0x74  0xe0  0xf9  0xbf  0x5f  0xff
+0x7fff5fbff9d5: 0x7f  0x00  0x00  0xfd  0xb5  0x23  0x89  0xff
+
+(gdb)
+\end{lstlisting}
+
+Here, by using the \texttt{x} command with parameters \texttt{16xb}, we
+can see that starting at memory address \texttt{0x7fff5fbff9c} (value of
+\texttt{bad\_string}), printf would actually see the following sequence
+of bytes as a string because we provided a malformed string without a
+null terminator.
+
+\texttt{0x43\ 0x61\ 0x74\ 0xe0\ 0xf9\ 0xbf\ 0x5f\ 0xff\ 0x7f\ 0x00}
+
+\section{Topics}\label{topics}
+
+\begin{itemize}
+\tightlist
+\item
+  C Strings representation
+\item
+  C Strings as pointers
+\item
+  char p{[}{]}vs char* p
+\item
+  Simple C string functions (strcmp, strcat, strcpy)
+\item
+  sizeof char
+\item
+  sizeof x vs x*
+\item
+  Heap memory lifetime
+\item
+  Calls to heap allocation
+\item
+  Deferencing pointers
+\item
+  Address-of operator
+\item
+  Pointer arithmetic
+\item
+  String duplication
+\item
+  String truncation
+\item
+  double-free error
+\item
+  String literals
+\item
+  Print formatting.
+\item
+  memory out of bounds errors
+\item
+  static memory
+\item
+  fileio POSIX vs.~C library
+\item
+  C io fprintf and printf
+\item
+  POSIX file IO (read, write, open)
+\item
+  Buffering of stdout
+\end{itemize}
+
+\section{Questions/Exercises}\label{questionsexercises}
+
+\begin{itemize}
+\item
+  What does the following print out?
+
+\begin{lstlisting}[language=C]
+int main(){
+fprintf(stderr, "Hello ");
+fprintf(stdout, "It's a small ");
+fprintf(stderr, "World\n");
+fprintf(stdout, "place\n");
+return 0;
+}
+\end{lstlisting}
+\item
+  What are the differences between the following two declarations? What
+  does \texttt{sizeof} return for one of them?
+
+\begin{lstlisting}[language=C]
+char str1[] = "bhuvan";
+char *str2 = "another one";
+\end{lstlisting}
+\item
+  What is a string in c?
+\item
+  Code up a simple \texttt{my\_strcmp}. How about \texttt{my\_strcat},
+  \texttt{my\_strcpy}, or \texttt{my\_strdup}? Bonus: Code the functions
+  while only going through the strings \emph{once}.
+\item
+  What should the following usually return?
+
+\begin{lstlisting}[language=C]
+int *ptr;
+sizeof(ptr);
+sizeof(*ptr);
+\end{lstlisting}
+\item
+  What is \texttt{malloc}? How is it different than \texttt{calloc}.
+  Once memory is \texttt{malloc}ed how can I use \texttt{realloc}?
+\item
+  What is the \texttt{\&} operator? How about \texttt{*}?
+\item
+  Pointer Arithmetic. Assume the following addresses. What are the
+  following shifts?
+
+\begin{lstlisting}[language=C]
+char** ptr = malloc(10); //0x100
+ptr[0] = malloc(20); //0x200
+ptr[1] = malloc(20); //0x300
+\end{lstlisting}
+
+  \begin{itemize}
+  \tightlist
+  \item
+    \texttt{ptr\ +\ 2}
+  \item
+    \texttt{ptr\ +\ 4}
+  \item
+    \texttt{ptr{[}0{]}\ +\ 4}
+  \item
+    \texttt{ptr{[}1{]}\ +\ 2000}
+  \item
+    \texttt{*((int)(ptr\ +\ 1))\ +\ 3}
+  \end{itemize}
+\item
+  How do we prevent double free errors?
+\item
+  What is the printf specifier to print a string, \texttt{int}, or
+  \texttt{char}?
+\item
+  Is the following code valid? If so, why? Where is \texttt{output}
+  located?
+
+\begin{lstlisting}[language=C]
+char *foo(int var){
+static char output[20];
+snprintf(output, 20, "%d", var);
+return output;
+}
+\end{lstlisting}
+\item
+  Write a function that accepts a string and opens that file prints out
+  the file 40 bytes at a time but every other print reverses the string
+  (try using POSIX API for this).
+\item
+  What are some differences between the POSIX filedescriptor model and
+  C's \texttt{FILE*} (ie what function calls are used and which is
+  buffered)? Does POSIX use C's \texttt{FILE*} internally or vice versa?
+\end{itemize}
+
+\end{comment}
+
+\bibliographystyle{plainnat}
+\bibliography{introc/introc}

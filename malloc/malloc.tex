@@ -1,1 +1,866 @@
-./malloc
+\section{C Dynamic Memory Allocation}\label{c-dynamic-memory-allocation}
+
+\subsection{What happens when I call
+malloc?}\label{what-happens-when-i-call-malloc}
+
+The function \texttt{malloc} is a C library call and is used to reserve
+a contiguous block of memory. Unlike stack memory, the memory remains
+allocated until \texttt{free} is called with the same pointer. There is
+also \texttt{calloc} and \texttt{realloc} which are discussed below.
+
+\subsection{Can malloc fail?}\label{can-malloc-fail}
+
+If \texttt{malloc} fails to reserve any more memory then it returns
+\texttt{NULL}. Robust programs should check the return value. If your
+code assumes \texttt{malloc} succeeds and it does not, then your program
+will likely crash (segfault) when it tries to write to address 0.
+
+\subsection{Where is the heap and how big is
+it?}\label{where-is-the-heap-and-how-big-is-it}
+
+The heap is part of the process memory and it does not have a fixed
+size. Heap memory allocation is performed by the C library when you call
+\texttt{malloc} (\texttt{calloc}, \texttt{realloc}) and \texttt{free}.
+
+First a quick review on process memory: A process is a running instance
+of your program. Each process has its own address space. For example on
+a 32 bit machine your process gets about 4 billion addresses to play
+with, however not all of these are valid or even mapped to actual
+physical memory (RAM). Inside the process's memory you will find the
+executable code, space for the stack, environment variables, global
+(static) variables and the heap.
+
+By calling \texttt{sbrk} the C library can increase the size of the heap
+as your program demands more heap memory. As the heap and stack (one for
+each thread) need to grow, we put them at opposite ends of the address
+space. So for typical architectures the heap will grow upwards and the
+stack grows downwards.
+
+Truthiness: Modern operating system memory allocators no longer need
+\texttt{sbrk} - instead they can request independent regions of virtual
+memory and maintain multiple memory regions. For example gigabyte
+requests may be placed in a different memory region than small
+allocation requests. However this detail is an unwanted complexity: The
+problems of fragmentation and allocating memory efficiently still apply,
+so we will ignore this implementation nicety here and will write as if
+the heap is a single region.
+
+If we write a multi-threaded program (more about that later) we will
+need multiple stacks (one per thread) but there's only ever one heap.
+
+On typical architectures, the heap is part of the \texttt{Data\ segment}
+and starts just above the code and global variables.
+
+\subsection{Do programs need to call brk or
+sbrk?}\label{do-programs-need-to-call-brk-or-sbrk}
+
+Not typically (though calling \texttt{sbrk(0)} can be interesting
+because it tells you where your heap currently ends). Instead programs
+use \texttt{malloc,calloc,realloc} and \texttt{free} which are part of
+the C library. The internal implementation of these functions will call
+\texttt{sbrk} when additional heap memory is required.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\DataTypeTok{void} \NormalTok{*top_of_heap = sbrk(}\DecValTok{0}\NormalTok{);}
+\NormalTok{malloc(}\DecValTok{16384}\NormalTok{);}
+\DataTypeTok{void} \NormalTok{*top_of_heap2 = sbrk(}\DecValTok{0}\NormalTok{);}
+\NormalTok{printf(}\StringTok{"The top of heap went from %p to %p }\CharTok{\textbackslash{}n}\StringTok{"}\NormalTok{, top_of_heap, top_of_heap2);}
+\end{Highlighting}
+\end{Shaded}
+
+Example output:
+\texttt{The\ top\ of\ heap\ went\ from\ 0x4000\ to\ 0xa000}
+
+\subsection{What is calloc?}\label{what-is-calloc}
+
+Unlike \texttt{malloc}, \texttt{calloc} initializes memory contents to
+zero and also takes two arguments (the number of items and the size in
+bytes of each item). A naive but readable implementation of
+\texttt{calloc} looks like this:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\DataTypeTok{void} \NormalTok{*calloc(size_t n, size_t size)}
+\NormalTok{\{}
+    \NormalTok{size_t total = n * size; }\CommentTok{// Does not check for overflow!}
+    \DataTypeTok{void} \NormalTok{*result = malloc(total);}
+    
+    \KeywordTok{if} \NormalTok{(!result) }\KeywordTok{return} \NormalTok{NULL;}
+    
+\CommentTok{// If we're using new memory pages }
+\CommentTok{// just allocated from the system by calling sbrk}
+\CommentTok{// then they will be zero so zero-ing out is unnecessary,}
+
+    \NormalTok{memset(result, }\DecValTok{0}\NormalTok{, total);}
+    \KeywordTok{return} \NormalTok{result; }
+\NormalTok{\}}
+\end{Highlighting}
+\end{Shaded}
+
+An advanced discussion of these limitations is
+\href{http://locklessinc.com/articles/calloc/}{here}.
+
+Programmers often use \texttt{calloc} rather than explicitly calling
+\texttt{memset} after \texttt{malloc}, to set the memory contents to
+zero. Note \texttt{calloc(x,y)} is identical to \texttt{calloc(y,x)},
+but you should follow the conventions of the manual.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{// Ensure our memory is initialized to zero}
+\NormalTok{link_t *link  = malloc(}\DecValTok{256}\NormalTok{);}
+\NormalTok{memset(link, }\DecValTok{0}\NormalTok{, }\DecValTok{256}\NormalTok{); }\CommentTok{// Assumes malloc returned a valid address!}
+
+\NormalTok{link_t *link = calloc(}\DecValTok{1}\NormalTok{, }\DecValTok{256}\NormalTok{); }\CommentTok{// safer: calloc(1, sizeof(link_t));}
+\end{Highlighting}
+\end{Shaded}
+
+\subsection{Why is the memory that is first returned by sbrk initialized
+to
+zero?}\label{why-is-the-memory-that-is-first-returned-by-sbrk-initialized-to-zero}
+
+If the operating system did not zero out contents of physical RAM it
+might be possible for one process to learn about the memory of another
+process that had previously used the memory. This would be a security
+leak.
+
+Unfortunately this means that for \texttt{malloc} requests before any
+memory has been freed and simple programs (which end up using newly
+reserved memory from the system) the memory is \emph{often} zero. Then
+programmers mistaken write C programs that assume malloc'd memory will
+\emph{always} be zero.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\DataTypeTok{char}\NormalTok{* ptr = malloc(}\DecValTok{300}\NormalTok{);}
+\CommentTok{// contents is probably zero because we get brand new memory}
+\CommentTok{// so beginner programs appear to work!}
+\CommentTok{// strcpy(ptr, "Some data"); // work with the data}
+\NormalTok{free(ptr);}
+\CommentTok{// later}
+\DataTypeTok{char} \NormalTok{*ptr2 = malloc(}\DecValTok{308}\NormalTok{); }\CommentTok{// Contents might now contain existing data and is probably not zero}
+\end{Highlighting}
+\end{Shaded}
+
+\subsection{Why doesn't malloc always initialize memory to
+zero?}\label{why-doesnt-malloc-always-initialize-memory-to-zero}
+
+Performance! We want malloc to be as fast as possible. Zeroing out
+memory may be unnecessary.
+
+\subsection{What is realloc and when would you use
+it?}\label{what-is-realloc-and-when-would-you-use-it}
+
+\texttt{realloc} allows you to resize an existing memory allocation that
+was previously allocated on the heap (via malloc,calloc or realloc). The
+most common use of realloc is to resize memory used to hold an array of
+values. A naive but readable version of realloc is suggested below
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\DataTypeTok{void} \NormalTok{* realloc(}\DataTypeTok{void} \NormalTok{* ptr, size_t newsize) \{}
+  \CommentTok{// Simple implementation always reserves more memory}
+  \CommentTok{// and has no error checking}
+  \DataTypeTok{void} \NormalTok{*result = malloc(newsize); }
+  \NormalTok{size_t oldsize =  ... }\CommentTok{//(depends on allocator's internal data structure)}
+  \KeywordTok{if} \NormalTok{(ptr) memcpy(result, ptr, newsize < oldsize ? newsize : oldsize);}
+  \NormalTok{free(ptr);}
+  \KeywordTok{return} \NormalTok{result;}
+\NormalTok{\}}
+\end{Highlighting}
+\end{Shaded}
+
+An INCORRECT use of realloc is shown below:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\DataTypeTok{int} \NormalTok{*array = malloc(}\KeywordTok{sizeof}\NormalTok{(}\DataTypeTok{int}\NormalTok{) * }\DecValTok{2}\NormalTok{);}
+\NormalTok{array[}\DecValTok{0}\NormalTok{] = }\DecValTok{10}\NormalTok{; array[}\DecValTok{1}\NormalTok{] = }\DecValTok{20}\NormalTok{;}
+\CommentTok{// Ooops need a bigger array - so use realloc..}
+\NormalTok{realloc (array, }\DecValTok{3}\NormalTok{); }\CommentTok{// ERRORS!}
+\NormalTok{array[}\DecValTok{2}\NormalTok{] = }\DecValTok{30}\NormalTok{; }
+\end{Highlighting}
+\end{Shaded}
+
+The above code contains two mistakes. Firstly we needed 3*sizeof(int)
+bytes not 3 bytes. Secondly realloc may need to move the existing
+contents of the memory to a new location. For example, there may not be
+sufficient space because the neighboring bytes are already allocated. A
+correct use of realloc is shown below.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{array = realloc(array, }\DecValTok{3} \NormalTok{* }\KeywordTok{sizeof}\NormalTok{(}\DataTypeTok{int}\NormalTok{));}
+\CommentTok{// If array is copied to a new location then old allocation will be freed.}
+\end{Highlighting}
+\end{Shaded}
+
+A robust version would also check for a \texttt{NULL} return value. Note
+\texttt{realloc} can be used to grow and shrink allocations.
+
+\subsection{Where can I read more?}\label{where-can-i-read-more}
+
+See \href{http://man7.org/linux/man-pages/man3/malloc.3.html}{the man
+page}!
+
+\subsection{How important is that memory allocation is
+fast?}\label{how-important-is-that-memory-allocation-is-fast}
+
+Very! Allocating and de-allocating heap memory is a common operation in
+most applications.
+
+\section{Intro to Allocating}\label{intro-to-allocating}
+
+\subsection{What is the silliest malloc and free implementation and what
+is wrong with
+it?}\label{what-is-the-silliest-malloc-and-free-implementation-and-what-is-wrong-with-it}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\DataTypeTok{void}\NormalTok{* malloc(size_t size)}
+\CommentTok{// Ask the system for more bytes by extending the heap space. }
+\CommentTok{// sbrk Returns -1 on failure}
+   \DataTypeTok{void} \NormalTok{*p = sbrk(size); }
+   \KeywordTok{if}\NormalTok{(p == (}\DataTypeTok{void} \NormalTok{*) -}\DecValTok{1}\NormalTok{) }\KeywordTok{return} \NormalTok{NULL; }\CommentTok{// No space left}
+   \KeywordTok{return} \NormalTok{p;}
+\NormalTok{\}}
+\DataTypeTok{void} \NormalTok{free() \{}\CommentTok{/* Do nothing */}\NormalTok{\}}
+\end{Highlighting}
+\end{Shaded}
+
+The above implementation suffers from two major drawbacks: * System
+calls are slow (compared to library calls). We should reserve a large
+amount of memory and only occasionally ask for more from the system. *
+No reuse of freed memory. Our program never re-uses heap memory - it
+just keeps asking for a bigger heap.
+
+If this allocator was used in a typical program, the process would
+quickly exhaust all available memory. Instead we need an allocator that
+can efficiently use heap space and only ask for more memory when
+necessary.
+
+\subsection{What are placement
+strategies?}\label{what-are-placement-strategies}
+
+During program execution memory is allocated and de-allocated (freed),
+so there will be gaps (holes) in the heap memory that can be re-used for
+future memory requests. The memory allocator needs to keep track of
+which parts of the heap are currently allocated and which are parts are
+available.
+
+Suppose our current heap size is 64K, though not all of it is in use
+because some earlier malloc'd memory has already been freed by the
+program:
+
+\begin{longtable}[c]{@{}lllllll@{}}
+\toprule
+\begin{minipage}[b]{0.04\columnwidth}\raggedright\strut
+16KB free
+\strut\end{minipage} &
+\begin{minipage}[b]{0.04\columnwidth}\raggedright\strut
+10KB allocated
+\strut\end{minipage} &
+\begin{minipage}[b]{0.04\columnwidth}\raggedright\strut
+1KB free
+\strut\end{minipage} &
+\begin{minipage}[b]{0.04\columnwidth}\raggedright\strut
+1KB allocated
+\strut\end{minipage} &
+\begin{minipage}[b]{0.04\columnwidth}\raggedright\strut
+30KB free
+\strut\end{minipage} &
+\begin{minipage}[b]{0.04\columnwidth}\raggedright\strut
+4KB allocated
+\strut\end{minipage} &
+\begin{minipage}[b]{0.04\columnwidth}\raggedright\strut
+2KB free
+\strut\end{minipage}\tabularnewline
+\midrule
+\endhead
+\bottomrule
+\end{longtable}
+
+If a new malloc request for 2KB is executed (\texttt{malloc(2048)}),
+where should \texttt{malloc} reserve the memory? It could use the last
+2KB hole (which happens to be the perfect size!) or it could split one
+of the other two free holes. These choices represent different placement
+strategies.
+
+Whichever hole is chosen, the allocator will need to split the hole into
+two: The newly allocated space (which will be returned to the program)
+and a smaller hole (if there is spare space left over).
+
+A perfect-fit strategy finds the smallest hole that is of sufficient
+size (at least 2KB):
+
+\begin{longtable}[c]{@{}lllllll@{}}
+\toprule
+\begin{minipage}[b]{0.04\columnwidth}\raggedright\strut
+16KB free
+\strut\end{minipage} &
+\begin{minipage}[b]{0.04\columnwidth}\raggedright\strut
+10KB allocated
+\strut\end{minipage} &
+\begin{minipage}[b]{0.04\columnwidth}\raggedright\strut
+1KB free
+\strut\end{minipage} &
+\begin{minipage}[b]{0.04\columnwidth}\raggedright\strut
+1KB allocated
+\strut\end{minipage} &
+\begin{minipage}[b]{0.04\columnwidth}\raggedright\strut
+30KB free
+\strut\end{minipage} &
+\begin{minipage}[b]{0.04\columnwidth}\raggedright\strut
+4KB allocated
+\strut\end{minipage} &
+\begin{minipage}[b]{0.04\columnwidth}\raggedright\strut
+`2KB HERE!'
+\strut\end{minipage}\tabularnewline
+\midrule
+\endhead
+\bottomrule
+\end{longtable}
+
+A worst-fit strategy finds the largest hole that is of sufficient size
+(so break the 30KB hole into two):
+
+\begin{longtable}[c]{@{}llllllll@{}}
+\toprule
+\begin{minipage}[b]{0.04\columnwidth}\raggedright\strut
+16KB free
+\strut\end{minipage} &
+\begin{minipage}[b]{0.04\columnwidth}\raggedright\strut
+10KB allocated
+\strut\end{minipage} &
+\begin{minipage}[b]{0.04\columnwidth}\raggedright\strut
+1KB free
+\strut\end{minipage} &
+\begin{minipage}[b]{0.04\columnwidth}\raggedright\strut
+1KB allocated
+\strut\end{minipage} &
+\begin{minipage}[b]{0.04\columnwidth}\raggedright\strut
+\texttt{2KB\ HERE!}
+\strut\end{minipage} &
+\begin{minipage}[b]{0.04\columnwidth}\raggedright\strut
+\texttt{28KB\ free}
+\strut\end{minipage} &
+\begin{minipage}[b]{0.04\columnwidth}\raggedright\strut
+4KB allocated
+\strut\end{minipage} &
+\begin{minipage}[b]{0.04\columnwidth}\raggedright\strut
+2KB free
+\strut\end{minipage}\tabularnewline
+\midrule
+\endhead
+\bottomrule
+\end{longtable}
+
+A first-fit strategy finds the first available hole that is of
+sufficient size (break the 16KB hole into two):
+
+\begin{longtable}[c]{@{}llllllll@{}}
+\toprule
+\begin{minipage}[b]{0.04\columnwidth}\raggedright\strut
+\texttt{2KB\ HERE!}
+\strut\end{minipage} &
+\begin{minipage}[b]{0.04\columnwidth}\raggedright\strut
+\texttt{14KB\ free}
+\strut\end{minipage} &
+\begin{minipage}[b]{0.04\columnwidth}\raggedright\strut
+10KB allocated
+\strut\end{minipage} &
+\begin{minipage}[b]{0.04\columnwidth}\raggedright\strut
+1KB free
+\strut\end{minipage} &
+\begin{minipage}[b]{0.04\columnwidth}\raggedright\strut
+1KB allocated
+\strut\end{minipage} &
+\begin{minipage}[b]{0.04\columnwidth}\raggedright\strut
+30KB free
+\strut\end{minipage} &
+\begin{minipage}[b]{0.04\columnwidth}\raggedright\strut
+4KB allocated
+\strut\end{minipage} &
+\begin{minipage}[b]{0.04\columnwidth}\raggedright\strut
+2KB free
+\strut\end{minipage}\tabularnewline
+\midrule
+\endhead
+\bottomrule
+\end{longtable}
+
+\subsection{What is external
+fragmentation?}\label{what-is-external-fragmentation}
+
+In the example below, of the 64KB of heap memory, 17KB is allocated, and
+47KB is free. However the largest available block is only 30KB because
+our available unallocated heap memory is fragmented into smaller pieces.
+
+\begin{longtable}[c]{@{}lllllll@{}}
+\toprule
+\begin{minipage}[b]{0.04\columnwidth}\raggedright\strut
+\texttt{16KB\ free}
+\strut\end{minipage} &
+\begin{minipage}[b]{0.04\columnwidth}\raggedright\strut
+10KB allocated
+\strut\end{minipage} &
+\begin{minipage}[b]{0.04\columnwidth}\raggedright\strut
+1KB free
+\strut\end{minipage} &
+\begin{minipage}[b]{0.04\columnwidth}\raggedright\strut
+1KB allocated
+\strut\end{minipage} &
+\begin{minipage}[b]{0.04\columnwidth}\raggedright\strut
+30KB free
+\strut\end{minipage} &
+\begin{minipage}[b]{0.04\columnwidth}\raggedright\strut
+4KB allocated
+\strut\end{minipage} &
+\begin{minipage}[b]{0.04\columnwidth}\raggedright\strut
+2KB free
+\strut\end{minipage}\tabularnewline
+\midrule
+\endhead
+\bottomrule
+\end{longtable}
+
+\subsection{What effect do placement strategies have on external
+fragmentation and
+performance?}\label{what-effect-do-placement-strategies-have-on-external-fragmentation-and-performance}
+
+Different strategies affect the fragmentation of heap memory in
+non-obvious ways, which only are discovered by mathematical analysis or
+careful simulations under real-world conditions (for example simulating
+the memory allocation requests of a database or webserver). For example,
+best-fit at first glance appears to be an excellent strategy however, if
+we can not find a perfectly-sized hole then this placement creates many
+tiny unusable holes, leading to high fragmentation. It also requires a
+scan of all possible holes.
+
+First fit has the advantage that it will not evaluate all possible
+placements and therefore be faster.
+
+Since Worst-fit targets the largest unallocated space, it is a poor
+choice if large allocations are required.
+
+In practice first-fit and next-fit (which is not discussed here) are
+often common placement strategy. Hybrid approaches and many other
+alternatives exist (see implementing a memory allocator page).
+
+\subsection{What are the challenges of writing a heap
+allocator?}\label{what-are-the-challenges-of-writing-a-heap-allocator}
+
+The main challenges are, * Need to minimize fragmentation (i.e.~maximize
+memory utilization) * Need high performance * Fiddly implementation
+(lots of pointer manipulation using linked lists and pointer arithmetic)
+
+Some additional comments:
+
+Both fragmentation and performance depend on the application allocation
+profile, which can be evaluated but not predicted and in practice,
+under-specific usage conditions, a special-purpose allocator can often
+out-perform a general purpose implementation.
+
+The allocator doesn't know the program's memory allocation requests in
+advance. Even if we did, this is the
+\href{http://en.wikipedia.org/wiki/Knapsack_problem}{Knapsack problem}
+which is known to be NP hard!
+
+\section{Memory Allocator Tutorial}\label{memory-allocator-tutorial}
+
+A memory allocator needs to keep track of which bytes are currently
+allocated and which are available for use. This page introduces the
+implementation and conceptual details of building an allocator, i.e.~the
+actual code that implements \texttt{malloc} and \texttt{free}.
+
+\subsection{This page talks about links of blocks - do I malloc memory
+for them
+instead?}\label{this-page-talks-about-links-of-blocks---do-i-malloc-memory-for-them-instead}
+
+Though conceptually we are thinking about creating linked lists and
+lists of blocks, we don't need to ``malloc memory'' to create them!
+Instead we are writing integers and pointers into memory that we already
+control so that we can later consistently hop from one address to the
+next. This internal information represents some overhead. So even if we
+had requested 1024 KB of contiguous memory from the system, we will not
+be able to provide all of it to the running program.
+
+\subsection{Thinking in blocks}\label{thinking-in-blocks}
+
+We can think of our heap memory as a list of blocks where each block is
+either allocated or unallocated. Rather than storing an explicit list of
+pointers we store information about the block's size \emph{as part of
+the block}. Thus there is conceptually a list of free blocks, but it is
+implicit, i.e.~in the form of block size information that we store as
+part of each block.
+
+We could navigate from one block to the next block just by adding the
+block's size. For example if you have a pointer \texttt{p} that points
+to the start of a block, then \texttt{next\_block} with be at
+\texttt{((char\ *)p)\ +\ \ *(size\_t\ *)\ p}, if you are storing the
+size of the blocks in bytes. The cast to \texttt{char\ *} ensures that
+pointer arithmetic is calculated in bytes. The cast to
+\texttt{size\_t\ *} ensures the memory at \texttt{p} is read as a size
+value and would be necessarily if \texttt{p} was a \texttt{void\ *} or
+\texttt{char\ *} type.
+
+The calling program never sees these values; they are internal to the
+implementation of the memory allocator.
+
+As an example, suppose your allocator is asked to reserve 80 bytes
+(\texttt{malloc(80)}) and requires 8 bytes of internal header data. The
+allocator would need to find an unallocated space of at least 88 bytes.
+After updating the heap data it would return a pointer to the block.
+However, the returned pointer does not point to the start of the block
+because that's where the internal size data is stored! Instead we would
+return the start of the block + 8 bytes. In the implementation, remember
+that pointer arithmetic depends on type. For example, \texttt{p\ +=\ 8}
+adds \texttt{8\ *\ sizeof(p)}, not necessarily 8 bytes!
+
+\subsection{Implementing malloc}\label{implementing-malloc}
+
+The simplest implementation uses first fit: Start at the first block,
+assuming it exists, and iterate until a block that represents
+unallocated space of sufficient size is found, or we've checked all the
+blocks.
+
+If no suitable block is found, it's time to call \texttt{sbrk()} again
+to sufficiently extend the size of the heap. A fast implementation might
+extend it a significant amount so that we will not need to request more
+heap memory in the near future.
+
+When a free block is found, it may be larger than the space we need. If
+so, we will create two entries in our implicit list. The first entry is
+the allocated block, the second entry is the remaining space.
+
+There are two simple ways to note if a block is in use or available. The
+first is to store it as a byte in the header information along with the
+size and the second to encode it as the lowest bit in the size! Thus
+block size information would be limited to only even values:
+
+\begin{verbatim}
+// Assumes p is a reasonable pointer type, e.g. 'size_t *'.
+isallocated = (*p) & 1;
+realsize = (*p) & ~1;  // mask out the lowest bit
+\end{verbatim}
+
+\subsection{Alignment and rounding up
+considerations}\label{alignment-and-rounding-up-considerations}
+
+Many architectures expect multi-byte primitives to be aligned to some
+multiple of 2\^{}n. For example, it's common to require 4-byte types to
+be aligned to 4-byte boundaries (and 8-byte types on 8-byte boundaries).
+If multi-byte primitives are not stored on a reasonable boundary (for
+example starting at an odd address) then the performance can be
+significantly impacted because it may require two memory read requests
+instead of one. On some architectures the penalty is even greater - the
+program will crash with a
+\href{http://en.wikipedia.org/wiki/Bus_error\#Unaligned_access}{bus
+error}.
+
+As \texttt{malloc} does not know how the user will use the allocated
+memory (array of doubles? array of chars?), the pointer returned to the
+program needs to be aligned for the worst case, which is architecture
+dependent.
+
+From glibc documentation, the glibc \texttt{malloc} uses the following
+heuristic: " The block that malloc gives you is guaranteed to be aligned
+so that it can hold any type of data. On GNU systems, the address is
+always a multiple of eight on most systems, and a multiple of 16 on
+64-bit systems."
+
+For example, if you need to calculate how many 16 byte units are
+required, don't forget to round up -
+
+\begin{verbatim}
+int s = (requested_bytes + tag_overhead_bytes + 15) / 16
+\end{verbatim}
+
+The additional constant ensures incomplete units are rounded up. Note,
+real code is more likely to symbol sizes e.g. \texttt{sizeof(x)\ -\ 1},
+rather than coding numerical constant 15.
+
+\href{http://www.ibm.com/developerworks/library/pa-dalign/}{Here's a
+great article on memory alignment, if you are further interested} \#\# A
+note about internal fragmentation
+
+Internal fragmentation happens when the block you give them is larger
+than their allocation size. Let's say that we have a free block of size
+16B (not including metadata). If they allocate 7 bytes, you may want to
+round up to 16B and just return the entire block.
+
+This gets very sinister when you implementing coalescing and splitting
+(next section). If you don't implement either, then you may end up
+returning a block of size 64B for a 7B allocation! There is a \emph{lot}
+of overhead for that allocation which is what we are trying to avoid.
+
+\subsection{Implementing free}\label{implementing-free}
+
+When \texttt{free} is called we need to re-apply the offset to get back
+to the `real' start of the block (remember we didn't give the user a
+pointer to the actual start of the block?), i.e.~to where we stored the
+size information.
+
+A naive implementation would simply mark the block as unused. If we are
+storing the block allocation status in the lowest size bit, then we just
+need to clear the bit:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{*p = (*p) & ~}\DecValTok{1}\NormalTok{; }\CommentTok{// Clear lowest bit }
+\end{Highlighting}
+\end{Shaded}
+
+However, we have a bit more work to do: If the current block and the
+next block (if it exists) are both free we need to coalesce these blocks
+into a single block. Similarly, we also need to check the previous
+block, too. If that exists and represents an unallocated memory, then we
+need to coalesce the blocks into a single large block.
+
+To be able to coalesce a free block with a previous free block we will
+also need to find the previous block, so we store the block's size at
+the end of the block, too. These are called ``boundary tags'' (ref
+Knuth73). As the blocks are contiguous, the end of one blocks sits right
+next to the start of the next block. So the current block (apart from
+the first one) can look a few bytes further back to lookup the size of
+the previous block. With this information you can now jump backwards!
+
+\subsection{Performance}\label{performance}
+
+With the above description it's possible to build a memory allocator.
+It's main advantage is simplicity - at least simple compared to other
+allocators! Allocating memory is a worst-case linear time operation
+(search linked lists for a sufficiently large free block) and
+de-allocation is constant time (no more than 3 blocks will need to be
+coalesced into a single block). Using this allocator it is possible to
+experiment with different placement strategies. For example, you could
+start searching from where you last free'd a block, or where you last
+allocated from. If you do store pointers to blocks, you need to be very
+careful that they always remain valid (e.g.~when coalescing blocks or
+other malloc or free calls that change the heap structure)
+
+\subsection{Explicit Free Lists
+Allocators}\label{explicit-free-lists-allocators}
+
+Better performance can be achieved by implementing an explicit
+doubly-linked list of free nodes. In that case, we can immediately
+traverse to the next free block and the previous free block. This can
+halve the search time, because the linked list only includes unallocated
+blocks.
+
+A second advantage is that we now have some control over the ordering of
+the linked list. For example, when a block is free'd, we could choose to
+insert it into the beginning of the linked list rather than always
+between its neighbors. This is discussed below.
+
+Where do we store the pointers of our linked list? A simple trick is to
+realize that the block itself is not being used and store the next and
+previous pointers as part of the block (though now you have to ensure
+that the free blocks are always sufficiently large to hold two
+pointers).
+
+We still need to implement Boundary Tags (i.e.~an implicit list using
+sizes), so that we can correctly free blocks and coalesce them with
+their two neighbors. Consequently, explicit free lists require more code
+and complexity.
+
+With explicit linked lists a fast and simple `Find-First' algorithm is
+used to find the first sufficiently large link. However, since the link
+order can be modified, this corresponds to different placement
+strategies. For example if the links are maintained from largest to
+smallest, then this produces a `Worst-Fit' placement strategy.
+
+\subsubsection{Explicit linked list insertion
+policy}\label{explicit-linked-list-insertion-policy}
+
+The newly free'd block can be inserted easily into two possible
+positions: at the beginning or in address order (by using the boundary
+tags to first find the neighbors).
+
+Inserting at the beginning creates a LIFO (last-in, first-out) policy:
+The most recently free'd spaces will be reused. Studies suggest
+fragmentation is worse than using address order.
+
+Inserting in address order (``Address ordered policy'') inserts free'd
+blocks so that the blocks are visited in increasing address order. This
+policy required more time to free a block because the boundary tags
+(size data) must be used to find the next and previous unallocated
+blocks. However, there is less fragmentation.
+
+\section{Case study: Buddy Allocator (an example of a segregated
+list)}\label{case-study-buddy-allocator-an-example-of-a-segregated-list}
+
+A segregated allocator is one that divides the heap into different areas
+that are handled by different sub-allocators dependent on the size of
+the allocation request. Sizes are grouped into classes (e.g.~powers of
+two) and each size is handled by a different sub-allocator and each size
+maintains its own free list.
+
+A well known allocator of this type is the buddy allocator. We'll
+discuss the binary buddy allocator which splits allocation into blocks
+of size 2\^{}n (n = 1, 2, 3, \ldots{}) times some base unit number of
+bytes, but others also exist (e.g.~Fibonacci split - can you see why
+it's named?). The basic concept is simple: If there are no free blocks
+of size 2\^{}n, go to the next level and steal that block and split it
+into two. If two neighboring blocks of the same size become unallocated,
+they can be coalesced back together into a single large block of twice
+the size.
+
+Buddy allocators are fast because the neighboring blocks to coalesce
+with can be calculated from the free'd block's address, rather than
+traversing the size tags. Ultimate performance often requires a small
+amount of assembler code to use a specialized CPU instruction to find
+the lowest non-zero bit.
+
+The main disadvantage of the Buddy allocator is that they suffer from
+\emph{internal fragmentation}, because allocations are rounded up to the
+nearest block size. For example, a 68-byte allocation will require a
+128-byte block.
+
+\subsubsection{Further Reading and
+References}\label{further-reading-and-references}
+
+\begin{itemize}
+\tightlist
+\item
+  See
+  \href{http://books.google.com/books?id=0uHME7EfjQEC\&lpg=PP1\&pg=PA85\#v=onepage\&q\&f=false}{Foundations
+  of Software Technology and Theoretical Computer Science 1999
+  proceedings} (Google books,page 85)
+\item
+  ThanksForTheMemory UIUC lecture Slides
+  (\href{https://subversion.ews.illinois.edu/svn/sp17-cs241/_shared/wikifiles/CS241-05-ThanksForTheMemorySlides.pptx}{pptx})
+  (\href{https://subversion.ews.illinois.edu/svn/sp17-cs241/_shared/wikifiles/CS241-05-ThanksForTheMemorySlides.pdf}{pdf})
+  and
+\item
+  \href{http://en.wikipedia.org/wiki/Buddy_memory_allocation}{Wikipedia's
+  buddy memory allocation page}
+\end{itemize}
+
+\section{Other allocators}\label{other-allocators}
+
+There are many other allocation schemes. For example
+\href{http://en.wikipedia.org/wiki/SLUB_\%28software\%29}{SLUB}
+(wikipedia) - one of three allocators used internally by the Linux
+Kernel.
+
+\section{Stack Smashing}\label{stack-smashing}
+
+Each thread uses a stack memory. The stack `grows downwards' - if a
+function calls another function, then the stack is extended to smaller
+memory addresses. Stack memory includes non-static automatic (temporary)
+variables, parameter values and the return address. If a buffer is too
+small some data (e.g.~input values from the user), then there is a real
+possibility that other stack variables and even the return address will
+be overwritten. The precise layout of the stack's contents and order of
+the automatic variables is architecture and compiler dependent. However
+with a little investigative work we can learn how to deliberately smash
+the stack for a particular architecture.
+
+The example below demonstrates how the return address is stored on the
+stack. For a particular 32 bit architecture
+\href{http://cs-education.github.io/sys/}{Live Linux Machine}, we
+determine that the return address is stored at an address two pointers
+(8 bytes) above the address of the automatic variable. The code
+deliberately changes the stack value so that when the input function
+returns, rather than continuing on inside the main method, it jumps to
+the exploit function instead.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{// Overwrites the return address on the following machine:}
+\CommentTok{// http://cs-education.github.io/sys/}
+\OtherTok{#include <stdio.h>}
+\OtherTok{#include <stdlib.h>}
+\OtherTok{#include <unistd.h>}
+
+\DataTypeTok{void} \NormalTok{breakout() \{}
+    \NormalTok{puts(}\StringTok{"Welcome. Have a shell..."}\NormalTok{);}
+    \NormalTok{system(}\StringTok{"/bin/sh"}\NormalTok{);}
+\NormalTok{\}}
+\DataTypeTok{void} \NormalTok{input() \{}
+  \DataTypeTok{void} \NormalTok{*p;}
+  \NormalTok{printf(}\StringTok{"Address of stack variable: %p}\CharTok{\textbackslash{}n}\StringTok{"}\NormalTok{, &p);}
+  \NormalTok{printf(}\StringTok{"Something that looks like a return address on stack: %p}\CharTok{\textbackslash{}n}\StringTok{"}\NormalTok{, *((&p)+}\DecValTok{2}\NormalTok{));}
+  \CommentTok{// Let's change it to point to the start of our sneaky function.}
+  \NormalTok{*((&p)+}\DecValTok{2}\NormalTok{) = breakout;}
+\NormalTok{\}}
+\DataTypeTok{int} \NormalTok{main() \{}
+    \NormalTok{printf(}\StringTok{"main() code starts at %p}\CharTok{\textbackslash{}n}\StringTok{"}\NormalTok{,main);}
+    
+    \NormalTok{input();}
+    \KeywordTok{while} \NormalTok{(}\DecValTok{1}\NormalTok{) \{}
+        \NormalTok{puts(}\StringTok{"Hello"}\NormalTok{);}
+        \NormalTok{sleep(}\DecValTok{1}\NormalTok{);}
+    \NormalTok{\}}
+
+    \KeywordTok{return} \DecValTok{0}\NormalTok{;}
+\NormalTok{\}}
+\end{Highlighting}
+\end{Shaded}
+
+There are \href{https://en.wikipedia.org/wiki/Stack_buffer_overflow}{a
+lot} of ways that computers tend to get around this.
+
+\section{Topics}\label{topics}
+
+\begin{itemize}
+\tightlist
+\item
+  Best Fit
+\item
+  Worst Fit
+\item
+  First Fit
+\item
+  Buddy Allocator
+\item
+  Internal Fragmentation
+\item
+  External Fragmentation
+\item
+  sbrk
+\item
+  Natural Alignment
+\item
+  Boundary Tag
+\item
+  Coalescing
+\item
+  Splitting
+\item
+  Slab Allocation/Memory Pool
+\end{itemize}
+
+\section{Questions/Exercises}\label{questionsexercises}
+
+\begin{itemize}
+\tightlist
+\item
+  What is Internal Fragmentation? When does it become an issue?
+\item
+  What is External Fragmentation? When does it become an issue?
+\item
+  What is a Best Fit placement strategy? How is it with External
+  Fragmentation? Time Complexity?
+\item
+  What is a Worst Fit placement strategy? Is it any better with External
+  Fragmentation? Time Complexity?
+\item
+  What is the First Fit Placement strategy? It's a little bit better
+  with Fragmentation, right? Expected Time Complexity?
+\item
+  Let's say that we are using a buddy allocator with a new slab of 64kb.
+  How does it go about allocating 1.5kb?
+\item
+  When does the 5 line \texttt{sbrk} implementation of malloc have a
+  use?
+\item
+  What is natural alignment?
+\item
+  What is Coalescing/Splitting? How do they increase/decrease
+  fragmentation? When can you coalesce or split?
+\item
+  How do boundary tags work? How can they be used to coalesce or split?
+\end{itemize}
