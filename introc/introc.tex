@@ -339,8 +339,7 @@ By default, for performance, \keyword{printf} does not actually write
 anything out (by calling write) until its buffer is full or a newline is
 printed.
 
-\subsection{How else can I print strings and single
-characters?}\label{how-else-can-i-print-strings-and-single-characters}
+\subsection{How else can I print strings and single characters?}
 
 Use \keyword{puts(\ name\ )} and \keyword{putchar(\ c\ )} where name is a
 pointer to a C string and c is just a \keyword{char}
@@ -353,15 +352,13 @@ Use
 Where \_file\_ is either predefined `stdout' `stderr' or a FILE pointer
 that was returned by \keyword{fopen} or \keyword{fdopen}
 
-\subsection{Can I use file
-descriptors?}\label{can-i-use-file-descriptors}
+\subsection{Can I use file descriptors?}\label{can-i-use-file-descriptors}
 
 Yes! Just use \keyword{dprintf(int\ fd,\ char*\ format\_string,\ ...);}
 Just remember the stream may be buffered, so you will need to assure
 that the data is written to the file descriptor.
 
-\subsection{How do I print data into a C
-string?}\label{how-do-i-print-data-into-a-c-string}
+\subsection{How do I print data into a C string?}
 
 Use \keyword{sprintf} or better \keyword{snprintf}.
 
@@ -372,6 +369,74 @@ int len = snprintf(result, sizeof(result), "%s:%d", name, score);
 
 snprintf returns the number of characters written excluding the
 terminating byte. In the above example, this would be a maximum of 199.
+
+The following code is vulnerable to buffer overflow. It assumes or
+trusts that the input line will be no more than 10 characters, including
+the terminating byte.
+
+\begin{code}[language=C]
+char buf[10];
+gets(buf); // Remember the array name means the first byte of the array
+\end{code}
+
+\subsection{Should I Use Gets?}
+
+\keyword{gets} is deprecated in C99 standard and has been removed from
+the latest C standard (C11). Programs should use \keyword{fgets} or
+\keyword{getline} instead.
+
+Where each has the following structure respectively:
+
+\begin{code}[language=C]
+char *fgets (char *str, int num, FILE *stream); 
+
+ssize_t getline(char **lineptr, size_t *n, FILE *stream);
+\end{code}
+
+Here's a simple, safe way to read a single line. Lines longer than 9
+characters will be truncated:
+
+\begin{code}[language=C]
+char buffer[10];
+char *result = fgets(buffer, sizeof(buffer), stdin);
+\end{code}
+
+The result is NULL if there was an error or the end of the file is
+reached. Note, unlike \keyword{gets}, \keyword{fgets} copies the newline
+into the buffer, which you may want to discard-
+
+\begin{code}[language=C]
+if (!result) { return; /* no data - don't read the buffer contents */}
+
+int i = strlen(buffer) - 1;
+if (buffer[i] == '\n') 
+    buffer[i] = '\0';
+\end{code}
+
+One of the advantages of \keyword{getline} is that will automatically
+(re-) allocate a buffer on the heap of sufficient size.
+
+\begin{code}[language=C]
+// ssize_t getline(char **lineptr, size_t *n, FILE *stream);
+
+ /* set buffer and size to 0; they will be changed by getline */
+char *buffer = NULL;
+size_t size = 0;
+
+ssize_t chars = getline(&buffer, &size, stdin);
+
+// Discard newline character if it is present,
+if (chars > 0 && buffer[chars-1] == '\n') 
+    buffer[chars-1] = '\0';
+
+// Read another line.
+// The existing buffer will be re-used, or, if necessary,
+// It will be `free`'d and a new larger buffer will `malloc`'d
+chars = getline(&buffer, &size, stdin);
+
+// Later... don't forget to free the buffer!
+free(buffer);
+\end{code}
 
 \subsection{Parsing}
 
@@ -925,80 +990,6 @@ char buffer[10];
 scanf("%9s", buffer); // reads up to 9 charactes from input (leave room for the 10th byte to be the terminating byte)
 \end{code}
 
-\subsection{\texorpdfstring{Why is \keyword{gets} dangerous? What should
-I use
-instead?}{Why is gets dangerous? What should I use instead?}}\label{why-is-gets-dangerous-what-should-i-use-instead}
-
-The following code is vulnerable to buffer overflow. It assumes or
-trusts that the input line will be no more than 10 characters, including
-the terminating byte.
-
-\begin{code}[language=C]
-char buf[10];
-gets(buf); // Remember the array name means the first byte of the array
-\end{code}
-
-\keyword{gets} is deprecated in C99 standard and has been removed from
-the latest C standard (C11). Programs should use \keyword{fgets} or
-\keyword{getline} instead.
-
-Where each has the following structure respectively:
-
-\begin{code}[language=C]
-char *fgets (char *str, int num, FILE *stream); 
-
-ssize_t getline(char **lineptr, size_t *n, FILE *stream);
-\end{code}
-
-Here's a simple, safe way to read a single line. Lines longer than 9
-characters will be truncated:
-
-\begin{code}[language=C]
-char buffer[10];
-char *result = fgets(buffer, sizeof(buffer), stdin);
-\end{code}
-
-The result is NULL if there was an error or the end of the file is
-reached. Note, unlike \keyword{gets}, \keyword{fgets} copies the newline
-into the buffer, which you may want to discard-
-
-\begin{code}[language=C]
-if (!result) { return; /* no data - don't read the buffer contents */}
-
-int i = strlen(buffer) - 1;
-if (buffer[i] == '\n') 
-    buffer[i] = '\0';
-\end{code}
-
-\subsection{\texorpdfstring{How do I use
-\keyword{getline}?}{How do I use getline?}}\label{how-do-i-use-getline}
-
-One of the advantages of \keyword{getline} is that will automatically
-(re-) allocate a buffer on the heap of sufficient size.
-
-\begin{code}[language=C]
-// ssize_t getline(char **lineptr, size_t *n, FILE *stream);
-
- /* set buffer and size to 0; they will be changed by getline */
-char *buffer = NULL;
-size_t size = 0;
-
-ssize_t chars = getline(&buffer, &size, stdin);
-
-// Discard newline character if it is present,
-if (chars > 0 && buffer[chars-1] == '\n') 
-    buffer[chars-1] = '\0';
-
-// Read another line.
-// The existing buffer will be re-used, or, if necessary,
-// It will be `free`'d and a new larger buffer will `malloc`'d
-chars = getline(&buffer, &size, stdin);
-
-// Later... don't forget to free the buffer!
-free(buffer);
-\end{code}
-
-What common mistakes do C programmers make?
 
 \section{Memory mistakes}\label{memory-mistakes}
 

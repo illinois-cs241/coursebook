@@ -29,6 +29,7 @@ Otherwise, you should probably make an issue first to see what either the course
 * The content of the wikibook should be in between the current wikibook and an exhaustive survey of linux programming
 * Have ownership of the book in case it should go into syndication or something similar
 * Have travis build so people don't need to install a bunch of pre-reqs to get started.
+* Keep in line with lectures
 
 ## What that means
 * Not everything you find on here will be in the quiz

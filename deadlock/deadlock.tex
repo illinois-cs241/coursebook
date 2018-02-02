@@ -166,32 +166,10 @@ In the case that the philosophers aren't evil, this solution requires a lot of t
 
 \subsection{Partial Ordering (Dijkstra's Solution)}\label{partial-ordering-dijkstras-solution}
 
-This is Dijkstra's solution (he was the one to propose this problem on
-an exam). Why does the first solution deadlock? Dijkstra thought that
-the last philosopher who picks up his left fork (causing the solution to
-deadlock) should pick up his right. He accomplishes it by number the
-forks 1..n, and tells each of the philosopher to pick up his lower
-number fork.
+This is Dijkstra's solution (he was the one to propose this problem on an exam). Why does the first solution deadlock? Dijkstra thought that the last philosopher who picks up his left fork (causing the solution to deadlock) should pick up his right. He accomplishes it by number the forks 1..n, and tells each of the philosopher to pick up his lower number fork. Let's run through the deadlock condition again. Everyone tries to pick up their lower number fork first. Philosopher 1 gets fork 1, Philosopher 2 gets fork 2, and so on until we get to Philosopher n. They have to choose between fork 1 and n. fork 1 is already held up by philosopher 1, so they can't pick up that fork, meaning he won't pick up fork n. We have broken circular wait! Meaning deadlock isn't possible.
 
-Let's run through the deadlock condition again. Everyone tries to pick
-up their lower number fork first. Philosopher 1 gets fork 1, Philosopher
-2 gets fork 2, and so on until we get to Philosopher n. They have to
-choose between fork 1 and n. fork 1 is already held up by philosopher 1,
-so they can't pick up that fork, meaning he won't pick up fork n. We
-have broken circular wait! Meaning deadlock isn't possible.
+The problems to this is that an entity either needs to know the finite set of resources or be able to produce a consistent partial order suck that circular wait cannot happen. This also implies that there needs to be some entity, either the operating system or another process, deciding on the number and all of the philosophers need to agree on the number as new resources come in. As we have also see with previous solutions, this relies on context switching so this prioritizes philosophers that have already eaten but can be made more fair by introducing random sleeps and waits.
 
-\subsubsection{Problems:}
-
-\begin{itemize}
-\tightlist
-\item
-  The philosopher needs to know the set of resources in order before
-  grabbing any resources.
-\item
-  You need to define a partial order to all of the resources.
-\item
-  Prioritizes philosopher who have already eaten.
-\end{itemize}
 
 \subsection{Advanced Solutions}
 
