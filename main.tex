@@ -13,6 +13,7 @@
 \usepackage{mfirstuc}
 \usepackage{comment}
 \usepackage{graphicx,changepage}
+\usepackage{pgffor}
 
 % Make hyperrefs work
 \usepackage{hyperref}
@@ -34,6 +35,7 @@ basicstyle=\ttfamily,
 columns=flexible,
 breaklines=true
 }
+
 \usepackage{color}
 \definecolor{greencomments}{rgb}{0,0.5,0}
 \definecolor{redstrings}{rgb}{0.9,0,0}
@@ -100,10 +102,6 @@ rulecolor=\color{lightlisting},}
 	{\}}{{\CodeSymbol{\}}}}1
 }
 \lstset{language=C,style=cstyle}
-\lstnewenvironment{code}[1][]%
-  {\noindent\minipage{\linewidth}\medskip 
-   \lstset{basicstyle=\ttfamily\footnotesize,frame=single,#1}}
-  {\endminipage}
 
 % set up quotes
 \usepackage{epigraph}
@@ -115,9 +113,23 @@ rulecolor=\color{lightlisting},}
 \title{\vspace{-15mm}\fontsize{24pt}{10pt}\selectfont\textbf{CS241 System Programming Wikibook}}
 \date{}
 
+% define custom environments, so we can change global style at will
 \newcommand{\inputchapter}[2]{\chapter{#2}\input{#1}}
+\newcommand{\keyword}[1]{\texttt{#1}}
+\newcommand{\todo}[0]{}
+\lstnewenvironment{code}[1][]%
+  {\noindent\minipage{\linewidth}\medskip 
+   \lstset{basicstyle=\ttfamily\footnotesize,frame=single,#1}}
+  {\endminipage}
+
+\newenvironment{code}{\begin{lstlisting}}{\end{lstlisting}}
+
+\newenvironment{proof}{\paragraph{Proof:}}{\hfill$\square$}
+\usepackage{wrapfig}
 
 \begin{document}
+
+\raggedbottom
 
 \pagestyle{fancy}
 \fancyhf{}
@@ -129,12 +141,12 @@ rulecolor=\color{lightlisting},}
 \tableofcontents
 
 \inputchapter{introduction/introduction.tex}{Introduction}
-\inputchapter{introc/introc.tex}{C Programming Language}
+%\inputchapter{introc/introc.tex}{C Programming Language}
 %\inputchapter{processes/processes.tex}{Processes}
 %\inputchapter{malloc/malloc.tex}{Memory Allocators}
 %\inputchapter{threads/threads.tex}{Threading}
 %\inputchapter{synchronization/synchronization.tex}{Synchronization}
-%\inputchapter{deadlock/deadlock.tex}{Deadlock}
+\inputchapter{deadlock/deadlock.tex}{Deadlock}
 %\inputchapter{scheduling/scheduling.tex}{Scheduling}
 %\inputchapter{ipc/ipc.tex}{Interprocess Communication}
 %\inputchapter{networking/networking.tex}{Networking}
