@@ -19,7 +19,7 @@
 \usepackage{hyperref}
 
 % Set up bibliography
-\usepackage[semicolon,round,sort&compress,sectionbib]{natbib}
+\usepackage[semicolon,square,sort&compress,sectionbib,numbers]{natbib}
 \usepackage{chapterbib}   
 
 % Set up glossaries
@@ -57,7 +57,9 @@ breaklines=true
 \definecolor{blue}{HTML}{4271AE}
 \definecolor{purple}{HTML}{8959A8}
 \definecolor{window}{HTML}{EFEFEF}
-\definecolor{lightlisting}{HTML}{EEEEEE}
+% Has to be name shadecolor
+\definecolor{shadecolor}{HTML}{EEEEEE}
+\usepackage{framed}
 \newcommand{\CodeSymbol}[1]{\textcolor{red}{#1}\bfseries}
 
 \lstset{aboveskip=20pt,
@@ -71,8 +73,8 @@ framexleftmargin=1em,
 frame=bt,
 framextopmargin=5pt,
 framexbottommargin=5pt,
-backgroundcolor=\color{lightlisting},
-rulecolor=\color{lightlisting},}
+backgroundcolor=\color{shadecolor},
+rulecolor=\color{shadecolor},}
 
 % Define syntax highlighting style
 \usepackage{listings}
@@ -114,9 +116,9 @@ rulecolor=\color{lightlisting},}
 \date{}
 
 % define custom environments, so we can change global style at will
-\newcommand{\inputchapter}[2]{\chapter{#2}\include{#1}}
 \newcommand{\keyword}[1]{\texttt{#1}}
-\newcommand{\todo}[0]{}
+\newcommand{\todo}[1]{}
+\renewcommand{\todo}[1]{{\color{red} TODO: {#1}}}
 \lstnewenvironment{code}[1][]%
   {\noindent\minipage{\linewidth}\medskip 
    \lstset{basicstyle=\ttfamily\footnotesize,frame=single,#1}}
@@ -124,8 +126,13 @@ rulecolor=\color{lightlisting},}
 
 \newenvironment{code}{\begin{lstlisting}}{\end{lstlisting}}
 
-\newenvironment{proof}{\paragraph{Proof:}}{\hfill$\square$}
+% For pictures
+\newenvironment{proof}{\begin{shaded*}\paragraph{Proof:}}{\hfill$\square$\end{shaded*}}
+\newenvironment{aside}{\begin{shaded*}\textbf{Aside}\hfill}{\end{shaded*}}
 \usepackage{wrapfig}
+
+% For table of contents and come pages
+\usepackage{multicol}
 
 \begin{document}
 
@@ -138,22 +145,24 @@ rulecolor=\color{lightlisting},}
 
 \maketitle
 
+\begin{multicols}{2}
 \tableofcontents
+\end{multicols}
 
-\inputchapter{introduction/introduction}{Introduction}
-\inputchapter{introc/introc}{C Programming Language}
-%\inputchapter{processes/processes.tex}{Processes}
-%\inputchapter{malloc/malloc.tex}{Memory Allocators}
-%\inputchapter{threads/threads.tex}{Threading}
-%\inputchapter{synchronization/synchronization.tex}{Synchronization}
-\inputchapter{deadlock/deadlock}{Deadlock}
-%\inputchapter{scheduling/scheduling.tex}{Scheduling}
-%\inputchapter{ipc/ipc.tex}{Interprocess Communication}
-%\inputchapter{networking/networking.tex}{Networking}
-%\inputchapter{filesystems/filesystems.tex}{Filesystems}
-%\inputchapter{signals/signals.tex}{Signals}
-%\inputchapter{review/review.tex}{Review}
-\inputchapter{appendix/appendix}{Appendix}
+\include{introduction/introduction}
+\include{introc/introc}
+%\include{processes/processes}
+%\include{malloc/malloc}
+%\include{threads/threads}
+%\include{synchronization/synchronization}
+\include{deadlock/deadlock}
+%\include{scheduling/scheduling}
+%\include{ipc/ipc}
+%\include{networking/networking}
+%\include{filesystems/filesystems}
+%\include{signals/signals}
+%\include{review/review}
+\include{appendix/appendix}
 
 \printglossaries
 

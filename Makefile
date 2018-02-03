@@ -14,6 +14,7 @@ all: $(PDF_TEX)
 $(PDF_TEX): $(TEX) $(MAIN_TEX) $(BIBS) Makefile
 	-latexmk latexmk -interaction=nonstopmode -quiet -f -pdf $(MAIN_TEX) 2>&1 >/dev/null
 	-@latexmk -c
+	-@rm *aux *bbl *glg *glo *gls *ist *latexmk *fls
 
 .PHONY: clean
 clean:
