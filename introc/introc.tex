@@ -10,7 +10,7 @@ C was developed by Dennis Ritchie and Ken Thompson at Bell Labs back in 1973 \ci
 
 The first "real" standardization is with Brian Kerninghan and Dennis Ritchies book \cite{kernighan1988c}. It is still widely regarded today as the only \gls{portable} set of C instructions. The K\&R book is known as the de-facto standard for learning C.  There were different standards of C from ANSI to ISO after the Unix guides. The one that we will be mainly focusing on is the \gls{POSIX} C library. Now to get the elephant out of the room, the Linux kernel is not entirely POSIX compliant. Mostly, it is because they didn't want to pay the fee for compliance
 
-\todo
+\todo{Further the history until today}
 
 \section{Features}
 
@@ -160,20 +160,194 @@ do {
 } while (i > 10) /* Only executed once */
 \end{code}
 
-\item \keyword{enum}
-\item \keyword{extern}
-\item \keyword{float}
-\item \keyword{for}
-\item \keyword{goto}
-\item \keyword{if else else-if} are control flow keywords. There are a few ways to use these
-\item \keyword{inline}
-\item \keyword{register}
-\item \keyword{restrict}
+\item \keyword{enum} is to declare an enumeration. An enumeration is a type that can take on many, finite values. If you have an enum and don't specify any numerics, the c compiler when generate a unique number for that enum (within the context of the current enum) and use that for comparisons. To declare an instance of an enum, you must say \keyword{enum <type> varname}. The added benefit to this is that C can type check these expressions to make sure that you are only comparing alike types.
+
+\begin{code}[language=C]
+enum day{ monday, tuesday, wednesday,
+  thursday, friday, saturday, sunday};
+
+void process_day(enum day foo) {
+  switch(day) {
+    case monday:
+      printf("Go home!\n"); break;
+    // ...
+  }
+}
+\end{code}
+
+It is completely possible to assign enum values to either be different or the same. Just don't rely on the compiler for consistent numbering. If you are going to use this abstraction, try not to break it.
+
+\begin{code}[language=C]
+enum day{ 
+  monday = 0, 
+  tuesday = 0, 
+  wednesday = 0,
+  thursday = 1, 
+  friday = 10, 
+  saturday = 10, 
+  sunday = 0};
+
+void process_day(enum day foo) {
+  switch(day) {
+    case monday:
+      printf("Go home!\n"); break;
+    // ...
+  }
+}
+\end{code}
+
+\item \keyword{extern} is a special keyword that tells the compiler that the variable may be defined in another object file or a library, so the compiler doesn't throw an error when either the variable is not defined or if the variable is defined twice because the first file will really be referencing the variable in the other file.
+
+\begin{code}[language=C]
+// file1.c
+extern int panic;
+
+void foo() {
+  if (panic) {
+    printf("NONONONONO");
+  } else {
+    printf("This is fine");
+  }
+}
+
+//file2.c
+
+int panic = 1;
+\end{code}
+
+\item \keyword{for} is a keyword that allows you to iterate with an initialization condition, a loop invariant, and an update condition. This is meant to be a replacement for the while loop
+
+\begin{code}[language=C]
+for (initialization; check; update) {
+  //...
+}
+
+// Typically
+int i;
+for (i = 0; i < 10; i++) {
+  //...
+}
+\end{code}
+
+One thing to note is that as of the C89 standard, you cannot declare variables inside the \keyword{for} loop. This is because there was a disagreement in the standard for how the scoping rules of a variable defined in the loop would work. It has since been resolved with more recent standards, so people can use the for loop that they know and love today
+
+\begin{code}[language=C]
+for(int i = 0; i < 10; ++i) {
+  
+}
+\end{code}
+
+The order of evaluation for a \keyword{for} loop is as follows
+
+\begin{enumerate}
+\item Perform the initialization condition.
+\item Check the invariant. If false, terminate the loop and execute the next statement. If true, continue to the body of the loop.
+\item Perform the body of the loop.
+\item Perform the update condition.
+\item Jump to (2).
+\end{enumerate}
+
+\item \keyword{goto} is a keyword that allows you to do conditional jumps. Do not use \keyword{goto} in your programs. The reason being is that it makes your code infinitely more hard to understand when strung together with multiple chains. It is fine to use in some contexts though. The keyword is usually used in kernel contexts when adding another stack frame for cleanup isn't a good idea. The canonical example of kernel cleanup is as below.
+
+\begin{code}[language=C]
+void setup(void) {
+  Doe *deer;
+  Ray *drop;
+  Mi *myself;
+
+  if (!setupdoe(deer)) {
+    goto finish;
+  } 
+
+  if (!setupray(drop)) {
+    goto cleanupdoe;
+  } 
+
+  if (!setupmi(myself)) {
+    goto cleanupray;
+  }
+
+  perform_action(deer, drop, myself);
+
+cleanupray:
+  cleanup(drop);
+cleanupdoe:
+  cleanup(deer);
+finish:
+  return;
+} 
+\end{code}
+\item \keyword{if else else-if} are control flow keywords. There are a few ways to use these (1) A bare if (2) An if with an else (3) an if with an else-if (4) an if with an else if and else. The statements are always executed from the if to the else. If any of the intermediate conditions are true, the if block performs that action and goes to the end of that block.
+
+\begin{code}[language=C]
+// (1)
+
+if (connect(...))
+  return -1;
+
+// (2)
+if (connect(...)) {
+  exit(-1);
+} else {
+  printf("Connected!");
+}
+
+// (3)
+if (connect(...)) {
+  exit(-1);
+} else if (bind(..)) {
+  exit(-2);
+}
+
+// (1)
+if (connect(...)) {
+  exit(-1);
+} else if (bind(..)) {
+  exit(-2);
+} else {
+  printf("Successfully bound!");
+}
+\end{code}
+
+\item \keyword{inline} is a compiler keyword that tells the compiler it's okay not to create a new function in the assembly. Instead, the compile is hinted at substituting the function body directly into the calling function. This is not always recommended explicitly as the compiler is usually smart enough to know when to \keyword{inline} a function for you.
+
+\begin{code}[language=C]
+inline int max(int a, int b) {
+  return a < b ? a : b;
+}
+
+int main() {
+  printf("Max %d", max(a, b));
+  // printf("Max %d", a < b ? a : b);
+}
+\end{code}
+
+\item \keyword{restrict} is a keyword that tells the compiler that this particular memory region shouldn't overlap with all other memory regions. The use case for this is to tell users of the program that it is undefined behavior if the memory regions overlap.
+
+\begin{code}[language=C]
+memcpy(void * restrict dest, const void* restrict src, size_t bytes);
+
+void add_array(int *a, int * restrict c) {
+  *a += *c;
+}
+int *a = malloc(3*sizeof(*a));
+*a = 1; *a = 2; *a = 3;
+add_array(a + 1, a) // Well defined
+add_array(a, a) // Undefined
+\end{code}
 \item \keyword{return} is a control flow operator that exits the current function. If the function is \keyword{void} then it simply exits the functions. Otherwise another parameter follows as the return value.
 
 \begin{code}[language=C]
-
+void process() {
+  if (connect(...)) {
+    return -1;
+  } else if (bind(...)) {
+    return -2
+  }
+  return 0;
+}
 \end{code}
+
 \item \keyword{signed} is a modifier which is rarely used, but it forces an type to be signed instead of unsigned. The reasont that this is so rarely used is because types are signed by default and need to have the \keyword{unsigned} modifier to make them unsigned but it may be useful in cases where you want the compiler to default a signed type like.
 
 \begin{code}[language=C]
@@ -193,7 +367,7 @@ printf("%zu", 1);
 \end{code}
 
 Which then the compiler is allowed to operate on further. A note that you must have a complete definition of the type at compile time or else you may get an odd error. Consider the following
-\\
+
 \begin{code}[language=C]
 // file.c
 struct person;
@@ -207,9 +381,7 @@ struct person {
 }
 \end{code}
 
-This code will not compile because sizeof is not able to compile \keyword{file.c} without knowing the full declaration of the \texttt{person} struct. That is typically why we either put the full declaration in a header file or we abstract the creation and the interaction away so that users cannot access the internals of our struct.
-
-\keyword{sizeof(ary)}: \keyword{ary} is an array. Returns the number of bytes required for the entire array (5 chars + zero byte = 6 bytes) \keyword{sizeof(ptr)}: Same as sizeof(char *). Returns the number bytes required for a pointer (e.g.~4 or 8 for a 32 bit or 64-bit machine) \keyword{sizeof} is a special operator. Really it's something the compiler substitutes in before compiling the program because the size of all types is known at compile time. When you have \keyword{sizeof(char*)} that takes the size of a pointer on your machine (8 bytes for a 64-bit machine and 4 for a 32 bit and so on). When you try \keyword{sizeof(char{[}{]})}, the compiler looks at that and substitutes the number of bytes that the \textbf{entire} array contains because the total size of the array is known at compile time.
+This code will not compile because sizeof is not able to compile \keyword{file.c} without knowing the full declaration of the \texttt{person} struct. That is typically why we either put the full declaration in a header file or we abstract the creation and the interaction away so that users cannot access the internals of our struct. Also, if the compiler knows the full length of an array object, it will use that in the expression instead of decaying it to a pointer.
 
 \begin{code}[language=C]
 char str1[] = "will be 11";
@@ -219,8 +391,45 @@ sizeof(str2) //8 because it is a pointer
 \end{code}
 
 Be careful, using sizeof for the length of a string!
-\item \keyword{static}
-\item \keyword{struct}
+
+\item \keyword{static} is a type specifier with three meanings.
+\begin{enuemrate}
+\item When used with a global variable or function declaration it means that the scope of the variable or the function is only limited to the file.
+\item When used with a function variable, that declares that the variable has static allocation -- meaning that the variable is allocated once at program start up not every time the program is run.
+\end{enumerate}
+
+\begin{code}[language=C]
+static int i = 0;
+
+static int _perform_calculation(void) {
+  // ...
+}
+
+char *print_time(void) {
+  static char buffer[200]; // Shared every time a function is called
+  // ...
+}
+\end{code}
+
+\item \keyword{struct} is a keyword that allows you to pair multiple types together into a new structure. Structs are contiguous regions of memory that one can access specific elements of each memory as if they were separate variables.
+
+\begin{code}[language=C]
+struct hostname {
+  const char *port;
+  const char *name;
+  const char *resource;
+}; // You need the semicolon at the end
+// Assign each individually
+struct hostname facebook;
+facebook.port = "80";
+facebook.name = "www.google.com";
+facebook.resource = "/";
+
+// You can use static initialization in later versions of c
+struct hostname google = {"80", "www.google.com", "/"};
+\end{code}
+
+
 \item \keyword{switch case default} Switches are essentially glorified jump statements. Meaning that you take either a byte or an integer and the control flow of the program jumps to that location.
 \\
 \begin{code}[language=C]
@@ -255,8 +464,7 @@ typedef struct link link_t;
 //With structs, include the keyword 'struct' as part of the original types
 \end{code}
 
-In this class, we regularly typedef functions. A typedef for a function
-can be this for example
+In this class, we regularly typedef functions. A typedef for a function can be this for example
 
 \begin{code}[language=C]
 typedef int (*comparator)(void*,void*);
@@ -269,8 +477,28 @@ comparator gt = greater_than;
 
 This declares a function type comparator that accepts two \keyword{void*} params and returns an integer.
 
-\item \keyword{union}
-\item \keyword{unsigned}
+\item \keyword{union} is a new type specifier. A union is one piece of memory that a bunch of variables occupy. It is used to maintain consistency while having the flexibility to switch between types without mainting functions to keep track of the bits. Consider an example where we have different pixel values.
+\begin{code}[language=C]
+union pixel {
+  struct values {
+    char red;
+    char blue;
+    char green;
+    char alpha;
+  } values;
+  uint32_t encoded;
+}; // Ending semicolon needed
+union pixel a;
+// When modifying or reading
+a.values.red;
+a.values.blue = 0x0;
+
+// When writing to a file
+fprintf(picture, "%d", a.encoded);
+\end{code}
+
+\item \keyword{unsigned} is a type modifier that forces \keyword{unsigned} behavior in the variables they modify. Unsigned can only be on primitive int types (like \keyword{int} and \keyword{long}). There is a lot of behavior associated with unsigned arthmetic and whatnot, just know for the most part unless you need to do bit shifting you probably won't need it.
+
 \item \keyword{void} is a two folded keyword. When used in terms of function or parameter definition then it means that it returns no value or accepts no parameter specifically. The following declares a function that accepts no parameters and returns nothing.
 
 \begin{code}[language=C]
@@ -309,10 +537,10 @@ If you put the volatile keyword then it forces the compiler to keep the variable
 \begin{enumerate}
 \item \keyword{char} Represents exactly one byte of data. The number of bits in a byte might vary. \keyword{unsigned char} and \keyword{signed char} mean the exact same thing. This must be aligned on a boundary (meaning you cannot use bits in between two addresses). The rest of the types will assume 8 bits in a byte.
 \item \keyword{short (short int)} must be at least two bytes. This is aligned on a two byte boundary, meaning that the address must be divisble by two.
-\item \keyword{int} must be at least two bytes. Again aligned to a two byte boundary. \href{http://www.open-std.org/jtc1/sc22/wg14/www/docs/n1124.pdf}{Page 34}. On most machines this will be 4 bytes.
+\item \keyword{int} must be at least two bytes. Again aligned to a two byte boundary \cite[P. 34]{ISON1124}. On most machines this will be 4 bytes.
 \item \keyword{long (long int)} must be at least four bytes, which are aligned to a four byte boundary. On some machines this can be 8 bytes.
 \item \keyword{long long} must be at least eight bytes, aligned to an eight byte boundary.
-\item \keyword{float} represents an IEEE-754 single percision floating point number tightly specified by \href{http://ieeexplore.ieee.org/document/4610935/}{IEEE}. This will be four bytes aligned to a four byte boundary on most machines.
+\item \keyword{float} represents an IEEE-754 single percision floating point number tightly specified by IEEE \cite{4610935}. This will be four bytes aligned to a four byte boundary on most machines.
 \item \keyword{double} represents an IEEE-754 double percision floating point number specified by the same standard, which is aligned to the nearest eight byte boundary.
 \end{enumerate}
 
@@ -336,28 +564,20 @@ printf("Debug: The string and int are stored at: %p and %p\n", name, &score );
 // We need "&" to get the address of the int variable
 \end{code}
 
-By default, for performance, \keyword{printf} does not actually write
-anything out (by calling write) until its buffer is full or a newline is
-printed.
+By default, for performance, \keyword{printf} does not actually write anything out (by calling write) until its buffer is full or a newline is printed.
 
 \subsection{How else can I print strings and single characters?}
 
-Use \keyword{puts(\ name\ )} and \keyword{putchar(\ c\ )} where name is a
-pointer to a C string and c is just a \keyword{char}
+Use \keyword{puts(\ name\ )} and \keyword{putchar(\ c\ )} where name is a pointer to a C string and c is just a \keyword{char}
 
 \subsection{How do I print to other file
 streams?}\label{how-do-i-print-to-other-file-streams}
 
-Use
-\keyword{fprintf(\ \_file\_\ ,\ "Hello\ \%s,\ score:\ \%d",\ name,\ score);}
-Where \_file\_ is either predefined `stdout' `stderr' or a FILE pointer
-that was returned by \keyword{fopen} or \keyword{fdopen}
+Use \keyword{fprintf(\ \_file\_\ ,\ "Hello\ \%s,\ score:\ \%d",\ name,\ score);} Where \_file\_ is either predefined `stdout' `stderr' or a FILE pointer that was returned by \keyword{fopen} or \keyword{fdopen}
 
 \subsection{Can I use file descriptors?}\label{can-i-use-file-descriptors}
 
-Yes! Just use \keyword{dprintf(int\ fd,\ char*\ format\_string,\ ...);}
-Just remember the stream may be buffered, so you will need to assure
-that the data is written to the file descriptor.
+Yes! Just use \keyword{dprintf(int\ fd,\ char*\ format\_string,\ ...);} Just remember the stream may be buffered, so you will need to assure that the data is written to the file descriptor.
 
 \subsection{How do I print data into a C string?}
 
@@ -368,23 +588,30 @@ char result[200];
 int len = snprintf(result, sizeof(result), "%s:%d", name, score);
 \end{code}
 
-snprintf returns the number of characters written excluding the
-terminating byte. In the above example, this would be a maximum of 199.
+\keyword{snprintf} returns the number of characters written excluding the terminating byte. In the above example, this would be a maximum of 199.
 
-The following code is vulnerable to buffer overflow. It assumes or
-trusts that the input line will be no more than 10 characters, including
-the terminating byte.
+The following code is vulnerable to buffer overflow. It assumes or trusts that the input line will be no more than 10 characters, including the terminating byte.
 
 \begin{code}[language=C]
 char buf[10];
 gets(buf); // Remember the array name means the first byte of the array
 \end{code}
 
+\subsection{What if I really really want printf to call write without a newline?}
+
+Use \keyword{fflush(\ FILE*\ inp\ )}. The contents of the file will be written. If I wanted to write ``Hello World'' with no newline, I could write it like this.
+
+\begin{code}[language=C]
+int main(){
+    fprintf(stdout, "Hello World");
+    fflush(stdout);
+    return 0;
+}
+\end{code}
+
 \subsection{Should I Use Gets?}
 
-\keyword{gets} is deprecated in C99 standard and has been removed from
-the latest C standard (C11). Programs should use \keyword{fgets} or
-\keyword{getline} instead.
+\keyword{gets} is deprecated in C99 standard and has been removed from the latest C standard (C11). Programs should use \keyword{fgets} or \keyword{getline} instead.
 
 Where each has the following structure respectively:
 
@@ -394,17 +621,14 @@ char *fgets (char *str, int num, FILE *stream);
 ssize_t getline(char **lineptr, size_t *n, FILE *stream);
 \end{code}
 
-Here's a simple, safe way to read a single line. Lines longer than 9
-characters will be truncated:
+Here's a simple, safe way to read a single line. Lines longer than 9 characters will be truncated:
 
 \begin{code}[language=C]
 char buffer[10];
 char *result = fgets(buffer, sizeof(buffer), stdin);
 \end{code}
 
-The result is NULL if there was an error or the end of the file is
-reached. Note, unlike \keyword{gets}, \keyword{fgets} copies the newline
-into the buffer, which you may want to discard-
+The result is NULL if there was an error or the end of the file is reached. Note, unlike \keyword{gets}, \keyword{fgets} copies the newline into the buffer, which you may want to discard-
 
 \begin{code}[language=C]
 if (!result) { return; /* no data - don't read the buffer contents */}
@@ -414,8 +638,7 @@ if (buffer[i] == '\n')
     buffer[i] = '\0';
 \end{code}
 
-One of the advantages of \keyword{getline} is that will automatically
-(re-) allocate a buffer on the heap of sufficient size.
+One of the advantages of \keyword{getline} is that will automatically (re-) allocate a buffer on the heap of sufficient size.
 
 \begin{code}[language=C]
 // ssize_t getline(char **lineptr, size_t *n, FILE *stream);
@@ -443,11 +666,64 @@ free(buffer);
 
 \subsection{string.h}
 
-Why are \keyword{memcpy} and \keyword{memmove} both in \keyword{\textless{}string.h\textgreater{}}? Because strings are essentially raw memory with a null byte at the end of them! \keyword{void\ *memcpy(void\ *dest,\ const\ void\ *src,\ size\_t\ n)} moves \keyword{n} bytes starting at \keyword{src} to \keyword{dest}. \textbf{Be careful}, there is undefined behavior when the memory regions overlap. This is one of the classic works on my machine examples because many times valgrind won't be able to pick it up because it will look like it works on your machine. When the autograder hits, fail. Consider the safer version which is.
+\href{https://linux.die.net/man/3/string}{More information about all of these functions}. Any behavior like passing \keyword{strlen(NULL)} is considered undefined behavior.
 
-\keyword{void\ *memmove(void\ *dest,\ const\ void\ *src,\ size\_t\ n)}
-does the same thing as above, but if the memory regions overlap then it
-is guaranteed that all the bytes will get copied over correctly.
+\begin{itemize}
+
+\item \keyword{int\ strlen(const\ char\ *s)} returns the length of the string not including the null byte
+
+\item \keyword{int\ strcmp(const\ char\ *s1,\ const\ char\ *s2)} returns an integer determining the lexicographic order of the strings. If s1 where to come before s2 in a dictionary, then a -1 is returned. If the two strings are equal, then 0. Else, 1.
+
+\item \keyword{char\ *strcpy(char\ *dest,\ const\ char\ *src)} Copies the string at \keyword{src} to \keyword{dest}. \textbf{assumes dest has enough space for src}
+
+\item \keyword{char\ *strcat(char\ *dest,\ const\ char\ *src)} Concatenates the string at \keyword{src} to the end of destination. \textbf{This function assumes that there is enough space for \keyword{src} at the end of destination including the NULL byte}
+
+\item \keyword{char\ *strdup(const\ char\ *dest)} Returns a \keyword{malloc}'ed copy of the string.
+
+\item \keyword{char\ *strchr(const\ char\ *haystack,\ int\ needle)} Returns a pointer to the first occurrence of \keyword{needle} in the \keyword{haystack}. If none found, \keyword{NULL} is returned.
+
+\item \keyword{char\ *strstr(const\ char\ *haystack,\ const\ char\ *needle)} Same as above but this time a string!
+
+\item \keyword{char *strtock(const char *str, const char *delims)}
+
+ A dangerous but useful function strtok takes a string and tokenizes it. Meaning that it will transform the strings into separate strings. This function has a lot of specs so please read the man pages a contrived example is below.
+
+\begin{code}[language=C]
+#include <stdio.h>
+#include <string.h>
+
+int main(){
+    char* upped = strdup("strtok,is,tricky,!!");
+    char* start = strtok(upped, ",");
+    do{
+        printf("%s\n", start);
+    }while((start = strtok(NULL, ",")));
+    return 0;
+}
+\end{code}
+
+\textbf{Output}
+
+\begin{code}[language=console]
+strtok
+is
+tricky
+!!
+\end{code}
+
+What happens when I change \keyword{upped} like this?
+
+\begin{code}[language=C]
+char* upped = strdup("strtok,is,tricky,,,!!");
+\end{code}
+
+\item \keyword{void\ *memcpy(void\ *dest,\ const\ void\ *src,\ size\_t\ n)} moves \keyword{n} bytes starting at \keyword{src} to \keyword{dest}. \textbf{Be careful}, there is undefined behavior when the memory regions overlap. This is one of the classic works on my machine examples because many times valgrind won't be able to pick it up because it will look like it works on your machine. When the autograder hits, fail. Consider the safer version below.
+
+\item \keyword{void\ *memmove(void\ *dest,\ const\ void\ *src,\ size\_t\ n)} does the same thing as above, but if the memory regions overlap then it is guaranteed that all the bytes will get copied over correctly.
+
+\end{itemize}
+
+\keyword{memcpy} and \keyword{memmove} both in \keyword{\textless{}string.h\textgreater{}}? Because strings are essentially raw memory with a null byte at the end of them! 
 
 \subsection{stdlib.h}
 
@@ -459,11 +735,17 @@ int *space = malloc(sizeof(int) * 10);
 
 \subsection{Conventions/Errno}
 
+\todo{Conventions and errno}
+
 \section{System Calls}
 
 \subsection{What is a system call?}
 
+\todo{System Call}
+
 \subsection{The interplay with library functions}
+
+\todo{System calls and library function}
 
 \subsubsection{Does \keyword{printf} call write or does write call \keyword{printf}?}
 
@@ -478,14 +760,96 @@ buffer which suits our needs better at that point
 
 \subsection{Structs}
 
+\todo{What's a struct?}
+
+In low-level terms, a struct is just a piece of contiguous memory, nothing more. Just like an array, a struct has enough space to keep all of its members. But unlike an array, it can store different types. Consider the contact struct declared above
+
+\begin{code}[language=C]
+struct contact {
+    char firstname[20];
+    char lastname[20];
+    unsigned int phone;
+};
+
+struct contact bhuvan;
+\end{code}
+
+\begin{aside}
+
+\begin{code}[language=C]
+/* a lot of times we will do the following typdef
+ so we can just write contact contact1 */
+
+typedef struct contact contact;
+contact bhuvan;
+
+/* You can also declare the struct like this to get
+ it done in one statement */
+typedef struct optional_name {
+    ...
+} contact;
+\end{code}
+
+If you compile the code without any optimizations and reordering, you can expect the addresses of each of the variables to look like this.
+
+\begin{code}[language=C]
+&bhuvan           // 0x100
+&bhuvan.firstname // 0x100 = 0x100+0x00
+&bhuvan.lastname  // 0x114 = 0x100+0x14
+&bhuvan.phone     // 0x128 = 0x100+0x28
+\end{code}
+
+ Because all your compiler does is say `hey reserve this much space, and I will go and calculate the offsets of whatever variables you want to write to'. The offsets are where the variable starts at. The phone variables starts at the \keyword{0x128}th bytes and continues for sizeof(int) bytes, but not always. \textbf{Offsets don't determine where the variable ends though}. Consider the following hack that you see in a lot of kernel code.
+
+\begin{code}[language=C]
+
+typedef struct {
+    int length;
+    char c_str[0];
+} string;
+
+const char* to_convert = "bhuvan";
+int length = strlen(to_convert);
+
+// Let's convert to a c string
+string* bhuvan_name;
+bhuvan_name = malloc(sizeof(string) + length+1);
+/*
+Currently, our memory looks like this with junk in those black spaces
+                ___ ___ ___ ___ ___ ___ ___ ___ ___ ___ ___
+ bhuvan_name = |___|___|___|___|___|___|___|___|___|___|___|
+                                                           
+*/
+
+
+bhuvan_name->length = length;
+/*
+This writes the following values to the first four bytes
+The rest is still garbage
+                ___ ___ ___ ___ ___ ___ ___ ___ ___ ___ ___
+ bhuvan_name = | 0 | 0 | 0 | 6 |___|___|___|___|___|___|___|
+                                                           
+*/
+
+
+strcpy(bhuvan_name->c_str, to_convert);
+/*
+Now our string is filled in correctly at the end of the struct
+
+                ___ ___ ___ ___ ___ ___ ___ ___ ___ ___ ____
+ bhuvan_name = | 0 | 0 | 0 | 6 | b | h | u | v | a | n | \0 |
+                                                           ‾
+*/
+
+strcmp(bhuvan_name->c_str, "bhuvan") == 0 //The strings are equal!
+\end{code}
+
+\end{aside}
+
+
 \subsubsection{Struct packing}
 
-Structs may require something called \href{http://www.catb.org/esr/structure-packing/}{padding} (tutorial).
-\textbf{We do not expect you to pack structs in this course, just know that it
-is there} This is because in the early days (and even now) when you have
-to an address from memory you have to do it in 32bit or 64bit blocks.
-This also meant that you could only request addresses that were
-multiples of that. Meaning that
+Structs may require something called \href{http://www.catb.org/esr/structure-packing/}{padding} (tutorial). \textbf{We do not expect you to pack structs in this course, just know that it is there} This is because in the early days (and even now) when you have to an address from memory you have to do it in 32bit or 64bit blocks. This also meant that you could only request addresses that were multiples of that. Meaning that
 
 \begin{code}[language=C]
 struct picture{
@@ -868,22 +1232,6 @@ The \keyword{&&} and \keyword{||} operator
 
 \begin{comment}
 
-\subsection{\texorpdfstring{What if I really really want \keyword{printf}
-to call \keyword{write} without a
-newline?}{What if I really really want printf to call write without a newline?}}\label{what-if-i-really-really-want-printf-to-call-write-without-a-newline}
-
-Use \keyword{fflush(\ FILE*\ inp\ )}. The contents of the file will be
-written. If I wanted to write ``Hello World'' with no newline, I could
-write it like this.
-
-\begin{code}[language=C]
-int main(){
-    fprintf(stdout, "Hello World");
-    fflush(stdout);
-    return 0;
-}
-\end{code}
-
 \subsection{\texorpdfstring{How is \keyword{perror}
 helpful?}{How is perror helpful?}}\label{how-is-perror-helpful}
 
@@ -1098,25 +1446,6 @@ on to the next statement
 
 \section{Other Gotchas}\label{other-gotchas}
 
-\subsection{\texorpdfstring{Does \keyword{sizeof} do
-anything?}{Does sizeof do anything?}}\label{does-sizeof-do-anything}
-
-\begin{code}[language=C]
-int a = 0;
-size_t size = sizeof(a++);
-printf("size: %lu, a: %d", size, a);
-\end{code}
-
-What does the code print out?
-
-\begin{code}[language=C]
-size: 4, a: 0
-\end{code}
-
-Because sizeof is not actually evaluated at runtime. The compiler
-assigns the type of all expressions and discards the extra results of
-the expression.
-
 \section{Strings, Structs, and
 Gotcha's}\label{strings-structs-and-gotchas}
 
@@ -1147,216 +1476,11 @@ that any attempt to modify the string will cause a segfault.
 If one, however, \keyword{malloc}'s space, one can change that string to
 be whatever they want.
 
-\subsection{Memory Mismanagement}\label{memory-mismanagement}
-
-One common gotcha is when you write the following
-
-\begin{code}[language=C]
-char* hello_string = malloc(14);
-                       ___ ___ ___ ___ ___ ___ ___ ___ ___ ___ ___ ___ ___ ___
-// hello_string ----> | g | a | r | b | a | g | e | g | a | r | b | a | g | e |
-                                                                              
-hello_string = "Hello Bhuvan!";
-// (constant string in the text segment)
-// hello_string ----> [ "H" , "e" , "l" , "l" , "o" , " " , "B" , "h" , "u" , "v" , "a" , "n" , "!" , "\0" ]
-                       ___ ___ ___ ___ ___ ___ ___ ___ ___ ___ ___ ___ ___ ___
-// memory_leak -----> | g | a | r | b | a | g | e | g | a | r | b | a | g | e |
-                                                                              
-hello_string[9] = 't'; //segfault!!
-\end{code}
-
-What did we do? We allocated space for 14 bytes, reassigned the pointer
-and successfully segfaulted! Remember to keep track of what your
-pointers are doing. What you probably wanted to do was use a
-\keyword{string.h} function \keyword{strcpy}.
-
-\begin{code}[language=C]
-strcpy(hello_string, "Hello Bhuvan!");
-\end{code}
-
 \subsection{Remember the NULL byte!}\label{remember-the-null-byte}
 
 Forgetting to NULL terminate a string is a big affect on the strings!
 Bounds checking is important. The heart bleed bug mentioned earlier in
 the wiki book is partially because of this.
-
-\subsection{Where can I find an In-Depth and Assignment-Comprehensive
-explanation of all of these
-functions?}\label{where-can-i-find-an-in-depth-and-assignment-comprehensive-explanation-of-all-of-these-functions}
-
-\href{https://linux.die.net/man/3/string}{Right Here!}
-
-\subsection{\texorpdfstring{String Information/Comparison:
-\keyword{strlen}
-\keyword{strcmp}}{String Information/Comparison: strlen strcmp}}\label{string-informationcomparison-strlen-strcmp}
-
-\keyword{int\ strlen(const\ char\ *s)} returns the length of the string
-not including the null byte
-
-\keyword{int\ strcmp(const\ char\ *s1,\ const\ char\ *s2)} returns an
-integer determining the lexicographic order of the strings. If s1 where
-to come before s2 in a dictionary, then a -1 is returned. If the two
-strings are equal, then 0. Else, 1.
-
-With most of these functions, they expect the strings to be readable and
-not NULL but there is undefined behavior when you pass them NULL.
-
-\subsection{\texorpdfstring{String Alteration: \keyword{strcpy}
-\keyword{strcat}
-\keyword{strdup}}{String Alteration: strcpy strcat strdup}}\label{string-alteration-strcpy-strcat-strdup}
-
-\keyword{char\ *strcpy(char\ *dest,\ const\ char\ *src)} Copies the
-string at \keyword{src} to \keyword{dest}. \textbf{assumes dest has enough
-space for src}
-
-\keyword{char\ *strcat(char\ *dest,\ const\ char\ *src)} Concatenates the
-string at \keyword{src} to the end of destination. \textbf{This function
-assumes that there is enough space for \keyword{src} at the end of
-destination including the NULL byte}
-
-\keyword{char\ *strdup(const\ char\ *dest)} Returns a \keyword{malloc}'ed
-copy of the string.
-
-\subsection{\texorpdfstring{String Search: \keyword{strchr}
-\keyword{strstr}}{String Search: strchr strstr}}\label{string-search-strchr-strstr}
-
-\keyword{char\ *strchr(const\ char\ *haystack,\ int\ needle)} Returns a
-pointer to the first occurrence of \keyword{needle} in the
-\keyword{haystack}. If none found, \keyword{NULL} is returned.
-
-\keyword{char\ *strstr(const\ char\ *haystack,\ const\ char\ *needle)}
-Same as above but this time a string!
-
-\subsection{\texorpdfstring{String Tokenize:
-\keyword{strtok}}{String Tokenize: strtok}}\label{string-tokenize-strtok}
-
-A dangerous but useful function strtok takes a string and tokenizes it.
-Meaning that it will transform the strings into separate strings. This
-function has a lot of specs so please read the man pages a contrived
-example is below.
-
-\begin{code}[language=C]
-#include <stdio.h>
-#include <string.h>
-
-int main(){
-    char* upped = strdup("strtok,is,tricky,!!");
-    char* start = strtok(upped, ",");
-    do{
-        printf("%s\n", start);
-    }while((start = strtok(NULL, ",")));
-    return 0;
-}
-\end{code}
-
-\textbf{Output}
-
-\begin{code}[language=C]
-strtok
-is
-tricky
-!!
-\end{code}
-
-What happens when I change \keyword{upped} like this?
-
-\begin{code}[language=C]
-char* upped = strdup("strtok,is,tricky,,,!!");
-\end{code}
-
-\section{\texorpdfstring{So what's a \keyword{struct}?}{So what's a struct?}}\label{so-whats-a-struct}
-
-In low-level terms, a struct is just a piece of contiguous memory,
-nothing more. Just like an array, a struct has enough space to keep all
-of its members. But unlike an array, it can store different types.
-Consider the contact struct declared above
-
-\begin{code}[language=C]
-struct contact {
-    char firstname[20];
-    char lastname[20];
-    unsigned int phone;
-};
-
-struct contact bhuvan;
-\end{code}
-
-\textbf{Brief aside}
-
-\begin{code}[language=C]
-/* a lot of times we will do the following typdef
- so we can just write contact contact1 */
-
-typedef struct contact contact;
-contact bhuvan;
-
-/* You can also declare the struct like this to get
- it done in one statement */
-typedef struct optional_name {
-    ...
-} contact;
-\end{code}
-
-If you compile the code without any optimizations and reordering, you
-can expect the addresses of each of the variables to look like this.
-
-\begin{code}[language=C]
-&bhuvan           // 0x100
-&bhuvan.firstname // 0x100 = 0x100+0x00
-&bhuvan.lastname  // 0x114 = 0x100+0x14
-&bhuvan.phone     // 0x128 = 0x100+0x28
-\end{code}
-
-Because all your compiler does is say `hey reserve this much space, and
-I will go and calculate the offsets of whatever variables you want to
-write to'. The offsets are where the variable starts at. The phone variables starts
-at the \keyword{0x128}th bytes and continues for sizeof(int) bytes, but
-not always. \textbf{Offsets don't determine where the variable ends
-though}. Consider the following hack that you see in a lot of kernel
-code.
-
-\begin{code}[language=C]
-
-typedef struct {
-    int length;
-    char c_str[0];
-} string;
-
-const char* to_convert = "bhuvan";
-int length = strlen(to_convert);
-
-// Let's convert to a c string
-string* bhuvan_name;
-bhuvan_name = malloc(sizeof(string) + length+1);
-/*
-Currently, our memory looks like this with junk in those black spaces
-                ___ ___ ___ ___ ___ ___ ___ ___ ___ ___ ___
- bhuvan_name = |   |   |   |   |   |   |   |   |   |   |   |
-                                                           
-*/
-
-
-bhuvan_name->length = length;
-/*
-This writes the following values to the first four bytes
-The rest is still garbage
-                ___ ___ ___ ___ ___ ___ ___ ___ ___ ___ ___
- bhuvan_name = | 0 | 0 | 0 | 6 |   |   |   |   |   |   |   |
-                                                           
-*/
-
-
-strcpy(bhuvan_name->c_str, to_convert);
-/*
-Now our string is filled in correctly at the end of the struct
-
-                ___ ___ ___ ___ ___ ___ ___ ___ ___ ___ ____
- bhuvan_name = | 0 | 0 | 0 | 6 | b | h | u | v | a | n | \0 |
-                                                           ‾
-*/
-
-strcmp(bhuvan_name->c_str, "bhuvan") == 0 //The strings are equal!
-\end{code}
 
 \end{comment}
 

@@ -1,5 +1,5 @@
 # Find all tex files one directory down
-TEX=$(shell find . -maxdepth 2 -mindepth 2 -path "./.git*" -prune -o -type f -iname "*.tex" -print)
+TEX=$(shell find . -path "./.git*" -prune -o -type f -iname "*.tex" -print)
 MAIN_TEX=main.tex
 PDF_TEX=$(patsubst %.tex,%.pdf,$(MAIN_TEX))
 BASE=$(patsubst %.tex,%,$(MAIN_TEX))
@@ -12,7 +12,7 @@ all: $(PDF_TEX)
 
 
 $(PDF_TEX): $(TEX) $(MAIN_TEX) $(BIBS) Makefile
-	-latexmk latexmk -interaction=nonstopmode -quiet -f -pdf $(MAIN_TEX) 2>&1 >/dev/null
+	-latexmk -quiet -interaction=nonstopmode -f -pdf $(MAIN_TEX) 2>&1 >/dev/null
 	-@latexmk -c
 	-@rm *aux *bbl *glg *glo *gls *ist *latexmk *fls
 

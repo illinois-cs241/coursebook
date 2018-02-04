@@ -21,7 +21,7 @@ On typical architectures, the heap is part of the `Data segment` and starts just
 
 ## Do programs need to call brk or sbrk?
 Not typically (though calling `sbrk(0)` can be interesting because it tells you where your heap currently ends). Instead programs use `malloc,calloc,realloc` and `free` which are part of the C library. The internal implementation of these functions will call `sbrk` when additional heap memory is required.
-```C
+```
 void *top_of_heap = sbrk(0);
 malloc(16384);
 void *top_of_heap2 = sbrk(0);
@@ -32,7 +32,7 @@ Example output: `The top of heap went from 0x4000 to 0xa000`
 
 ## What is calloc?
 Unlike `malloc`, `calloc` initializes memory contents to zero and also takes two arguments (the number of items and the size in bytes of each item). A naive but readable implementation of `calloc` looks like this:
-```C
+```
 void *calloc(size_t n, size_t size)
 {
 	size_t total = n * size; // Does not check for overflow!
@@ -52,7 +52,7 @@ An advanced discussion of these limitations is [here](http://locklessinc.com/art
 
 Programmers often use `calloc` rather than explicitly calling `memset` after `malloc`, to set the memory contents to zero. Note `calloc(x,y)` is identical to `calloc(y,x)`, but you should follow the conventions of the manual.
 
-```C
+```
 // Ensure our memory is initialized to zero
 link_t *link  = malloc(256);
 memset(link, 0, 256); // Assumes malloc returned a valid address!
@@ -64,7 +64,7 @@ If the operating system did not zero out contents of physical RAM it might be po
 
 Unfortunately this means that for `malloc` requests before any memory has been freed and simple programs (which end up using newly reserved memory from the system) the memory is _often_ zero. Then programmers mistaken write C programs that assume malloc'd memory will _always_ be zero.
 
-```C
+```
 char* ptr = malloc(300);
 // contents is probably zero because we get brand new memory
 // so beginner programs appear to work!
@@ -79,7 +79,7 @@ Performance! We want malloc to be as fast as possible. Zeroing out memory may be
 
 ## What is realloc and when would you use it?
 `realloc` allows you to resize an existing memory allocation that was previously allocated on the heap (via malloc,calloc or realloc). The most common use of realloc is to resize memory used to hold an array of values. A naive but readable version of realloc is suggested below
-```C
+```
 void * realloc(void * ptr, size_t newsize) {
   // Simple implementation always reserves more memory
   // and has no error checking
@@ -91,7 +91,7 @@ void * realloc(void * ptr, size_t newsize) {
 }
 ```
 An INCORRECT use of realloc is shown below:
-```C
+```
 int *array = malloc(sizeof(int) * 2);
 array[0] = 10; array[1] = 20;
 // Ooops need a bigger array - so use realloc..
@@ -101,7 +101,7 @@ array[2] = 30;
 
 The above code contains two mistakes. Firstly we needed 3*sizeof(int) bytes not 3 bytes.
 Secondly realloc may need to move the existing contents of the memory to a new location. For example, there may not be sufficient space because the neighboring bytes are already allocated. A correct use of realloc is shown below.
-```C
+```
 array = realloc(array, 3 * sizeof(int));
 // If array is copied to a new location then old allocation will be freed.
 ```
@@ -117,7 +117,7 @@ Very! Allocating and de-allocating heap memory is a common operation in most app
 
 ## What is the silliest malloc and free implementation and what is wrong with it?
 
-```C
+```
 void* malloc(size_t size)
 // Ask the system for more bytes by extending the heap space. 
 // sbrk Returns -1 on failure
@@ -248,7 +248,7 @@ This gets very sinister when you implementing coalescing and splitting (next sec
 When `free` is called we need to re-apply the offset to get back to the 'real' start of the block (remember we didn't give the user a pointer to the actual start of the block?), i.e. to where we stored the size information.
 
 A naive implementation would simply mark the block as unused. If we are storing the block allocation status in the lowest size bit, then we just need to clear the bit:
-```C
+```
 *p = (*p) & ~1; // Clear lowest bit 
 ```
 However, we have a bit more work to do: If the current block and the next block (if it exists) are both free we need to coalesce these blocks into a single block.
@@ -309,7 +309,7 @@ The precise layout of the stack's contents and order of the automatic variables 
 The example below demonstrates how the return address is stored on the stack. For a particular 32 bit architecture [Live Linux Machine](http://cs-education.github.io/sys/), we determine that the return address is stored at an address two pointers (8 bytes) above the address of the automatic variable. The code deliberately changes the stack value so that when the input function returns, rather than continuing on inside the main method, it jumps to the exploit function instead.
 
 
-````C
+````
 // Overwrites the return address on the following machine:
 // http://cs-education.github.io/sys/
 #include <stdio.h>

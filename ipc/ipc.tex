@@ -1,768 +1,433 @@
-\section{What is Virtual Memory?}\label{what-is-virtual-memory}
+\chapter{Interprocess Communication}
 
-In very simple embedded systems and early computers, processes directly
-access memory i.e. ``Address 1234'' corresponds to a particular byte
-stored in a particular part of physical memory. In modern systems, this
-is no longer the case. Instead each process is isolated; and there is a
-translation process between the address of a particular CPU instruction
-or piece of data of a process and the actual byte of physical memory
-(``RAM''). Memory addresses are no longer `real'; the process runs
-inside virtual memory. Virtual memory not only keeps processes safe
-(because one process cannot directly read or modify another process's
-memory) it also allows the system to efficiently allocate and
-re-allocate portions of memory to different processes.
+\todo{Epigraph}
 
-\subsection{What is the MMU?}\label{what-is-the-mmu}
+In very simple embedded systems and early computers, processes directly access memory i.e. ``Address 1234'' corresponds to a particular byte stored in a particular part of physical memory. For example the IBM 709 had to read and write directly to a tape with no level of abstraction \cite[P. 65]{ibm709}. Even in systems after that, it was hard to adopt virtual memory because virtual memory required the whole fetch cycle to be altered through hardware -- a change many manufacturers still thought was expensive. In the PDP-10, a workaround was used by using different registers for each process and then virtual memory was added later. In modern systems, this is no longer the case. Instead each process is isolated, and there is a translation process between the address of a particular CPU instruction or piece of data of a process and the actual byte of physical memory (``RAM''). Memory addresses no longer map to physical addresses; the process runs inside virtual memory. Virtual memory not only keeps processes safe (because one process cannot directly read or modify another process's memory) it also allows the system to efficiently allocate and re-allocate portions of memory to different processes. The modern process of translating memory is as follows.
 
-The Memory Management Unit is part of the CPU. It converts a virtual
-memory address into a physical address. The MMU may also interrupt the
-CPU if there is currently no mapping from a particular virtual address
-to a physical address or if the current CPU instruction attempts to
-write to location that the process only has read-access.
+\begin{enumerate}
+\item A process makes a memory request
+\item The circuit first checks the Translation Lookaside Buffer (TLB) if the address page is cached into memory. It skips to the reading from/writing to phase if found otherwise the request goes to the MMU.
+\item The Memory Management Unit (MMU) performs the address translation. If the translation succeeds (more on that later), the page get pulled from RAM -- conceptually the entire page isn't loaded up. The result is cached in the TLB. 
+\item The CPU performs the operation by either reading from the physical address or writing to the address.
+\end{enuemrate}
 
-\subsection{So how do we convert a virtual address into a physical
-address?}\label{so-how-do-we-convert-a-virtual-address-into-a-physical-address}
+\section{MMU and Translating Addresses}
 
-Imagine you had a 32 bit machine. Pointers can hold 32 bits i.e.~they
-can address 2\^{}32 different locations i.e.~4GB of memory (we will be
-following the standard convention of one address can hold one byte).
+The Memory Management Unit is part of the CPU, and it converts a virtual memory address into a physical address. There is a sort of pseudocode associated with the MMU.
 
-Imagine we had a large table - here's the clever part - stored in
-memory! For every possible address (all 4 billion of them) we will store
-the `real' i.e.~physical address. Each physical address will need 4
-bytes (to hold the 32 bits). This scheme would require 16 billion bytes
-to store all of entries. Oops - our lookup scheme would consume all of
-the memory that we could possibly buy for our 4GB machine. We need to do
-better than this. Our lookup table better be smaller than the memory we
-have otherwise we will have no space left for our actual programs and
-operating system data. The solution is to chunk memory into small
-regions called `pages' and `frames' and use a lookup table for each
-page. \# What is a page? How many of them are there?
+\begin{verbatim}
+1. Receive address
+2. Try to translate address according to the programmed scheme
+	1. If the page exists in memory, check if the process has permissions
+		to perform the operation on the page meaning the process has access
+		to the page, and it is reading from the page/writing to a page
+		that is not marked as read only.
 
-A page is a block of virtual memory. A typical block size on Linux
-operating system is 4KB (i.e.~2\^{}12 addresses), though you can find
-examples of larger blocks.
+		1. If so then provide the address, cache the results in the TLB
+		2. Otherwise trigger a hardware interrupt. The kernel 
+			will most likely send a SIGSEGV or a Segmentation Violation.
+	2. If the page doesn't exist in memory, generate an Interrupt.
+		1. The kernel could realize that this page could either be not
+			allocated or on disk. If it fits the mapping, allocate the page
+			and try the operation again.
+		2. Otherwise, this is an invalid access and the kernel will most
+			likely send a SIGSEGV to the process.
+\end{verbatim}
 
-So rather than talking about individual bytes we can talk about blocks
-of 4KBs, each block is called a page. We can also number our pages
-(``Page 0'' ``Page 1'' etc)
+Imagine you had a 32 bit machine, meaning pointers are 32 bits. They can address $2^32$ different locations or 4GB of memory where one address is one byte. Imagine we had a large table - here's the clever part - stored in memory! For every possible address (all 4 billion of them) we will store the `real' i.e. ~physical address. Each physical address will need 4 bytes (to hold the 32 bits). This scheme would require 16 billion bytes to store all of entries. Oops - our lookup scheme would consume all of the memory that we could possibly buy for our 4GB machine. We need to do better than this. Our lookup table better be smaller than the memory we have otherwise we will have no space left for our actual programs and operating system data. The solution is to chunk memory into small regions called `pages' and `frames' and use a lookup table for each page.
 
-\subsection{EX: How many pages are there in a 32bit machine (assume page
-size of
-4KB)?}\label{ex-how-many-pages-are-there-in-a-32bit-machine-assume-page-size-of-4kb}
+A \textbf{page} is a block of virtual memory. A typical block size on Linux operating system is 4KB or $2^12$ addresses, though you can find examples of larger blocks. So rather than talking about individual bytes we can talk about blocks of 4KBs, each block is called a page. We can also number our pages (``Page 0'' ``Page 1'' etc). Let's do a sample calculation of how many pages are there assume page size of 4KB.
 
-Answer: 2\^{}32 address / 2\^{}12 = 2\^{}20 pages.
+\begin{shaded*}
+For a 32 bit machine, $2^32$ address / $2^12$ (address/page) = $2^20$ pages.
 
-Remember that 2\^{}10 is 1024, so 2\^{}20 is a bit more than one
-million.
+For a 64 bit machine, $2^64$ / $2^12$ = $2^52$, which is roughly $10^15$ pages.
+\end{shaded*}
 
-For a 64 bit machine, 2\^{}64 / 2\^{}12 = 2\^{}52, which is roughly
-10\^{}15 pages.
+\subsection{What is a frame?}
 
-\subsection{What is a frame?}\label{what-is-a-frame}
+A \textbf{frame} (or sometimes called a `page frame') is a block of \emph{physical memory} or RAM (=Random Access Memory). This kind of memory is occasionally called `primary storage' in contrast with lower, secondary storage such as spinning disks that have lower access times. A frame is the same number of bytes as a virtual page. If a 32 bit machine has $2^32 B$ of RAM, then there will be the same number of them in the addressable space of the machine. It's unlikely that a 64 bit machine will ever have $2^64$ bytes of RAM.
 
-A frame (or sometimes called a `page frame') is a block of
-\emph{physical memory} or RAM (=Random Access Memory). This kind of
-memory is occasionally called `primary storage' (and contrasted with
-slower, secondary storage such as spinning disks that have lower access
-times)
+A \textbf{page table} is a mapping between a page to the frame. For example Page 1 might be mapped to frame 45, page 2 mapped to frame 30. Other frames might be currently unused or assigned to other running processes, or used internally by the operating system.
 
-A frame is the same number of bytes as a virtual page. If a 32 bit
-machine has 2\^{}32 (4GB) of RAM, then there will be the same number of
-them in the addressable space of the machine. It's unlikely that a 64
-bit machine will ever have 2\^{}64 bytes of RAM - can you see why?
+A simple page table could be imagined as an array.
+\begin{code}[language=C]
+int frame_num = table[page_num]; 
+\end{code}
 
-\subsection{What is a page table and how big is
-it?}\label{what-is-a-page-table-and-how-big-is-it}
+For a 32 bit machine with 4KB pages, each entry needs to hold a frame number - i.e.~20 bits because we calculated there are 2\^{}20 frames. That's 2.5 bytes per entry! In practice, we'll round that up to 4 bytes per entry and find a use for those spare bits. With 4 bytes per entry x 2\^{}20 entries = 4 MB of physical memory are required to hold the page table 
+For a 64 bit machine with 4KB pages, each entry needs 52 bits. Let's round up to 64 bits (8 bytes) per entry. With 2\^{}52 entries thats 2\^{}55 bytes (roughly 40 peta bytes\ldots{}) Oops our page table is too large 
+In 64 bit architectures memory addresses are sparse, so we need a mechanism to reduce the page table size, given that most of the entries will never be used.
 
-A page table is a mapping between a page to the frame. For example Page
-1 might be mapped to frame 45, page 2 mapped to frame 30. Other frames
-might be currently unused or assigned to other running processes, or
-used internally by the operating system.
+\begin{wrapfig}
+% \includegraphics{ipc/images/page_table1.jpg}
+\end{wrapfig}
 
-A simple page table is just an array,
-\texttt{int\ frame\ =\ table{[}\ page\_num\ {]};}
+A visual example of the page table is here. Imagine accessing an array and grabbing array elements.
 
-For a 32 bit machine with 4KB pages, each entry needs to hold a frame
-number - i.e.~20 bits because we calculated there are 2\^{}20 frames.
-That's 2.5 bytes per entry! In practice, we'll round that up to 4 bytes
-per entry and find a use for those spare bits. With 4 bytes per entry x
-2\^{}20 entries = 4 MB of physical memory are required to hold the page
-table.
+\subsection{What is the offset and how is it used?}\label{what-is-the-offset-and-how-is-it-used}
+ Remember our page table maps pages to frames, but each page is a block of contiguous addresses. How do we calculate which particular byte to use inside a particular frame? The solution is to re-use the lowest bits of the virtual memory address directly. For example, suppose our process is reading the following address- \keyword{VirtualAddress = 11110000111100001111000010101010 (binary)}
 
-For a 64 bit machine with 4KB pages, each entry needs 52 bits. Let's
-round up to 64 bits (8 bytes) per entry. With 2\^{}52 entries thats
-2\^{}55 bytes (roughly 40 peta bytes\ldots{}) Oops our page table is too
-large.
-
-In 64 bit architectures memory addresses are sparse, so we need a
-mechanism to reduce the page table size, given that most of the entries
-will never be used.
-
-\begin{figure}[htbp]
-\centering
-\includegraphics{http://www.cs.odu.edu/~cs471w/spring12/lectures/MainMemory_files/image028.jpg}
-\caption{}
-\end{figure}
-
-A visual example of the page table is here. Imagine accessing an array
-and grabbing array elements.
-
-\subsection{What is the offset and how is it
-used?}\label{what-is-the-offset-and-how-is-it-used}
-
-Remember our page table maps pages to frames, but each page is a block
-of contiguous addresses. How do we calculate which particular byte to
-use inside a particular frame? The solution is to re-use the lowest bits
-of the virtual memory address directly. For example, suppose our process
-is reading the following address-
-\texttt{VirtualAddress\ =\ 11110000111100001111000010101010\ (binary)}
-
-On a machine with page size 256 Bytes, then the lowest 8 bits (10101010)
-will be used as the offset. The remaining upper bits will be the page
-number (111100001111000011110000).
+ On a machine with page size 256 Bytes, then the lowest 8 bits (10101010) will be used as the offset. The remaining upper bits will be the page number (111100001111000011110000).
 
 \subsection{Multi-level page tables}\label{multi-level-page-tables}
-
-Multi-level pages are one solution to the page table size issue for 64
-bit architectures. We'll look at the simplest implementation - a two
-level page table. Each table is a list of pointers that point to the
-next level of tables, not all sub-tables need to exist. An example, two
-level page table for a 32 bit architecture is shown below-
+ Multi-level pages are one solution to the page table size issue for 64 bit architectures. We'll look at the simplest implementation - a two level page table. Each table is a list of pointers that point to the next level of tables, not all sub-tables need to exist. An example, two level page table for a 32 bit architecture is shown below-
 
 \begin{verbatim}
 VirtualAddress = 11110000111111110000000010101010 (binary)
-                 |_Index1_||        ||          | 10 bit Directory index
-                           |_Index2_||          | 10 bit Sub-table index
-                                     |__________| 12 bit offset (passed directly to RAM)
+                 |-Index1-||        ||          | 10 bit Directory index
+                           |-Index2-||          | 10 bit Sub-table index
+                                     |--offset--| 12 bit offset (passed directly to RAM)
 \end{verbatim}
+ In the above scheme, determining the frame number requires two memory reads: The topmost 10 bits are used in a directory of page tables. If 2 bytes are used for each entry, we only need 2KB to store this entire directory. Each subtable will point to physical frames (i.e.~required 4 bytes to store the 20 bits). However, for processes with only tiny memory needs, we only need to specify entries for low memory address (for the heap and program code) and high memory addresses (for the stack). Each subtable is 1024 entries x 4 bytes i.e.~4KB for each subtable.
 
-In the above scheme, determining the frame number requires two memory
-reads: The topmost 10 bits are used in a directory of page tables. If 2
-bytes are used for each entry, we only need 2KB to store this entire
-directory. Each subtable will point to physical frames (i.e.~required 4
-bytes to store the 20 bits). However, for processes with only tiny
-memory needs, we only need to specify entries for low memory address
-(for the heap and program code) and high memory addresses (for the
-stack). Each subtable is 1024 entries x 4 bytes i.e.~4KB for each
-subtable.
+ Thus the total memory overhead for our multi-level page table has shrunk from 4MB (for the single level implementation) to 3 frames of memory (12KB) ! Here's why: We need at least one frame for the high level directory and two frames for just two sub-tables. One sub-table is necessary for the low addresses (program code, constants and possibly a tiny heap), the other sub-table is for higher addresses used by the environment and stack. In practice, real programs will likely need more sub-table entries, as each subtable can only reference 1024*4KB = 4MB of address space but the main point still stands - we have significantly reduced the memory overhead required to perform page table look ups.
 
-Thus the total memory overhead for our multi-level page table has shrunk
-from 4MB (for the single level implementation) to 3 frames of memory
-(12KB) ! Here's why: We need at least one frame for the high level
-directory and two frames for just two sub-tables. One sub-table is
-necessary for the low addresses (program code, constants and possibly a
-tiny heap), the other sub-table is for higher addresses used by the
-environment and stack. In practice, real programs will likely need more
-sub-table entries, as each subtable can only reference 1024*4KB = 4MB of
-address space but the main point still stands - we have significantly
-reduced the memory overhead required to perform page table look ups.
+\subsection{Do page tables make memory access slower? (And what's a TLB)}
+ Yes - Significantly ! (But thanks to clever hardware, usually no\ldots{}) Compared to reading or writing memory directly. For a single page table, our machine is now twice as slow! (Two memory accesses are required) For a two-level page table, memory access is now three times as slow. (Three memory accesses are required)
 
-\subsection{Do page tables make memory access slower? (And what's a
-TLB)}\label{do-page-tables-make-memory-access-slower-and-whats-a-tlb}
+ To overcome this overhead, the MMU includes an associative cache of recently-used virtual-page-to-frame lookups. This cache is called the TLB (``translation lookaside buffer''). Everytime a virtual address needs to be translated into a physical memory location, the TLB is queried in parallel to the page table. For most memory accesses of most programs, there is a significant chance that the TLB has cached the results. However if a program does not have good cache coherence (for example is reading from random memory locations of many different pages) then the TLB will not have the result cache and now the MMU must use the much slower page table to determine the physical frame.
 
-Yes - Significantly ! (But thanks to clever hardware, usually
-no\ldots{}) Compared to reading or writing memory directly. For a single
-page table, our machine is now twice as slow! (Two memory accesses are
-required) For a two-level page table, memory access is now three times
-as slow. (Three memory accesses are required)
-
-To overcome this overhead, the MMU includes an associative cache of
-recently-used virtual-page-to-frame lookups. This cache is called the
-TLB (``translation lookaside buffer''). Everytime a virtual address
-needs to be translated into a physical memory location, the TLB is
-queried in parallel to the page table. For most memory accesses of most
-programs, there is a significant chance that the TLB has cached the
-results. However if a program does not have good cache coherence (for
-example is reading from random memory locations of many different pages)
-then the TLB will not have the result cache and now the MMU must use the
-much slower page table to determine the physical frame.
-
-\begin{figure}[htbp]
-\centering
-\includegraphics{https://upload.wikimedia.org/wikipedia/commons/thumb/8/8e/X86_Paging_4K.svg/440px-X86_Paging_4K.svg.png}
-\caption{}
-\end{figure}
+\begin{wrapfig}
+% \includegraphics{ipc/images/440px-X86_Paging_4K.png}
+\end{wrapfig}
 
 This may be how one splits up a multi level page table.
 
-\section{Advanced Frames and Page
-Protections}\label{advanced-frames-and-page-protections}
+\section{Advanced Frames and Page Protections}\label{advanced-frames-and-page-protections}
 
-\subsection{Can frames be shared between processes? Can they be
-specialized}\label{can-frames-be-shared-between-processes-can-they-be-specialized}
+\subsection{Can frames be shared between processes? Can they be specialized}
+ Yes! In addition to storing the frame number, the page table can be used to store whether a process can write or only read a particular frame. Read only frames can then be safely shared between multiple processes. For example, the C-library instruction code can be shared between all processes that dynamically load the code into the process memory. Each process can only read that memory. Meaning that if you try to write to a read-only page in memory you will get a \keyword{SEGFAULT}. That is why sometimes memory accesses segfault and sometimes they don't, it all depends on if your hardware says that you can access.
 
-Yes! In addition to storing the frame number, the page table can be used
-to store whether a process can write or only read a particular frame.
-Read only frames can then be safely shared between multiple processes.
-For example, the C-library instruction code can be shared between all
-processes that dynamically load the code into the process memory. Each
-process can only read that memory. Meaning that if you try to write to a
-read-only page in memory you will get a \texttt{SEGFAULT}. That is why
-sometimes memory accesses segfault and sometimes they don't, it all
-depends on if your hardware says that you can access.
+ In addition, processes can share a page with a child process using the \keyword{mmap} system call. \keyword{mmap} is an interesting call because instead of tying each virtual address to a physical frame, it ties it to something else. That something else can be a file, a GPU unit, or any other memory mapped operation that you can think of! Writing to the memory address may write through to the device or the write may be paused by the operating system but this is a very powerful abstraction because often the operating system is able to perform optimizations (multiple processes memory mapping the same file can have the kernel create one mapping).
 
-In addition, processes can share a page with a child process using the
-\texttt{mmap} system call. \texttt{mmap} is an interesting call because
-instead of tying each virtual address to a physical frame, it ties it to
-something else. That something else can be a file, a GPU unit, or any
-other memory mapped operation that you can think of! Writing to the
-memory address may write through to the device or the write may be
-paused by the operating system but this is a very powerful abstraction
-because often the operating system is able to perform optimizations
-(multiple processes memory mapping the same file can have the kernel
-create one mapping).
-
-\subsection{What else is stored in the page table and
-why?}\label{what-else-is-stored-in-the-page-table-and-why}
+\subsection{What else is stored in the page table and why?}
 
 In addition to read-only bit and usage statistics discussed above, it is
 common to store at least read-only, modification and execution
 information.
 
-\subsection{What's a page fault?}\label{whats-a-page-fault}
+\subsection{What's a page fault?}
 
-A page fault is when a running program tries to access some virtual
-memory in its address space that is not mapped to physical memory. Page
-faults will also occur in other situations.
+ A page fault is when a running program tries to access some virtual memory in its address space that is not mapped to physical memory. Page faults will also occur in other situations. There are three types of Page Faults
 
-There are three types of Page Faults
+ \textbf{Minor} If there is no mapping yet for the page, but it is a valid address. This could be memory asked for by \keyword{sbrk(2)} but not written to yet meaning that the operating system can wait for the first write before allocating space. The OS simply makes the page, loads it into memory, and moves on.
 
-\textbf{Minor} If there is no mapping yet for the page, but it is a
-valid address. This could be memory asked for by \texttt{sbrk(2)} but
-not written to yet meaning that the operating system can wait for the
-first write before allocating space. The OS simply makes the page, loads
-it into memory, and moves on.
+ \textbf{Major} If the mapping to the page is not in memory but on disk. What this will do is swap the page into memory and swap another page out. If this happens frequently enough, your program is said to \emph{thrash} the MMU.
 
-\textbf{Major} If the mapping to the page is not in memory but on disk.
-What this will do is swap the page into memory and swap another page
-out. If this happens frequently enough, your program is said to
-\emph{thrash} the MMU.
+ \textbf{Invalid} When you try to write to a non-writable memory address or read to a non-readable memory address. The MMU generates an invalid fault and the OS will usually generate a \keyword{SIGSEGV} meaning segmentation violation meaning that you wrote outside the segment that you could write to.
 
-\textbf{Invalid} When you try to write to a non-writable memory address
-or read to a non-readable memory address. The MMU generates an invalid
-fault and the OS will usually generate a \texttt{SIGSEGV} meaning
-segmentation violation meaning that you wrote outside the segment that
-you could write to.
+\subsubsection{Read-only bit}
+ The read-only bit marks the page as read-only. Attempts to write to the page will cause a page fault. The page fault will then be handled by the Kernel. Two examples of the read-only page include sharing the c runtime library between multiple processes (for security you wouldn't want to allow one process to modify the library); and Copy-On-Write where the cost of duplicating a page can be delayed until the first write occurs.
 
-\subsubsection{Read-only bit}\label{read-only-bit}
+\subsubsection{Dirty bit}
 
-The read-only bit marks the page as read-only. Attempts to write to the
-page will cause a page fault. The page fault will then be handled by the
-Kernel. Two examples of the read-only page include sharing the c runtime
-library between multiple processes (for security you wouldn't want to
-allow one process to modify the library); and Copy-On-Write where the
-cost of duplicating a page can be delayed until the first write occurs.
-
-\subsubsection{Dirty bit}\label{dirty-bit}
-
-http://en.wikipedia.org/wiki/Page\_table\#Page\_table\_data
-\textgreater{} The dirty bit allows for a performance optimization. A
-page on disk that is paged in to physical memory, then read from, and
-subsequently paged out again does not need to be written back to disk,
-since the page hasn't changed. However, if the page was written to after
-it's paged in, its dirty bit will be set, indicating that the page must
-be written back to the backing store. This strategy requires that the
-backing store retain a copy of the page after it is paged in to memory.
-When a dirty bit is not used, the backing store need only be as large as
-the instantaneous total size of all paged-out pages at any moment. When
-a dirty bit is used, at all times some pages will exist in both physical
-memory and the backing store.
+\href{http://en.wikipedia.org/wiki/Page\_table\#Page\_table\_data}{Page Table} The dirty bit allows for a performance optimization. A page on disk that is paged in to physical memory, then read from, and subsequently paged out again does not need to be written back to disk, since the page hasn't changed. However, if the page was written to after it's paged in, its dirty bit will be set, indicating that the page must be written back to the backing store. This strategy requires that the backing store retain a copy of the page after it is paged in to memory. When a dirty bit is not used, the backing store need only be as large as the instantaneous total size of all paged-out pages at any moment. When a dirty bit is used, at all times some pages will exist in both physical memory and the backing store.
 
 \subsubsection{Execution bit}\label{execution-bit}
-
-The execution bit defines whether bytes in a page can be executed as CPU
-instructions. By disabling a page, it prevents code that is maliciously
-stored in the process memory (e.g.~by stack overflow) from being easily
-executed. (further reading:
-http://en.wikipedia.org/wiki/NX\_bit\#Hardware\_background)
-
-\subsubsection{Find out more}\label{find-out-more}
-
-A lower level more and more technical discussion of paging and page bits
-on x86 platform is discussed at {[}http://wiki.osdev.org/Paging{]}
+ The execution bit defines whether bytes in a page can be executed as CPU instructions. By disabling a page, it prevents code that is maliciously stored in the process memory (e.g.~by stack overflow) from being easily executed. (further reading: \href{http://en.wikipedia.org/wiki/NX\_bit\#Hardware\_background}{background})
 
 \subsection{What is IPC?}\label{what-is-ipc}
 
-Inter process communication is any way for one process to talk to
-another process. You've already seen one form of this virtual memory! A
-piece of virtual memory can be shared between parent and child, leading
-to communication. You may want to wrap that memory in
-\texttt{pthread\_mutexattr\_setpshared(\&attrmutex,\ PTHREAD\_PROCESS\_SHARED);}
-mutex (or a process wide mutex) to prevent race conditions.
+ Inter process communication is any way for one process to talk to another process. You've already seen one form of this virtual memory! A piece of virtual memory can be shared between parent and child, leading to communication. You may want to wrap that memory in \keyword{pthread\_mutexattr\_setpshared(\&attrmutex,\ PTHREAD\_PROCESS\_SHARED);} mutex (or a process wide mutex) to prevent race conditions. There are more standard ways of IPC, like pipes! Consider if you type the following into your terminal
 
-There are more standard ways of IPC, like pipes! Consider if you type
-the following into your terminal
+\section{Pipes}
 
-\begin{Shaded}
-\begin{Highlighting}[]
-\NormalTok{$ }\KeywordTok{ls} \NormalTok{-1 }\KeywordTok{|} \KeywordTok{cut} \NormalTok{-d}\StringTok{'.'} \NormalTok{-f1 }\KeywordTok{|} \KeywordTok{uniq} \KeywordTok{|} \KeywordTok{sort} \KeywordTok{|} \KeywordTok{tee} \NormalTok{dir_contents}
-\end{Highlighting}
-\end{Shaded}
+\begin{verbatim}
+$ ls -1 | cut -d'.' -f1 | uniq | sort | tee dir_contents
+\end{verbatim}
 
-What does the following code do (It doesn't really matter so you can
-skip this if you want)? Well it \texttt{ls}'s the current directory (the
--1 means that it outputs one entry per line). The \texttt{cut} command
-then takes everything before the first period. Uniq makes sure all the
-lines are uniq, sort sorts them and tee outputs to a file.
+What does the following code do? Well it \keyword{ls}'s the current directory (the -1 means that it outputs one entry per line). The \keyword{cut} command then takes everything before the first period. Uniq makes sure all the lines are uniq, sort sorts them and tee outputs to a file. The important part is that bash creates \textbf{5 separate processes} and connects their standard outs/stdins with pipes the trail lookssomething like this.
 
-The important part is that bash creates \textbf{5 separate processes}
-and connects their standard outs/stdins with pipes the trail looks
-something like this.
+\begin{verbatim}
+(0) ls (1)------>(0) cut (1)------->(0) uniq (1)------>(0) sort (1)------>(0) tee (1)
+\end{verbatim}
 
-\begin{enumerate}
-\def\labelenumi{(\arabic{enumi})}
-\setcounter{enumi}{-1}
-\tightlist
-\item
-  ls (1)------\textgreater{}(0) cut (1)-------\textgreater{}(0) uniq
-  (1)------\textgreater{}(0) sort (1)------\textgreater{}(0) tee (1)
-\end{enumerate}
+The numbers in the pipes are the file descriptors for each process and the arrow represents the redirect or where the output of the pipe is going. A POSIX pipe is almost like its real counterpart - you can stuff bytes down one end and they will appear at the other end in the same order. Unlike real pipes however, the flow is always in the same direction, one file descriptor is used for reading and the other for writing. The \keyword{pipe} system call is used to create a pipe. These file descriptors can be used with \keyword{read} and with \keyword{write}. A common method of using pipes is to create the pipe before forking in order to communicate with a child process
 
-The numbers in the pipes are the file descriptors for each process and
-the arrow represents the redirect or where the output of the pipe is
-going.
+\begin{code}[language=C]
+int filedes[2];
+pipe (filedes);
+pid_t child = fork();
+if (child > 0) { /* I must be the parent */
+    char buffer[80];
+    int bytesread = read(filedes[0], buffer, sizeof(buffer));
+    // do something with the bytes read    
+} else {
+	write(filedes[1], "done", 4);
+}
+\end{code}
 
-\subsection{What is a pipe?}\label{what-is-a-pipe}
+One can use pipes inside of the same process, but there tends to be no added benefit. Here's an example program that sends a message to itself:
 
-A POSIX pipe is almost like its real counterpart - you can stuff bytes
-down one end and they will appear at the other end in the same order.
-Unlike real pipes however, the flow is always in the same direction, one
-file descriptor is used for reading and the other for writing. The
-\texttt{pipe} system call is used to create a pipe.
+\begin{code}[language=C]
+#include <unistd.h>
+#include <stdlib.h>
+#include <stdio.h>
 
-\begin{Shaded}
-\begin{Highlighting}[]
-\DataTypeTok{int} \NormalTok{filedes[}\DecValTok{2}\NormalTok{];}
-\NormalTok{pipe (filedes);}
-\NormalTok{printf(}\StringTok{"read from %d, write to %d}\CharTok{\textbackslash{}n}\StringTok{"}\NormalTok{, filedes[}\DecValTok{0}\NormalTok{], filedes[}\DecValTok{1}\NormalTok{]);}
-\end{Highlighting}
-\end{Shaded}
-
-These file descriptors can be used with \texttt{read} -
-
-\begin{Shaded}
-\begin{Highlighting}[]
-\CommentTok{// To read...}
-\DataTypeTok{char} \NormalTok{buffer[}\DecValTok{80}\NormalTok{];}
-\DataTypeTok{int} \NormalTok{bytesread = read(filedes[}\DecValTok{0}\NormalTok{], buffer, }\KeywordTok{sizeof}\NormalTok{(buffer));}
-\end{Highlighting}
-\end{Shaded}
-
-And \texttt{write} -
-
-\begin{Shaded}
-\begin{Highlighting}[]
-\NormalTok{write(filedes[}\DecValTok{1}\NormalTok{], }\StringTok{"Go!"}\NormalTok{, }\DecValTok{4}\NormalTok{);}
-\end{Highlighting}
-\end{Shaded}
-
-\subsection{How can I use pipe to communicate with a child
-process?}\label{how-can-i-use-pipe-to-communicate-with-a-child-process}
-
-A common method of using pipes is to create the pipe before forking.
-
-\begin{Shaded}
-\begin{Highlighting}[]
-\DataTypeTok{int} \NormalTok{filedes[}\DecValTok{2}\NormalTok{];}
-\NormalTok{pipe (filedes);}
-\NormalTok{pid_t child = fork();}
-\KeywordTok{if} \NormalTok{(child > }\DecValTok{0}\NormalTok{) \{ }\CommentTok{/* I must be the parent */}
-    \DataTypeTok{char} \NormalTok{buffer[}\DecValTok{80}\NormalTok{];}
-    \DataTypeTok{int} \NormalTok{bytesread = read(filedes[}\DecValTok{0}\NormalTok{], buffer, }\KeywordTok{sizeof}\NormalTok{(buffer));}
-    \CommentTok{// do something with the bytes read    }
-\NormalTok{\}}
-\end{Highlighting}
-\end{Shaded}
-
-The child can then send a message back to the parent:
-
-\begin{Shaded}
-\begin{Highlighting}[]
-\KeywordTok{if} \NormalTok{(child == }\DecValTok{0}\NormalTok{) \{}
-   \NormalTok{write(filedes[}\DecValTok{1}\NormalTok{], }\StringTok{"done"}\NormalTok{, }\DecValTok{4}\NormalTok{);}
-\NormalTok{\}}
-\end{Highlighting}
-\end{Shaded}
-
-\subsection{Can I use pipes inside a single
-process?}\label{can-i-use-pipes-inside-a-single-process}
-
-Short answer: Yes, but I'm not sure why you would want to LOL!
-
-Here's an example program that sends a message to itself:
-
-\begin{Shaded}
-\begin{Highlighting}[]
-\OtherTok{#include <unistd.h>}
-\OtherTok{#include <stdlib.h>}
-\OtherTok{#include <stdio.h>}
-
-\DataTypeTok{int} \NormalTok{main() \{}
-    \DataTypeTok{int} \NormalTok{fh[}\DecValTok{2}\NormalTok{];}
-    \NormalTok{pipe(fh);}
-    \NormalTok{FILE *reader = fdopen(fh[}\DecValTok{0}\NormalTok{], }\StringTok{"r"}\NormalTok{);}
-    \NormalTok{FILE *writer = fdopen(fh[}\DecValTok{1}\NormalTok{], }\StringTok{"w"}\NormalTok{);}
-    \CommentTok{// Hurrah now I can use printf rather than using low-level read() write()}
-    \NormalTok{printf(}\StringTok{"Writing...}\CharTok{\textbackslash{}n}\StringTok{"}\NormalTok{);}
-    \NormalTok{fprintf(writer,}\StringTok{"%d %d %d}\CharTok{\textbackslash{}n}\StringTok{"}\NormalTok{, }\DecValTok{10}\NormalTok{, }\DecValTok{20}\NormalTok{, }\DecValTok{30}\NormalTok{);}
-    \NormalTok{fflush(writer);}
+int main() {
+    int fh[2];
+    pipe(fh);
+    FILE *reader = fdopen(fh[0], "r");
+    FILE *writer = fdopen(fh[1], "w");
+    // Hurrah now I can use printf rather than using low-level read() write()
+    printf("Writing...\n");
+    fprintf(writer,"%d %d %d\n", 10, 20, 30);
+    fflush(writer);
     
-    \NormalTok{printf(}\StringTok{"Reading...}\CharTok{\textbackslash{}n}\StringTok{"}\NormalTok{);}
-    \DataTypeTok{int} \NormalTok{results[}\DecValTok{3}\NormalTok{];}
-    \DataTypeTok{int} \NormalTok{ok = fscanf(reader,}\StringTok{"%d %d %d"}\NormalTok{, results, results + }\DecValTok{1}\NormalTok{, results + }\DecValTok{2}\NormalTok{);}
-    \NormalTok{printf(}\StringTok{"%d values parsed: %d %d %d}\CharTok{\textbackslash{}n}\StringTok{"}\NormalTok{, ok, results[}\DecValTok{0}\NormalTok{], results[}\DecValTok{1}\NormalTok{], results[}\DecValTok{2}\NormalTok{]);}
+    printf("Reading...\n");
+    int results[3];
+    int ok = fscanf(reader,"%d %d %d", results, results + 1, results + 2);
+    printf("%d values parsed: %d %d %d\n", ok, results[0], results[1], results[2]);
     
-    \KeywordTok{return} \DecValTok{0}\NormalTok{;}
-\NormalTok{\}}
-\end{Highlighting}
-\end{Shaded}
+    return 0;
+}
+\end{code}
 
-The problem with using a pipe in this fashion is that writing to a pipe
-can block i.e.~the pipe only has a limited buffering capacity. If the
-pipe is full the writing process will block! The maximum size of the
-buffer is system dependent; typical values from 4KB upto 128KB.
+ The problem with using a pipe in this fashion is that writing to a pipe can block meaning the pipe only has a limited buffering capacity. If the pipe is full the writing process will block! The maximum size of the buffer is system dependent; typical values from 4KB upto 128KB.
 
-\begin{Shaded}
-\begin{Highlighting}[]
-\DataTypeTok{int} \NormalTok{main() \{}
-    \DataTypeTok{int} \NormalTok{fh[}\DecValTok{2}\NormalTok{];}
-    \NormalTok{pipe(fh);}
-    \DataTypeTok{int} \NormalTok{b = }\DecValTok{0}\NormalTok{;}
-    \OtherTok{#define MESG "..............................."}
-    \KeywordTok{while}\NormalTok{(}\DecValTok{1}\NormalTok{) \{}
-        \NormalTok{printf(}\StringTok{"%d}\CharTok{\textbackslash{}n}\StringTok{"}\NormalTok{,b);}
-        \NormalTok{write(fh[}\DecValTok{1}\NormalTok{], MESG, }\KeywordTok{sizeof}\NormalTok{(MESG))}
-        \NormalTok{b+=}\KeywordTok{sizeof}\NormalTok{(MESG);}
-    \NormalTok{\}}
-    \KeywordTok{return} \DecValTok{0}\NormalTok{;}
-\NormalTok{\}}
-\end{Highlighting}
-\end{Shaded}
+\begin{code}[language=C]
+int main() {
+    int fh[2];
+    pipe(fh);
+    int b = 0;
+    #define MESG "..............................."
+    while(1) {
+        printf("%d\n",b);
+        write(fh[1], MESG, sizeof(MESG))
+        b+=sizeof(MESG);
+    }
+    return 0;
+}
+\end{code}
 
 \section{Pipe Gotchas}\label{pipe-gotchas}
+ Here's a complete example that doesn't work! The child reads one byte at a time from the pipe and prints it out - but we never see the message! Can you see why?
 
-Here's a complete example that doesn't work! The child reads one byte at
-a time from the pipe and prints it out - but we never see the message!
-Can you see why?
+\begin{code}[language=C]
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <signal.h>
 
-\begin{Shaded}
-\begin{Highlighting}[]
-\OtherTok{#include <stdio.h>}
-\OtherTok{#include <stdlib.h>}
-\OtherTok{#include <unistd.h>}
-\OtherTok{#include <signal.h>}
+int main() {
+    int fd[2];
+    pipe(fd);
+    //You must read from fd[0] and write from fd[1]
+    printf("Reading from %d, writing to %d\n", fd[0], fd[1]);
 
-\DataTypeTok{int} \NormalTok{main() \{}
-    \DataTypeTok{int} \NormalTok{fd[}\DecValTok{2}\NormalTok{];}
-    \NormalTok{pipe(fd);}
-    \CommentTok{//You must read from fd[0] and write from fd[1]}
-    \NormalTok{printf(}\StringTok{"Reading from %d, writing to %d}\CharTok{\textbackslash{}n}\StringTok{"}\NormalTok{, fd[}\DecValTok{0}\NormalTok{], fd[}\DecValTok{1}\NormalTok{]);}
+    pid_t p = fork();
+    if (p > 0) {
+        /* I have a child therefore I am the parent*/
+        write(fd[1],"Hi Child!",9);
 
-    \NormalTok{pid_t p = fork();}
-    \KeywordTok{if} \NormalTok{(p > }\DecValTok{0}\NormalTok{) \{}
-        \CommentTok{/* I have a child therefore I am the parent*/}
-        \NormalTok{write(fd[}\DecValTok{1}\NormalTok{],}\StringTok{"Hi Child!"}\NormalTok{,}\DecValTok{9}\NormalTok{);}
+        /*don't forget your child*/
+        wait(NULL);
+    } else {
+        char buf;
+        int bytesread;
+        // read one byte at a time.
+        while ((bytesread = read(fd[0], &buf, 1)) > 0) {
+            putchar(buf);
+        }
+    }
+    return 0;
+}
+\end{code}
 
-        \CommentTok{/*don't forget your child*/}
-        \NormalTok{wait(NULL);}
-    \NormalTok{\} }\KeywordTok{else} \NormalTok{\{}
-        \DataTypeTok{char} \NormalTok{buf;}
-        \DataTypeTok{int} \NormalTok{bytesread;}
-        \CommentTok{// read one byte at a time.}
-        \KeywordTok{while} \NormalTok{((bytesread = read(fd[}\DecValTok{0}\NormalTok{], &buf, }\DecValTok{1}\NormalTok{)) > }\DecValTok{0}\NormalTok{) \{}
-            \NormalTok{putchar(buf);}
-        \NormalTok{\}}
-    \NormalTok{\}}
-    \KeywordTok{return} \DecValTok{0}\NormalTok{;}
-\NormalTok{\}}
-\end{Highlighting}
-\end{Shaded}
+ The parent sends the bytes \keyword{H,i,(space),C...!} into the pipe (this may block if the pipe is full). The child starts reading the pipe one byte at a time. In the above case, the child process will read and print each character. However it never leaves the while loop! When there are no characters left to read it simply blocks and waits for more 
 
-The parent sends the bytes \texttt{H,i,(space),C...!} into the pipe
-(this may block if the pipe is full). The child starts reading the pipe
-one byte at a time. In the above case, the child process will read and
-print each character. However it never leaves the while loop! When there
-are no characters left to read it simply blocks and waits for more.
+ The call \keyword{putchar} writes the characters out but we never flush the \keyword{stdout} buffer. i.e.~We have transferred the message from one process to another but it has not yet been printed. To see the message we could flush the buffer e.g. \keyword{fflush(stdout)} (or \keyword{printf("\textbackslash{}n")} if the output is going to a terminal). A better solution would also exit the loop by checking for an end-of-message marker,
 
-The call \texttt{putchar} writes the characters out but we never flush
-the \texttt{stdout} buffer. i.e.~We have transferred the message from
-one process to another but it has not yet been printed. To see the
-message we could flush the buffer e.g. \texttt{fflush(stdout)} (or
-\texttt{printf("\textbackslash{}n")} if the output is going to a
-terminal). A better solution would also exit the loop by checking for an
-end-of-message marker,
+\begin{code}[language=C]
+        while ((bytesread = read(fd[0], &buf, 1)) > 0) {
+            putchar(buf);
+            if (buf == '!') break; /* End of message */
+        }
+\end{code}
 
-\begin{Shaded}
-\begin{Highlighting}[]
-        \KeywordTok{while} \NormalTok{((bytesread = read(fd[}\DecValTok{0}\NormalTok{], &buf, }\DecValTok{1}\NormalTok{)) > }\DecValTok{0}\NormalTok{) \{}
-            \NormalTok{putchar(buf);}
-            \KeywordTok{if} \NormalTok{(buf == '!') }\KeywordTok{break}\NormalTok{; }\CommentTok{/* End of message */}
-        \NormalTok{\}}
-\end{Highlighting}
-\end{Shaded}
+And the message will be flushed to the terminal when the child process exits.
 
-And the message will be flushed to the terminal when the child process
-exits.
+\subsection{Want to use pipes with printf and scanf? Use fdopen!}
 
-\subsection{Want to use pipes with printf and scanf? Use
-fdopen!}\label{want-to-use-pipes-with-printf-and-scanf-use-fdopen}
+ POSIX file descriptors are simple integers 0,1,2,3\ldots{} At the C library level, C wraps these with a buffer and useful functions like printf and scanf, so we that we can easily print or parse integers, strings etc. If you already have a file descriptor then you can `wrap' it yourself into a FILE pointer using \keyword{fdopen} :
 
-POSIX file descriptors are simple integers 0,1,2,3\ldots{} At the C
-library level, C wraps these with a buffer and useful functions like
-printf and scanf, so we that we can easily print or parse integers,
-strings etc. If you already have a file descriptor then you can `wrap'
-it yourself into a FILE pointer using \texttt{fdopen} :
+\begin{code}[language=C]
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
 
-\begin{Shaded}
-\begin{Highlighting}[]
-\OtherTok{#include <sys/types.h>}
-\OtherTok{#include <sys/stat.h>}
-\OtherTok{#include <fcntl.h>}
+int main() {
+    char *name="Fred";
+    int score = 123;
+    int filedes = open("mydata.txt", "w", O_CREAT, S_IWUSR | S_IRUSR);
 
-\DataTypeTok{int} \NormalTok{main() \{}
-    \DataTypeTok{char} \NormalTok{*name=}\StringTok{"Fred"}\NormalTok{;}
-    \DataTypeTok{int} \NormalTok{score = }\DecValTok{123}\NormalTok{;}
-    \DataTypeTok{int} \NormalTok{filedes = open(}\StringTok{"mydata.txt"}\NormalTok{, }\StringTok{"w"}\NormalTok{, O_CREAT, S_IWUSR | S_IRUSR);}
+    FILE *f = fdopen(filedes, "w");
+    fprintf(f, "Name:%s Score:%d\n", name, score);
+    fclose(f);
+\end{code}
+ For writing to files this is unnecessary - just use \keyword{fopen} which does the same as \keyword{open} and \keyword{fdopen} However for pipes, we already have a file descriptor - so this is great time to use \keyword{fdopen} 
 
-    \NormalTok{FILE *f = fdopen(filedes, }\StringTok{"w"}\NormalTok{);}
-    \NormalTok{fprintf(f, }\StringTok{"Name:%s Score:%d}\CharTok{\textbackslash{}n}\StringTok{"}\NormalTok{, name, score);}
-    \NormalTok{fclose(f);}
-\end{Highlighting}
-\end{Shaded}
+ Here's a complete example using pipes that almost works! Can you spot the error? Hint: The parent never prints anything!
 
-For writing to files this is unnecessary - just use \texttt{fopen} which
-does the same as \texttt{open} and \texttt{fdopen} However for pipes, we
-already have a file descriptor - so this is great time to use
-\texttt{fdopen}!
+\begin{code}[language=C]
+#include <unistd.h>
+#include <stdlib.h>
+#include <stdio.h>
 
-Here's a complete example using pipes that almost works! Can you spot
-the error? Hint: The parent never prints anything!
+int main() {
+    int fh[2];
+    pipe(fh);
+    FILE *reader = fdopen(fh[0], "r");
+    FILE *writer = fdopen(fh[1], "w");
+    pid_t p = fork();
+    if (p > 0) {
+        int score;
+        fscanf(reader, "Score %d", &score);
+        printf("The child says the score is %d\n", score);
+    } else {
+        fprintf(writer, "Score %d", 10 + 10);
+        fflush(writer);
+    }
+    return 0;
+}
+\end{code}
 
-\begin{Shaded}
-\begin{Highlighting}[]
-\OtherTok{#include <unistd.h>}
-\OtherTok{#include <stdlib.h>}
-\OtherTok{#include <stdio.h>}
+ Note the unnamed pipe resource will disappear once both the child and parent have exited. In the above example the child will send the bytes and the parent will receive the bytes from the pipe. However, no end-of-line character is ever sent, so \keyword{fscanf} will continue to ask for bytes because it is waiting for the end of the line i.e.~it will wait forever! The fix is to ensure we send a newline character, so that \keyword{fscanf} will return.
 
-\DataTypeTok{int} \NormalTok{main() \{}
-    \DataTypeTok{int} \NormalTok{fh[}\DecValTok{2}\NormalTok{];}
-    \NormalTok{pipe(fh);}
-    \NormalTok{FILE *reader = fdopen(fh[}\DecValTok{0}\NormalTok{], }\StringTok{"r"}\NormalTok{);}
-    \NormalTok{FILE *writer = fdopen(fh[}\DecValTok{1}\NormalTok{], }\StringTok{"w"}\NormalTok{);}
-    \NormalTok{pid_t p = fork();}
-    \KeywordTok{if} \NormalTok{(p > }\DecValTok{0}\NormalTok{) \{}
-        \DataTypeTok{int} \NormalTok{score;}
-        \NormalTok{fscanf(reader, }\StringTok{"Score %d"}\NormalTok{, &score);}
-        \NormalTok{printf(}\StringTok{"The child says the score is %d}\CharTok{\textbackslash{}n}\StringTok{"}\NormalTok{, score);}
-    \NormalTok{\} }\KeywordTok{else} \NormalTok{\{}
-        \NormalTok{fprintf(writer, }\StringTok{"Score %d"}\NormalTok{, }\DecValTok{10} \NormalTok{+ }\DecValTok{10}\NormalTok{);}
-        \NormalTok{fflush(writer);}
-    \NormalTok{\}}
-    \KeywordTok{return} \DecValTok{0}\NormalTok{;}
-\NormalTok{\}}
-\end{Highlighting}
-\end{Shaded}
+\begin{code}[language=C]
+change:   fprintf(writer, "Score %d", 10 + 10);
+to:       fprintf(writer, "Score %d\n", 10 + 10);
+\end{code}
 
-Note the (unnamed) pipe resource will disappear once both the child and
-parent have exited. In the above example the child will send the bytes
-and the parent will receive the bytes from the pipe. However, no
-end-of-line character is ever sent, so \texttt{fscanf} will continue to
-ask for bytes because it is waiting for the end of the line i.e.~it will
-wait forever! The fix is to ensure we send a newline character, so that
-\texttt{fscanf} will return.
+\subsection{So do we need to fflush too?}
+ Yes, if you want your bytes to be sent to the pipe immediately! At the beginning of this course we assumed that file streams are always \emph{line buffered} i.e.~the C library will flush its buffer everytime you send a newline character. Actually this is only true for terminal streams - for other filestreams the C library attempts to improve performance by only flushing when it's internal buffer is full or the file is closed.
 
-\begin{Shaded}
-\begin{Highlighting}[]
-\NormalTok{change:   fprintf(writer, }\StringTok{"Score %d"}\NormalTok{, }\DecValTok{10} \NormalTok{+ }\DecValTok{10}\NormalTok{);}
-\NormalTok{to:       fprintf(writer, }\StringTok{"Score %d}\CharTok{\textbackslash{}n}\StringTok{"}\NormalTok{, }\DecValTok{10} \NormalTok{+ }\DecValTok{10}\NormalTok{);}
-\end{Highlighting}
-\end{Shaded}
+\subsection{When do I need two pipes?}
 
-\subsection{\texorpdfstring{So do we need to \texttt{fflush}
-too?}{So do we need to fflush too?}}\label{so-do-we-need-to-fflush-too}
-
-Yes, if you want your bytes to be sent to the pipe immediately! At the
-beginning of this course we assumed that file streams are always
-\emph{line buffered} i.e.~the C library will flush its buffer everytime
-you send a newline character. Actually this is only true for terminal
-streams - for other filestreams the C library attempts to improve
-performance by only flushing when it's internal buffer is full or the
-file is closed.
-
-\subsection{When do I need two pipes?}\label{when-do-i-need-two-pipes}
-
-If you need to send data to and from a child asynchronously, then two
-pipes are required (one for each direction). Otherwise the child would
-attempt to read its own data intended for the parent (and vice versa)!
+ If you need to send data to and from a child asynchronously, then two pipes are required (one for each direction). Otherwise the child would attempt to read its own data intended for the parent (and vice versa)!
 
 \subsection{Closing pipes gotchas}\label{closing-pipes-gotchas}
 
 Processes receive the signal SIGPIPE when no process is listening! From
 the pipe(2) man page -
 
-\begin{verbatim}
+\begin{code}[language=C]
 If all file descriptors referring to the read end of a pipe have been closed,
  then a write(2) will cause a SIGPIPE signal to be generated for the calling process. 
-\end{verbatim}
+\end{code}
 
 Tip: Notice only the writer (not a reader) can use this signal. To
 inform the reader that a writer is closing their end of the pipe, you
 could write your own special byte (e.g.~0xff) or a message (
-\texttt{"Bye!"})
+\keyword{"Bye!"})
 
 Here's an example of catching this signal that does not work! Can you
 see why?
 
-\begin{Shaded}
-\begin{Highlighting}[]
-\OtherTok{#include <stdio.h>}
-\OtherTok{#include <stdio.h>}
-\OtherTok{#include <unistd.h>}
-\OtherTok{#include <signal.h>}
+\begin{code}[language=C]
+#include <stdio.h>
+#include <stdio.h>
+#include <unistd.h>
+#include <signal.h>
 
-\DataTypeTok{void} \NormalTok{no_one_listening(}\DataTypeTok{int} \NormalTok{signal) \{}
-    \NormalTok{write(}\DecValTok{1}\NormalTok{, }\StringTok{"No one is listening!}\CharTok{\textbackslash{}n}\StringTok{"}\NormalTok{, }\DecValTok{21}\NormalTok{);}
-\NormalTok{\}}
+void no_one_listening(int signal) {
+    write(1, "No one is listening!\n", 21);
+}
 
-\DataTypeTok{int} \NormalTok{main() \{}
-    \NormalTok{signal(SIGPIPE, no_one_listening);}
-    \DataTypeTok{int} \NormalTok{filedes[}\DecValTok{2}\NormalTok{];}
+int main() {
+    signal(SIGPIPE, no_one_listening);
+    int filedes[2];
     
-    \NormalTok{pipe(filedes);}
-    \NormalTok{pid_t child = fork();}
-    \KeywordTok{if} \NormalTok{(child > }\DecValTok{0}\NormalTok{) \{ }
-        \CommentTok{/* I must be the parent. Close the listening end of the pipe */}
-        \CommentTok{/* I'm not listening anymore!*/}
-        \NormalTok{close(filedes[}\DecValTok{0}\NormalTok{]);}
-    \NormalTok{\} }\KeywordTok{else} \NormalTok{\{}
-        \CommentTok{/* Child writes messages to the pipe */}
-        \NormalTok{write(filedes[}\DecValTok{1}\NormalTok{], }\StringTok{"One"}\NormalTok{, }\DecValTok{3}\NormalTok{);}
-        \NormalTok{sleep(}\DecValTok{2}\NormalTok{);}
-        \CommentTok{// Will this write generate SIGPIPE ?}
-        \NormalTok{write(filedes[}\DecValTok{1}\NormalTok{], }\StringTok{"Two"}\NormalTok{, }\DecValTok{3}\NormalTok{);}
-        \NormalTok{write(}\DecValTok{1}\NormalTok{, }\StringTok{"Done}\CharTok{\textbackslash{}n}\StringTok{"}\NormalTok{, }\DecValTok{5}\NormalTok{);}
-    \NormalTok{\}}
-    \KeywordTok{return} \DecValTok{0}\NormalTok{;}
-\NormalTok{\}}
-\end{Highlighting}
-\end{Shaded}
+    pipe(filedes);
+    pid_t child = fork();
+    if (child > 0) { 
+        /* I must be the parent. Close the listening end of the pipe */
+        /* I'm not listening anymore!*/
+        close(filedes[0]);
+    } else {
+        /* Child writes messages to the pipe */
+        write(filedes[1], "One", 3);
+        sleep(2);
+        // Will this write generate SIGPIPE ?
+        write(filedes[1], "Two", 3);
+        write(1, "Done\n", 5);
+    }
+    return 0;
+}
+\end{code}
 
-The mistake in above code is that there is still a reader for the pipe!
-The child still has the pipe's first file descriptor open and remember
-the specification? All readers must be closed.
+The mistake in above code is that there is still a reader for the pipe! The child still has the pipe's first file descriptor open and remember the specification? All readers must be closed 
 
-When forking, \emph{It is common practice} to close the unnecessary
-(unused) end of each pipe in the child and parent process. For example
-the parent might close the reading end and the child might close the
-writing end (and vice versa if you have two pipes)
+When forking, \emph{It is common practice} to close the unnecessary (unused) end of each pipe in the child and parent process. For example the parent might close the reading end and the child might close the writing end (and vice versa if you have two pipes)
 
 \subsection{What is filling up the pipe? What happens when the pipe
 becomes
 full?}\label{what-is-filling-up-the-pipe-what-happens-when-the-pipe-becomes-full}
+ A pipe gets filled up when the writer writes too much to the pipe without the reader reading any of it. When the pipes become full, all writes fail until a read occurs. Even then, a write may partial fail if the pipe has a little bit of space left but not enough for the entire message 
 
-A pipe gets filled up when the writer writes too much to the pipe
-without the reader reading any of it. When the pipes become full, all
-writes fail until a read occurs. Even then, a write may partial fail if
-the pipe has a little bit of space left but not enough for the entire
-message.
-
-To avoid this, usually two things are done. Either increase the size of
-the pipe. Or more commonly, fix your program design so that the pipe is
-constantly being read from.
+ To avoid this, usually two things are done. Either increase the size of the pipe. Or more commonly, fix your program design so that the pipe is constantly being read from.
 
 \subsection{Are pipes process safe?}\label{are-pipes-process-safe}
 
-Yes! Pipe write are atomic up to the size of the pipe. Meaning that if
-two processes try to write to the same pipe, the kernel has internal
-mutexes with the pipe that it will lock, do the write, and return. The
-only gotcha is when the pipe is about to become full. If two processes
-are trying to write and the pipe can only satisfy a partial write, that
-pipe write is not atomic -- be careful about that!
+ Yes! Pipe write are atomic up to the size of the pipe. Meaning that if two processes try to write to the same pipe, the kernel has internal mutexes with the pipe that it will lock, do the write, and return. The only gotcha is when the pipe is about to become full. If two processes are trying to write and the pipe can only satisfy a partial write, that pipe write is not atomic -- be careful about that!
 
 \subsection{The lifetime of pipes}\label{the-lifetime-of-pipes}
+ Unnamed pipes (the kind we've seen up to this point) live in memory (do not take up any disk space) and are a simple and efficient form of inter-process communication (IPC) that is useful for streaming data and simple messages. Once all processes have closed, the pipe resources are freed.
 
-Unnamed pipes (the kind we've seen up to this point) live in memory (do
-not take up any disk space) and are a simple and efficient form of
-inter-process communication (IPC) that is useful for streaming data and
-simple messages. Once all processes have closed, the pipe resources are
-freed.
-
-An alternative to \emph{unamed} pipes is \emph{named} pipes created
-using \texttt{mkfifo}.
+An alternative to \emph{unamed} pipes is \emph{named} pipes created using \keyword{mkfifo}.
 
 \section{Named Pipes}\label{named-pipes}
 
 \subsection{How do I create named
 pipes?}\label{how-do-i-create-named-pipes}
 
-From the command line: \texttt{mkfifo} From C:
-\texttt{int\ mkfifo(const\ char\ *pathname,\ mode\_t\ mode);}
+From the command line: \keyword{mkfifo} From C: \keyword{int\ mkfifo(const\ char\ *pathname,\ mode\_t\ mode);}
 
-You give it the path name and the operation mode, it will be ready to
-go! Named pipes take up no space on the disk. What the operating system
-is essentially telling you when you have a named pipe is that it will
-create an unnamed pipe that refers to the named pipe, and that's it!
-There is no additional magic. This is just for programming convenience
-if processes are started without forking (meaning that there would be no
-way to get the file descriptor to the child process for an unnamed pipe)
+ You give it the path name and the operation mode, it will be ready to go! Named pipes take up no space on the disk. What the operating system is essentially telling you when you have a named pipe is that it will create an unnamed pipe that refers to the named pipe, and that's it! There is no additional magic. This is just for programming convenience if processes are started without forking (meaning that there would be no way to get the file descriptor to the child process for an unnamed pipe)
 
 \subsection{Why is my pipe hanging?}\label{why-is-my-pipe-hanging}
 
-Reads and writes hang on Named Pipes until there is at least one reader
-and one writer, take this
+Reads and writes hang on Named Pipes until there is at least one reader and one writer, take this
 
-\begin{Shaded}
-\begin{Highlighting}[]
-\KeywordTok{1}\NormalTok{$ mkfifo fifo}
-\KeywordTok{1}\NormalTok{$ echo Hello }\KeywordTok{>} \NormalTok{fifo}
-\CommentTok{# This will hang until I do this on another terminal or another process}
-\KeywordTok{2}\NormalTok{$ cat fifo}
-\KeywordTok{Hello}
-\end{Highlighting}
-\end{Shaded}
+\begin{code}[language=C]
+1$ mkfifo fifo
+1$ echo Hello > fifo
+# This will hang until I do this on another terminal or another process
+2$ cat fifo
+Hello
+\end{code}
 
-Any \texttt{open} is called on a named pipe the kernel blocks until
-another process calls the opposite open. Meaning, echo calls
-\texttt{open(..,\ O\_RDONLY)} but that blocks until cat calls
-\texttt{open(..,\ O\_WRONLY)}, then the programs are allowed to
-continue.
+Any \keyword{open} is called on a named pipe the kernel blocks until another process calls the opposite open. Meaning, echo calls \keyword{open(..,\ O\_RDONLY)} but that blocks until cat calls \keyword{open(..,\ O\_WRONLY)}, then the programs are allowed to continue.
 
-\subsection{Race condition with named
-pipes.}\label{race-condition-with-named-pipes.}
+\subsection{Race condition with named pipes}
 
 What is wrong with the following program?
 
-\begin{Shaded}
-\begin{Highlighting}[]
-\CommentTok{//Program 1}
+\begin{code}[language=C]
+//Program 1
 
-\DataTypeTok{int} \NormalTok{main()\{}
-    \DataTypeTok{int} \NormalTok{fd = open(}\StringTok{"fifo"}\NormalTok{, O_RDWR | O_TRUNC);}
-    \NormalTok{write(fd, }\StringTok{"Hello!"}\NormalTok{, }\DecValTok{6}\NormalTok{);}
-    \NormalTok{close(fd);}
-    \KeywordTok{return} \DecValTok{0}\NormalTok{;}
-\NormalTok{\}}
+int main(){
+    int fd = open("fifo", O_RDWR | O_TRUNC);
+    write(fd, "Hello!", 6);
+    close(fd);
+    return 0;
+}
 
-\CommentTok{//Program 2}
-\DataTypeTok{int} \NormalTok{main() \{}
-    \DataTypeTok{char} \NormalTok{buffer[}\DecValTok{7}\NormalTok{];}
-    \DataTypeTok{int} \NormalTok{fd = open(}\StringTok{"fifo"}\NormalTok{, O_RDONLY);}
-    \NormalTok{read(fd, buffer, }\DecValTok{6}\NormalTok{);}
-    \NormalTok{buffer[}\DecValTok{6}\NormalTok{] = '\textbackslash{}}\DecValTok{0}\NormalTok{';}
-    \NormalTok{printf(}\StringTok{"%s}\CharTok{\textbackslash{}n}\StringTok{"}\NormalTok{, buffer);}
-    \KeywordTok{return} \DecValTok{0}\NormalTok{;}
-\NormalTok{\}}
-\end{Highlighting}
-\end{Shaded}
+//Program 2
+int main() {
+    char buffer[7];
+    int fd = open("fifo", O_RDONLY);
+    read(fd, buffer, 6);
+    buffer[6] = '\0';
+    printf("%s\n", buffer);
+    return 0;
+}
+\end{code}
 
-This may never print hello because of a race condition. Since you opened
-the pipe in the first process under both permissions, open won't wait
-for a reader because you told the operating system that you are a
-reader! Sometimes it looks like it works because the execution of the
-code looks something like this.
+This may never print hello because of a race condition. Since you opened the pipe in the first process under both permissions, open won't wait for a reader because you told the operating system that you are a reader! Sometimes it looks like it works because the execution of the code looks something like this.
 
-\begin{longtable}[c]{@{}ll@{}}
+\begin{tableau}[c]{@{}ll@{}}
 \toprule
 Process 1 & Process 2\tabularnewline
 \midrule
@@ -772,11 +437,9 @@ open(O\_RDWR) \& write() &\tabularnewline
 close() \& exit() &\tabularnewline
 & print() \& exit()\tabularnewline
 \bottomrule
-\end{longtable}
+\end{tableau}
 
-Sometimes it won't
-
-\begin{longtable}[c]{@{}ll@{}}
+\begin{tableau}[c]{@{}ll@{}}
 \toprule
 Process 1 & Process 2\tabularnewline
 \midrule
@@ -785,32 +448,17 @@ open(O\_RDWR) \& write() &\tabularnewline
 close() \& exit() & (Named pipe is destroyed)\tabularnewline
 (Blocks indefinitely) & open(O\_RDONLY)\tabularnewline
 \bottomrule
-\end{longtable}
+\end{tableau}
 
-\subsection{Two types of files}\label{two-types-of-files}
+\subsection{Two types of files}
 
-On linux, there are two abstractions with files. The first is the linux
-\texttt{fd} level abstraction that means you can use * \texttt{open} *
-\texttt{read} * \texttt{write} * \texttt{close} * \texttt{lseek} *
-\texttt{fcntl} \ldots{}
+ On linux, there are two abstractions with files. The first is the linux \keyword{fd} level abstraction that means you can use * \keyword{open} * \keyword{read} * \keyword{write} * \keyword{close} * \keyword{lseek} * \keyword{fcntl} \ldots{}
 
-And so on. The linux interface is very powerful and expressive, but
-sometimes we need portability (for example if we are writing for a mac
-or windows). This is where C's abstraction comes into play. On different
-operating systems, C uses the low level functions to create a wrapper
-around files you can use everywhere, meaning that C on linux uses the
-above calls. C has a few of the following * \texttt{fopen} *
-\texttt{fread} or \texttt{fgetc/fgets} or \texttt{fscanf} *
-\texttt{fwrite} or \texttt{fprintf} * \texttt{fclose} * \texttt{fflush}
+ And so on. The linux interface is very powerful and expressive, but sometimes we need portability (for example if we are writing for a mac or windows). This is where C's abstraction comes into play. On different operating systems, C uses the low level functions to create a wrapper around files you can use everywhere, meaning that C on linux uses the above calls. C has a few of the following * \keyword{fopen} * \keyword{fread} or \keyword{fgetc/fgets} or \keyword{fscanf} * \keyword{fwrite} or \keyword{fprintf} * \keyword{fclose} * \keyword{fflush}
 
-But you don't get the expressiveness that linux gives you with system
-calls you can convert back and forth between them with
-\texttt{int\ fileno(FILE*\ stream)} and
-\texttt{FILE*\ fdopen(int\ fd...)}.
+ But you don't get the expressiveness that linux gives you with system calls you can convert back and forth between them with \keyword{int\ fileno(FILE*\ stream)} and \keyword{FILE*\ fdopen(int\ fd...)} 
 
-Another important aspect to note is the C files are \textbf{buffered}
-meaning that their contents may not be written right away by default.
-You can can change that with C options.
+ Another important aspect to note is the C files are \textbf{buffered} meaning that their contents may not be written right away by default. You can can change that with C options.
 
 \subsection{How do I tell how large a file
 is?}\label{how-do-i-tell-how-large-a-file-is}
@@ -820,24 +468,20 @@ simple way to accomplish this:
 
 Move to the end of the file and find out the current position.
 
-\begin{Shaded}
-\begin{Highlighting}[]
-\NormalTok{fseek(f, }\DecValTok{0}\NormalTok{, SEEK_END);}
-\DataTypeTok{long} \NormalTok{pos = ftell(f);}
-\end{Highlighting}
-\end{Shaded}
+\begin{code}[language=C]
+fseek(f, 0, SEEK_END);
+long pos = ftell(f);
+\end{code}
 
 This tells us the current position in the file in bytes - i.e.~the
 length of the file!
 
-\texttt{fseek} can also be used to set the absolute position.
+\keyword{fseek} can also be used to set the absolute position.
 
-\begin{Shaded}
-\begin{Highlighting}[]
-\NormalTok{fseek(f, }\DecValTok{0}\NormalTok{, SEEK_SET); }\CommentTok{// Move to the start of the file }
-\NormalTok{fseek(f, posn, SEEK_SET);  }\CommentTok{// Move to 'posn' in the file.}
-\end{Highlighting}
-\end{Shaded}
+\begin{code}[language=C]
+fseek(f, 0, SEEK_SET); // Move to the start of the file 
+fseek(f, posn, SEEK_SET);  // Move to 'posn' in the file.
+\end{code}
 
 All future reads and writes in the parent or child processes will honor
 this position. Note writing or reading from the file will change the
@@ -845,62 +489,39 @@ current position.
 
 See the man pages for fseek and ftell for more information.
 
-\subsection{But try not to do this}\label{but-try-not-to-do-this}
+\subsection{But try not to do this}
 
-\textbf{Note: This is not recommended in the usual case because of a
-quirk with the C language}. That quirk is that longs only need to be
-\textbf{4 Bytes big} meaning that the maximum size that ftell can return
-is a little under 2 Gigabytes (which we know nowadays our files could be
-hundreds of gigabytes or even terabytes on a distributed file system).
-What should we do instead? Use \texttt{stat}! We will cover stat in a
-later part but here is some code that will tell you the size of the file
+ \textbf{Note: This is not recommended in the usual case because of a quirk with the C language}. That quirk is that longs only need to be \textbf{4 Bytes big} meaning that the maximum size that \keyword{ftell} can return is a little under 2 Gigabytes (which we know nowadays our files could be hundreds of gigabytes or even terabytes on a distributed file system). What should we do instead? Use \keyword{stat}! We will cover stat in a later part but here is some code that will tell you the size of the file
 
-\begin{Shaded}
-\begin{Highlighting}[]
-\KeywordTok{struct} \NormalTok{stat buf;}
-\KeywordTok{if}\NormalTok{(stat(filename, &buf) == -}\DecValTok{1}\NormalTok{)\{}
-    \KeywordTok{return} \NormalTok{-}\DecValTok{1}\NormalTok{;}
-\NormalTok{\}}
-\KeywordTok{return} \NormalTok{(ssize_t)buf.st_size;}
-\end{Highlighting}
-\end{Shaded}
+\begin{code}[language=C]
+struct stat buf;
+if(stat(filename, &buf) == -1){
+    return -1;
+}
+return (ssize_t)buf.st_size;
+\end{code}
 
-buf.st\_size is of type off\_t which is big enough for \emph{insanely}
-large files.
+\keyword{buf.st\_size} is of type \keyword{off\_t} which is big enough for \emph{insanely} large files.
 
-\subsection{\texorpdfstring{What happens if a child process closes a
-filestream using \texttt{fclose} or
-\texttt{close}?}{What happens if a child process closes a filestream using fclose or close?}}\label{what-happens-if-a-child-process-closes-a-filestream-using-fclose-or-close}
+\subsection{What happens if a child process closes a filestream using fclose or close?}
 
-Closing a file stream is unique to each process. Other processes can
-continue to use their own file-handle. Remember, everything is copied
-over when a child is created, even the relative positions of the files.
+Closing a file stream is unique to each process. Other processes can continue to use their own file-handle. Remember, everything is copied over when a child is created, even the relative positions of the files.
 
 \subsection{How about mmap for files?}\label{how-about-mmap-for-files}
 
-One of the general uses for mmap is to map a file to memory. This does
-not mean that the file is malloc'ed to memory right away. Take the
-following code for example.
+One of the general uses for mmap is to map a file to memory. This does not mean that the file is malloc'ed to memory right away. Take the following code for example.
 
-\begin{verbatim}
+\begin{code}[language=C]
 int fd = open(...); //File is 2 Pages
 char* addr = mmap(..fd..);
 addr[0] = 'l';
-\end{verbatim}
+\end{code}
 
-The kernel may say, ``okay I see that you want to mmap the file into
-memory, so I'll reserve some space in your address space that is the
-length of the file''. That means when you write to addr{[}0{]} that you
-are actually writing to the first byte of the file. The kernel can
-actually do some optimizations too. Instead of loading the file into
-memory, it may only load pages at a time because if the file is 1024
-pages; you may only access 3 or 4 pages making loading the entire file a
-waste of time (that is why page faults are so powerful! They let the
-operating system take control of how much you use your files).
+ The kernel may say, ``okay I see that you want to mmap the file into memory, so I'll reserve some space in your address space that is the length of the file''. That means when you write to addr{[}0{]} that you are actually writing to the first byte of the file. The kernel can actually do some optimizations too. Instead of loading the file into memory, it may only load pages at a time because if the file is 1024 pages; you may only access 3 or 4 pages making loading the entire file a waste of time. That is why page faults are so powerful! They let the operating system take control of how much you use your files.
 
-\subsection{For every mmap}\label{for-every-mmap}
+\subsection{For every mmap}
 
-Remember that once you are done \texttt{mmap}ping that you
-\texttt{munmap} to tell the operating system that you are no longer
-using the pages allocated, so the OS can write it back to disk and give
-you the addresses back in case you need to malloc later.
+ Remember that once you are done \keyword{mmap}ping that you \keyword{munmap} to tell the operating system that you are no longer using the pages allocated, so the OS can write it back to disk and give you the addresses back in case you need to malloc later.
+
+\bibliographystyle{plainnat}
+\bibliography{ipc/ipc}

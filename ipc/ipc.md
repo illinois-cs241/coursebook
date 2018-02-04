@@ -138,26 +138,26 @@ The numbers in the pipes are the file descriptors for each process and the arrow
 ## What is a pipe?
 
 A POSIX pipe is almost like its real counterpart - you can stuff bytes down one end and they will appear at the other end in the same order. Unlike real pipes however, the flow is always in the same direction, one file descriptor is used for reading and the other for writing. The `pipe` system call is used to create a pipe.
-```C
+```
 int filedes[2];
 pipe (filedes);
 printf("read from %d, write to %d\n", filedes[0], filedes[1]);
 ```
 
 These file descriptors can be used with `read` -
-```C
+```
 // To read...
 char buffer[80];
 int bytesread = read(filedes[0], buffer, sizeof(buffer));
 ```
 And `write` - 
-```C
+```
 write(filedes[1], "Go!", 4);
 ```
 
 ## How can I use pipe to communicate with a child process?
 A common method of using pipes is to create the pipe before forking.
-```C
+```
 int filedes[2];
 pipe (filedes);
 pid_t child = fork();
@@ -169,7 +169,7 @@ if (child > 0) { /* I must be the parent */
 ```
 
 The child can then send a message back to the parent:
-```C
+```
 if (child == 0) {
    write(filedes[1], "done", 4);
 }
@@ -178,7 +178,7 @@ if (child == 0) {
 Short answer: Yes, but I'm not sure why you would want to LOL!
 
 Here's an example program that sends a message to itself:
-```C
+```
 #include <unistd.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -204,7 +204,7 @@ int main() {
 
 The problem with using a pipe in this fashion is that writing to a pipe can block i.e. the pipe only has a limited buffering capacity. If the pipe is full the writing process will block! The maximum size of the buffer is system dependent; typical values from  4KB upto 128KB.
 
-```C
+```
 int main() {
     int fh[2];
     pipe(fh);
@@ -222,7 +222,7 @@ int main() {
 # Pipe Gotchas
 Here's a complete example that doesn't work! The child reads one byte at a time from the pipe and prints it out - but we never see the message! Can you see why?
 
-```C
+```
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -257,7 +257,7 @@ The parent sends the bytes `H,i,(space),C...!` into the pipe (this may block if 
 The child starts reading the pipe one byte at a time. In the above case, the child process will read and print each character. However it never leaves the while loop! When there are no characters left to read it simply blocks and waits for more. 
 
 The call `putchar` writes the characters out but we never flush the `stdout` buffer. i.e. We have transferred the message from one process to another but it has not yet been printed. To see the message we could flush the buffer e.g. `fflush(stdout)` (or `printf("\n")` if the output is going to a terminal). A better solution would also exit the loop by checking for an end-of-message marker,
-```C
+```
         while ((bytesread = read(fd[0], &buf, 1)) > 0) {
             putchar(buf);
             if (buf == '!') break; /* End of message */
@@ -273,7 +273,7 @@ At the C library level, C wraps these with a buffer and useful functions like pr
 If you already have a file descriptor then you can 'wrap' it yourself into a FILE pointer using `fdopen` :
 
 
-```C
+```
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
@@ -292,7 +292,7 @@ However for pipes, we already have a file descriptor - so this is great time to 
 
 Here's a complete example using pipes that almost works! Can you spot the error? Hint: The parent never prints anything!
 
-```C
+```
 #include <unistd.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -315,7 +315,7 @@ int main() {
 }
 ```
 Note the (unnamed) pipe resource will disappear once both the child and parent have exited. In the above example the child will send the bytes and the parent will receive the bytes from the pipe. However, no end-of-line character is ever sent, so `fscanf` will continue to ask for bytes because it is waiting for the end of the line i.e. it will wait forever! The fix is to ensure we send a newline character, so that `fscanf` will return.
-```C
+```
 change:   fprintf(writer, "Score %d", 10 + 10);
 to:       fprintf(writer, "Score %d\n", 10 + 10);
 ```
@@ -341,7 +341,7 @@ Tip: Notice only the writer (not a reader) can use this signal.
 To inform the reader that a writer is closing their end of the pipe, you could write your own special byte (e.g. 0xff) or a message ( `"Bye!"`)
 
 Here's an example of catching this signal that does not work! Can you see why?
-```C
+```
 #include <stdio.h>
 #include <stdio.h>
 #include <unistd.h>
@@ -415,7 +415,7 @@ Any `open` is called on a named pipe the kernel blocks until another process cal
 ## Race condition with named pipes.
 What is wrong with the following program?
 
-```C
+```
 //Program 1
 
 int main(){
@@ -481,14 +481,14 @@ Another important aspect to note is the C files are **buffered** meaning that th
 For files less than the size of a long, using fseek and ftell is a simple way to accomplish this:
 
 Move to the end of the file and find out the current position.
-```C
+```
 fseek(f, 0, SEEK_END);
 long pos = ftell(f);
 ```
 This tells us the current position in the file in bytes - i.e. the length of the file!
 
 `fseek` can also be used to set the absolute position.
-```C
+```
 fseek(f, 0, SEEK_SET); // Move to the start of the file 
 fseek(f, posn, SEEK_SET);  // Move to 'posn' in the file.
 ```
@@ -499,7 +499,7 @@ See the man pages for fseek and ftell for more information.
 
 ## But try not to do this
 **Note: This is not recommended in the usual case because of a quirk with the C language**. That quirk is that longs only need to be **4 Bytes big** meaning that the maximum size that ftell can return is a little under 2 Gigabytes (which we know nowadays our files could be hundreds of gigabytes or even terabytes on a distributed file system). What should we do instead? Use `stat`! We will cover stat in a later part but here is some code that will tell you the size of the file
-```C
+```
 struct stat buf;
 if(stat(filename, &buf) == -1){
 	return -1;
