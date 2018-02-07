@@ -6,7 +6,7 @@
 \\But if you try sometime you find
 \\You get what you need}{The philosphers Jagger \& Richards}
 
-\gls{Deadlock} is defined as when the system cannot make and forward progress. In a lot of systems, Deadlock is just avoided by ignore the entire concept \cite[P.237]{silberschatz2006operating}. Have you heard about turn it on and off again? That is partly because of this. For products where the stakes are low when you deadlock (User Operating Systems, Phones), it may be more efficient not not keep track of all of the allocations in order to keep deadlock from happening. But in the cases where "failure is not an option" - Apollo 13, you need a system that tracks deadlock or better yet prevents it entirely. Take the Apollo 13 module. It may have not failed because of deadlock, but probably wouldn't be good to restart the system on liftoff.
+\gls{Deadlock} is defined as when a system cannot make and forward progress. We define a system for the rest of the chapter as a set of rules by which a set of processes can move from one state to another (where a state is either working or waiting for a particular resource). Forward progress is defined as if there is at least one process wokring or we can award a process waiting for a resource that resource. In a lot of systems, Deadlock is just avoided by ignore the entire concept \cite[P.237]{silberschatz2006operating}. Have you heard about turn it on and off again? That is partly because of this. For products where the stakes are low when you deadlock (User Operating Systems, Phones), it may be more efficient not not keep track of all of the allocations in order to keep deadlock from happening. But in the cases where "failure is not an option" - Apollo 13, you need a system that tracks deadlock or better yet prevents it entirely. Take the Apollo 13 module. It may have not failed because of deadlock, but probably wouldn't be good to restart the system on liftoff.
 
 Mission critical operating systems need this guarentee formally because playing the odds with people's lives isn't a good idea. Okay so how do we do this? We model the problem. Even though it is a common statistical phrase that all models are wrong, the more accurate the model is to the system that we are working with the better chance that it'll work better.
 
@@ -43,7 +43,7 @@ There are four \emph{necessary} and \emph{sufficient} conditions for deadlock --
 \item
   \gls{Hold and Wait}: a process once obtaining a resource does not let go.
 \item
-  \gls{No pre-emption}: nothing can force the process to give up a resource.
+  No \gls{pre-emption}: nothing can force the process to give up a resource.
 \end{itemize}
 
 \begin{proof} Deadlock can happen if and only if the four coffman conditions are satisified.

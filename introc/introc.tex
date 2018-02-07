@@ -2,15 +2,15 @@
 
 \epigraph{If you want to teach systems, don't drum up the programmers, sort the issues, and make PRs. Instead, teach them to yearn for the vast and endless C.}{Antoine de Saint-Exup\'{e}ry (Kinda)}
 
-C is the de-facto programming language to do serious system serious programming. Why? Most kernels are written in largely in C. The Linux kernel \cite{Love} and the XNU kernel \citet{xnukernel} of which Mac OS X is based off. The Windows Kernel uses C++, but doing system programming on that is much harder on windows that UNIX for beginner system programmers. Most of you have some experience with C++, but C is a different beast entirely. You don't have nice abstractions like classes and RAII to clean up memory. You are going to have to do that yourself. C gives you much more of an opportunity to shoot yourself in the foot but lets you do thinks at a much finer grain level.
+\gls{C} is the de-facto programming language to do serious system serious programming. Why? Most kernels are written in largely in C. The \gls{linux kernel} \cite{Love} and the XNU kernel \citet{xnukernel} of which Mac OS X is based off. The Windows Kernel uses C++, but doing system programming on that is much harder on windows that UNIX for beginner system programmers. Most of you have some experience with C++, but C is a different beast entirely. You don't have nice abstractions like classes and RAII to clean up memory. You are going to have to do that yourself. C gives you much more of an opportunity to shoot yourself in the foot but lets you do thinks at a much finer grain level.
 
 \section{History of C}
 
 C was developed by Dennis Ritchie and Ken Thompson at Bell Labs back in 1973 \cite{Ritchie:1993:DCL:155360.155580}. Back then, we had gems of programming languages like Fortran, ALGOL, and LISP. The goal of C was two fold. One, to target the most popular computers at the time liek the PDP-7. Two, try and remove some of the lower level constructs like managing registers, programming assembly for jumps and instead create a language that had the power to express programs procedurally (as opposed to mathematically like lisp) with more readable code all while still having the ability to interface with the operating system. It sounded like a tough feat. At first, it was only used internally at Bell Labs along with the UNIX operating system. 
 
-The first "real" standardization is with Brian Kerninghan and Dennis Ritchies book \cite{kernighan1988c}. It is still widely regarded today as the only \gls{portable} set of C instructions. The K\&R book is known as the de-facto standard for learning C.  There were different standards of C from ANSI to ISO after the Unix guides. The one that we will be mainly focusing on is the \gls{POSIX} C library. Now to get the elephant out of the room, the Linux kernel is not entirely POSIX compliant. Mostly, it is because they didn't want to pay the fee for compliance
+The first "real" standardization is with Brian Kerninghan and Dennis Ritchies book \cite{kernighan1988c}. It is still widely regarded today as the only \gls{portable} set of C instructions. The K\&R book is known as the de-facto standard for learning C.  There were different standards of C from ANSI to ISO after the Unix guides. The one that we will be mainly focusing on is the \gls{POSIX} C library. Now to get the elephant out of the room, the Linux kernel is not entirely POSIX compliant. Mostly, it is because they didn't want to pay the fee for compliance but also it doesn't want to be completely compliant with a bunch of different standards because then it has to ensue increasing development costs to maintain compliance.
 
-\todo{Further the history until today}
+Fast forward however many years, and we are at the current C standard put forth by ISO: C11. Not all the code that we us in this class will be in this format. We will aim to using C99 as the standard that most computers recognize. We will talk about some off-hand features like \keyword{getline} because they are so widely used with the GNU-C library. We'll begin by providing a decently comprehensive overview of the language with pairing facilities.
 
 \section{Features}
 
@@ -54,7 +54,7 @@ $
 
 \section{Preprocessor}
 
-What is the preprocessor? Preprocessing is an operation that the compiler performs \textbf{before} actually compiling the program. It is a copy and paste command. Meaning that if I do the following.
+What is the preprocessor? Preprocessing is an operation that the compiler performs \textbf{before} actually compiling the program. It is a copy and paste command. Meaning the following susbtitution is performed.
 
 \begin{code}[language=C]
 #define MAX_LENGTH 10
@@ -63,15 +63,15 @@ char buffer[MAX_LENGTH]
 char buffer[10]
 \end{code}
 
-But there are side effects to the preprocessor. Does the following code print out.
+There are side effects to the preprocessor though. One problem is that the preprocessor needs to be able to tokenize properly, meaning trying to redefine the interals of the C language with a preprocessor may be impossible. Another problem is that they can't be nested infinitely -- there is an unbounded depth where they need to stop. Macros are also just simple text substitutions.
 
 \begin{code}[language=C]
 #define min(a,b) ((a)<(b) ? (a) : (b))
 int x = 4;
-if(min(x++, 100)) printf("%d is six", x);
+if(min(x++, 5)) printf("%d is six", x);
 \end{code}
 
-Macros are simple text substitution so the above example expands to \keyword{x++\ \textless{}\ 100\ ?\ x++\ :\ 100} (parenthesis omitted for clarity). Now for this case, it will probably still print 6 but consider the edge case when \keyword{x = 99}. Also consider the edge case when operator precedence comes into play.
+Macros are simple text substitution so the above example expands to \keyword{x++\ \textless{}\ 100\ ?\ x++\ :\ 100} (parenthesis omitted for clarity). Now for this case, it is opaque what gets printed out but it will be 6. Also consider the edge case when operator precedence comes into play.
 
 \begin{code}[language=C]
 #define min(a,b) a<b ? a : b
@@ -79,9 +79,7 @@ int x = 99;
 int r = 10 + min(99, 100); // r is 100!
 \end{code}
 
-Macros are simple text substitution so the above example expands to \keyword{10\ +\ 99\ \textless{}\ 100\ ?\ 99\ :\ 100}
-
-\subsection{C Preprocessor logical gotcha}\label{c-preprocessor-logical-gotcha}
+Macros are simple text substitution so the above example expands to \keyword{10\ +\ 99\ \textless{}\ 100\ ?\ 99\ :\ 100}. You can have logical problems with the flexibility of certain parameters. One common source of confusion is with static arrays and the \keyword{sizeof} operator.
 
 \begin{code}[language=C]
 #define ARRAY_LENGTH(A) (sizeof((A)) / sizeof((A)[0]))
@@ -89,7 +87,7 @@ int static_array[10]; // ARRAY_LENGTH(static_array) = 10
 int* dynamic_array = malloc(10); // ARRAY_LENGTH(dynamic_array) = 2 or 1
 \end{code}
 
-What is wrong with the macro? Well, it works if we have a static array like the first array because \keyword{sizeof} a static array returns the bytes that array takes up, and dividing it by the \keyword{sizeof(an\_element)} would give you the number of entries. But if we use a pointer to a piece of memory, taking the sizeof the pointer and dividing it by the size of the first entry won't always give us the size of the array.
+What is wrong with the macro? Well, it works if we have a static array like the first array because \keyword{sizeof} a static array returns the number of bytes that array takes up, and dividing it by the \keyword{sizeof(an\_element)} would give you the number of entries. But if we use a pointer to a piece of memory, taking the sizeof the pointer and dividing it by the size of the first entry won't always give us the size of the array.
 
 \section{Language Facilities}
 
@@ -534,6 +532,7 @@ If you put the volatile keyword then it forces the compiler to keep the variable
 \end{enumerate}
 
 \subsection{C data types}
+
 \begin{enumerate}
 \item \keyword{char} Represents exactly one byte of data. The number of bits in a byte might vary. \keyword{unsigned char} and \keyword{signed char} mean the exact same thing. This must be aligned on a boundary (meaning you cannot use bits in between two addresses). The rest of the types will assume 8 bits in a byte.
 \item \keyword{short (short int)} must be at least two bytes. This is aligned on a two byte boundary, meaning that the address must be divisble by two.
@@ -546,15 +545,53 @@ If you put the volatile keyword then it forces the compiler to keep the variable
 
 \subsection{Operators}
 
+Operators are language constructs in C that are defined as part of the grammar of the language. 
+
+\begin{enumerate}
+\item \keyword{[]} is the subscript operator. \texttt{a[n] == (a + n)*} where \texttt{n} is a number type and \texttt{a} is a pointer type.
+\item \keyword{->} is the structure dereference operator. If you have a pointer to a struct \texttt{*p}, you can use this to access one of its elements. \texttt{p->element}.
+\item \keyword{.} is the structure reference operator. If you have an object on the stack \texttt{a} then you can access an element \texttt{a.element}.
+\item \keyword{+/-a} is the unary plus and minus operator. They either keep or negate the sign, respectively, of the integer or float type underneath.
+\item \keyword{*a} is the dereference operator. If you have a pointer  \texttt{*p}, you can use this to access the element located at this memory address. If you are reading, the return value will be the size of the underlying type. If you are writing, the value will be written with an offset.
+\item \keyword{\&a} is the addressof operator. This takes the an element and returns its address.
+\item \keyword{++} is the increment operator. You can either take it prefix or postfix, meaning that the variable that is being incremented can either be before or after the operator. \keyword{a = 0; ++a === 1} and \keyword{a = 1; a++ === 0}.
+\item \keyword{--} is the decrement operator. Same semantics as the increment operator except with decreasing the value by one.
+\item \keyword{sizeof} is the sizeof operator. This is also mentioned in the keywords section.
+\item \keyword{a <mop> b} where \keyword{<mop>=+, -, *, \%, /} are the mathematical binary operators. If the operands are both number types, then the operations are plus, minus, times, modulo, and division respectively. If the left operand is a pointer and the right operand is an integer type, then only plus or minux may be used and the rules for pointer arithmetic are invoked.
+\item \keyword{>>/<<} are the bit shift operators. The operand on the right has to be an integer type whose signedness is ignored unless it is signed negative in which case the behavior is undefined. The operator on the left decides a lot of semantics. If we are left shifting, there will always be zeros introduced on the right. If we are right shifting there are a few different cases
+\begin{itemize}
+\item If the operand on the left is signed, then the integer is sign extended. This means that if the number has the sign bit set, then any shift right will introduce ones on the left. If the number does not have the sign bit set, any shift right will introduce zeros on the left.
+\item If the operand is unsigned, zeros will be introduced on the left either way.
+\end{itemize}
+
+\begin{code}[language=C]
+unsigned short uns = -127; // 1111111110000001
+short sig = 1; // 0000000000000001
+uns << 2; // 1111111000000100
+sig << 2; // 0000000000000100
+uns >> 2; // 1111111111100000
+sig >> 2; // 0000000000000000
+\end{code}
+\item \keyword{<=/>=} are the greater than equal to/less than equal to operators. They do as the name implies.
+\item \keyword{</>} are the greater than/less than operators. They again do as the name implies.
+\item \keyword{==/\!=} are the equal/not equal to operators. They once again do as the name implies.
+\item \keyword{\&\&} is the logical and operator. If the first operand is zero, the second won't be evaluated and the expression will evaluate to 0. Otherwise, it yields a 1-0 value of the second operand.
+\item \keyword{||} is the logical or operator. If the first operand is not zero, then second won't be evaluated and the expression will evaluate to 1. Otherwise, it yields a 1-0 value of the second operand.
+\item \keyword{!} is the logical not operator. If the operand is zero, then this will return 1. Otherwise, it will return 0.
+\item \keyword{\&} If a bit is set in both operands, it is set in the output. Otherwise, it is not.
+\item \keyword{|} If a bit is set in either operand, it is set in the output. Otherwise, it is not.
+\item \keyword{\~} If a bit is set in the input, it will not be set in the output and vice versa. 
+\item \keyword{?:} is the tertinary operator. You put a boolean condition before the \? and if it evaluates to non-zero the element before the colon is returned otherwise the element after is. \keyword{1 ? a : b === a} and \keyword{0 ? a : b === b}.
+\item \keyword{a, b} is the comma operator. \keyword{a} is evaluated and then \keyword{b} is evaluated and \keyword{b} is returned.
+\end{enumerate}
+
 \section{Common C Functions}
 
 To find more information about any functions, use the man pages. Note the man pages are organized into sections. Section 2 are System calls. Section 3 are C libraries. On the web, Google \keyword{man 7 open}. In the shell, \keyword{man -S2 open} or \keyword{man -S3 printf}
 
 \subsection{Input/Output}
 
-\keyword{printf} is the function with which most people are familiar. The first parameter is a format string that includes placeholders for the data to be printed. Common format specifiers are \keyword{\%s} treat the argument as a c string pointer, keep printing all characters until the NULL-character is reached; \keyword{\%d} print the argument as an integer; \keyword{\%p} print the argument as a memory address.
-
-A simple example is shown below:
+\keyword{printf} is the function with which most people are familiar. The first parameter is a format string that includes placeholders for the data to be printed. Common format specifiers are \keyword{\%s} treat the argument as a c string pointer, keep printing all characters until the NULL-character is reached; \keyword{\%d} print the argument as an integer; \keyword{\%p} print the argument as a memory address. By default, for performance, \keyword{printf} does not actually write anything out until its buffer is full or a newline is printed.
 
 \begin{code}[language=C]
 char *name = ... ; int score = ...;
@@ -564,42 +601,30 @@ printf("Debug: The string and int are stored at: %p and %p\n", name, &score );
 // We need "&" to get the address of the int variable
 \end{code}
 
-By default, for performance, \keyword{printf} does not actually write anything out (by calling write) until its buffer is full or a newline is printed.
+\keyword{printf} calls the system call \keyword{write}. \keyword{printf} includes an internal buffer so, to increase performance \keyword{printf} may not call \keyword{write} everytime you call \keyword{printf}. \keyword{printf} is a C library function. \keyword{write} is a system call and as we know system calls are expensive. On the other hand, \keyword{printf} uses a buffer which suits our needs better at that point
 
-\subsection{How else can I print strings and single characters?}
-
-Use \keyword{puts(\ name\ )} and \keyword{putchar(\ c\ )} where name is a pointer to a C string and c is just a \keyword{char}
-
-\subsection{How do I print to other file
-streams?}\label{how-do-i-print-to-other-file-streams}
-
-Use \keyword{fprintf(\ \_file\_\ ,\ "Hello\ \%s,\ score:\ \%d",\ name,\ score);} Where \_file\_ is either predefined `stdout' `stderr' or a FILE pointer that was returned by \keyword{fopen} or \keyword{fdopen}
-
-\subsection{Can I use file descriptors?}\label{can-i-use-file-descriptors}
-
-Yes! Just use \keyword{dprintf(int\ fd,\ char*\ format\_string,\ ...);} Just remember the stream may be buffered, so you will need to assure that the data is written to the file descriptor.
-
-\subsection{How do I print data into a C string?}
-
-Use \keyword{sprintf} or better \keyword{snprintf}.
+To print strings and single characters use \keyword{puts(\ name\ )} and \keyword{putchar(\ c\ )} where name is a pointer to a C string and c is just a \keyword{char}
 
 \begin{code}[language=C]
+puts("Current selection: ");
+putchar('1');
+\end{code}
+
+To print to other file streams use \keyword{fprintf(\ \_file\_\ ,\ "Hello\ \%s,\ score:\ \%d",\ name,\ score);} Where \_file\_ is either predefined `stdout' `stderr' or a FILE pointer that was returned by \keyword{fopen} or \keyword{fdopen}. You can also use file descriptors in the printf family of functions! Just use \keyword{dprintf(int\ fd,\ char*\ format\_string,\ ...);} Just remember the stream may be buffered, so you will need to assure that the data is written to the file descriptor.
+
+To print data into a C string, use \keyword{sprintf} or better \keyword{snprintf}. \keyword{snprintf} returns the number of characters written excluding the terminating byte. In the above example, this would be a maximum of 199. We would use \keyword{sprintf} in cases where we know that the size of the string will not be anything more than a certain fixed amount (think about printing an integer, it will never be more than 11 characters with the null byte)
+
+\begin{code}[language=C]
+// Fixed
+char int_string[20];
+sprintf(int_string, "%d", integer);
+
+// Variable length
 char result[200];
 int len = snprintf(result, sizeof(result), "%s:%d", name, score);
 \end{code}
 
-\keyword{snprintf} returns the number of characters written excluding the terminating byte. In the above example, this would be a maximum of 199.
-
-The following code is vulnerable to buffer overflow. It assumes or trusts that the input line will be no more than 10 characters, including the terminating byte.
-
-\begin{code}[language=C]
-char buf[10];
-gets(buf); // Remember the array name means the first byte of the array
-\end{code}
-
-\subsection{What if I really really want printf to call write without a newline?}
-
-Use \keyword{fflush(\ FILE*\ inp\ )}. The contents of the file will be written. If I wanted to write ``Hello World'' with no newline, I could write it like this.
+If I want to \keyword{printf} to call write without a newline \keyword{fflush(\ FILE*\ inp\ )}. The contents of the file will be written. If I wanted to write ``Hello World'' with no newline, I could write it like this.
 
 \begin{code}[language=C]
 int main(){
@@ -609,36 +634,19 @@ int main(){
 }
 \end{code}
 
-\subsection{Should I Use Gets?}
-
-\keyword{gets} is deprecated in C99 standard and has been removed from the latest C standard (C11). Programs should use \keyword{fgets} or \keyword{getline} instead.
-
-Where each has the following structure respectively:
+In addition to the printf family, there is \keyword{gets}. \keyword{gets} is deprecated in C99 standard and has been removed from the latest C standard (C11). Programs should use \keyword{fgets} or \keyword{getline} instead.
 
 \begin{code}[language=C]
 char *fgets (char *str, int num, FILE *stream); 
 
 ssize_t getline(char **lineptr, size_t *n, FILE *stream);
-\end{code}
 
-Here's a simple, safe way to read a single line. Lines longer than 9 characters will be truncated:
-
-\begin{code}[language=C]
+// Example, the following will not read more than 9 chars
 char buffer[10];
 char *result = fgets(buffer, sizeof(buffer), stdin);
 \end{code}
 
-The result is NULL if there was an error or the end of the file is reached. Note, unlike \keyword{gets}, \keyword{fgets} copies the newline into the buffer, which you may want to discard-
-
-\begin{code}[language=C]
-if (!result) { return; /* no data - don't read the buffer contents */}
-
-int i = strlen(buffer) - 1;
-if (buffer[i] == '\n') 
-    buffer[i] = '\0';
-\end{code}
-
-One of the advantages of \keyword{getline} is that will automatically (re-) allocate a buffer on the heap of sufficient size.
+The result is NULL if there was an error or the end of the file is reached. Note, unlike \keyword{gets}, \keyword{fgets} copies the newline into the buffer, which you may want to discard. On the other hand, one of the advantages of \keyword{getline} is that will automatically (re-) allocate a buffer on the heap of sufficient size.
 
 \begin{code}[language=C]
 // ssize_t getline(char **lineptr, size_t *n, FILE *stream);
@@ -662,11 +670,42 @@ chars = getline(&buffer, &size, stdin);
 free(buffer);
 \end{code}
 
-\subsection{Parsing}
+In addition to those functions, we have \keyword{perror} that has a two-fold meaning. Let's say that you have a function call that just failed because you checked the man page and it is a failing return code.\keyword{perror(const\ char*\ message)} will print the English version of the error to stderr.
+
+\begin{code}[language=C]
+int main(){
+    int ret = open("IDoNotExist.txt", O_RDONLY);
+    if(ret < 0){
+        perror("Opening IDoNotExist:");
+    }
+    //...
+    return 0;
+}
+\end{code}
+
+To have a library function parse input, use \keyword{scanf} (or \keyword{fscanf} or \keyword{sscanf}) to get input from the default input stream, an arbitrary file stream or a C string respectively. It's a good idea to check the return value to see how many items were parsed. \keyword{scanf} functions require valid pointers. It's a common source of error to pass in an incorrect pointer value. For example,
+
+\begin{code}[language=C]
+int *data = (int *) malloc(sizeof(int));
+char *line = "v 10";
+char type;
+// Good practice: Check scanf parsed the line and read two values:
+int ok = 2 == sscanf(line, "%c %d", &type, &data); // pointer error
+\end{code}
+
+We wanted to write the character value into c and the integer value into the malloc'd memory. However, we passed the address of the data pointer, not what the pointer is pointing to! So \keyword{sscanf} will change the pointer itself. i.e.~the pointer will now point to address 10 so this code will later fail e.g.~when free(data) is called.
+
+Now, scanf will just keep reading characters until the string ends. To stop scanf from causing a buffer
+overflow, use a format specifier. Make sure to pass one less than the size of the buffer.
+
+\begin{code}[language=C]
+char buffer[10];
+scanf("%9s", buffer); // reads up to 9 charactes from input (leave room for the 10th byte to be the terminating byte)
+\end{code}
 
 \subsection{string.h}
 
-\href{https://linux.die.net/man/3/string}{More information about all of these functions}. Any behavior like passing \keyword{strlen(NULL)} is considered undefined behavior.
+\href{https://linux.die.net/man/3/string}{More information about all of these functions}. Any behavior not in the docs like passing \keyword{strlen(NULL)} is considered undefined behavior.
 
 \begin{itemize}
 
@@ -717,50 +756,57 @@ What happens when I change \keyword{upped} like this?
 char* upped = strdup("strtok,is,tricky,,,!!");
 \end{code}
 
+\item For integer parsing use
+\keyword{long\ int\ strtol(const\ char\ *nptr,\ char\ **endptr,\ int\ base);}
+or
+\keyword{long\ long\ int\ strtoll(const\ char\ *nptr,\ char\ **endptr,\ int\ base);}.
+
+What these functions do is take the pointer to your string
+\keyword{*nptr} and a \keyword{base} (ie binary, octal, decimal,
+hexadecimal etc) and an optional pointer \keyword{endptr} and returns a
+parsed value.
+
+\begin{code}[language=C]
+int main(){
+    const char *nptr = "1A2436";
+    char* endptr;
+    long int result = strtol(nptr, &endptr, 16);
+    return 0;
+}
+\end{code}
+
+Be careful though! Error handling is tricky because the function won't return an error code. If you give it a string that is not a number it will return 0. This means you cant differentiate between a valid ``0'' and an invalid string. See the man page for more details on strol behavior with invalid and out of bounds values. A safer alternative is use to \keyword{sscanf} (and check the return value).
+
+\begin{code}[language=C]
+int main(){
+    const char *input = "0"; // or "!##@" or ""
+    char* endptr;
+    long int parsed = strtol(input, &endptr, 10);
+    if(parsed == 0){
+        // Either the input string was not a valid base-10 number or it really was zero!
+
+    }
+    return 0;
+}
+\end{code}
+
 \item \keyword{void\ *memcpy(void\ *dest,\ const\ void\ *src,\ size\_t\ n)} moves \keyword{n} bytes starting at \keyword{src} to \keyword{dest}. \textbf{Be careful}, there is undefined behavior when the memory regions overlap. This is one of the classic works on my machine examples because many times valgrind won't be able to pick it up because it will look like it works on your machine. When the autograder hits, fail. Consider the safer version below.
 
-\item \keyword{void\ *memmove(void\ *dest,\ const\ void\ *src,\ size\_t\ n)} does the same thing as above, but if the memory regions overlap then it is guaranteed that all the bytes will get copied over correctly.
+\item \keyword{void\ *memmove(void\ *dest,\ const\ void\ *src,\ size\_t\ n)} does the same thing as above, but if the memory regions overlap then it is guaranteed that all the bytes will get copied over correctly. \keyword{memcpy} and \keyword{memmove} both in \keyword{\textless{}string.h\textgreater{}}? Because strings are essentially raw memory with a null byte at the end of them! 
 
 \end{itemize}
 
-\keyword{memcpy} and \keyword{memmove} both in \keyword{\textless{}string.h\textgreater{}}? Because strings are essentially raw memory with a null byte at the end of them! 
-
-\subsection{stdlib.h}
-
-To allocate space on the heap, use malloc. There's also realloc and calloc. Typically used with sizeof. e.g.~enough space to hold 10 integers
-
-\begin{code}[language=C]
-int *space = malloc(sizeof(int) * 10);
-\end{code}
-
 \subsection{Conventions/Errno}
 
-\todo{Conventions and errno}
+\todo{Conventions and errno, talk about what the unix conventions are for processes and what the errno conventions are}
 
 \section{System Calls}
 
-\subsection{What is a system call?}
-
-\todo{System Call}
-
-\subsection{The interplay with library functions}
-
-\todo{System calls and library function}
-
-\subsubsection{Does \keyword{printf} call write or does write call \keyword{printf}?}
-
-\keyword{printf} calls \keyword{write}. \keyword{printf} includes an
-internal buffer so, to increase performance \keyword{printf} may not call
-\keyword{write} everytime you call \keyword{printf}. \keyword{printf} is a
-C library function. \keyword{write} is a system call and as we know
-system calls are expensive. On the other hand, \keyword{printf} uses a
-buffer which suits our needs better at that point
+\todo{System Calls, talk about what a system call is and an aside for the practicalities of system calls and what actually happens}
 
 \section{C Memory Model}
 
 \subsection{Structs}
-
-\todo{What's a struct?}
 
 In low-level terms, a struct is just a piece of contiguous memory, nothing more. Just like an array, a struct has enough space to keep all of its members. But unlike an array, it can store different types. Consider the contact struct declared above
 
@@ -773,8 +819,6 @@ struct contact {
 
 struct contact bhuvan;
 \end{code}
-
-\begin{aside}
 
 \begin{code}[language=C]
 /* a lot of times we will do the following typdef
@@ -844,8 +888,7 @@ Now our string is filled in correctly at the end of the struct
 strcmp(bhuvan_name->c_str, "bhuvan") == 0 //The strings are equal!
 \end{code}
 
-\end{aside}
-
+\begin{aside}
 
 \subsubsection{Struct packing}
 
@@ -917,9 +960,32 @@ struct picture{
 
 \end{code}
 
-\subsection{C Null-Terminated Strings}
+\end{aside}
 
-Strings in C are represented as characters in memory. The end of the string includes a NULL (0) byte \cite{CITATION_NEEDED}. So ``ABC'' requires four(4) bytes \keyword{{[}\textquotesingle{}A\textquotesingle{},\textquotesingle{}B\textquotesingle{},\textquotesingle{}C\textquotesingle{},\textquotesingle{}\textbackslash{}0\textquotesingle{}{]}}.
+\subsection{Strings in C}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics{https://i.imgur.com/CgsxyZb.png}
+\caption{String}
+\end{figure}
+
+In C we have
+\href{https://en.wikipedia.org/wiki/Null-terminated_string}{Null
+Terminated} strings rather than
+\href{https://en.wikipedia.org/wiki/String_(computer_science)\#Length-prefixed}{Length
+Prefixed} for historical reasons. What that means for your average
+everyday programming is that you need to remember the null character! A
+string in C is defined as a bunch of bytes until you reach `\0' or the
+Null Byte.
+
+\subsection{Two places for strings}\label{two-places-for-strings}
+
+Whenever you define a constant string (ie one in the form \keyword{char*\ str\ =\ "constant"}) That string is stored in the \emph{data} or \emph{code} segment that is \textbf{read-only} meaning that any attempt to modify the string will cause a segfault.
+
+If one, however, \keyword{malloc}'s space, one can change that string to be whatever they want. Forgetting to NULL terminate a string is a big affect on the strings! Bounds checking is important. The heart bleed bug mentioned earlier in the wiki book is partially because of this.
+
+Strings in C are represented as characters in memory. The end of the string includes a NULL (0) byte. So ``ABC'' requires four(4) bytes \keyword{{[}\textquotesingle{}A\textquotesingle{},\textquotesingle{}B\textquotesingle{},\textquotesingle{}C\textquotesingle{},\textquotesingle{}\textbackslash{}0\textquotesingle{}{]}}.
 The only way to find out the length of a C string is to keep reading memory until you find the NULL byte. C characters are always exactly one byte each.
 
 When you write a string literal \keyword{"ABC"} in an expression the string literal evaluates to a char pointer (\keyword{char\ *}), which points to the first byte/char of the string. This means \keyword{ptr} in the example below will hold the memory address of the first character in the string.
@@ -1002,73 +1068,6 @@ strcpy(ptr, "World"); // OK because now ptr is pointing to mutable memory (the a
 \end{code}
 
 What to take away from this is that pointers * can point to any type of memory while C arrays {[}{]} can only point to memory on the stack. In a more common case, pointers will point to heap memory in which case the memory referred to by the pointer CAN be modified.
-
-\subsection{Errors}
-
-\subsubsection{Double Frees}
-
-A double free error is when you accidentally attempt to free the same allocation twice.
-
-\begin{code}[language=C]
-int *p = malloc(sizeof(int));
-free(p);
-
-*p = 123; // Oops! - Dangling pointer! Writing to memory we don't own anymore
-
-free(p); // Oops! - Double free!
-\end{code}
-
-The fix is first to write correct programs! Secondly, it's good programming hygiene to reset pointers once the memory has been freed. This ensures the pointer can't be used incorrectly without the program crashing.
-
-Fix:
-
-\begin{code}[language=C]
-p = NULL; // Now you can't use this pointer by mistake
-\end{code}
-
-\subsubsection{Buffer Overflows}
-
-TODO
-
-Famous example: Heart Bleed (performed a memcpy into a buffer that was of insufficient size). Simple example: implement a strcpy and forget to add one to strlen, when determining the size of the memory required.
-
-\subsubsection{Returning pointers to automatic variables}
-
-\begin{code}[language=C]
-int *f() {
-    int result = 42;
-    static int imok;
-    return &imok; // OK - static variables are not on the stack
-    return &result; // Not OK
-}
-\end{code}
-
-Automatic variables are bound to stack memory only for the lifetime of
-the function. After the function returns it is an error to continue to
-use the memory. \#\# Insufficient memory allocation
-
-\begin{code}[language=C]
-struct User {
-   char name[100];
-};
-typedef struct User user_t;
-
-user_t *user = (user_t *) malloc(sizeof(user));
-\end{code}
-
-In the above example, we needed to allocate enough bytes for the struct.
-Instead, we allocated enough bytes to hold a pointer. Once we start
-using the user pointer we will corrupt memory. The correct code is shown
-below.
-
-\begin{code}[language=C]
-struct User {
-   char name[100];
-};
-typedef struct User user_t;
-
-user_t * user = (user_t *) malloc(sizeof(user_t));
-\end{code}
 
 
 \section{Pointers}
@@ -1191,158 +1190,94 @@ This does not require a cast because C automatically promotes \keyword{void*} to
 
 \section{Shell}
 
-What do you actually use to run your program? A shell! A shell is a programming language that is running inside your terminal. A terminal is merely a window to input commands. Now, on POSIX we usually have one shell called \keyword{sh} that is linked to a POSIX compliant shell called \keyword{dash}. Most of the time, you use a shell called \keyword{bash} that is not entirely POSIX compliant but has some nifty built in features. If you want to be even more advanced, \keyword{zsh} has some more powerful features like tab complete on programs and fuzzy patterns, but that is neither here nor there. 
+Look in the appendix for Life in the Terminal!
 
-\subsection{Common Utilities}
-
-\begin{enumerate}
-\item \keyword{cat}
-\item \keyword{diff}
-\item \keyword{grep}
-\item \keyword{ls}
-\item \keyword{cd}
-\item \keyword{man}
-\item \keyword{make}
-\end{enumerate}
-
-\subsection{Syntactic}
-
-Shells have many useful utilities like saving output to a file using redirection \keyword{>}. This overwrites the file from the beginning. If you only meant to append to the file, you can use \keyword{>>}. Unix also allows file descriptor swapping. This means that you can take the output going to one file descriptor and make it seem like its coming out of another. The most common one is \keyword{2>&1} which means take the stderr and make it seem like it is coming out of standard out. This is important because when you use \keyword{>} and \keyword{>>} they only write the standard output of the file. There are some examples below.
-
-\begin{code}[language=console]
-$ ./program > output.txt # To overwrite
-$ ./program >> output.txt # To append
-$ ./program 2>&1 > output_all.txt # stderr & stdout
-$ ./program 2>&1 > /dev/null # don't care about any output
-\end{code}
-
-The pipe operator has a fascinating history. The UNIX philosophy is writing small programs and chaining them together to do new and interesting things. Back in the early days, hard disk space was limited and write times were slow. Brian Kernighan wanted to maintain the philosophy while also not having to write a bunch of intermediate files that take up hard drive space. So, the UNIX pipe was born. A pipe take the \keyword{stdout} of the program on its left and feeds it to the \keyword{stdin} of the program on its write. Consider the command \keyword{tee}. It can be used as a replacement for the redirection operators because tee will both write to a file and output to standard out. It also has the added benefit that it doesn't need to be the last command in the list. Meaning, that you can write an intermediate result and continue your piping.
-
-\begin{code}[language=console]
-$ ./program | tee output.txt # Overwrite
-$ ./program | tee -a output.txt # Append
-$ head output.txt | wc | head -n 1 # Multi pipes
-$ ((head output.txt) | wc) | head -n 1 # Same as above
-$ ./program | tee intermediate.txt | wc
-\end{code}
-
-The \keyword{&&} and \keyword{||} operator 
-
-\subsection{Tips and tricks}
-
-\begin{comment}
-
-\subsection{\texorpdfstring{How is \keyword{perror}
-helpful?}{How is perror helpful?}}\label{how-is-perror-helpful}
-
-Let's say that you have a function call that just failed (because you
-checked the man page and it is a failing return code).
-\keyword{perror(const\ char*\ message)} will print the English version of
-the error to stderr
+\section{Common Bugs}
 
 \begin{code}[language=C]
-int main(){
-    int ret = open("IDoNotExist.txt", O_RDONLY);
-    if(ret < 0){
-        perror("Opening IDoNotExist:");
-    }
-    //...
-    return 0;
+void mystrcpy(char*dest, char* src) { 
+  // void means no return value   
+  while( *src ) { dest = src; src ++; dest++; }  
 }
 \end{code}
 
-\section{Parsing Input}\label{parsing-input}
-
-\subsection{How do I parse numbers from
-strings?}\label{how-do-i-parse-numbers-from-strings}
-
-Use
-\keyword{long\ int\ strtol(const\ char\ *nptr,\ char\ **endptr,\ int\ base);}
-or
-\keyword{long\ long\ int\ strtoll(const\ char\ *nptr,\ char\ **endptr,\ int\ base);}.
-
-What these functions do is take the pointer to your string
-\keyword{*nptr} and a \keyword{base} (ie binary, octal, decimal,
-hexadecimal etc) and an optional pointer \keyword{endptr} and returns a
-parsed value.
+In the above code it simply changes the dest pointer to point to source string. Also the nuls bytes are not copied. Here's a better version -
 
 \begin{code}[language=C]
-int main(){
-    const char *nptr = "1A2436";
-    char* endptr;
-    long int result = strtol(nptr, &endptr, 16);
-    return 0;
+  while( *src ) { *dest = *src; src ++; dest++; } 
+  *dest = *src;
+\end{code}
+
+Note it's also usual to see the following kind of implementation, which
+does everything inside the expression test, including copying the nul
+byte.
+
+\begin{code}[language=C]
+  while( (*dest++ = *src++ )) {};
+\end{code}
+
+\subsubsection{Double Frees}
+
+A double free error is when you accidentally attempt to free the same allocation twice.
+
+\begin{code}[language=C]
+int *p = malloc(sizeof(int));
+free(p);
+
+*p = 123; // Oops! - Dangling pointer! Writing to memory we don't own anymore
+
+free(p); // Oops! - Double free!
+\end{code}
+
+The fix is first to write correct programs! Secondly, it's good programming hygiene to reset pointers once the memory has been freed. This ensures the pointer can't be used incorrectly without the program crashing.
+
+Fix:
+
+\begin{code}[language=C]
+p = NULL; // Now you can't use this pointer by mistake
+\end{code}
+
+\subsection{Returning pointers to automatic variables}
+
+\begin{code}[language=C]
+int *f() {
+    int result = 42;
+    static int imok;
+    return &imok; // OK - static variables are not on the stack
+    return &result; // Not OK
 }
 \end{code}
 
-Be careful though! Error handling is tricky because the function won't
-return an error code. If you give it a string that is not a number it
-will return 0. This means you cant differentiate between a valid ``0''
-and an invalid string. See the man page for more details on strol
-behavior with invalid and out of bounds values. A safer alternative is
-use to \keyword{sscanf} (and check the return value).
+Automatic variables are bound to stack memory only for the lifetime of
+the function. After the function returns it is an error to continue to
+use the memory. \#\# Insufficient memory allocation
 
 \begin{code}[language=C]
-int main(){
-    const char *input = "0"; // or "!##@" or ""
-    char* endptr;
-    long int parsed = strtol(input, &endptr, 10);
-    if(parsed == 0){
-        // Either the input string was not a valid base-10 number or it really was zero!
+struct User {
+   char name[100];
+};
+typedef struct User user_t;
 
-    }
-    return 0;
-}
+user_t *user = (user_t *) malloc(sizeof(user));
 \end{code}
 
-\subsection{\texorpdfstring{How do I parse input using \keyword{scanf}
-into
-parameters?}{How do I parse input using scanf into parameters?}}\label{how-do-i-parse-input-using-scanf-into-parameters}
-
-Use \keyword{scanf} (or \keyword{fscanf} or \keyword{sscanf}) to get input
-from the default input stream, an arbitrary file stream or a C string
-respectively. It's a good idea to check the return value to see how many
-items were parsed. \keyword{scanf} functions require valid pointers. It's
-a common source of error to pass in an incorrect pointer value. For
-example,
+In the above example, we needed to allocate enough bytes for the struct.
+Instead, we allocated enough bytes to hold a pointer. Once we start
+using the user pointer we will corrupt memory. The correct code is shown
+below.
 
 \begin{code}[language=C]
-int *data = (int *) malloc(sizeof(int));
-char *line = "v 10";
-char type;
-// Good practice: Check scanf parsed the line and read two values:
-int ok = 2 == sscanf(line, "%c %d", &type, &data); // pointer error
+struct User {
+   char name[100];
+};
+typedef struct User user_t;
+
+user_t * user = (user_t *) malloc(sizeof(user_t));
 \end{code}
-
-We wanted to write the character value into c and the integer value into
-the malloc'd memory. However, we passed the address of the data pointer,
-not what the pointer is pointing to! So \keyword{sscanf} will change the
-pointer itself. i.e.~the pointer will now point to address 10 so this
-code will later fail e.g.~when free(data) is called.
-
-\subsection{How do I stop scanf from causing a buffer
-overflow?}\label{how-do-i-stop-scanf-from-causing-a-buffer-overflow}
-
-The following code assumes the scanf won't read more than 10 characters
-(including the terminating byte) into the buffer.
-
-\begin{code}[language=C]
-char buffer[10];
-scanf("%s",buffer);
-\end{code}
-
-You can include an optional integer to specify how many characters
-EXCLUDING the terminating byte:
-
-\begin{code}[language=C]
-char buffer[10];
-scanf("%9s", buffer); // reads up to 9 charactes from input (leave room for the 10th byte to be the terminating byte)
-\end{code}
-
-
-\section{Memory mistakes}\label{memory-mistakes}
 
 \subsection{Buffer overflow/ underflow}\label{buffer-overflow-underflow}
+
+Famous example: Heart Bleed (performed a memcpy into a buffer that was of insufficient size). Simple example: implement a strcpy and forget to add one to strlen, when determining the size of the memory required.
 
 \begin{code}[language=C]
 #define N (10)
@@ -1361,8 +1296,7 @@ gets(array); // Let's hope the input is shorter than my array!
 \end{code}
 
 
-\paragraph{\texorpdfstring{Strings require \keyword{strlen(s)+1}
-bytes}{Strings require strlen(s)+1 bytes}}\label{strings-require-strlens1-bytes}
+\paragraph{Strings require strlen(s)+1 bytes}
 
 Every string must have a null byte after the last characters. To store
 the string ``Hi'' it takes 3 bytes: {[}H{]} {[}i{]} {[}\0{]}.
@@ -1444,71 +1378,6 @@ semicolons (;) to separate statements. If there is no statement in
 between semicolons, then there is nothing to do and the compiler moves
 on to the next statement
 
-\section{Other Gotchas}\label{other-gotchas}
-
-\section{Strings, Structs, and
-Gotcha's}\label{strings-structs-and-gotchas}
-
-\section{So what's a string?}\label{so-whats-a-string}
-
-\begin{figure}[htbp]
-\centering
-\includegraphics{https://i.imgur.com/CgsxyZb.png}
-\caption{String}
-\end{figure}
-
-In C we have
-\href{https://en.wikipedia.org/wiki/Null-terminated_string}{Null
-Terminated} strings rather than
-\href{https://en.wikipedia.org/wiki/String_(computer_science)\#Length-prefixed}{Length
-Prefixed} for historical reasons. What that means for your average
-everyday programming is that you need to remember the null character! A
-string in C is defined as a bunch of bytes until you reach `\0' or the
-Null Byte.
-
-\subsection{Two places for strings}\label{two-places-for-strings}
-
-Whenever you define a constant string (ie one in the form
-\keyword{char*\ str\ =\ "constant"}) That string is stored in the
-\emph{data} or \emph{code} segment that is \textbf{read-only} meaning
-that any attempt to modify the string will cause a segfault.
-
-If one, however, \keyword{malloc}'s space, one can change that string to
-be whatever they want.
-
-\subsection{Remember the NULL byte!}\label{remember-the-null-byte}
-
-Forgetting to NULL terminate a string is a big affect on the strings!
-Bounds checking is important. The heart bleed bug mentioned earlier in
-the wiki book is partially because of this.
-
-\end{comment}
-
-\section{Common Bugs}
-
-\begin{code}[language=C]
-void mystrcpy(char*dest, char* src) { 
-  // void means no return value   
-  while( *src ) { dest = src; src ++; dest++; }  
-}
-\end{code}
-
-In the above code it simply changes the dest pointer to point to source
-string. Also the nuls bytes are not copied. Here's a better version -
-
-\begin{code}[language=C]
-  while( *src ) { *dest = *src; src ++; dest++; } 
-  *dest = *src;
-\end{code}
-
-Note it's also usual to see the following kind of implementation, which
-does everything inside the expression test, including copying the nul
-byte.
-
-\begin{code}[language=C]
-  while( (*dest++ = *src++ )) {};
-\end{code}
-
 \section{Topics}
 
 \begin{itemize}
@@ -1585,9 +1454,7 @@ char *str2 = "another one";
 \item
   What is a string in c?
 \item
-  Code up a simple \keyword{my\_strcmp}. How about \keyword{my\_strcat},
-  \keyword{my\_strcpy}, or \keyword{my\_strdup}? Bonus: Code the functions
-  while only going through the strings \emph{once}.
+  Code up a simple \keyword{my\_strcmp}. How about \keyword{my\_strcat}, \keyword{my\_strcpy}, or \keyword{my\_strdup}? Bonus: Code the functions while only going through the strings \emph{once}.
 \item
   What should the following usually return?
 
@@ -1597,13 +1464,11 @@ sizeof(ptr);
 sizeof(*ptr);
 \end{code}
 \item
-  What is \keyword{malloc}? How is it different than \keyword{calloc}.
-  Once memory is \keyword{malloc}ed how can I use \keyword{realloc}?
+  What is \keyword{malloc}? How is it different than \keyword{calloc}. Once memory is \keyword{malloc}ed how can I use \keyword{realloc}?
 \item
   What is the \keyword{\&} operator? How about \keyword{*}?
 \item
-  Pointer Arithmetic. Assume the following addresses. What are the
-  following shifts?
+  Pointer Arithmetic. Assume the following addresses. What are the following shifts?
 
 \begin{code}[language=C]
 char** ptr = malloc(10); //0x100
@@ -1641,13 +1506,9 @@ return output;
 }
 \end{code}
 \item
-  Write a function that accepts a string and opens that file prints out
-  the file 40 bytes at a time but every other print reverses the string
-  (try using POSIX API for this).
+  Write a function that accepts a string and opens that file prints out the file 40 bytes at a time but every other print reverses the string (try using POSIX API for this).
 \item
-  What are some differences between the POSIX filedescriptor model and
-  C's \keyword{FILE*} (ie what function calls are used and which is
-  buffered)? Does POSIX use C's \keyword{FILE*} internally or vice versa?
+  What are some differences between the POSIX filedescriptor model and C's \keyword{FILE*} (ie what function calls are used and which is buffered)? Does POSIX use C's \keyword{FILE*} internally or vice versa?
 \end{itemize}
 
 \bibliographystyle{plainnat}

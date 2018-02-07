@@ -9,8 +9,8 @@ Memory allocation is very important! Allocating and de-allocating heap memory is
 \section{C Memory Allocation Functions}
 
 \begin{itemize}
-\item \keyword{malloc(size_t bytes)} is a C library call and is used to reserve a contiguous block of memory. Unlike stack memory, the memory remains allocated until \keyword{free} is called with the same pointer. If \keyword{malloc} fails to reserve any more memory then it returns \keyword{NULL}. Robust programs should check the return value. If your code assumes \keyword{malloc} succeeds and it does not, then your program will likely crash (segfault) when it tries to write to address 0. Also, malloc may not zero out memory because of performance -- check your code to make sure that you are not using unitialized values.
-\item \keyword{realloc(void *space, size_t bytes)} allows you to resize an existing memory allocation that was previously allocated on the heap (via malloc, calloc, or realloc). The most common use of realloc is to resize memory used to hold an array of values. There are two gotchas with realloc. One, a new pointer may be returned. Two, it can fail. A naive but readable version of realloc is suggested below. 
+\item \keyword{malloc(size\_t bytes)} is a C library call and is used to reserve a contiguous block of memory. Unlike stack memory, the memory remains allocated until \keyword{free} is called with the same pointer. If \keyword{malloc} fails to reserve any more memory then it returns \keyword{NULL}. Robust programs should check the return value. If your code assumes \keyword{malloc} succeeds and it does not, then your program will likely crash (segfault) when it tries to write to address 0. Also, malloc may not zero out memory because of performance -- check your code to make sure that you are not using unitialized values.
+\item \keyword{realloc(void *space, size\_t bytes)} allows you to resize an existing memory allocation that was previously allocated on the heap (via malloc, calloc, or realloc). The most common use of realloc is to resize memory used to hold an array of values. There are two gotchas with realloc. One, a new pointer may be returned. Two, it can fail. A naive but readable version of realloc is suggested below. 
 
 \begin{code}[language=C]
 void * realloc(void * ptr, size_t newsize) {
@@ -36,7 +36,7 @@ array = realloc(array, 3 * sizeof(int));
 // ...
 \end{code}
 
-\item \keyword{calloc} initializes memory contents to zero and also takes two arguments: the number of items and the size in bytes of each item. An advanced discussion of these limitations is \href{http://locklessinc.com/articles/calloc/}{here}. Programmers often use \keyword{calloc} rather than explicitly calling \keyword{memset} after \keyword{malloc}, to set the memory contents to zero. Note \keyword{calloc(x,y)} is identical to \keyword{calloc(y,x)}, but you should follow the conventions of the manual. A naive implementation of calloc is below.
+\item \keyword{calloc(size\_t nmemb, size\_t size)} initializes memory contents to zero and also takes two arguments: the number of items and the size in bytes of each item. An advanced discussion of these limitations is \href{http://locklessinc.com/articles/calloc/}{here}. Programmers often use \keyword{calloc} rather than explicitly calling \keyword{memset} after \keyword{malloc}, to set the memory contents to zero. Note \keyword{calloc(x,y)} is identical to \keyword{calloc(y,x)}, but you should follow the conventions of the manual. A naive implementation of calloc is below.
 
 \begin{code}[language=C]
 void *calloc(size_t n, size_t size)
@@ -55,41 +55,33 @@ void *calloc(size_t n, size_t size)
 }
 \end{code}
 
-\item \keyword{free}
+\item \keyword{free} takes a pointer to the start of a piece of memory and makes it available for use in the subsequent calls to the other allocation functions. This is important because we don't want every process in our address space to take an enormous amount of memory. Once we are done using memory, we stop using it with free. A simple usage is below.
+
+\begin{code}[language=C]
+int *ptr = malloc(sizeof(*ptr));
+do_something(ptr);
+free(ptr);
+\end{code}
+
 \end{itemize}
 
-\subsection{Where is the heap and how big is it?}
+\subsection{Heaps and sbrk}
 
-The heap is part of the process memory and it does not have a fixed size. Heap memory allocation is performed by the C library when you call \keyword{malloc} (\keyword{calloc}, \keyword{realloc}) and \keyword{free}.
+The heap is part of the process memory and it does not have a fixed size. Heap memory allocation is performed by the C library when you call \keyword{malloc} (\keyword{calloc}, \keyword{realloc}) and \keyword{free}. By calling \keyword{sbrk} the C library can increase the size of the heap as your program demands more heap memory. As the heap and stack (one for each thread) need to grow, we put them at opposite ends of the address space. So for typical architectures the heap will grow upwards and the stack grows downwards. 
 
-First a quick review on process memory: A process is a running instance of your program. Each process has its own address space. For example on a 32 bit machine your process gets about 4 billion addresses to play with, however not all of these are valid or even mapped to actual physical memory (RAM). Inside the process's memory you will find the executable code, space for the stack, environment variables, global (static) variables and the heap.
+Truthiness: Modern operating system memory allocators no longer need \keyword{sbrk} - instead they can request independent regions of virtual memory and maintain multiple memory regions. For example gigabyte requests may be placed in a different memory region than small allocation requests. However this detail is an unwanted complexity: The problems of fragmentation and allocating memory efficiently still apply, so we will ignore this implementation nicety here and will write as if the heap is a single region. If we write a multi-threaded program (more about that later) we will need multiple stacks (one per thread) but there's only ever one heap. On typical architectures, the heap is part of the \keyword{Data\ segment} and starts just above the code and global variables.
 
-By calling \keyword{sbrk} the C library can increase the size of the heap as your program demands more heap memory. As the heap and stack (one for each thread) need to grow, we put them at opposite ends of the address space. So for typical architectures the heap will grow upwards and the stack grows downwards.
-
-Truthiness: Modern operating system memory allocators no longer need \keyword{sbrk} - instead they can request independent regions of virtual memory and maintain multiple memory regions. For example gigabyte requests may be placed in a different memory region than small allocation requests. However this detail is an unwanted complexity: The problems of fragmentation and allocating memory efficiently still apply, so we will ignore this implementation nicety here and will write as if the heap is a single region.
-
-If we write a multi-threaded program (more about that later) we will need multiple stacks (one per thread) but there's only ever one heap.
-
-On typical architectures, the heap is part of the \keyword{Data\ segment} and starts just above the code and global variables.
-
-\subsection{Do programs need to call brk or sbrk?}
-
-Not typically (though calling \keyword{sbrk(0)} can be interesting because it tells you where your heap currently ends). Instead programs use \keyword{malloc,calloc,realloc} and \keyword{free} which are part of the C library. The internal implementation of these functions will call \keyword{sbrk} when additional heap memory is required.
+Programs don't need to call brk or sbrk typically (though calling \keyword{sbrk(0)} can be interesting because it tells you where your heap currently ends). Instead programs use \keyword{malloc,calloc,realloc} and \keyword{free} which are part of the C library. The internal implementation of these functions will call \keyword{sbrk} when additional heap memory is required.
 
 \begin{code}[language=C]
 void *top_of_heap = sbrk(0);
 malloc(16384);
 void *top_of_heap2 = sbrk(0);
 printf("The top of heap went from %p to %p \n", top_of_heap, top_of_heap2);
+// Example output: The top of heap went from 0x4000 to 0xa000
 \end{code}
 
-Example output: \keyword{The\ top\ of\ heap\ went\ from\ 0x4000\ to\ 0xa000}
-
-\subsection{Why is the memory that is first returned by sbrk initialized to zero?}
-
-If the operating system did not zero out contents of physical RAM it might be possible for one process to learn about the memory of another process that had previously used the memory. This would be a security leak.
-
-Unfortunately this means that for \keyword{malloc} requests before any memory has been freed and simple programs (which end up using newly reserved memory from the system) the memory is \emph{often} zero. Then programmers mistaken write C programs that assume malloc'd memory will \emph{always} be zero.
+If the operating system did not zero out contents of physical RAM it might be possible for one process to learn about the memory of another process that had previously used the memory. This would be a security leak. Unfortunately this means that for \keyword{malloc} requests before any memory has been freed and simple programs (which end up using newly reserved memory from the system) the memory is \emph{often} zero. Then programmers mistaken write C programs that assume malloc'd memory will \emph{always} be zero.
 
 \begin{code}[language=C]
 char* ptr = malloc(300);
@@ -103,8 +95,6 @@ char *ptr2 = malloc(308); // Contents might now contain existing data and is pro
 
 \section{Intro to Allocating}
 
-\subsection{What is the silliest malloc and free implementation and what is wrong with it?}
-
 \begin{code}[language=C]
 void* malloc(size_t size)
 // Ask the system for more bytes by extending the heap space. 
@@ -116,146 +106,77 @@ void* malloc(size_t size)
 void free() {/* Do nothing */}
 \end{code}
 
-The above implementation suffers from two major drawbacks: 
+Above is the simpliest implementation of malloc, there are a few drawbacks though.
 
-* System calls are slow (compared to library calls). We should reserve a large amount of memory and only occasionally ask for more from the system. 
-* No reuse of freed memory. Our program never re-uses heap memory - it just keeps asking for a bigger heap.
+\begin{itemize}
+\item System calls are slow (compared to library calls). We should reserve a large amount of memory and only occasionally ask for more from the system. 
+\item No reuse of freed memory. Our program never re-uses heap memory - it just keeps asking for a bigger heap.
+\end{itemize}
 
 If this allocator was used in a typical program, the process would quickly exhaust all available memory. Instead we need an allocator that can efficiently use heap space and only ask for more memory when necessary.
 
-\subsection{What are placement strategies?}
+\subsection{Placement Strategies}
 
-During program execution memory is allocated and de-allocated (freed), so there will be gaps (holes) in the heap memory that can be re-used for future memory requests. The memory allocator needs to keep track of which parts of the heap are currently allocated and which are parts are available.
-
-Suppose our current heap size is 64K, though not all of it is in use because some earlier malloc'd memory has already been freed by the program:
-
-\begin{longtable}[c]{@{}lllllll@{}}
-\toprule
-\begin{minipage}[b]{0.04\columnwidth}\raggedright\strut
-16KB free
-\strut\end{minipage} & \begin{minipage}[b]{0.04\columnwidth}\raggedright\strut
-10KB allocated
-\strut\end{minipage} & \begin{minipage}[b]{0.04\columnwidth}\raggedright\strut
-1KB free
-\strut\end{minipage} & \begin{minipage}[b]{0.04\columnwidth}\raggedright\strut
-1KB allocated
-\strut\end{minipage} & \begin{minipage}[b]{0.04\columnwidth}\raggedright\strut
-30KB free
-\strut\end{minipage} & \begin{minipage}[b]{0.04\columnwidth}\raggedright\strut
-4KB allocated
-\strut\end{minipage} & \begin{minipage}[b]{0.04\columnwidth}\raggedright\strut
-2KB free
-\strut\end{minipage}\tabularnewline
-\midrule
-\endhead
-\bottomrule
-\end{longtable}
-
-If a new malloc request for 2KB is executed (\keyword{malloc(2048)}), where should \keyword{malloc} reserve the memory? It could use the last 2KB hole (which happens to be the perfect size!) or it could split one of the other two free holes. These choices represent different placement strategies.
-
-Whichever hole is chosen, the allocator will need to split the hole into two: The newly allocated space (which will be returned to the program) and a smaller hole (if there is spare space left over).
-
-A perfect-fit strategy finds the smallest hole that is of sufficient size (at least 2KB):
-
-\begin{longtable}[c]{@{}lllllll@{}}
-\toprule
-\begin{minipage}[b]{0.04\columnwidth}\raggedright\strut
-16KB free
-\strut\end{minipage} & \begin{minipage}[b]{0.04\columnwidth}\raggedright\strut
-10KB allocated
-\strut\end{minipage} & \begin{minipage}[b]{0.04\columnwidth}\raggedright\strut
-1KB free
-\strut\end{minipage} & \begin{minipage}[b]{0.04\columnwidth}\raggedright\strut
-1KB allocated
-\strut\end{minipage} & \begin{minipage}[b]{0.04\columnwidth}\raggedright\strut
-30KB free
-\strut\end{minipage} & \begin{minipage}[b]{0.04\columnwidth}\raggedright\strut
-4KB allocated
-\strut\end{minipage} & \begin{minipage}[b]{0.04\columnwidth}\raggedright\strut
-`2KB HERE!'
-\strut\end{minipage}\tabularnewline
-\midrule
-\endhead
-\bottomrule
-\end{longtable}
+During program execution, memory is allocated and de-allocated (freed), so there will be gaps (holes) in the heap memory that can be re-used for future memory requests. The memory allocator needs to keep track of which parts of the heap are currently allocated and which are parts are available. Suppose our current heap size is 64K, though not all of it is in use because some earlier malloc'd memory has already been freed by the program:
+\\
+\begin{center}
+\begin{tabularx}{\textwidth}{ | X | X | X | X | X | X | X | }
+\hline
+16KB & 10KB & 1KB & 1KB & 30KB & 4KB & 2KB \\
+free & allocated & free & allocated & free & allocated & free \\
+\hline
+\end{tabularx}
+\end{center}
+\\
+If a new malloc request for 2KB is executed (\keyword{malloc(2048)}), where should \keyword{malloc} reserve the memory? It could use the last 2KB hole (which happens to be the perfect size!) or it could split one of the other two free holes. These choices represent different placement strategies. Whichever hole is chosen, the allocator will need to split the hole into two: The newly allocated space (which will be returned to the program) and a smaller hole (if there is spare space left over). A perfect-fit strategy finds the smallest hole that is of sufficient size (at least 2KB):
+\\
+\begin{center}
+\begin{tabularx}{\textwidth}{ | X | X | X | X | X | X | X | }
+\hline
+16KB & 10KB & 1KB & 1KB & 30KB & 4KB & 2KB \\
+free & allocated & free & allocated & free & allocated & \texttt{HERE!} \\
+\hline
+\end{tabularx}
+\end{center}
+\\
 
 A worst-fit strategy finds the largest hole that is of sufficient size (so break the 30KB hole into two):
 
-\begin{longtable}[c]{@{}llllllll@{}}
-\toprule
-\begin{minipage}[b]{0.04\columnwidth}\raggedright\strut
-16KB free
-\strut\end{minipage} & \begin{minipage}[b]{0.04\columnwidth}\raggedright\strut
-10KB allocated
-\strut\end{minipage} & \begin{minipage}[b]{0.04\columnwidth}\raggedright\strut
-1KB free
-\strut\end{minipage} & \begin{minipage}[b]{0.04\columnwidth}\raggedright\strut
-1KB allocated
-\strut\end{minipage} & \begin{minipage}[b]{0.04\columnwidth}\raggedright\strut
-\keyword{2KB\ HERE!}
-\strut\end{minipage} & \begin{minipage}[b]{0.04\columnwidth}\raggedright\strut
-\keyword{28KB\ free}
-\strut\end{minipage} & \begin{minipage}[b]{0.04\columnwidth}\raggedright\strut
-4KB allocated
-\strut\end{minipage} & \begin{minipage}[b]{0.04\columnwidth}\raggedright\strut
-2KB free
-\strut\end{minipage}\tabularnewline
-\midrule
-\endhead
-\bottomrule
-\end{longtable}
+\\
+\begin{center}
+\begin{tabularx}{\textwidth}{ | X | X | X | X | X | X | X | X | }
+\hline
+16KB & 10KB & 1KB & 1KB & 2KB & 28KB & 4KB & 2KB \\
+free & allocated & free & allocated & \texttt{HERE!} & free & allocated & free \\
+\hline
+\end{tabularx}
+\end{center}
+\\
 
 A first-fit strategy finds the first available hole that is of sufficient size (break the 16KB hole into two):
 
-\begin{longtable}[c]{@{}llllllll@{}}
-\toprule
-\begin{minipage}[b]{0.04\columnwidth}\raggedright\strut
-\keyword{2KB\ HERE!}
-\strut\end{minipage} & \begin{minipage}[b]{0.04\columnwidth}\raggedright\strut
-\keyword{14KB\ free}
-\strut\end{minipage} & \begin{minipage}[b]{0.04\columnwidth}\raggedright\strut
-10KB allocated
-\strut\end{minipage} & \begin{minipage}[b]{0.04\columnwidth}\raggedright\strut
-1KB free
-\strut\end{minipage} & \begin{minipage}[b]{0.04\columnwidth}\raggedright\strut
-1KB allocated
-\strut\end{minipage} & \begin{minipage}[b]{0.04\columnwidth}\raggedright\strut
-30KB free
-\strut\end{minipage} & \begin{minipage}[b]{0.04\columnwidth}\raggedright\strut
-4KB allocated
-\strut\end{minipage} & \begin{minipage}[b]{0.04\columnwidth}\raggedright\strut
-2KB free
-\strut\end{minipage}\tabularnewline
-\midrule
-\endhead
-\bottomrule
-\end{longtable}
+\\
+\begin{center}
+\begin{tabularx}{\textwidth}{ | X | X | X | X | X | X | X | X | }
+\hline
+2KB & 14KB & 10KB & 1KB & 1KB & 30KB & 4KB & 2KB \\
+\texttt{HERE!} & free & allocated & free & allocated & free & allocated & free \\
+\hline
+\end{tabularx}
+\end{center}
+\\
 
-\subsection{What is external fragmentation?}
-
-In the example below, of the 64KB of heap memory, 17KB is allocated, and 47KB is free. However the largest available block is only 30KB because our available unallocated heap memory is fragmented into smaller pieces.
-
-\begin{longtable}[c]{@{}lllllll@{}}
-\toprule
-\begin{minipage}[b]{0.04\columnwidth}\raggedright\strut
-\keyword{16KB\ free}
-\strut\end{minipage} & \begin{minipage}[b]{0.04\columnwidth}\raggedright\strut
-10KB allocated
-\strut\end{minipage} & \begin{minipage}[b]{0.04\columnwidth}\raggedright\strut
-1KB free
-\strut\end{minipage} & \begin{minipage}[b]{0.04\columnwidth}\raggedright\strut
-1KB allocated
-\strut\end{minipage} & \begin{minipage}[b]{0.04\columnwidth}\raggedright\strut
-30KB free
-\strut\end{minipage} & \begin{minipage}[b]{0.04\columnwidth}\raggedright\strut
-4KB allocated
-\strut\end{minipage} & \begin{minipage}[b]{0.04\columnwidth}\raggedright\strut
-2KB free
-\strut\end{minipage}\tabularnewline
-\midrule
-\endhead
-\bottomrule
-\end{longtable}
+External fragmentation is that even though we have enough memory in the heap, it may be divided up in a way that wear are not able to give the full amount. In the example below, of the 64KB of heap memory, 17KB is allocated, and 47KB is free. However the largest available block is only 30KB because our available unallocated heap memory is fragmented into smaller pieces.
+\\
+\begin{center}
+\begin{tabularx}{\textwidth}{ | X | X | X | X | X | X | X | }
+\hline
+16KB & 10KB & 1KB & 1KB & 30KB & 4KB & 2KB \\
+free & allocated & free & allocated & free & allocated & free \\
+\hline
+\end{tabularx}
+\end{center}
+\\
 
 \subsection{What effect do placement strategies have on external fragmentation and performance?}
 
@@ -267,33 +188,27 @@ Since Worst-fit targets the largest unallocated space, it is a poor choice if la
 
 In practice first-fit and next-fit (which is not discussed here) are often common placement strategy. Hybrid approaches and many other alternatives exist (see implementing a memory allocator page).
 
-\subsection{What are the challenges of writing a heap allocator?}
+The challenges of writing a heap allocator are 
+\begin{itemize}
+\item Need to minimize fragmentation (i.e.~maximize memory utilization) 
+\item Need high performance 
+\item Fiddly implementation (lots of pointer manipulation using linked lists and pointer arithmetic)
+\item Both fragmentation and performance depend on the application allocation profile, which can be evaluated but not predicted and in practice, under-specific usage conditions, a special-purpose allocator can often out-perform a general purpose implementation. 
+\item The allocator doesn't know the program's memory allocation requests in advance. Even if we did, this is the \href{http://en.wikipedia.org/wiki/Knapsack_problem}{Knapsack problem} which is known to be NP hard!
+\end{itemize}
 
-The main challenges are, * Need to minimize fragmentation (i.e.~maximize memory utilization) * Need high performance * Fiddly implementation (lots of pointer manipulation using linked lists and pointer arithmetic)
-
-Some additional comments:
-
-Both fragmentation and performance depend on the application allocation profile, which can be evaluated but not predicted and in practice, under-specific usage conditions, a special-purpose allocator can often out-perform a general purpose implementation.
-
-The allocator doesn't know the program's memory allocation requests in advance. Even if we did, this is the \href{http://en.wikipedia.org/wiki/Knapsack_problem}{Knapsack problem} which is known to be NP hard!
 
 \section{Memory Allocator Tutorial}
 
 A memory allocator needs to keep track of which bytes are currently allocated and which are available for use. This page introduces the implementation and conceptual details of building an allocator, i.e.~the actual code that implements \keyword{malloc} and \keyword{free}.
 
-\subsection{This page talks about links of blocks - do I malloc memory for them instead?}
-
-Though conceptually we are thinking about creating linked lists and lists of blocks, we don't need to ``malloc memory'' to create them! Instead we are writing integers and pointers into memory that we already control so that we can later consistently hop from one address to the next. This internal information represents some overhead. So even if we had requested 1024 KB of contiguous memory from the system, we will not be able to provide all of it to the running program.
-
-\subsection{Thinking in blocks}
+Conceptually we are thinking about creating linked lists and lists of blocks! We are writing integers and pointers into memory that we already controlm so we can later consistently hop from one address to the next. This internal information represents some overhead. Even if we had requested 1024 KB of contiguous memory from the system, we will not be able to provide all of it to the running program.
 
 We can think of our heap memory as a list of blocks where each block is either allocated or unallocated. Rather than storing an explicit list of pointers we store information about the block's size \emph{as part of the block}. Thus there is conceptually a list of free blocks, but it is implicit, i.e.~in the form of block size information that we store as part of each block.
 
 We could navigate from one block to the next block just by adding the block's size. For example if you have a pointer \keyword{p} that points to the start of a block, then \keyword{next\_block} with be at \keyword{((char\ *)p)\ +\ \ *(size\_t\ *)\ p}, if you are storing the size of the blocks in bytes. The cast to \keyword{char\ *} ensures that pointer arithmetic is calculated in bytes. The cast to \keyword{size\_t\ *} ensures the memory at \keyword{p} is read as a size value and would be necessarily if \keyword{p} was a \keyword{void\ *} or \keyword{char\ *} type.
 
-The calling program never sees these values; they are internal to the implementation of the memory allocator.
-
-As an example, suppose your allocator is asked to reserve 80 bytes (\keyword{malloc(80)}) and requires 8 bytes of internal header data. The allocator would need to find an unallocated space of at least 88 bytes. After updating the heap data it would return a pointer to the block. However, the returned pointer does not point to the start of the block because that's where the internal size data is stored! Instead we would return the start of the block + 8 bytes. In the implementation, remember that pointer arithmetic depends on type. For example, \keyword{p\ +=\ 8} adds \keyword{8\ *\ sizeof(p)}, not necessarily 8 bytes!
+The calling program never sees these values; they are internal to the implementation of the memory allocator. As an example, suppose your allocator is asked to reserve 80 bytes (\keyword{malloc(80)}) and requires 8 bytes of internal header data. The allocator would need to find an unallocated space of at least 88 bytes. After updating the heap data it would return a pointer to the block. However, the returned pointer does not point to the start of the block because that's where the internal size data is stored! Instead we would return the start of the block + 8 bytes. In the implementation, remember that pointer arithmetic depends on type. For example, \keyword{p\ +=\ 8} adds \keyword{8\ *\ sizeof(p)}, not necessarily 8 bytes!
 
 \subsection{Implementing malloc}
 
@@ -301,9 +216,7 @@ The simplest implementation uses first fit: Start at the first block, assuming i
 
 If no suitable block is found, it's time to call \keyword{sbrk()} again to sufficiently extend the size of the heap. A fast implementation might extend it a significant amount so that we will not need to request more heap memory in the near future.
 
-When a free block is found, it may be larger than the space we need. If so, we will create two entries in our implicit list. The first entry is the allocated block, the second entry is the remaining space.
-
-There are two simple ways to note if a block is in use or available. The first is to store it as a byte in the header information along with the size and the second to encode it as the lowest bit in the size! Thus block size information would be limited to only even values:
+When a free block is found, it may be larger than the space we need. If so, we will create two entries in our implicit list. The first entry is the allocated block, the second entry is the remaining space. There are two simple ways to note if a block is in use or available. The first is to store it as a byte in the header information along with the size and the second to encode it as the lowest bit in the size! Thus block size information would be limited to only even values:
 
 \begin{code}[language=C]
 // Assumes p is a reasonable pointer type, e.g. 'size_t *'.
@@ -317,9 +230,7 @@ Many architectures expect multi-byte primitives to be aligned to some multiple o
 
 As \keyword{malloc} does not know how the user will use the allocated memory (array of doubles? array of chars?), the pointer returned to the program needs to be aligned for the worst case, which is architecture dependent.
 
-From glibc documentation, the glibc \keyword{malloc} uses the following heuristic: " The block that malloc gives you is guaranteed to be aligned so that it can hold any type of data. On GNU systems, the address is always a multiple of eight on most systems, and a multiple of 16 on 64-bit systems."
-
-For example, if you need to calculate how many 16 byte units are required, don't forget to round up -
+From glibc documentation, the glibc \keyword{malloc} uses the following heuristic: " The block that malloc gives you is guaranteed to be aligned so that it can hold any type of data. On GNU systems, the address is always a multiple of eight on most systems, and a multiple of 16 on 64-bit systems." For example, if you need to calculate how many 16 byte units are required, don't forget to round up.
 
 \begin{code}[language=C]
 int s = (requested_bytes + tag_overhead_bytes + 15) / 16
@@ -329,9 +240,7 @@ The additional constant ensures incomplete units are rounded up. Note, real code
 
 \href{http://www.ibm.com/developerworks/library/pa-dalign/}{Here's a great article on memory alignment, if you are further interested} \#\# A note about internal fragmentation
 
-Internal fragmentation happens when the block you give them is larger than their allocation size. Let's say that we have a free block of size 16B (not including metadata). If they allocate 7 bytes, you may want to round up to 16B and just return the entire block.
-
-This gets very sinister when you implementing coalescing and splitting (next section). If you don't implement either, then you may end up returning a block of size 64B for a 7B allocation! There is a \emph{lot} of overhead for that allocation which is what we are trying to avoid.
+Internal fragmentation happens when the block you give them is larger than their allocation size. Let's say that we have a free block of size 16B (not including metadata). If they allocate 7 bytes, you may want to round up to 16B and just return the entire block. This gets very sinister when you implementing coalescing and splitting (next section). If you don't implement either, then you may end up returning a block of size 64B for a 7B allocation! There is a \emph{lot} of overhead for that allocation which is what we are trying to avoid.
 
 \subsection{Implementing free}
 
@@ -353,15 +262,9 @@ With the above description it's possible to build a memory allocator. It's main 
 
 \subsection{Explicit Free Lists Allocators}
 
-Better performance can be achieved by implementing an explicit doubly-linked list of free nodes. In that case, we can immediately traverse to the next free block and the previous free block. This can halve the search time, because the linked list only includes unallocated blocks.
+Better performance can be achieved by implementing an explicit doubly-linked list of free nodes. In that case, we can immediately traverse to the next free block and the previous free block. This can halve the search time, because the linked list only includes unallocated blocks. A second advantage is that we now have some control over the ordering of the linked list. For example, when a block is free'd, we could choose to insert it into the beginning of the linked list rather than always between its neighbors. This is discussed below.
 
-A second advantage is that we now have some control over the ordering of the linked list. For example, when a block is free'd, we could choose to insert it into the beginning of the linked list rather than always between its neighbors. This is discussed below.
-
-Where do we store the pointers of our linked list? A simple trick is to realize that the block itself is not being used and store the next and previous pointers as part of the block (though now you have to ensure that the free blocks are always sufficiently large to hold two pointers).
-
-We still need to implement Boundary Tags (i.e.~an implicit list using sizes), so that we can correctly free blocks and coalesce them with their two neighbors. Consequently, explicit free lists require more code and complexity.
-
-With explicit linked lists a fast and simple `Find-First' algorithm is used to find the first sufficiently large link. However, since the link order can be modified, this corresponds to different placement strategies. For example if the links are maintained from largest to smallest, then this produces a `Worst-Fit' placement strategy.
+Where do we store the pointers of our linked list? A simple trick is to realize that the block itself is not being used and store the next and previous pointers as part of the block (though now you have to ensure that the free blocks are always sufficiently large to hold two pointers). We still need to implement Boundary Tags (i.e.~an implicit list using sizes), so that we can correctly free blocks and coalesce them with their two neighbors. Consequently, explicit free lists require more code and complexity. With explicit linked lists a fast and simple `Find-First' algorithm is used to find the first sufficiently large link. However, since the link order can be modified, this corresponds to different placement strategies. For example if the links are maintained from largest to smallest, then this produces a `Worst-Fit' placement strategy.
 
 \subsubsection{Explicit linked list insertion policy}
 
@@ -375,7 +278,7 @@ Inserting in address order (``Address ordered policy'') inserts free'd blocks so
 
 A segregated allocator is one that divides the heap into different areas that are handled by different sub-allocators dependent on the size of the allocation request. Sizes are grouped into classes (e.g.~powers of two) and each size is handled by a different sub-allocator and each size maintains its own free list.
 
-A well known allocator of this type is the buddy allocator. We'll discuss the binary buddy allocator which splits allocation into blocks of size 2\^{}n (n = 1, 2, 3, \ldots{}) times some base unit number of bytes, but others also exist (e.g.~Fibonacci split - can you see why it's named?). The basic concept is simple: If there are no free blocks of size 2\^{}n, go to the next level and steal that block and split it into two. If two neighboring blocks of the same size become unallocated, they can be coalesced back together into a single large block of twice the size.
+A well known allocator of this type is the buddy allocator \cite[P. 85]{rangan1999foundations}. We'll discuss the binary buddy allocator which splits allocation into blocks of size 2\^{}n (n = 1, 2, 3, \ldots{}) times some base unit number of bytes, but others also exist (e.g.~Fibonacci split - can you see why it's named?). The basic concept is simple: If there are no free blocks of size 2\^{}n, go to the next level and steal that block and split it into two. If two neighboring blocks of the same size become unallocated, they can be coalesced back together into a single large block of twice the size.
 
 Buddy allocators are fast because the neighboring blocks to coalesce with can be calculated from the free'd block's address, rather than traversing the size tags. Ultimate performance often requires a small amount of assembler code to use a specialized CPU instruction to find the lowest non-zero bit.
 

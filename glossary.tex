@@ -1,16 +1,30 @@
+%%%%%%%%%%%%%%%%%%%%%%%% Intro C %%%%%%%%%%%%%%%%%%%%%%%%%%
+
 \newglossaryentry{portable}
 {
-    name=portable,
+    name=Portable,
     description={Works on multiple operating systems or machines}
 }
 
 \newglossaryentry{POSIX}
 {
     name=POSIX,
-    description={TODO}
+    description={Portable Operating System Interface, a set of standard defined by IEEE for an operating system}
 }
 
-% Deadlock
+\newglossaryentry{linux kernel}
+{
+	name=Linux Kernel,
+	description={A widely used operating system kernel}
+}
+
+\newglossaryentry{C}
+{
+	name=C,
+	description={A multipurpose programming language}
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%% Deadlock %%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \newglossaryentry{livelock}
 {
@@ -34,26 +48,26 @@
 }
 
 \newglossaryentry{Mutual Exclusion}{
-	name=a,
-	description={a}
+	name=Mutual Exclusion,
+	description={When two processes cannot have the same resource at the same time}
 }
 
 \newglossaryentry{Circular Wait}{
-	name=a,
-	description={a}
+	name=Circular Wait,
+	description={When a set of processes are waiting for resources held by other processes}
 }
 
 \newglossaryentry{Hold and Wait}{
-	name=a,
-	description={a}
+	name=Hold and Wait,
+	description={Once a process obtains a resource, the process cannot give that resource up}
 }
 
-\newglossaryentry{No pre-emption}{
-	name=a,
-	description={a}
+\newglossaryentry{pre-emption}{
+	name=Pre-emption,
+	description={When a process is forced to give up its resource by another process}
 }
 
 \newglossaryentry{ostrich algorithm}{
-	name=a,
-	description={a}
+	name=Ostrich Algorithm,
+	description={For a system not to care about deadlock, instead stick its head in the sand}
 }

@@ -6,43 +6,7 @@ Signals have been a unix construct since the beginning. They are a convenient wa
 
 This chapter will go over how to first read information from a process that has either exited or been signaled and then it will deep dive into what are signals, how does the kernel deal with a signal, and the various ways processes can handle signals both in a single and multithreaded way.
 
-\section{Exit statuses}
-
-To find the return value of \keyword{main()} or value included in \keyword{exit()}), Use the \texttt{Wait macros} - typically you will use \keyword{WIFEXITED} and \keyword{WEXITSTATUS} . See \keyword{wait}/\keyword{waitpid} man page for more information.
-
-\begin{code}[language=C]
-int status;
-pid_t child = fork();
-if (child == -1) return 1; //Failed
-if (child > 0) { /* I am the parent - wait for the child to finish */
-  pid_t pid = waitpid(child, &status, 0);
-  if (pid != -1 && WIFEXITED(status)) {
-     int low8bits = WEXITSTATUS(status);
-     printf("Process %d returned %d" , pid, low8bits);
-  }
-} else { /* I am the child */
- // do something interesting
-  execl("/bin/ls", "/bin/ls", ".", (char *) NULL); // "ls ."
-}
-\end{code}
-
-A process can only have 256 return values, the rest of the bits are informational, this is done by bit shifting. But, The kernel has an internal way of keeping track of signaled, exited, or stopped. That API is abstracted so that that the kernel developers are free to change at will. Remember that these macros only make sense if the precondition is met. Meaning that a process' exit status won't be defined if the process is signaled. The macros will not do the checking for you, so it's up to the programmer to make sure the logic checks out. As an example above, you should use the \keyword{WIFSTOPPED} to check if a process was stopped and then the \keyword{WSTOPSIG} to find the signal that stopped it. As such there is no need to memorize the following, this is just a high level overview of how information is stored inside the status variables. From \keyword{sys/wait.h} of an old Berkeley kernel\cite{sys/wait.h}:
-
-\begin{code}[language=C]
-/* If WIFEXITED(STATUS), the low-order 8 bits of the status. */
-#define _WSTATUS(x) (_W_INT(x) & 0177)
-#define _WSTOPPED 0177    /* _WSTATUS if process is stopped */
-#define WIFSTOPPED(x) (_WSTATUS(x) == _WSTOPPED)
-#define WSTOPSIG(x) (_W_INT(x) >> 8)
-#define WIFSIGNALED(x)  (_WSTATUS(x) != _WSTOPPED && _WSTATUS(x) != 0)
-#define WTERMSIG(x) (_WSTATUS(x))
-#define WIFEXITED(x)  (_WSTATUS(x) == 0)
-\end{code}
-
-There is an untold convention about exit codes. If the process exited normally and everything was successful, then a zero should be returned. Beyond that, there isn't too many conventions except the ones that you place on yourself. If you know how the program you spawn is going to interact, you may be able to make more sense of the 256 error codes. You could in fact write your program to return \texttt{1} if the program went to stage 1 (like writing to a file) \texttt{2} if it did something else etc... But none of the unix programs are designed to follow that for simplicity sake.
-
-
-\section{Signals}
+\section{The Deep Dive of Signals}
 
 A signal is a construct provided to us by the kernel. It allows one process to asynchronously send an event (think a message) to another process. If that process wants to accept the signal, it can, and then, for most signals, can decide what to do with that signal. Here is a short list (non comprehensive) of signals. The overall process for how a kernel sends a signal as well as common use cases are below.
 

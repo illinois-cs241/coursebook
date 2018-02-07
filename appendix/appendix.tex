@@ -65,9 +65,7 @@ Valgrind is a suite of tools designed to provide debugging and profiling tools t
 valgrind --leak-check=full --show-leak-kinds=all myprogram arg1 arg2
 \end{code}
 
-Arguments are optional and the default tool that will run is Memcheck. The output will be presented in form of number of allocations, number of freed allocations, and the number of errors.
-
-Suppose we have a simple program like this:
+Arguments are optional and the default tool that will run is Memcheck. The output will be presented in form of number of allocations, number of freed allocations, and the number of errors.Suppose we have a simple program like this:
 
 \begin{code}[language=C]
 #include <stdlib.h>
@@ -240,9 +238,143 @@ Breakpoint 1, main () at main.c:4
 
 Here, by using the \texttt{x} command with parameters \texttt{16xb}, we can see that starting at memory address \texttt{0x7fff5fbff9c} (value of \texttt{bad\_string}), \texttt{printf} would actually see the following sequence of bytes as a string because we provided a malformed string without a null terminator.
 
-\section{Life in the terminal}
+What do you actually use to run your program? A shell! A shell is a programming language that is running inside your terminal. A terminal is merely a window to input commands. Now, on POSIX we usually have one shell called \keyword{sh} that is linked to a POSIX compliant shell called \keyword{dash}. Most of the time, you use a shell called \keyword{bash} that is not entirely POSIX compliant but has some nifty built in features. If you want to be even more advanced, \keyword{zsh} has some more powerful features like tab complete on programs and fuzzy patterns, but that is neither here nor there. 
 
-\todo{Life in the Terminal}
+\section{Shell}
+
+A shell is actually how you are going to be interacting with the system. Before user friendly operating systems, when a computer started up all you had access to was a shell. This meant that all of your commands and editing had to be done this way. Nowadays, our computers start up in desktop mode, but one can still access a shell using a terminal. 
+
+\begin{verbatim}
+(Stuff) $
+\end{verbatim}
+
+It is ready for your next command! You can type in a lot of unix utilities like \texttt{ls}, \texttt{echo\ Hello} and the shell will execute them and give you the result. Some of these are what are known as \texttt{shell-builtins} meaning that the code is in the shell program itself. Some of these are compiled programs that you run. The shell only looks through a special variable called path which contains a list of \texttt{:} separated paths to search for an executable with your name, here is an example path.
+
+\begin{verbatim}
+$ echo $PATH
+/usr/local/sbin:/usr/local/bin:/usr/sbin:
+/usr/bin:/sbin:/bin:/usr/games:/usr/local/games
+\end{verbatim}
+
+So when the shell executes \texttt{ls}, it looks through all of those directories, finds \texttt{/bin/ls} and executes that.
+
+\begin{verbatim}
+$ ls
+...
+$ /bin/ls
+\end{verbatim}
+
+You can always call through the full path. That is always why in past classes if you want to run something on the terminal you've had to do \texttt{./exe} because typically the directory that you are working in is not in the \texttt{PATH} variable. The \texttt{.} expands to your current directory and your shell executes \texttt{\textless{}current\_dir\textgreater{}/exe} which is a valid command.
+
+\subsection{Shell tricks and tips}
+
+\begin{itemize}
+\tightlist
+\item
+  The up arrow will get you your most recent command
+\item
+  \texttt{ctrl-r} will search commands that you previously ran
+\item
+  \texttt{ctrl-c} will interrupt your shell's process
+\item
+  Add more!
+\end{itemize}
+
+\subsection{Alright then what's a terminal?}
+
+A terminal is just an application that displays the output form the shell. You can have your default terminal, a quake based terminal, terminator, the options are endless!
+
+\subsection{Common Utilities}
+
+\begin{enumerate}
+\item \keyword{cat} concatenate multiple files. It is regularly used to print out the contents of a file to the terminal but the original use was concatenation.
+
+\begin{code}[language=console]
+$ cat file.txt
+...
+$ cat shakespeare.txt shakespeare.txt > two_shakes.txt
+\end{code}
+
+\item \keyword{diff} tells you the difference of the two files. If nothing is printed, then zero is returned meaning the files are the same byte for byte. Otherwise, the longest common subsequence difference is printed
+
+\begin{code}[language=console]
+$ cat prog.txt
+hello
+world
+$ cat adele.txt
+hello
+it's me
+$ diff prog.txt prog.txt
+$ diff shakespeare.txt shakespeare.txt
+2c2
+< world
+---
+> it's me
+\end{code}
+
+\item \keyword{grep} tells you which lines in a file or standard in match a POSIX pattern.
+
+\begin{code}[language=console]
+$ grep it adele.txt
+it's me
+\end{code}
+
+\item \keyword{ls} tells you which files are in the current directory.
+\item \keyword{cd} this is a shell builtin but it changes to a relative or absolute directory
+
+\begin{code}[language=console]
+$ cd /usr
+$ cd lib/
+$ cd -
+$ pwd
+/usr/
+\end{code}
+
+\item \keyword{man} every system programmers favorite command, tells you more about all your favorite functions!
+\item \keyword{make} executes programs according to a makefile.
+
+\end{enumerate}
+
+\subsection{Syntactic}
+
+Shells have many useful utilities like saving output to a file using redirection \keyword{>}. This overwrites the file from the beginning. If you only meant to append to the file, you can use \keyword{>>}. Unix also allows file descriptor swapping. This means that you can take the output going to one file descriptor and make it seem like its coming out of another. The most common one is \keyword{2>&1} which means take the stderr and make it seem like it is coming out of standard out. This is important because when you use \keyword{>} and \keyword{>>} they only write the standard output of the file. There are some examples below.
+
+\begin{code}[language=console]
+$ ./program > output.txt # To overwrite
+$ ./program >> output.txt # To append
+$ ./program 2>&1 > output_all.txt # stderr & stdout
+$ ./program 2>&1 > /dev/null # don't care about any output
+\end{code}
+
+The pipe operator has a fascinating history. The UNIX philosophy is writing small programs and chaining them together to do new and interesting things. Back in the early days, hard disk space was limited and write times were slow. Brian Kernighan wanted to maintain the philosophy while also not having to write a bunch of intermediate files that take up hard drive space. So, the UNIX pipe was born. A pipe take the \keyword{stdout} of the program on its left and feeds it to the \keyword{stdin} of the program on its write. Consider the command \keyword{tee}. It can be used as a replacement for the redirection operators because tee will both write to a file and output to standard out. It also has the added benefit that it doesn't need to be the last command in the list. Meaning, that you can write an intermediate result and continue your piping.
+
+\begin{code}[language=console]
+$ ./program | tee output.txt # Overwrite
+$ ./program | tee -a output.txt # Append
+$ head output.txt | wc | head -n 1 # Multi pipes
+$ ((head output.txt) | wc) | head -n 1 # Same as above
+$ ./program | tee intermediate.txt | wc
+\end{code}
+
+The \keyword{&&} and \keyword{||} operator are operators that execute a command sequentially. \keyword{&&} only executes a command if the previous command succeeds, and \keyword{||} always executes the next command.
+
+\begin{code}[language=console]
+$ false && echo "Hello!"
+$ true && echo "Hello!"
+$ false || echo "Hello!"
+\end{code}
+
+\todo{Shell Tricks}
+
+\subsection{Tips and tricks}
+
+\todo{Shell Tricks}
+
+\subsection{What are environment variables?}
+
+Well each process gets its own dictionary of environment variables that are copied over to the child. Meaning, if the parent changes their environment variables it won't be transferred to the child and vice versa. This is important in the fork-exec-wait trilogy if you want to exec a program with different environment variables than your parent (or any other process).
+
+For example, you can write a C program that loops through all of the time zones and executes the \keyword{date} command to print out the date and time in all locals. Environment variables are used for all sorts of programs so modifying them is important.
 
 \section{Stack Smashing}\label{stack-smashing}
 

@@ -69,7 +69,7 @@ write/read with errno, EINTR and partial data
 # Memory and Strings
 ## Q1.1
 In the example below, which variables are guaranteed to print the value of zero?
-```C
+```
 int a;
 static int b;
 
@@ -81,7 +81,7 @@ void func() {
 ```
 ## Q 1.2
 In the example below, which variables are guaranteed to print the value of zero?
-```C
+```
 void func() {
    int* ptr1 = malloc( sizeof(int) );
    int* ptr2 = realloc(NULL, sizeof(int) );
@@ -93,7 +93,7 @@ void func() {
 ```
 ## Q 1.3
 Explain the error in the following attempt to copy a string.
-```C
+```
 char* copy(char*src) {
  char*result = malloc( strlen(src) ); 
  strcpy(result, src); 
@@ -103,7 +103,7 @@ char* copy(char*src) {
 ## Q 1.4
 Why does the following attempt to copy a string sometimes work and sometimes fail?
 
-```C
+```
 char* copy(char*src) {
  char*result = malloc( strlen(src) +1 ); 
  strcat(result, src); 
@@ -112,7 +112,7 @@ char* copy(char*src) {
 ```
 ## Q 1.4
 Explain the two errors in the following code that attempts to copy a string.
-```C
+```
 char* copy(char*src) {
  char result[sizeof(src)]; 
  strcpy(result, src); 
@@ -121,15 +121,15 @@ char* copy(char*src) {
 ```
 ## Q 1.5
 Which of the following is legal?
-```C
+```
 char a[] = "Hello"; strcpy(a, "World");
 char b[] = "Hello"; strcpy(b, "World12345", b);
 char* c = "Hello"; strcpy(c, "World");
 ```
 
 ## Q 1.6
-Complete the function pointer typedef to declare a pointer to a function that takes a void* argument and returns a void*. Name your type 'pthread_callback'
-```C
+Complete the function pointer typedef to declare a pointer to a function that takes a void* argument and returns a void\*. Name your type 'pthread_callback'
+```
 typedef ______________________;
 ```
 ## Q 1.7
@@ -137,7 +137,7 @@ In addition to the function arguments what else is stored on a thread's stack?
 
 ## Q 1.8
 Implement a version of `char* strcat(char*dest, const char*src)` using only `strcpy`  `strlen` and pointer arithmetic
-```C
+```
 char* mystrcat(char*dest, const char*src) {
 
   ? Use strcpy strlen here
@@ -146,15 +146,15 @@ char* mystrcat(char*dest, const char*src) {
 }
 ```
 ## Q 1.9
-Implement version of size_t strlen(const char*) using a loop and no function calls.
-```C
+Implement version of size_t strlen(const char\*) using a loop and no function calls.
+```
 size_t mystrlen(const char*s) {
 
 }
 ```
 ## Q 1.10
 Identify the three bugs in the following implementation of `strcpy`.
-```C
+```
 char* strcpy(const char* dest, const char* src) {
   while(*src) { *dest++ = *src++; }
   return dest;
@@ -172,7 +172,7 @@ fprintf("You scored 100%");
 # Formatting and Printing to a file
 ## Q 3.1
 Complete the following code to print to a file. Print the name, a comma and the score to the file 'result.txt'
-```C
+```
 char* name = .....;
 int score = ......
 FILE *f = fopen("result.txt",_____);
@@ -186,7 +186,7 @@ fclose(f);
 
 How would you print the values of variables a,mesg,val and ptr to a string? Print a as an integer, mesg as C string, val as a double val and ptr as a hexadecimal pointer. You may assume the mesg points to a short C string(<50 characters).
 Bonus: How would you make this code more robust or able to cope with?
-```C
+```
 char* toString(int a, char*mesg, double val, void* ptr) {
    char* result = malloc( strlen(mesg) + 50);
     _____
@@ -209,7 +209,7 @@ When would realloc be useful?
 
 (Todo - move this question to another page)
 What mistake did the programmer make in the following code? Is it possible to fix it i) using heap memory? ii) using global (static) memory?
-```C
+```
 static int id;
 
 char* next_ticket() {
@@ -224,7 +224,7 @@ char* next_ticket() {
 ## Q1
 Is the following code thread-safe? Redesign the following code to be thread-safe. Hint: A mutex is unnecessary if the message memory is unique to each call.
 
-```C
+```
 static char message[20];
 pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 
@@ -247,7 +247,7 @@ Which one of the following does not cause a process to exit?
 ## Q3
 Write a mathematical expression for the number of "W" characters that will be printed by the following program. Assume a,b,c,d are small positive integers. Your answer may use a 'min' function that returns its lowest valued argument.
 
-```C
+```
 unsigned int a=...,b=...,c=...,d=...;
 
 void* func(void* ptr) {
@@ -270,7 +270,7 @@ int main(int argv, char** argc) {
 
 ## Q4
 Complete the following code. The following code is supposed to print alternating `A` and `B`. It represents two threads that take turns to execute.  Add condition variable calls to `func` so that the waiting thread does not need to continually check the `turn` variable. Q: Is pthread_cond_broadcast necessary or is pthread_cond_signal sufficient?
-```C
+```
 pthread_cond_t cv = PTHREAD_COND_INITIALIZER;
 pthread_mutex_t m = PTHREAD_MUTEX_INITIALIZER;
 
@@ -302,7 +302,7 @@ int main(int argc, char** argv){
 
 ## Q5
 Identify the critical sections in the given code. Add mutex locking to make the code thread safe. Add condition variable calls so that `total` never becomes negative or above 1000. Instead the call should block until it is safe to proceed. Explain why `pthread_cond_broadcast` is necessary.
-```C
+```
 int total;
 void add(int value) {
  if(value < 1) return;
@@ -316,7 +316,7 @@ void sub(int value) {
 
 ## Q6
 A non-threadsafe data structure has `size()` `enq` and `deq` methods. Use condition variable and mutex lock to complete the thread-safe, blocking versions.
-```C
+```
 void enqueue(void* data) {
   // should block if the size() would become greater than 256
   enq(data);
@@ -329,7 +329,7 @@ void* dequeue() {
 
 ## Q7
 Your startup offers path planning using latest traffic information. Your overpaid intern has created a non-threadsafe data structure with two functions: `shortest` (which uses but does not modify the graph) and `set_edge` (which modifies the graph).
-```C
+```
 graph_t* create_graph(char* filename); // called once
 
 // returns a new heap object that is the shortest path from vertex i to j
@@ -342,7 +342,7 @@ void set_edge(graph_t* graph, int i, int j, double time);
 For performance, multiple threads must be able to call `shortest` at the same time but the graph can only be modified by one thread when no threads other are executing inside `shortest` or `set_edge`.
  
 Use mutex lock and condition variables to implement a reader-writer solution. An incomplete attempt is shown below. Though this attempt is threadsafe (thus sufficient for demo day!), it does not allow multiple threads to calculate `shortest` path at the same time and will not have sufficient throughput.
-```C
+```
 path_t* shortest_safe(graph_t* graph, int i, int j) {
   pthread_mutex_lock(&m);
   path_t* path = shortest(graph, i, j);
@@ -427,7 +427,7 @@ Explain why the TLB must be flushed when a context switch occurs (i.e. the CPU i
 
 ## Q1
 Fill in the blanks to make the following program print 123456789. If `cat` is given no arguments it simply prints its input until EOF. Bonus: Explain why the `close` call below is necessary.
-```C
+```
 int main() {
   int i = 0;
   while(++i < 10) {
@@ -462,7 +462,7 @@ Use pipes to control the input and output of each child process created. When th
 
 ## Q1
 Write a function that uses fseek and ftell to replace the middle character of a file with an 'X'
-```C
+```
 void xout(char* filename) {
   FILE *f = fopen(filename, ____ );
   
@@ -601,7 +601,7 @@ What are some of the differences between HTTP 1.0 and HTTP 1.1? How many ms will
 ## Q 2.1
 
 Writing to a network socket may not send all of the bytes and may be interrupted due to a signal. Check the return value of `write` to implement `write_all` that will repeatedly call `write` with any remaining data. If `write` returns -1 then immediately return -1 unless the `errno` is `EINTR` - in which case repeat the last `write` attempt. You will need to use pointer arithmetic.
-```C
+```
 // Returns -1 if write fails (unless EINTR in which case it recalls write
 // Repeated calls write until all of the buffer is written.
 ssize_t write_all(int fd, const char *buf, size_t nbyte) {
