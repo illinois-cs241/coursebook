@@ -41,19 +41,19 @@ The Memory Management Unit is part of the CPU, and it converts a virtual memory 
 	\end{enumerate}
 \end{enumerate}
 
-Imagine you had a 32 bit machine, meaning pointers are 32 bits. They can address $2^32$ different locations or 4GB of memory where one address is one byte. Imagine we had a large table - here's the clever part - stored in memory! For every possible address (all 4 billion of them) we will store the `real' i.e. ~physical address. Each physical address will need 4 bytes (to hold the 32 bits). This scheme would require 16 billion bytes to store all of entries. Oops - our lookup scheme would consume all of the memory that we could possibly buy for our 4GB machine. We need to do better than this. Our lookup table better be smaller than the memory we have otherwise we will have no space left for our actual programs and operating system data. The solution is to chunk memory into small regions called `pages' and `frames' and use a lookup table for each page.
+Imagine you had a 32 bit machine, meaning pointers are 32 bits. They can address $2^{32}$ different locations or 4GB of memory where one address is one byte. Imagine we had a large table - here's the clever part - stored in memory! For every possible address (all 4 billion of them) we will store the `real' i.e. ~physical address. Each physical address will need 4 bytes (to hold the 32 bits). This scheme would require 16 billion bytes to store all of entries. Oops - our lookup scheme would consume all of the memory that we could possibly buy for our 4GB machine. We need to do better than this. Our lookup table better be smaller than the memory we have otherwise we will have no space left for our actual programs and operating system data. The solution is to chunk memory into small regions called `pages' and `frames' and use a lookup table for each page.
 
-A \textbf{page} is a block of virtual memory. A typical block size on Linux operating system is 4KB or $2^12$ addresses, though you can find examples of larger blocks. So rather than talking about individual bytes we can talk about blocks of 4KBs, each block is called a page. We can also number our pages (``Page 0'' ``Page 1'' etc). Let's do a sample calculation of how many pages are there assume page size of 4KB.
+A \textbf{page} is a block of virtual memory. A typical block size on Linux operating system is 4KB or $2^{12}$ addresses, though you can find examples of larger blocks. So rather than talking about individual bytes we can talk about blocks of 4KBs, each block is called a page. We can also number our pages (``Page 0'' ``Page 1'' etc). Let's do a sample calculation of how many pages are there assume page size of 4KB.
 
 \begin{shaded*}
-For a 32 bit machine, $2^32$ address / $2^12$ (address/page) = $2^20$ pages.
+For a 32 bit machine, $2^{32}$ address / $2^{12}$ (address/page) = $2^{20}$ pages.
 
-For a 64 bit machine, $2^64$ / $2^12$ = $2^52$, which is roughly $10^15$ pages.
+For a 64 bit machine, $2^{64}$ / $2^{12}$ = $2^{52}$, which is roughly $10^{15}$ pages.
 \end{shaded*}
 
 \subsection{Terminology}
 
-A \textbf{frame} (or sometimes called a `page frame') is a block of \emph{physical memory} or RAM (=Random Access Memory). This kind of memory is occasionally called `primary storage' in contrast with lower, secondary storage such as spinning disks that have lower access times. A frame is the same number of bytes as a virtual page. If a 32 bit machine has $2^32 B$ of RAM, then there will be the same number of them in the addressable space of the machine. It's unlikely that a 64 bit machine will ever have $2^64$ bytes of RAM.
+A \textbf{frame} (or sometimes called a `page frame') is a block of \emph{physical memory} or RAM (=Random Access Memory). This kind of memory is occasionally called `primary storage' in contrast with lower, secondary storage such as spinning disks that have lower access times. A frame is the same number of bytes as a virtual page. If a 32 bit machine has $2^{32} B$ of RAM, then there will be the same number of them in the addressable space of the machine. It's unlikely that a 64 bit machine will ever have $2^{64}$ bytes of RAM.
 
 A \textbf{page table} is a mapping between a page to the frame. For example Page 1 might be mapped to frame 45, page 2 mapped to frame 30. Other frames might be currently unused or assigned to other running processes, or used internally by the operating system.
 
@@ -62,8 +62,8 @@ A simple page table could be imagined as an array.
 int frame_num = table[page_num]; 
 \end{code}
 
-For a 32 bit machine with 4KB pages, each entry needs to hold a frame number - i.e.~20 bits because we calculated there are 2\^{}20 frames. That's 2.5 bytes per entry! In practice, we'll round that up to 4 bytes per entry and find a use for those spare bits. With 4 bytes per entry x 2\^{}20 entries = 4 MB of physical memory are required to hold the page table 
-For a 64 bit machine with 4KB pages, each entry needs 52 bits. Let's round up to 64 bits (8 bytes) per entry. With 2\^{}52 entries thats 2\^{}55 bytes (roughly 40 peta bytes\ldots{}) Oops our page table is too large 
+For a 32 bit machine with 4KB pages, each entry needs to hold a frame number - i.e.~20 bits because we calculated there are $2^{20}$ frames. That's 2.5 bytes per entry! In practice, we'll round that up to 4 bytes per entry and find a use for those spare bits. With 4 bytes per entry x $2^{20}$ entries = 4 MB of physical memory are required to hold the page table 
+For a 64 bit machine with 4KB pages, each entry needs 52 bits. Let's round up to 64 bits (8 bytes) per entry. With $2^{52}$ entries thats $2^{55}$ bytes (roughly 40 peta bytes\ldots{}) Oops our page table is too large 
 In 64 bit architectures memory addresses are sparse, so we need a mechanism to reduce the page table size, given that most of the entries will never be used.
 
 \begin{wrapfig}
@@ -438,23 +438,23 @@ You give it the path name and the operation mode, it will be ready to go! Named 
 
 \subsection{Two types of files}
 
- On linux, there are two abstractions with files. The first is the linux \keyword{fd} level abstraction that means you can use 
+ On linux, there are two abstractions with files. The first is the linux \keyword{fd} level abstraction.
 
  \begin{itemize}
- * \keyword{open} 
- * \keyword{read} 
- * \keyword{write} 
- * \keyword{close} 
- * \keyword{lseek} 
- * \keyword{fcntl} 
- * \ldots{}
+\item \keyword{open} takes a path to a file and creates a file descriptor entry in the process table. If the file is not available to you, it errors out.
+\item \keyword{read} takes a number of bytes that the kernel has received and reads them into a user space buffer. If the file is not open in read mode, this will break.
+\item \keyword{write} outputs a number of bytes to a file descriptor. If the file is not open in write mode, this will break. This may be buffered internally.
+\item \keyword{close} removes a file descriptor from a process' file descriptors. This always succeeds on a valid file descriptor.
+\item \keyword{lseek} takes a file descriptor and moves it to a certain position. Can fail if the seek is out of bounds.
+\item \keyword{fcntl} is the catch all function for file descriptors. You can do everything with this function. Set file locks, read, write, edit permissions, etc \ldots{}
+\item \ldots{}
  \end{itemize}
 
- And so on. The linux interface is very powerful and expressive, but sometimes we need portability (for example if we are writing for a mac or windows). This is where C's abstraction comes into play. On different operating systems, C uses the low level functions to create a wrapper around files you can use everywhere, meaning that C on linux uses the above calls. C has a few of the following 
+ And so on. The linux interface is very powerful and expressive, but sometimes we need portability (for example if we are writing for a mac or windows). This is where C's abstraction comes into play. On different operating systems, C uses the low level functions to create a wrapper around files you can use everywhere, meaning that C on linux uses the above calls.
 
 \begin{itemize}
-\item \keyword{fopen} 
-\item \keyword{fread} 
+\item \keyword{fopen} opens a file and returns an object. \keyword{null} is returned if you don't have permission for the file.
+\item \keyword{fread} reads a certain number of bytes from a file. An error is returned if already at the end of file when which you must call \keyword{feof()} in order to check.
 \item \keyword{fgetc/fgets}
 \item \keyword{fscanf} 
 \item \keyword{fwrite} 
