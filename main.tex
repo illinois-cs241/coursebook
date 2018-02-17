@@ -108,8 +108,8 @@ rulecolor=\color{shadecolor},}
 % set up quotes
 \usepackage{epigraph}
 
-
-% Define titles
+% Define titles and chapter
+\usepackage[Bjornstrup]{fncychap}
 \singlespacing
 \titleformat{\section}{\vspace{1em}\large\bfseries}{\thesection. }{0em}{}
 \title{\vspace{-15mm}\fontsize{24pt}{10pt}\selectfont\textbf{CS241 System Programming Wikibook}}
@@ -137,6 +137,10 @@ rulecolor=\color{shadecolor},}
 
 \usepackage{tabularx}
 
+\definecolor{titlepagecolor}{cmyk}{1,.60,0,.40}
+\definecolor{namecolor}{cmyk}{1,.50,0,.10} % Here I am trying to define the font color that is used in the example but I don't really know which one is it so I leave this to the OP to figure out
+%-----------------------------------------------------------------
+
 \begin{document}
 
 \raggedbottom
@@ -146,24 +150,39 @@ rulecolor=\color{shadecolor},}
 \setcounter{secnumdepth}{1}
 \setcounter{tocdepth}{1}
 
-\maketitle
+\begin{titlepage}
+\newgeometry{left=7.5cm} %defines the geometry for the titlepage
+\pagecolor{titlepagecolor}
+\noindent
+\par
+\noindent
+\color{white}
+\textbf{ {\huge \textsf{CS 241} \textcolor{namecolor}{\textsf{Wikibook Project}}}}
+\par
+\makebox[0pt][l]{\rule{1.3\textwidth}{1pt}}
+\vfill
+\noindent
+{\huge \textsf{University of Illinois at Urbana-Champaign}}
+\vskip\baselineskip
+\end{titlepage}
+\restoregeometry % restores the geometry
+\nopagecolor% Use this to restore the color pages to white
 
-\begin{multicols}{2}
+
 \tableofcontents
-\end{multicols}
 
 \include{introduction/introduction}
-\include{introc/introc}
-\include{processes/processes}
-\include{malloc/malloc}
-%\include{threads/threads}
-%\include{synchronization/synchronization}
+%% \include{introc/introc}
+%% \include{processes/processes}
+%% \include{malloc/malloc}
+%% \include{threads/threads}
+\include{synchronization/synchronization}
 %% \include{deadlock/deadlock}
 %\include{scheduling/scheduling}
-\include{ipc/ipc}
+%% \include{ipc/ipc}
 %\include{networking/networking}
 %\include{filesystems/filesystems}
-\include{signals/signals}
+%% \include{signals/signals}
 %% \include{review/review}
 \include{appendix/appendix}
 

@@ -395,7 +395,7 @@ There's no error checking in the above code (we assume close,open,chdir etc work
 #include <stdlib.h>
 
 int main(int argc, char**argv) {
-  system("ls"); // execl("/bin/sh", "/bin/sh", "-c", "\"ls\"")
+  system("ls"); // execl("/bin/sh", "/bin/sh", "-c", "\\"ls\\"")
   return 0;
 }
 \end{code}

@@ -4,6 +4,29 @@
 
 A thread is short for `thread-of-execution'. It represents the sequence of instructions that the CPU has (and will) execute. To remember how to return from function calls, and to store the values of automatic variables and parameters a thread uses a stack. A thread is a process (meaning that creating a thread is similar to \keyword{fork}) except there is \textbf{no copying} meaning no copy on write. What this allows is for a process to share the same address space, variables, heap, file descriptors and etc. The actual system call to create a thread is similar to \keyword{fork}; it's \keyword{clone}. We won't go into the specifics but you can read the \href{http://man7.org/linux/man-pages/man2/clone.2.html}{man pages} keeping in mind that it is outside the direct scope of this course. LWP or threads are preferred to forking for a lot of scenarios because there is a lot less overhead creating them. But in some cases (notably python uses this) multiprocessing is the way to make your code faster.
 
+\section{Processes vs threads}
+
+Creating separate processes is useful when
+\begin{itemize}
+\tightlist
+\item When more security is desired. For example, Chrome browser uses different processes for different tabs.
+\item When running an existing and complete program then a new process is required (e.g.~starting `gcc') 
+\item When you are running into synchronization primitives and each process is operating on something in the system.
+\item When you have too many threads -- the kernel tries to schedule all the threads near each other which could cause more harm than good.
+\item When you don't want to worry about race conditions
+\item If one thread blocks in a task (say IO) then all threads block. Processes don't have that same restriction.
+\item When the amount of communication is minimal enough that simple IPC needs to be used.
+\end{itemize}
+
+On the other hand, creating threads is more useful when
+\begin{itemize}
+\tightlist
+\item You want to leverage the power of a multi-core system to do one task
+\item When you can't deal with the overhead of processes
+\item When you want communication between the processes simplified
+\item When you want to threads to be part of the same process
+\end{itemize}
+
 \section{Thread Internals}
 
 Your main function (and other functions you might call) has automatic variables. We will store them in memory using a stack and keep track of how large the stack is by using a simple pointer (the ``stack pointer''). If the thread calls another function, we move our stack pointer down, so that we have more space for parameters and automatic variables. Once it returns from a function, we can move the stack pointer back up to its previous value. We keep a copy of the old stack pointer value - on the stack! This is why returning from a function is very quick - it's easy to `free' the memory used by automatic variables - we just need to change the stack pointer.
@@ -18,15 +41,13 @@ In a multi threaded program, there are multiple stack but only one address space
 
 \subsection{How many threads can my process have?}\label{how-many-threads-can-my-process-have}
 
-You can have more than one thread running inside a process. You get the first thread for free! It runs the code you write inside `main'. If you need more threads you can call \keyword{pthread_create} to create a new thread using the pthread library. You'll need to pass a pointer to a function so that the thread knows where to start.
+You can have more than one thread running inside a process. You get the first thread for free! It runs the code you write inside `main'. If you need more threads you can call \keyword{pthread\_create} to create a new thread using the pthread library. You'll need to pass a pointer to a function so that the thread knows where to start.
 
 The threads you create all live inside the same virtual memory because they are part of the same process. Thus they can all see the heap, the global variables and the program code etc. Thus you can have two (or more) CPUs working on your program at the same time and inside the same process. It's up to the operating system to assign the threads to CPUs. If you have more active threads than CPUs then the kernel will assign the thread to a CPU for a short duration (or until it runs out of things to do) and then will automatically switch the CPU to work on another thread. For example, one CPU might be processing the game AI while another thread is computing the graphics output.
 
 \section{Simple Usage}\label{simple-usage}
 
-\subsection{Hello world pthread example}\label{hello-world-pthread-example}
-
-To use pthreads you will need to include \keyword{pthread.h} AND you need to compile with \keyword{-pthread} (or \keyword{-lpthread}) compiler option. This option tells the compiler that your program requires threading support. To create a thread use the function \keyword{pthread_create}. This function takes four arguments:
+To use pthreads you will need to include \keyword{pthread.h} and compile with \keyword{-pthread} (or \keyword{-lpthread}) compiler option. This option tells the compiler that your program requires threading support. To create a thread use the function \keyword{pthread\_create}. This function takes four arguments:
 
 \begin{code}[language=C]
 int pthread_create(pthread_t *thread, const pthread_attr_t *attr,
@@ -45,9 +66,7 @@ int pthread_create(pthread_t *thread, const pthread_attr_t *attr,
   Fourth is a pointer that will be given to our function
 \end{itemize}
 
-The argument \keyword{void *(*start_routine) (void *)} is difficult to read! It means a pointer that takes a \keyword{void *} pointer and returns a \keyword{void *} pointer. It looks like a function declaration except that the name of the function is wrapped with \keyword{(* .... )}
-
-Here's the simplest example:
+The argument \keyword{void *(*start\_routine) (void *)} is difficult to read! It means a pointer that takes a \keyword{void *} pointer and returns a \keyword{void *} pointer. It looks like a function declaration except that the name of the function is wrapped with \keyword{(* .... )}
 
 \begin{code}[language=C]
 #include <stdio.h>
@@ -71,93 +90,55 @@ int main() {
 }
 \end{code}
 
-In the above example, \keyword{result} will be \keyword{null} because the busy function returned \keyword{null}. We need to pass the address-of result because \keyword{pthread_join} will be writing into the contents of our pointer.
+In the above example, \keyword{result} will be \keyword{null} because the busy function returned \keyword{null}. We need to pass the address-of result because \keyword{pthread\_join} will be writing into the contents of our pointer.
 
 \section{Pthread Functions}\label{more-pthread-functions}
 
-\subsection{If I call pthread\_create twice, how many stacks does my process have?}\label{if-i-call-pthreadux5fcreate-twice-how-many-stacks-does-my-process-have}
-
-Your process will contain three stacks - one for each thread. The first thread is created when the process starts, and you created two more. Actually there can be more stacks than this, but let's ignore that complication for now. The important idea is that each thread requires a stack because the stack contains automatic variables and the old CPU PC register, so that it can back to executing the calling function after the function is finished.
-
-\subsection{\texorpdfstring{What does \keyword{pthread\_cancel} do?}{What does pthread\_cancel do?}}\label{what-does-pthreadux5fcancel-do}
-
-Stops a thread. Note the thread may not actually be stopped immediately. For example it can be terminated when the thread makes an operating system call (e.g. \keyword{write}).
-
-In practice, \keyword{pthread_cancel} is rarely used because it does not give a thread an opportunity to clean up after itself (for example, it may have opened some files). An alternative implementation is to use a boolean (int) variable whose value is used to inform other threads that they should finish and clean up.
-
-\subsection{\texorpdfstring{What is the difference between \keyword{exit} and \keyword{pthread\_exit}?}{What is the difference between exit and pthread\_exit?}}\label{what-is-the-difference-between-exit-and-pthreadux5fexit}
-
-\keyword{exit(42)} exits the entire process and sets the processes exit value. This is equivalent to \keyword{return 42} in the main method. All threads inside the process are stopped.
-
-\keyword{pthread_exit(void *)} only stops the calling thread i.e.~the thread never returns after calling \keyword{pthread_exit}. The pthread library will automatically finish the process if there are no other threads running. \keyword{pthread_exit(...)} is equivalent to returning from the thread's function; both finish the thread and also set the return value (void *pointer) for the thread.
-
-Calling \keyword{pthread_exit} in the the \keyword{main} thread is a common way for simple programs to ensure that all threads finish. For example, in the following program, the \keyword{myfunc} threads will probably not have time to get started.
+\begin{itemize}
+\item \keyword{pthread\_create}. Creates a new thread. Every thread that gets created gets a new stack. For example if you call \keyword{pthread\_create} twice, Your process will contain three stacks - one for each thread. The first thread is created when the process starts, and you created two more. Actually there can be more stacks than this, but let's keep it simple. The important idea is that each thread requires a stack because the stack contains automatic variables and the old CPU PC register, so that it can back to executing the calling function after the function is finished.
+\item \keyword{pthread\_cancel} stops a thread. Note the thread may not actually be stopped immediately. For example it can be terminated when the thread makes an operating system call (e.g. \keyword{write}). In practice, \keyword{pthread\_cancel} is rarely used because it does not give a thread an opportunity to clean up after itself (for example, it may have opened some files). An alternative implementation is to use a boolean (int) variable whose value is used to inform other threads that they should finish and clean up.
+\item \keyword{pthread\_exit(void *)} stops the calling thread i.e.~the thread never returns after calling \keyword{pthread\_exit}. The pthread library will automatically finish the process if there are no other threads running. \keyword{pthread\_exit(...)} is equivalent to returning from the thread's function; both finish the thread and also set the return value (void *pointer) for the thread. Calling \keyword{pthread\_exit} in the the \keyword{main} thread is a common way for simple programs to ensure that all threads finish. For example, in the following program, the \keyword{myfunc} threads will probably not have time to get started. On the other hand \keyword{exit()} exits the entire process and sets the processes exit value. This is equivalent to \keyword{return ();} in the main method. All threads inside the process are stopped. Note the \keyword{pthread\_exit} version creates thread zombies, however this is not a long-running processes, so we don't care. 
 
 \begin{code}[language=C]
 int main() {
   pthread_t tid1, tid2;
   pthread_create(&tid1, NULL, myfunc, "Jabberwocky");
   pthread_create(&tid2, NULL, myfunc, "Vorpel");
-  exit(42); //or return 42;
+  if (keep_threads_going) {
+    pthread_exit(NULL); 
+  } else {
+    exit(42); //or return 42;
+  }
 
   // No code is run after exit
 }
 \end{code}
 
-The next two programs will wait for the new threads to finish-
+\item \keyword{pthread\_join()} waits for a thread to finish and records its return value. Finished threads will continue to consume resources. Eventually, if enough threads are created, \keyword{pthread\_create} will fail. In practice, this is only an issue for long-running processes but is not an issue for simple, short-lived processes as all thread resources are automatically freed when the process exits. This is equivalent to turning your children into zombies, so keep this in mind for long running processes. In the exit example, we could also wait on all the threads.
 
 \begin{code}[language=C]
-int main() {
-  pthread_t tid1, tid2;
-  pthread_create(&tid1, NULL, myfunc, "Jabberwocky");
-  pthread_create(&tid2, NULL, myfunc, "Vorpel");
-  pthread_exit(NULL); 
-
-  // No code is run after pthread_exit
-  // However process will continue to exist until both threads have finished
-}
-\end{code}
-
-Alternatively, we join on each thread (i.e.~wait for it to finish) before we return from main (or call exit).
-
-\begin{code}[language=C]
-int main() {
-  pthread_t tid1, tid2;
-  pthread_create(&tid1, NULL, myfunc, "Jabberwocky");
-  pthread_create(&tid2, NULL, myfunc, "Vorpel");
-  // wait for both threads to finish :
+// ...
   void* result;
   pthread_join(tid1, &result);
   pthread_join(tid2, &result); 
   return 42;
-}
+// ...
 \end{code}
 
-Note the \keyword{pthread\_exit} version creates thread zombies, however this is not a long-running processes, so we don't care. \#\# How can a thread be terminated? * Returning from the thread function * Calling \keyword{pthread_exit} * Cancelling the thread with \keyword{pthread_cancel} * Terminating the process (e.g.~SIGTERM); exit(); returning from \keyword{main}
-
-\subsection{What is the purpose of pthread\_join?}\label{what-is-the-purpose-of-pthreadux5fjoin}
-
+\item You've heard about this already, but how can a thread be terminated? 
 \begin{itemize}
-\tightlist
-\item
-  Wait for a thread to finish
-\item
-  Clean up thread resources
-\item
-  Grabs the return value of the thread
+  \tightlist
+\item Returning from the thread function 
+\item Calling \keyword{pthread\_exit} 
+\item Cancelling the thread with \keyword{pthread\_cancel} 
+\item Terminating the process (e.g.~SIGTERM); exit(); returning from \keyword{main}
 \end{itemize}
 
-\subsection{\texorpdfstring{What happens if you don't call \keyword{pthread\_join}?}{What happens if you don't call pthread\_join?}}\label{what-happens-if-you-dont-call-pthreadux5fjoin}
+\end{itemize}
 
-Finished threads will continue to consume resources. Eventually, if enough threads are created, \keyword{pthread_create} will fail. In practice, this is only an issue for long-running processes but is not an issue for simple, short-lived processes as all thread resources are automatically freed when the process exits. This is equivalent to turning your children into zombies.
+\section{Race Conditions}
 
-\subsection{Should I use pthread\_exit or pthread\_join?}
-
-Both \keyword{pthread_exit} and \keyword{pthread_join} will let the other threads finish on their own (even if called in the main thread). However, only \keyword{pthread_join} will return to you when the specified thread finishes. \keyword{pthread_exit} does not wait and will immediately end your thread and give you no chance to continue executing.
-
-\subsection{Can you pass pointers to stack variables from one thread to another?}\label{can-you-pass-pointers-to-stack-variables-from-one-thread-to-another}
-
-Yes. However you need to be very careful about the lifetime of stack variables.
+Race conditions are whenever the outcome of a program is determined by its sequence of events. Meaning that the same program can run multiple times and depending on how the kernel schedules the threads could produce inaccurate results. Take for example this race condition with one thread. We create a stack variable and pass it to our pthread function.
 
 \begin{code}
 pthread_t start_threads() {
@@ -168,9 +149,7 @@ pthread_t start_threads() {
 }
 \end{code}
 
-The above code is invalid because the function \keyword{start_threads} will likely return before \keyword{myfunc} even starts. The function passes the address-of \keyword{start}, however by the time \keyword{myfunc} is executes, \keyword{start} is no longer in scope and its address will re-used for another variable.
-
-The following code is valid because the lifetime of the stack variable is longer than the background thread.
+The above code is invalid because the function \keyword{start\_threads} will likely return before \keyword{myfunc} even starts. The function passes the address-of \keyword{start}, however by the time \keyword{myfunc} is executes, \keyword{start} is no longer in scope and its address will re-used for another variable. This ia race condition because there is a situation where the thread that called pthread\_create could be suspended indefinitely, and the code actually works. One way we can fix this is keep the function from returning before the thread finishes.
 
 \begin{code}
 void start_threads() {
@@ -182,11 +161,7 @@ void start_threads() {
 }
 \end{code}
 
-\section{Race Conditions}\label{intro-to-race-conditions}
-
-\subsection{How can I create ten threads with different starting values.}\label{how-can-i-create-ten-threads-with-different-starting-values.}
-
-The following code is supposed to start ten threads with values 0,1,2,3,\ldots{}9 However, when run prints out \keyword{1 7 8 8 8 8 8 8 8 10}! Can you see why?
+Here is another small race condition. The following code is supposed to start ten threads with values 0,1,2,3,\ldots{}9 However, when run prints out \keyword{1 7 8 8 8 8 8 8 8 10}! Can you see why?
 
 \begin{code}[language=C]
 #include <pthread.h>
@@ -207,33 +182,27 @@ int main() {
 }
 \end{code}
 
-The above code suffers from a \keyword{race condition} - the value of i is changing. The new threads start later (in the example output the last thread starts after the loop has finished).
-
-To overcome this race-condition, we will give each thread a pointer to it's own data area. For example, for each thread we may want to store the id, a starting value and an output value:
+The above code suffers from a \keyword{race condition} - the value of i is changing. The new threads start later (in the example output the last thread starts after the loop has finished). To overcome this race-condition, we will give each thread a pointer to it's own data area. For example, for each thread we may want to store the id, a starting value and an output value. We will instead treat i as a pointer and cast it by value.
 
 \begin{code}[language=C]
-struct T {
-  pthread_t id;
-  int start;
-  char result[100];
-};
+void* myfunc(void* ptr) {
+    int data = ((int) ptr);
+    printf("%d ", data);
+    return NULL;
+}
+
+int main() {
+    // Each thread gets a different value of i to process
+    int i;
+    pthread_t tid;
+    for(i =0; i < 10; i++) {
+        pthread_create(&tid, NULL, myfunc, (void *)i);
+    }
+    pthread_exit(NULL);
+}
 \end{code}
 
-These can be stored in an array -
-
-\begin{code}
-struct T *info = calloc(10 , sizeof(struct T)); // reserve enough bytes for ten T structures
-\end{code}
-
-And each array element passed to each thread -
-
-\begin{code}
-pthread_create(&info[i].id, NULL, func, &info[i]);
-\end{code}
-
-\subsection{Why are some functions e.g. asctime,getenv, strtok, strerror not thread-safe?}\label{why-are-some-functions-e.g.-asctimegetenv-strtok-strerror-not-thread-safe}
-
-To answer this, let's look at a simple function that is also not `thread-safe'
+Some functions e.g. asctime, getenv, strtok, strerror not thread-safe. Let's look at a simple function that is also not `thread-safe' The result buffer could be stored in global memory. This is good - we wouldn't want to return a pointer to an invalid address on the stack, but there's only one result buffer in the entire memory. If two threads were to use it at the same time then one would corrupt the other:
 
 \begin{code}[language=C]
 char *to_message(int num) {
@@ -244,33 +213,9 @@ char *to_message(int num) {
 }
 \end{code}
 
-In the above code the result buffer is stored in global memory. This is good - we wouldn't want to return a pointer to an invalid address on the stack, but there's only one result buffer in the entire memory. If two threads were to use it at the same time then one would corrupt the other:
+There are ways around this like using synchronization locks. These are synchronization locks that are used to prevent race conditions and ensure proper synchronization between threads running in the same program. In addition, these locks are conceptually identical to the primitives used inside the kernel.
 
-\begin{longtable}[c]{@{}llll@{}}
-\toprule
-Time & Thread 1 & Thread 2 & Comments\tabularnewline
-\midrule
-\endhead
-1 & to\_m(5 ) &\tabularnewline
-2 & & to\_m(99) & Now both threads will see ``Unknown'' stored in the result buffer\tabularnewline
-\bottomrule
-\end{longtable}
-
-\subsection{What are condition variables, semaphores, mutexes?}\label{what-are-condition-variables-semaphores-mutexes}
-
-These are synchronization locks that are used to prevent race conditions and ensure proper synchronization between threads running in the same program. In addition, these locks are conceptually identical to the primitives used inside the kernel.
-
-\subsection{Are there any advantages of using threads over forking processes?}\label{are-there-any-advantages-of-using-threads-over-forking-processes}
-
-Yes! Sharing information between threads is easy because threads (of the same process) live inside the same virtual memory space. Also, creating a thread is significantly faster than creating(forking) a process.
-
-\subsection{Are there any dis-advantages of using threads over forking processes?}\label{are-there-any-dis-advantages-of-using-threads-over-forking-processes}
-
-Yes! No- isolation! As threads live inside the same process, one thread has access to the same virtual memory as the other threads. A single thread can terminate the entire process (e.g.~by trying to read address zero).
-
-\subsection{Can you fork a process with multiple threads?}\label{can-you-fork-a-process-with-multiple-threads}
-
-Yes! However the child process only has a single thread (which is a clone of the thread that called \keyword{fork}. We can see this as a simple example, where the background threads never print out a second message in the child process.
+In case you were wondering, you can fork inside a process with multiple threads! However, the child process only has a single thread, which is a clone of the thread that called \keyword{fork}. We can see this as a simple example, where the background threads never print out a second message in the child process.
 
 \begin{code}[language=C]
 #include <pthread.h>
@@ -304,7 +249,7 @@ int main() {
 }
 \end{code}
 
-\begin{code}
+\begin{verbatim}
 8970:New Thread One starting up...
 8970:fork()ing complete
 8973:fork()ing complete
@@ -313,17 +258,17 @@ int main() {
 8970:New Thread One finishing...
 8970:Main thread finished
 8973:Main thread finished
-\end{code}
+\end{verbatim}
 
-In practice, creating threads before forking can lead to unexpected errors because (as demonstrated above) the other threads are immediately terminated when forking. Another thread might have just lock a mutex (e.g.~by calling malloc) and never unlock it again. Advanced users may find \keyword{pthread_atfork} useful however we suggest you usually try to avoid creating threads before forking unless you fully understand the limitations and difficulties of this approach.
-
-\subsection{\texorpdfstring{Are there other reasons where \keyword{fork} might be preferable to creating a thread.}{Are there other reasons where fork might be preferable to creating a thread.}}\label{are-there-other-reasons-where-fork-might-be-preferable-to-creating-a-thread.}
-
-Creating separate processes is useful * When more security is desired (for example, Chrome browser uses different processes for different tabs) * When running an existing and complete program then a new process is required (e.g.~starting `gcc') * When you are running into synchronization primitives and each process is operating on something in the system
+In practice, creating threads before forking can lead to unexpected errors because (as demonstrated above) the other threads are immediately terminated when forking. Another thread might have just lock a mutex (e.g.~by calling malloc) and never unlock it again. Advanced users may find \keyword{pthread\_atfork} useful however we suggest you usually try to avoid creating threads before forking unless you fully understand the limitations and difficulties of this approach.
 
 \subsection{How can I find out more?}\label{how-can-i-find-out-more}
 
-See the complete example in the \href{http://man7.org/linux/man-pages/man3/pthread_create.3.html}{man page} And the \href{http://man7.org/linux/man-pages/man7/pthreads.7.html}{pthread reference guide} ALSO: \href{http://www.thegeekstuff.com/2012/04/terminate-c-thread/}{Concise third party sample code explaining create, join and exit}
+\begin{itemize}
+\item \href{http://man7.org/linux/man-pages/man3/pthread_create.3.html}{man page} 
+\item \href{http://man7.org/linux/man-pages/man7/pthreads.7.html}{pthread reference guide} 
+\item \href{http://www.thegeekstuff.com/2012/04/terminate-c-thread/}{Concise third party sample code explaining create, join and exit}
+\end{itemize}
 
 
 \begin{aside}
@@ -334,11 +279,11 @@ The study of parallel algorithms has exploded over the past few years. An embarr
 
 \begin{code}[language=C]
 void merge_sort(int *arr, size_t len){
-     if(len > 1){
-     //Mergesort the left half
-     //Mergesort the right half
-     //Merge the two halves
-     }
+   if(len > 1){
+   //Mergesort the left half
+   //Mergesort the right half
+   //Merge the two halves
+   }
 \end{code}
 
 With your new understanding of threads, all you need to do is create a thread for the left half, and one for the right half. Given that your CPU has multiple real cores, you will see a speedup in accordance with \href{https://en.wikipedia.org/wiki/Amdahl's_law}{Amdahl's Law}. The time complexity analysis gets interesting here as well. The parallel algorithm runs in $O(\log^3(n))$ running time (because we fancy analysis assuming that we have a lot of cores.
@@ -352,10 +297,10 @@ Say we want to apply a function to an entire array, one element at a time.
 \begin{code}[language=C]
 
 int *map(int (*func)(int), int *arr, size_t len){
-    int *ret = malloc(len*sizeof(*arr));
-    for(size_t i = 0; i < len; ++i) 
-        ret[i] = func(arr[i]);
-    return ret;
+  int *ret = malloc(len*sizeof(*arr));
+  for(size_t i = 0; i < len; ++i) 
+      ret[i] = func(arr[i]);
+  return ret;
 }
 \end{code}
 
@@ -379,6 +324,7 @@ There are a few ways to split up the work.
 
 From \href{https://en.wikipedia.org/wiki/Embarrassingly_parallel}{Wikipedia} 
 \begin{itemize}
+\tightlist
 \item Serving static files on a webserver to multiple users at once. 
 \item The Mandelbrot set, Perlin noise and similar images, where each point is calculated independently. 
 \item Rendering of computer graphics. In computer animation, each frame may be rendered independently (see parallel rendering). 
@@ -403,19 +349,19 @@ From \href{https://en.wikipedia.org/wiki/Embarrassingly_parallel}{Wikipedia}
 \begin{itemize}
 \tightlist
 \item
-  pthread lifecycle
+pthread lifecycle
 \item
-  Each thread has a stack
+Each thread has a stack
 \item
-  Capturing return values from a thread
+Capturing return values from a thread
 \item
-  Using \keyword{pthread_join}
+Using \keyword{pthread\_join}
 \item
-  Using \keyword{pthread_create}
+Using \keyword{pthread\_create}
 \item
-  Using \keyword{pthread_exit}
+Using \keyword{pthread\_exit}
 \item
-  Under what conditions will a process exit
+Under what conditions will a process exit
 \end{itemize}
 
 \section{Questions}\label{questions}
@@ -423,19 +369,19 @@ From \href{https://en.wikipedia.org/wiki/Embarrassingly_parallel}{Wikipedia}
 \begin{itemize}
 \tightlist
 \item
-  What happens when a pthread gets created? (you don't need to go into super specifics)
+What happens when a pthread gets created? (you don't need to go into super specifics)
 \item
-  Where is each thread's stack?
+Where is each thread's stack?
 \item
-  How do you get a return value given a \keyword{pthread_t}? What are the ways a thread can set that return value? What happens if you discard the return value?
+How do you get a return value given a \keyword{pthread\_t}? What are the ways a thread can set that return value? What happens if you discard the return value?
 \item
-  Why is \keyword{pthread_join} important (think stack space, registers, return values)?
+Why is \keyword{pthread\_join} important (think stack space, registers, return values)?
 \item
-  What does \keyword{pthread_exit} do under normal circumstances (ie you are not the last thread)? What other functions are called when you call pthread\_exit?
+What does \keyword{pthread\_exit} do under normal circumstances (ie you are not the last thread)? What other functions are called when you call pthread\_exit?
 \item
-  Give me three conditions under which a multithreaded process will exit. Can you think of any more?
+Give me three conditions under which a multithreaded process will exit. Can you think of any more?
 \item
-  What is an embarrassingly parallel problem?
+What is an embarrassingly parallel problem?
 \end{itemize}
 
 \bibliographystyle{plainnat}
