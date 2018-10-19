@@ -1,8 +1,8 @@
 \chapter{Synchronization}
 
-\todo{Epigraph}
+\epigraph{When multithreading gets interesting}{Bhuvy}
 
-A critical section is a section of code that can only be executed by one thread at a time, if the program is to function correctly. If two threads (or processes) were to execute code inside the critical section at the same time then it is possible that program may no longer have correct behavior.
+Synchronization are a series of mechanisms to control what threads are allowed to perform what operation at a time. Most of the time, the threads can progress without having to communicate, but every so often two or more threads may want to access a critical section. A critical section is a section of code that can only be executed by one thread at a time, if the program is to function correctly. If two threads (or processes) were to execute code inside the critical section at the same time, it is possible that program may no longer have correct behavior.
 
 Something as simple as incrementing a variable could be a critical section. Incrementing a variable (\keyword{i++}) is performed in three individual steps: Copy the memory contents to the CPU register. Increment the value in the CPU. Store the new value in memory. If the memory location is only accessible by one thread (e.g.~automatic variable \keyword{i} below) then there is no possibility of a race condition and no Critical Section associated with \keyword{i}. However the \keyword{sum} variable is a global variable and accessed by two threads. It is possible that two threads may attempt to increment the variable at the same time.
 
@@ -35,11 +35,37 @@ int main() {
 }
 \end{lstlisting}
 
-Typical output of the above code is \keyword{ARGGGH sum is 8140268} A different sum is printed each time the program is run because there is a race condition. The code does not stop two threads from reading-writing \keyword{sum} at the same time. For example, both threads copy the current value of sum into CPU that runs each thread (let's pick 123). Both threads increment one to their own copy. Both threads write back the value (124). If the threads had accessed the sum at different times then the count would have been 125.
+Typical output of the above code is \keyword{ARGGGH sum is <some number less than expected>} because there is a race condition. The code does not stop two threads from reading-writing \keyword{sum} at the same time. For example, both threads copy the current value of sum into CPU that runs each thread (let's pick 123). Both threads increment one to their own copy. Both threads write back the value (124). If the threads had accessed the sum at different times then the count would have been 125. A few of the possible different orderings are below.
+
+\begin{tabular}{ l | r }
+  \multicolumn{2}{c}{Permittable Pattern}  \\ \hline
+  Thread 1 & Thread 2 \\ \hline
+  Load Addr, Add 1 (i=1 locally) & ...  \\
+  Store (i=1 globally) & ...  \\
+  ... & Load Addr, Add 1 (i=2 locally)  \\
+  ... & Store (i=2 globally)  \\
+\end{tabular}
+
+\begin{tabular}{ l | r }
+\multicolumn{2}{c}{Overlap Partial} \\ \hline
+Thread 1 & Thread 2 \\ \hline
+Load Addr, Add 1 (i=1 locally) & ... \\
+Store (i=1 globally) & Load Addr, Add 1 (i=1 locally) \\
+... & Store (i=1 globally) \\
+\end{tabular}
+
+\begin{tabular}{ l | r }
+\multicolumn{2}{c}{Full Overlap} \\ \hline
+Thread 1 & Thread 2 \\ \hline
+Load Addr, Add 1 (i=1 locally) & Load Addr, Add 1 (i=1 locally) \\
+Store (i=1 globally) & Store (i=1 globally) \\
+\end{tabular}
+
+We would like the first pattern of the code being mutually exclusive. Which leads us to our first synchronization primitive, a Mutex.
 
 \section{Mutex}
 
-To ensure only one thread at a time can access a global variable, use a mutex. If one thread is currently inside a critical section we would like another thread to wait until the first thread is complete. For this purpose we can use a mutex (short for Mutual Exclusion).
+To ensure only one thread at a time can access a global variable, use a mutex (short for Mutual Exclusion). If one thread is currently inside a critical section we would like another thread to wait until the first thread is complete.
 
 \begin{lstlisting}[language=C]
 pthread_mutex_t m = PTHREAD_MUTEX_INITIALIZER; // global variable
@@ -50,7 +76,7 @@ pthread_mutex_unlock(&m); //end of Critical Section
 
 \subsection{Lifetime}
 
-There are a few ways of initializing a mutex. You can use the macro PTHREAD\_MUTEX\_INITIALIZER only for global (`static') variables. m = PTHREAD\_MUTEX\_INITIALIZER is equivalent to the more general purpose \keyword{pthread\_mutex\_init(&m,NULL)}. The init version includes options to trade performance for additional error-checking and advanced sharing options. You can also call the init function inside of a program for a mutex located on the heap.
+There are a few ways of initializing a mutex. You can use the macro \keyword{PTHREAD\_MUTEX\_INITIALIZER} only for global (`static') variables. \keyword{m = PTHREAD\_MUTEX\_INITIALIZER} is equivalent to the more general purpose \keyword{pthread\_mutex\_init(&m,NULL)}. The init version includes options to trade performance for additional error-checking and advanced sharing options. You can also call the init function inside of a program for a mutex located on the heap.
 
 \begin{lstlisting}[language=C]
 pthread_mutex_t *lock = malloc(sizeof(pthread_mutex_t)); 
@@ -72,7 +98,7 @@ Things to keep in mind about \keyword{init} and \keyword{destroy}
 
 \subsection{Mutex Gotchas}
 
-Mutexes do not lock variables. A mutex is not that smart - it works with code (threads), not data. If I lock a mutex, the other threads will continue. It's only when a thread attempts to lock a mutex that is already locked, will the thread have to wait. As soon as the original thread unlocks the mutex, the second (waiting) thread will acquire the lock and be able to continue. The following code creates a mutex that does effectively nothing.
+Mutexes do not lock variables. A mutex is not that smart - it works with code, not data. If I lock a mutex, the other threads will continue. It's only when a thread attempts to lock a mutex that is already locked, will the thread have to wait. As soon as the original thread unlocks the mutex, the second (waiting) thread will acquire the lock and be able to continue. The following code creates a mutex that does effectively nothing.
 
 \begin{lstlisting}[language=C]
 int a;
@@ -90,13 +116,13 @@ a++;
 pthread_mutex_unlock(&m2);
 \end{lstlisting}
 
-You can create mutex before fork-ing - however the child and parent process will not share virtual memory and each one will have a mutex independent of the other. (Advanced note: There are advanced options using shared memory that allow a child and parent to share a mutex if it's created with the correct options and uses a shared memory segment. See \href{http://stackoverflow.com/questions/19172541/procs-fork-and-mutexes}{stackoverflow example} )
+You can create mutex before fork-ing - however the child and parent process will not share virtual memory and each one will have a mutex independent of the other. Advanced note: There are advanced options using shared memory that allow a child and parent to share a mutex if it's created with the correct options and uses a shared memory segment. See \href{http://stackoverflow.com/questions/19172541/procs-fork-and-mutexes}{stackoverflow example}
 
-As some other notes, the thread that locks a mutex is the only thread that can unlock it. Each program can have multiple mutex locks, usually one lock per data structure. If you only have one lock, then they may be significant contention for the lock between two threads that was unnecessary. For example if two threads were updating two different counters, it might not be necessary to use the same lock. However simply creating many locks is insufficient: It's important to be able to reason about critical sections e.g.~it's important that one thread can't read two data structures while they are being updated and temporarily in an inconsistent state. There is a small amount of overhead of calling \keyword{pthread\_mutex\_lock} and \keyword{pthread\_mutex\_unlock}; however this is the price you pay for correctly functioning programs!
+As some other notes, the thread that locks a mutex is the only thread that can unlock it. Each program can have multiple mutex locks, usually one lock per data structure. If you only have one lock, then they may be significant contention for the lock between two threads that was unnecessary. For example if two threads were updating two different counters, it might not be necessary to use the same lock. However, simply creating many locks is insufficient: It's important to be able to reason about critical sections e.g.~it's important that one thread can't read two data structures while they are being updated and temporarily in an inconsistent state. There is a small amount of overhead of calling \keyword{pthread\_mutex\_lock} and \keyword{pthread\_mutex\_unlock}; however, this is the price you pay for correctly functioning programs!
 
 \subsection{Simplest complete example}
 
-A complete example is shown below
+Here is a complete example
 
 \begin{lstlisting}[language=C]
 #include <stdio.h>
@@ -114,14 +140,14 @@ void *countgold(void *param) {
     //Same thread that locks the mutex must unlock it
     //Critical section is just 'sum += 1'
     //However locking and unlocking a million times
-    //has significant overhead in this simple answer
+    //has significant overhead
     
     pthread_mutex_lock(&m);
 
     // Other threads that call lock will have to wait until we call unlock
 
     for (i = 0; i < 10000000; i++) {
-    sum += 1;
+        sum += 1;
     }
     pthread_mutex_unlock(&m);
     return NULL;
@@ -132,7 +158,6 @@ int main() {
     pthread_create(&tid1, NULL, countgold, NULL);
     pthread_create(&tid2, NULL, countgold, NULL);
 
-    //Wait for both threads to finish:
     pthread_join(tid1, NULL);
     pthread_join(tid2, NULL);
 
@@ -141,7 +166,7 @@ int main() {
 }
 \end{lstlisting}
 
-In the code above, the thread gets the lock to the counting house before entering. The critical section is only the \keyword{sum+=1} so the following version is also correct but slower.
+In the code above, the thread gets the lock to the counting house before entering. The critical section is only the \keyword{sum+=1} so the following version is also correct.
 
 \begin{lstlisting}[language=C]
     for (i = 0; i < 10000000; i++) {
@@ -169,7 +194,7 @@ This process runs slower because we lock and unlock the mutex a million times, w
 }
 \end{lstlisting}
 
-If I forget to unlock, you get Deadlock! We will talk about deadlock a little bit later but what is the problem with this loop if called by multiple threads.
+If I forget to unlock, you get deadlock! We will talk about deadlock a little bit later but what is the problem with this loop if called by multiple threads.
 
 \begin{lstlisting}[language=C]
 while(not_stop){
@@ -190,22 +215,20 @@ Other possible problems with synchronization.
 \begin{itemize}
 \tightlist
 \item
-  Locking/unlocking the wrong mutex (due to a silly typo)
-\item
-  Not unlocking a mutex (due to say an early return during an error condition)
+  Not unlocking a mutex due to an early return during an error condition
 \item
   Resource leak (not calling \keyword{pthread\_mutex\_destroy})
 \item
-  Using an unitialized mutex (or using a mutex that has already been destroyed)
+  Using an unitialized mutex or using a mutex that has already been destroyed
 \item
-  Locking a mutex twice on a thread (without unlocking first)
+  Locking a mutex twice on a thread without unlocking first
 \item
-  Deadlock and Priority Inversion (we will talk about these later)
+  Deadlock
 \end{itemize}
 
 \subsection{Mutex Implementation}
 
-A simple (but incorrect!) suggestion is shown below. The \keyword{unlock} function simply unlocks the mutex and returns. The lock function first checks to see if the lock is already locked. If it is currently locked, it will keep checking again until another thread has unlocked the mutex.
+An incorrect implementation is shown below. The \keyword{unlock} function simply unlocks the mutex and returns. The lock function first checks to see if the lock is already locked. If it is currently locked, it will keep checking again until another thread has unlocked the mutex.
 
 \begin{lstlisting}[language=C]
 // Version 1 (Incorrect!)
@@ -220,7 +243,7 @@ void unlock(mutex_t *m) {
 }
 \end{lstlisting}
 
-Version 1 uses `busy-waiting' (unnecessarily wasting CPU resources) however there is a more serious problem: We have a race-condition! If two threads both called \keyword{lock} concurrently it is possible that both threads would read `m\_locked' as zero. Thus both threads would believe they have exclusive access to the lock and both threads will continue. Ooops!
+Version 1 uses `busy-waiting' (unnecessarily wasting CPU resources) however there is a more serious problem: We have a race-condition! If two threads both called \keyword{lock} concurrently it is possible that both threads would read \keyword{m\_locked} as zero. Thus both threads would believe they have exclusive access to the lock and both threads will continue. Ooops!
 
 We might attempt to reduce the CPU overhead a little by calling \keyword{pthread\_yield()} inside the loop - pthread\_yield suggests to the operating system that the thread does not use the CPU for a short while, so the CPU may be assigned to threads that are waiting to run. But does not fix the race-condition. We need a better implementation - can you work how to prevent the race-condition?
 
@@ -319,9 +342,9 @@ To satisfy the api, you can't unlock the mutex unless you are the one who owns i
 
 \section{Semaphores}
 
-A counting semaphore contains a value and supports two operations ``wait'' and ``post''. Post increments the semaphore and immediately returns. ``wait'' will wait if the count is zero. If the count is non-zero the semaphore decrements the count and immediately returns. An analogy is a count of the cookies in a cookie jar (or gold coins in the treasure chest). Before taking a cookie, call `wait'. If there are no cookies left then \keyword{wait} will not return: It will \keyword{wait} until another thread increments the semaphore by calling post. In short, \keyword{post} increments and immediately returns whereas \keyword{wait} will wait if the count is zero. Before returning it will decrement count.
+A counting semaphore is another type of synchronization primitive. It contains a value and supports two operations ``wait'' and ``post''. Post increments the semaphore and immediately returns. ``wait'' will wait if the count is zero. If the count is non-zero, the semaphore decrements the count and immediately returns. An analogy is a count of the cookies in a cookie jar. Before taking a cookie, call `wait'. If there are no cookies left then \keyword{wait} will not return: It will \keyword{wait} until another thread increments the semaphore by calling post. In short, \keyword{post} increments and immediately returns whereas \keyword{wait} will wait if the count is zero. Before returning, it will decrement count.
 
-Creating a semaphore is as easy as creating a mutex. First decide if the initial value should be zero or some other value (e.g.~the number of remaining spaces in an array). Unlike pthread mutex there are not shortcuts to creating a semaphore - use \keyword{sem\_init}
+Using a semaphore is as easy as creating a mutex. First decide if the initial value should be zero or some other value (e.g.~the number of remaining spaces in an array). Unlike pthread mutex there are not shortcuts to creating a semaphore - use \keyword{sem\_init}
 
 \begin{lstlisting}[language=C]
 #include <semaphore.h>
@@ -335,7 +358,7 @@ int main() {
 }
 \end{lstlisting}
 
-When using a semaphore, wait and post can be called from different threads! Unlike a mutex, the increment and decrement can be from different threads. This becomes especially useful if you want to use a semaphore to implement a mutex, though the overhead of a semaphore is greater. A mutex is a semaphore that always \keyword{waits} before it \keyword{posts}. Some textbooks will refer to a mutex as a binary semaphore. You do have to be careful to never add more than one to a semaphore or otherwise your mutex abstraction breaks. That is usually why a mutex is used to implement a semaphore and vice versa.
+When using a semaphore, wait and post can be called from different threads! Unlike a mutex, the increment and decrement can be from different threads. This becomes especially useful if you want to use a semaphore to implement a mutex. A mutex is a semaphore that always \keyword{waits} before it \keyword{posts}. Some textbooks will refer to a mutex as a binary semaphore. You do have to be careful to never add more than one to a semaphore or otherwise your mutex abstraction breaks. That is usually why a mutex is used to implement a semaphore and vice versa.
 
 \begin{itemize}
 \item Initialize the semaphore with a count of one. 
@@ -363,19 +386,16 @@ Also, keyword{sem\_post} is one of a handful of functions that can be correctly 
 
 sem_t s;
 
-void handler(int signal)
-{
+void handler(int signal) {
     sem_post(&s); /* Release the Kraken! */
 }
 
-void *singsong(void *param)
-{
+void *singsong(void *param) {
     sem_wait(&s);
     printf("I had to wait until your signal released me!\n");
 }
 
-int main()
-{
+int main() {
     int ok = sem_init(&s, 0, 0 /* Initial value of zero*/); 
     if (ok == -1) {
        perror("Could not create unnamed semaphore");
@@ -389,10 +409,90 @@ int main()
 }
 \end{lstlisting}
 
+\section{Condition Variables}
+
+Condition variables allow a set of threads to sleep until woken up! You can wake up one thread or all threads that are sleeping. If you only wake one thread then the operating system will decide which thread to wake up. You don't wake threads directly instead you `signal' the condition variable, which then will wake up one (or all) threads that are sleeping inside the condition variable.
+
+Condition variables are also generally used with a mutex and with a loop, so when woken up they have to check a condition in a critical section. If you just need to be woken up not in a critical section, there are other ways to do this in POSIX. Threads sleeping inside a condition variable are woken up by calling \keyword{pthread\_cond\_broadcast} (wake up all) or \keyword{pthread\_cond\_signal} (wake up one). Note despite the function name, this has nothing to do with POSIX \keyword{signal}s!
+
+Occasionally a waiting thread may appear to wake up for no reason (this is called a \emph{spurious wake})! This is not an issue because you always use \keyword{wait} inside a loop that tests a condition that must be true to continue.
+
+Why do spurious wakeups happen? For performance. On multi-CPU systems it is possible that a race-condition could cause a wake-up (signal) request to be unnoticed. The kernel may not detect this lost wake-up call but can detect when it might occur. To avoid the potential lost signal the thread is woken up so that the program code can test the condition again.
+
+\begin{comment}
+\begin{aside}
+
+\subsection{Why do Condition Variables also need a mutex?}
+
+Condition variables need a mutex for three reasons. The simplest to understand is that it prevents an early wakeup message (\keyword{signal} or \keyword{broadcast} functions) from being `lost.' Imagine the following sequence of events (time runs down the page) where the condition is satisfied \emph{just before} \keyword{pthread\_cond\_wait} is called. In this example the wake-up signal is lost!
+
+Thread 1 \textbar{} Thread 2 -------------------------\textbar{}--------- \keyword{while( answer < 42) {} \textbar{} \textbar{} \keyword{answer++} \textbar{} \keyword{p\_cond\_signal(cv)} \keyword{p\_cond\_wait(cv,m)} \textbar{}
+
+If both threads had locked a mutex, the signal can not be sent until \emph{after} \keyword{pthread\_cond\_wait(cv, m)} is called (which then internally unlocks the mutex)
+
+A second common reason is that updating the program state (\keyword{answer} variable) typically requires mutual exclusion - for example multiple threads may be updating the value of \keyword{answer}.
+
+A third and subtle reason is to satisfy real-time scheduling concerns which we only outline here: In a time-critical application, the waiting thread with the \emph{highest priority} should be allowed to continue first. To satisfy this requirement the mutex must also be locked before calling \keyword{pthread\_cond\_signal} or \keyword{pthread\_cond\_broadcast} . For the curious, a longer and historical discussion is \href{https://groups.google.com/forum/?hl=ky\#!msg/comp.programming.threads/wEUgPq541v8/ZByyyS8acqMJ}{here}.
+
+\end{aside}
+\end{comment}
+
+\subsection{Example}\label{example}
+
+The call \keyword{pthread\_cond\_wait} performs three actions: 
+
+\begin{enumerate}
+\item Unlock the mutex\
+\item Sleeps until \keyword{pthread\_cond\_signal} is called on the same condition variable) 
+\item Before returning, locks the mutex
+\end{enumerate}
+
+Condition variables are \emph{always} used with a mutex lock. Before calling \emph{wait}, the mutex lock must be locked and \emph{wait} must be wrapped with a loop.
+
+\begin{lstlisting}[language=C]
+pthread_cond_t cv;
+pthread_mutex_t m;
+int count;
+
+// Initialize
+pthread_cond_init(&cv, NULL);
+pthread_mutex_init(&m, NULL);
+count = 0;
+
+pthread_mutex_lock(&m);
+while (count < 10) {
+   pthread_cond_wait(&cv, &m); 
+/* Remember that cond_wait unlocks the mutex before blocking (waiting)! */
+/* After unlocking, other threads can claim the mutex. */
+/* When this thread is later woken it will */
+/* re-lock the mutex before returning */
+}
+pthread_mutex_unlock(&m);
+
+//later clean up with pthread_cond_destroy(&cv); and mutex_destroy 
+
+
+// In another thread increment count:
+while (1) {
+  pthread_mutex_lock(&m);
+  count++;
+  pthread_cond_signal(&cv);
+  /* Even though the other thread is woken up it cannot not return */
+  /* from pthread_cond_wait until we have unlocked the mutex. This is */
+  /* a good thing! In fact, it is usually the best practice to call */
+  /* cond_signal or cond_broadcast before unlocking the mutex */
+  pthread_mutex_unlock(&m);
+}
+\end{lstlisting}
+
+
+
 \section{Thread Safe Data Structures}
 
-To paraphrase Wikipedia, \textgreater{} An operation (or set of operations) is atomic or uninterruptible if it appears to the rest of the system to occur instantaneously. Without locks, only simple CPU instructions (``read this byte from memory'') are atomic (indivisible). On a single CPU system or inside kernels, one could temporarily disable interrupts (so a sequence of operations cannot be interrupted) but in practice atomicity is achieved by using synchronization primitives, typically a mutex lock.
-
+To paraphrase Wikipedia, 
+\begin{displayquote}
+An operation (or set of operations) is atomic or uninterruptible if it appears to the rest of the system to occur instantaneously. Without locks, only simple CPU instructions (``read this byte from memory'') are atomic (indivisible). On a single CPU system or inside kernels, one could temporarily disable interrupts (so a sequence of operations cannot be interrupted) but in practice atomicity is achieved by using synchronization primitives, typically a mutex lock.
+\end{displayquote}
 Incrementing a variable (\keyword{i++}) is \emph{not} atomic because it requires three distinct steps: Copying the bit pattern from memory into the CPU; performing a calculation using the CPU's registers; copying the bit pattern back to memory. During this increment sequence, another thread or process can still read the old value and other writes to the same memory would also be over-written when the increment sequence completes.
 
 As such, we can use the tools in the previous section in order to make our data structures thread safe. For the most part, we will be using mutexes because they carry more semantic meaning than a binary semaphore. Note, this is just an introduction - writing high-performance thread-safe data structures requires its own book!
@@ -742,7 +842,7 @@ Candidate \#4 fails because a thread does not wait until the other thread lowers
 
 Imagine the first thread runs this code twice (so the the turn flag now points to the second thread). While the first thread is still inside the Critical Section, the second thread arrives. The second thread can immediately continue into the Critical Section!
 
-\begin{longtable}[c]{@{}llll@{}}
+\begin{longtable}[c]{@{}|l|l|l|l|@{}}
 \toprule
 \begin{minipage}[b]{0.07\columnwidth}\raggedright\strut
 Time
@@ -754,14 +854,14 @@ Thread \#1
 Thread \#2
 \strut\end{minipage}\tabularnewline
 \midrule
-\endhead
+\endhead \hline
 \begin{minipage}[t]{0.07\columnwidth}\raggedright\strut
 1
 \strut\end{minipage} & \begin{minipage}[t]{0.09\columnwidth}\raggedright\strut
 2
 \strut\end{minipage} & \begin{minipage}[t]{0.15\columnwidth}\raggedright\strut
 raise my flag
-\strut\end{minipage}\tabularnewline
+\strut\end{minipage}\hline \tabularnewline
 \begin{minipage}[t]{0.07\columnwidth}\raggedright\strut
 2
 \strut\end{minipage} & \begin{minipage}[t]{0.09\columnwidth}\raggedright\strut
@@ -770,7 +870,7 @@ raise my flag
 if your flag is raised, wait until my turn
 \strut\end{minipage} & \begin{minipage}[t]{0.14\columnwidth}\raggedright\strut
 raise my flag
-\strut\end{minipage}\tabularnewline
+\strut\end{minipage} \hline \tabularnewline
 \begin{minipage}[t]{0.07\columnwidth}\raggedright\strut
 3
 \strut\end{minipage} & \begin{minipage}[t]{0.09\columnwidth}\raggedright\strut
@@ -779,7 +879,7 @@ raise my flag
 // Do Critical Section stuff
 \strut\end{minipage} & \begin{minipage}[t]{0.14\columnwidth}\raggedright\strut
 if your flag is raised, wait until my turn(TRUE!)
-\strut\end{minipage}\tabularnewline
+\strut\end{minipage}\hline \tabularnewline
 \begin{minipage}[t]{0.07\columnwidth}\raggedright\strut
 4
 \strut\end{minipage} & \begin{minipage}[t]{0.09\columnwidth}\raggedright\strut
@@ -788,7 +888,7 @@ if your flag is raised, wait until my turn(TRUE!)
 // Do Critical Section stuff
 \strut\end{minipage} & \begin{minipage}[t]{0.14\columnwidth}\raggedright\strut
 // Do Critical Section stuff - OOPS
-\strut\end{minipage}\tabularnewline
+\strut\end{minipage}\hline \tabularnewline
 \bottomrule
 \end{longtable}
 
@@ -817,7 +917,7 @@ No, Dekkers Algorithm (1962) was the first provably correct solution. A version 
 
 \begin{lstlisting}
 raise my flag
-while(your flag is raised) :
+while-loop(your flag is raised) :
    if it's your turn to win :
      lower my flag
      wait while your turn
@@ -829,9 +929,10 @@ lower my flag
 
 Notice how the process's flag is always raised during the critical section no matter if the loop is iterated zero, once or more times. Further the flag can be interpreted as an immediate intent to enter the critical section. Only if the other process has also raised the flag will one process defer, lower their intent flag and wait.
 
+\begin{aside}
 \subsection{Can I just implement Peterson's (or Dekkers) algorithm in C or assembler?}\label{can-i-just-implement-petersons-or-dekkers-algorithm-in-c-or-assembler}
 
-Yes - and with a bit searching it is possible even today to find it in production for specific simple mobile processors: Peterson's algorithm is used to implement low-level Linux Kernel locks for the Tegra mobile processor (a system-on-chip ARM process and GPU core by Nvidia) https://android.googlesource.com/kernel/tegra.git/+/android-tegra-3.10/arch/arm/mach-tegra/sleep.S\#58
+Yes - and with a bit searching it is possible even today to find it in production for specific simple mobile processors: Peterson's algorithm is used to implement low-level Linux Kernel locks for the Tegra mobile processor (a system-on-chip ARM process and GPU core by Nvidia) \href{Link to Lock Source}{https://android.googlesource.com/kernel/tegra.git/+/android-tegra-3.10/arch/arm/mach-tegra/sleep.S\#58}
 
 However in general, CPUs and C compilers can re-order CPU instructions or use CPU-core-specific local cache values that are stale if another core updates the shared variables. Thus a simple pseudo-code to C implementation is too naive for most platforms. You can stop reading now.
 
@@ -852,91 +953,13 @@ A related challenge is that CPU cores include a data cache to store recently rea
 But there is happy ending. Fortunately, modern hardware addresses these issues using `memory fences' (also known as memory barrier) CPU instructions to ensure that main memory and the CPUs' cache is in a reasonable and coherent state. Higher level synchronization primitives, such as \keyword{pthread\_mutex\_lock} are will call these CPU instructions as part of their implementation. Thus, in practice, surrounding critical section with a mutex lock and unlock calls is sufficient to ignore these lower-level problems.
 
 Further reading: we suggest the following web post that discusses implementing Peterson's algorithm on an x86 process and the linux documentation on memory barriers.
+\begin{enumerate}
+\item \href{Memory Fences}{http://bartoszmilewski.com/2008/11/05/who-ordered-memory-fences-on-an-x86/}
+\item \href{Memory Barriers}{http://lxr.free-electrons.com/source/Documentation/memory-barriers.txt}
+\end{enumerate}
 
-http://bartoszmilewski.com/2008/11/05/who-ordered-memory-fences-on-an-x86/ http://lxr.free-electrons.com/source/Documentation/memory-barriers.txt
+\end{aside}
 
-\section{Intro to Condition Variables}\label{intro-to-condition-variables}
-
-\subsection{Warm up}\label{warm-up}
-
-Name these properties! * ``Only one process(/thread) can be in the CS at a time'' * ``If waiting, then another process can only enter the CS a finite number of times'' * ``If no other process is in the CS then the process can immediately enter the CS''
-
-See {[}{[}Synchronization, Part 4: The Critical Section Problem{]}{]} for answers.
-
-\subsection{What are condition variables? How do you use them? What is Spurious Wakeup?}\label{what-are-condition-variables-how-do-you-use-them-what-is-spurious-wakeup}
-
-\begin{itemize}
-\item
-  Condition variables allow a set of threads to sleep until tickled! You can tickle one thread or all threads that are sleeping. If you only wake one thread then the operating system will decide which thread to wake up. You don't wake threads directly instead you `signal' the condition variable, which then will wake up one (or all) threads that are sleeping inside the condition variable.
-\item
-  Condition variables are used with a mutex and with a loop (to check a condition).
-\item
-  Occasionally a waiting thread may appear to wake up for no reason (this is called a \emph{spurious wake})! This is not an issue because you always use \keyword{wait} inside a loop that tests a condition that must be true to continue.
-\item
-  Threads sleeping inside a condition variable are woken up by calling \keyword{pthread\_cond\_broadcast} (wake up all) or \keyword{pthread\_cond\_signal} (wake up one). Note despite the function name, this has nothing to do with POSIX \keyword{signal}s!
-\end{itemize}
-
-\subsection{\texorpdfstring{What does \texttt{pthread\_cond\_wait} do?}{What does pthread\_cond\_wait do?}}\label{what-does-pthreadux5fcondux5fwait-do}
-
-The call \keyword{pthread\_cond\_wait} performs three actions: * unlock the mutex * waits (sleeps until \keyword{pthread\_cond\_signal} is called on the same condition variable) * Before returning, locks the mutex
-
-\subsection{(Advanced topic) Why do Condition Variables also need a mutex?}\label{advanced-topic-why-do-condition-variables-also-need-a-mutex}
-
-Condition variables need a mutex for three reasons. The simplest to understand is that it prevents an early wakeup message (\keyword{signal} or \keyword{broadcast} functions) from being `lost.' Imagine the following sequence of events (time runs down the page) where the condition is satisfied \emph{just before} \keyword{pthread\_cond\_wait} is called. In this example the wake-up signal is lost!
-
-Thread 1 \textbar{} Thread 2 -------------------------\textbar{}--------- \keyword{while( answer < 42) {} \textbar{} \textbar{} \keyword{answer++} \textbar{} \keyword{p\_cond\_signal(cv)} \keyword{p\_cond\_wait(cv,m)} \textbar{}
-
-If both threads had locked a mutex, the signal can not be sent until \emph{after} \keyword{pthread\_cond\_wait(cv, m)} is called (which then internally unlocks the mutex)
-
-A second common reason is that updating the program state (\keyword{answer} variable) typically requires mutual exclusion - for example multiple threads may be updating the value of \keyword{answer}.
-
-A third and subtle reason is to satisfy real-time scheduling concerns which we only outline here: In a time-critical application, the waiting thread with the \emph{highest priority} should be allowed to continue first. To satisfy this requirement the mutex must also be locked before calling \keyword{pthread\_cond\_signal} or \keyword{pthread\_cond\_broadcast} . For the curious, a longer and historical discussion is \href{https://groups.google.com/forum/?hl=ky\#!msg/comp.programming.threads/wEUgPq541v8/ZByyyS8acqMJ}{here}.
-
-\subsection{Why do spurious wakes exist?}\label{why-do-spurious-wakes-exist}
-
-For performance. On multi-CPU systems it is possible that a race-condition could cause a wake-up (signal) request to be unnoticed. The kernel may not detect this lost wake-up call but can detect when it might occur. To avoid the potential lost signal the thread is woken up so that the program code can test the condition again.
-
-\subsection{Example}\label{example}
-
-Condition variables are \emph{always} used with a mutex lock.
-
-Before calling \emph{wait}, the mutex lock must be locked and \emph{wait} must be wrapped with a loop.
-
-\begin{lstlisting}[language=C]
-pthread_cond_t cv;
-pthread_mutex_t m;
-int count;
-
-// Initialize
-pthread_cond_init(&cv, NULL);
-pthread_mutex_init(&m, NULL);
-count = 0;
-
-pthread_mutex_lock(&m);
-while (count < 10) {
-   pthread_cond_wait(&cv, &m); 
-/* Remember that cond_wait unlocks the mutex before blocking (waiting)! */
-/* After unlocking, other threads can claim the mutex. */
-/* When this thread is later woken it will */
-/* re-lock the mutex before returning */
-}
-pthread_mutex_unlock(&m);
-
-//later clean up with pthread_cond_destroy(&cv); and mutex_destroy 
-
-
-// In another thread increment count:
-while (1) {
-  pthread_mutex_lock(&m);
-  count++;
-  pthread_cond_signal(&cv);
-  /* Even though the other thread is woken up it cannot not return */
-  /* from pthread_cond_wait until we have unlocked the mutex. This is */
-  /* a good thing! In fact, it is usually the best practice to call */
-  /* cond_signal or cond_broadcast before unlocking the mutex */
-  pthread_mutex_unlock(&m);
-}
-\end{lstlisting}
 
 \section{Implementing Counting Semaphore}\label{implementing-counting-semaphore}
 
@@ -959,12 +982,15 @@ Implement \keyword{sem\_init} to initialize the mutex and condition variable
 
 \begin{lstlisting}[language=C]
 int sem_init(sem_t *s, int pshared, int value) {
-  if (pshared) { errno = ENOSYS /* 'Not implemented'*/; return -1;}
+    if (pshared) { 
+        errno = ENOSYS /* 'Not implemented'*/; 
+        return -1;
+    }
 
-  s->count = value;
-  pthread_mutex_init(&s->m, NULL);
-  pthread_cond_init(&s->cv, NULL);
-  return 0;
+    s->count = value;
+    pthread_mutex_init(&s->m, NULL);
+    pthread_cond_init(&s->cv, NULL);
+    return 0;
 }
 \end{lstlisting}
 
@@ -1287,9 +1313,15 @@ writer() {
 }
 \end{lstlisting}
 
-\subsection{What is a ring buffer?}\label{what-is-a-ring-buffer}
+\section{Ring Buffer}\label{Ring Buffer}
 
-A ring buffer is a simple, usually fixed-sized, storage mechanism where contiguous memory is treated as if it is circular, and two index counters keep track of the current beginning and end of the queue. As array indexing is not circular, the index counters must wrap around to zero when moved past the end of the array. As data is added (enqueued) to the front of the queue or removed (dequeued) from tail of the queue, the current items in the buffer form a train that appears to circle the track \includegraphics{https://raw.githubusercontent.com/wiki/angrave/SystemProgramming/RingBuffer-Angrave2014-1024x768.png} A simple (single-threaded) implementation is shown below. Note enqueue and dequeue do not guard against underflow or overflow - it's possible to add an item when when the queue is full and possible to remove an item when the queue is empty. For example if we added 20 integers (1,2,3\ldots{}) to the queue and did not dequeue any items then values \keyword{17,18,19,20} would overwrite the \keyword{1,2,3,4}. We won't fix this problem right now, instead when we create the multi-threaded version we will ensure enqueue-ing and dequeue-ing threads are blocked while the ring buffer is full or empty respectively.
+A ring buffer is a simple, usually fixed-sized, storage mechanism where contiguous memory is treated as if it is circular, and two index counters keep track of the current beginning and end of the queue. As array indexing is not circular, the index counters must wrap around to zero when moved past the end of the array. As data is added (enqueued) to the front of the queue or removed (dequeued) from tail of the queue, the current items in the buffer form a train that appears to circle the track 
+
+\begin{center}
+\includegraphics[width=.5\textwidth]{synchronization/images/ring_buffer.png}
+\end{center}
+
+A simple (single-threaded) implementation is shown below. Note enqueue and dequeue do not guard against underflow or overflow - it's possible to add an item when when the queue is full and possible to remove an item when the queue is empty. For example if we added 20 integers (1,2,3\ldots{}) to the queue and did not dequeue any items then values \keyword{17,18,19,20} would overwrite the \keyword{1,2,3,4}. We won't fix this problem right now, instead when we create the multi-threaded version we will ensure enqueue-ing and dequeue-ing threads are blocked while the ring buffer is full or empty respectively.
 
 \begin{lstlisting}[language=C]
 void *buffer[16];
@@ -1319,7 +1351,7 @@ void enqueue(void *value)
 }
 \end{lstlisting}
 
-This method would appear to work (pass simple tests etc) but contains a subtle bug. With enough enqueue operations (a bit more than two billion) the int value of \keyword{in} will overflow and become negative! The modulo (or `remainder') operator \keyword{%} preserves the sign. Thus you might end up writing into \keyword{b[-14]} for example!
+This method would appear to work (pass simple tests etc) but contains a subtle bug. With enough enqueue operations (a bit more than two billion) the int value of \keyword{in} will overflow and become negative! The modulo (or `remainder') operator \keyword{\%} preserves the sign. Thus you might end up writing into \keyword{b[-14]} for example!
 
 A compact form is correct uses bit masking provided N is 2\^{}x (16,32,64,\ldots{})
 
@@ -1329,7 +1361,8 @@ b[ (in++) & (N-1) ] = value;
 
 This buffer does not yet prevent buffer underflow or overflow. For that, we'll turn to our multi-threaded attempt that will block a thread until there is space or there is at least one item to remove.
 
-\subsection{Checking a multi-threaded implementation for correctness (Example 1)}\label{checking-a-multi-threaded-implementation-for-correctness-example-1}
+
+\subsection{Multithreaded Correctness}\label{checking-a-multi-threaded-implementation-for-correctness-example-1}
 
 The following code is an incorrect implementation. What will happen? Will \keyword{enqueue} and/or \keyword{dequeue} block? Is mutual exclusion satisfied? Can the buffer underflow? Can the buffer overflow? For clarity \keyword{pthread\_mutex} is shortened to \keyword{p\_m} and we assume sem\_wait cannot be interrupted.
 
@@ -1496,8 +1529,8 @@ void *dequeue(){
   What would happen if the order of \keyword{sem\_wait} and \keyword{pthread\_mutex\_lock} calls were swapped?
 \end{itemize}
 
-\begin{aside}
 
+\begin{aside}
 \section{Process Synchronization}\label{process-synchronization}
 
 You thought that you were using different processes, so you don't have to synchronize? Think again! You may not have race conditions within a process but what if your process needs to interact with the system around it? Let's consider a motivating example
@@ -1640,6 +1673,7 @@ Most programs try to avoid this problem entirely by writing to separate files, b
 \section{Questions}\label{questions}
 
 \begin{itemize}
+\tightlist
 \item
   What is atomic operation?
 \item
@@ -1668,7 +1702,6 @@ for(int i = 0; i < 100000000; i++) atomic_fetch_add(a, 1);
   Once you have identified a critical section, what is one way of assuring that only one thread will be in the section at a time?
 \item
   Identify the critical section here
-\end{itemize}
 
 \begin{lstlisting}[language=C]
 struct linked_list;
@@ -1702,7 +1735,10 @@ void* pop_elem(linked_list *ll, size_t index){
 }
 \end{lstlisting}
 
-How tight can you make the critical section? * What is a producer consumer problem? How might the above be a producer consumer problem be used in the above section? How is a producer consumer problem related to a reader writer problem? * What is a condition variable? Why is there an advantage to using one over a \keyword{while} loop? * Why is this code dangerous?
+\item How tight can you make the critical section? 
+\item What is a producer consumer problem? How might the above be a producer consumer problem be used in the above section? How is a producer consumer problem related to a reader writer problem? 
+\item What is a condition variable? Why is there an advantage to using one over a \keyword{while} loop? 
+\item Why is this code dangerous?
 
 \begin{lstlisting}[language=C]
 if(not_ready){
@@ -1710,7 +1746,6 @@ if(not_ready){
 }
 \end{lstlisting}
 
-\begin{itemize}
 \item
   What is a counting semaphore? Give me an analogy to a cookie jar/pizza box/limited food item.
 \item
@@ -1740,20 +1775,16 @@ void writer_unlock(rw_lock_t* lck);
   Use CVs to implement a barrier for 15 threads.
 \item
   How many of the following statements are true?
-
-  \begin{itemize}
-  \tightlist
-  \item
-    There can be multiple active readers
-  \item
-    There can be multiple active writers
-  \item
-    When there is an active writer the number of active readers must be zero
-  \item
-    If there is an active reader the number of active writers must be zero
-  \item
-    A writer must wait until the current active readers have finished
-  \end{itemize}
+\item
+There can be multiple active readers
+\item
+There can be multiple active writers
+\item
+When there is an active writer the number of active readers must be zero
+\item
+If there is an active reader the number of active writers must be zero
+\item
+A writer must wait until the current active readers have finished
 \item
   Todo: Analyzing mulithreaded code snippets
 \end{itemize}

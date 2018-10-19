@@ -6,9 +6,9 @@
 \\But if you try sometime you find
 \\You get what you need}{The philosphers Jagger \& Richards}
 
-\gls{Deadlock} is defined as when a system cannot make and forward progress. We define a system for the rest of the chapter as a set of rules by which a set of processes can move from one state to another (where a state is either working or waiting for a particular resource). Forward progress is defined as if there is at least one process wokring or we can award a process waiting for a resource that resource. In a lot of systems, Deadlock is just avoided by ignore the entire concept \cite[P.237]{silberschatz2006operating}. Have you heard about turn it on and off again? That is partly because of this. For products where the stakes are low when you deadlock (User Operating Systems, Phones), it may be more efficient not not keep track of all of the allocations in order to keep deadlock from happening. But in the cases where "failure is not an option" - Apollo 13, you need a system that tracks deadlock or better yet prevents it entirely. Take the Apollo 13 module. It may have not failed because of deadlock, but probably wouldn't be good to restart the system on liftoff.
+\gls{Deadlock} is defined as when a system cannot make and forward progress. We define a system for the rest of the chapter as a set of rules by which a set of processes can move from one state to another, where a state is either working or waiting for a particular resource. Forward progress is defined as if there is at least one process wokring or we can award a process waiting for a resource that resource. In a lot of systems, Deadlock is just avoided by ignore the entire concept \cite[P.237]{silberschatz2006operating}. Have you heard about turn it on and off again? For products where the stakes are low (User Operating Systems, Phones), it may be more efficient not prevent deadlock. But in the cases where "failure is not an option" - Apollo 13, you need a system that tracks deadlock and breaks it or better yet prevents it entirely. Apollo 13 may have not failed because of deadlock, but probably wouldn't be good to restart the system on liftoff.
 
-Mission critical operating systems need this guarentee formally because playing the odds with people's lives isn't a good idea. Okay so how do we do this? We model the problem. Even though it is a common statistical phrase that all models are wrong, the more accurate the model is to the system that we are working with the better chance that it'll work better.
+Mission critical operating systems need this guarentee formally because playing the odds with people's lives isn't a good idea. Okay so how do we do this? We model the problem. Even though it is a common statistical phrase that all models are wrong, the more accurate the model is to the system the better chance that it'll work better.
 
 \section{Resource Allocation Graphs}
 
@@ -17,18 +17,19 @@ Mission critical operating systems need this guarentee formally because playing 
 \includegraphics[width=.25\textwidth]{deadlock/images/resource_allocation.png}
 \end{center}
   \caption{Resource allocation graph}
+  \label{ragfigure}
 \end{wrapfigure}
 
-One such way is modeling the system with a resource allocation graph (\gls{RAG}). A resource allocation graph tracks which resource is held by which process and which process is waiting for a resource of a particular type. It is very powerful and simple tool to illustrate how interacting processes can deadlock. If a process is \emph{using} a resource, an arrow is drawn from the resource node to the process node. If a process is \emph{requesting} a resource, an arrow is drawn from the process node to the resource node.If there is a cycle in the Resource Allocation Graph and each resource in the cycle provides only one instance, then the processes will deadlock. For example, if process 1 holds resource A, process 2 holds resource B and process 1 is waiting for B and process 2 is waiting for A, then process 1 and 2 process will be deadlocked.
+One such way is modeling the system with a resource allocation graph (\gls{RAG}). A resource allocation graph tracks which resource is held by which process and which process is waiting for a resource of a particular type. It is very powerful and simple tool to illustrate how interacting processes can deadlock. If a process is \emph{using} a resource, an arrow is drawn from the resource node to the process node. If a process is \emph{requesting} a resource, an arrow is drawn from the process node to the resource node. If there is a cycle in the Resource Allocation Graph and each resource in the cycle provides only one instance, then the processes will deadlock. For example, if process 1 holds resource A, process 2 holds resource B and process 1 is waiting for B and process 2 is waiting for A, then process 1 and 2 process will be deadlocked \ref{ragfigure}.
 
 \begin{wrapfigure}[12]{r}{.35\textwidth}
   \begin{center}
 \includegraphics[width=.25\textwidth]{deadlock/images/colorful.png}
 \end{center}
-  \caption{Colorful Deadlock}
+  \caption{Graph based Deadlock}
 \end{wrapfigure}
 
-Consider the following resource allocation graph. Assume that the processes ask for exclusive access to the file. If you have a bunch of processes running and they request resources and the operating system ends up in this state, you deadlock! You may not see this because the operating system may \textbf{preempt} some processes breaking the cycle but there is still a change that your three lonely processes could deadlock. You can also make these kind of graphs with \texttt{make} and rule dependencies with our parmake MP for example.
+Assume that the processes ask for exclusive access to the file. If you have a bunch of processes running and they request resources and the operating system ends up in this state, you deadlock! You may not see this because the operating system may \textbf{preempt} some processes breaking the cycle but there is still a change that your three lonely processes could deadlock. You can also make these kind of graphs with \texttt{make} and rule dependencies with our parmake MP for example.
 
 \section{Coffman conditions}
 
@@ -51,7 +52,7 @@ There are four \emph{necessary} and \emph{sufficient} conditions for deadlock --
 $\rightarrow$ If the system is deadlocked, the four coffman conditions are apparent.
 
 \begin{itemize}
-\item For the purposes of contradiction, assume that there is no cicular wait. If not then that means the resource wait graph is acyclic, meaning that there is at least one one process that is not waiting on any resources or it can grab a resource. Since the system can move forward, the system is not deadlocked.
+\item For the purposes of contradiction, assume that there is no cicular wait. If not then that means the resource allocation graph is acyclic, meaning that there is at least one one process that is not waiting on any resource to be freed. Since the system can move forward, the system is not deadlocked.
 \item For the purposes of contradiction, assume that there is no mutual exclusion. If not, that means that no process is waiting on any other process for a resource. This breaks circular wait and the previous argument proves correctness.
 \item For the purposes of contradiction, assume that processes don't hold and wait but our system still deadlocks. Since we have circular wait from the first condition at least one process must be waiting on another process. If that and processes don't hold and wait, that means one process must let go of a resource. Since the system has moved forward, it cannot be deadlocked.
 \item For the purposes of contradiction, assume that we have preemption, but the system cannot be un-deadlocked. Have one process, or create one process, that recognizes the circular wait that must be apprent from above and break on the of the links. By the first branch, we must not have deadlock.
@@ -60,10 +61,10 @@ $\rightarrow$ If the system is deadlocked, the four coffman conditions are appar
 $\leftarrow$ If the four conditions are apparent, the system is deadlocked. We will prove that if the system is not deadlocked, the four conditions are not apparent. Though this proof is not formal, let us build a system with the three requirements not including circular wait. Let assume that there is a set of processes $P = \{p_1, p_2, ..., p_n\}$ and there is a set of resources $R = \{r_1, r_2, ..., r_m\}$. For simplicity, a process can only request one resource at a time but the proof can be generalized to multiple. Let assume that the system is at different states at different times $t$. Let us assume that the state of the system is a tuple $(h_t, w_t)$ where there are two function $h_t: R \rightarrow P \cup \{\text{unassigned}\}$ that maps resources to the processes that own them (this is a function, meaning that we have mutual exclusion) and or unassigned and $w_t: P \rightarrow R \cup \{\text{satisfied}\}$ that maps the requests that each process makes to a resource or if the process is satisfied. Let $L_t \subseteq P \times R$ be a set of list of requests that a process uses to release a resource at any given time. The evolution of the system is at each step at every time.
 
 \begin{itemize}
-\item Release all resources in $L_t$ the a process requests to resource.
+\item Release all resources in $L_t$.
 \item Find a process that is requesting a resource
-\item If that resource is available give it to that process, generating a new $(h_t, w_t)$ and exit the current iteration.
-\item Else find another process and try the above if.
+\item If that resource is available give it to that process, generating a new $(h_{t+1}, w_{t+1})$ and exit the current iteration.
+\item Else find another process and try the same resource allocation procedure in the previous step.
 \end{itemize}
 
 If all processes have been surveyed and none updates the system, consider it deadlocked. More formally, this system is deadlocked means  if $\exists t_0, \forall t \geq t_0, \forall p \in P, w_t(p) \neq \text{satisfied} \text{ and } \exists q, q \neq p \rightarrow h_t(w_t(p)) = q$ (which is what we need to prove). 

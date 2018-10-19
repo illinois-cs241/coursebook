@@ -10,12 +10,23 @@ OTHER=$$(find . -iname *aux) $$(find . -iname *bbl) $$(find . -iname *blg)
 .PHONY: all
 all: $(PDF_TEX)
 
+.PHONY: debug
+debug: $(PDF_TEX)-debug
 
 $(PDF_TEX): $(TEX) $(MAIN_TEX) $(BIBS) Makefile
-	-latexmk -quiet -interaction=nonstopmode -f -pdf $(MAIN_TEX) 2>&1 >/dev/null
+	-@latexmk -quiet -interaction=nonstopmode -f -pdf $(MAIN_TEX) 2>&1 >/dev/null
 	-@latexmk -c
 	-@rm *aux *bbl *glg *glo *gls *ist *latexmk *fls
+	@ls $(PDF_TEX) > /dev/null
+	@echo "Finished"
+
+$(PDF_TEX)-debug: $(TEX) $(MAIN_TEX) $(BIBS) Makefile
+	-@latexmk -interaction=nonstopmode -f -pdf $(MAIN_TEX) > latexmk.out
+	-@mv $(PDF_TEX) $(PDF_TEX-debug)
 
 .PHONY: clean
 clean:
 	-@rm $(PDF_TEX) $(OTHER_FILES) $(OTHER)
+
+
+

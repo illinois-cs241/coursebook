@@ -14,6 +14,7 @@
 \usepackage{comment}
 \usepackage{graphicx,changepage}
 \usepackage{pgffor}
+\usepackage{comment}
 
 % Make hyperrefs work
 \usepackage{hyperref}
@@ -64,12 +65,12 @@ breaklines=true
 
 \lstset{aboveskip=20pt,
 belowskip=20pt,
-xleftmargin=2cm,
-xrightmargin=2cm,
+xleftmargin=1.5cm,
+xrightmargin=1.5cm,
 xtopmargin=1cm,
 xbottommargin=1cm,
-framexrightmargin=1em,
-framexleftmargin=1em,
+framexrightmargin=.5em,
+framexleftmargin=.5em,
 frame=bt,
 framextopmargin=5pt,
 framexbottommargin=5pt,
@@ -138,8 +139,9 @@ rulecolor=\color{shadecolor},}
 \usepackage{tabularx}
 
 \definecolor{titlepagecolor}{cmyk}{1,.60,0,.40}
-\definecolor{namecolor}{cmyk}{1,.50,0,.10} % Here I am trying to define the font color that is used in the example but I don't really know which one is it so I leave this to the OP to figure out
+\definecolor{namecolor}{cmyk}{1,.50,0,.10} 
 %-----------------------------------------------------------------
+\usepackage{csquotes}
 
 \begin{document}
 
@@ -168,7 +170,6 @@ rulecolor=\color{shadecolor},}
 \restoregeometry % restores the geometry
 \nopagecolor% Use this to restore the color pages to white
 
-
 \tableofcontents
 
 \include{introduction/introduction}
@@ -176,15 +177,15 @@ rulecolor=\color{shadecolor},}
 %% \include{processes/processes}
 %% \include{malloc/malloc}
 %% \include{threads/threads}
-\include{synchronization/synchronization}
-%% \include{deadlock/deadlock}
-%\include{scheduling/scheduling}
+%% \include{synchronization/synchronization}
+\include{deadlock/deadlock}
+%% \include{scheduling/scheduling}
 %% \include{ipc/ipc}
-%\include{networking/networking}
-%\include{filesystems/filesystems}
+%% \include{networking/networking}
+\include{filesystems/filesystems}
 %% \include{signals/signals}
 %% \include{review/review}
-\include{appendix/appendix}
+%\include{appendix/appendix}
 
 \printglossaries
 
