@@ -85,6 +85,7 @@ Ignoring deadlock is the most obvious approach that started the chapter out deta
 
 Deadlock detection allows the system to enter a deadlocked state. After entering, the system uses the information that it has to break deadlock. As an example, consider multiple processes accessing files. The operating system is able to keep track of all of the files/resources through file descriptors at some level either abstracted through an API or directly. If the operating system detects a directed cycle in the operating system file descriptor table it may break one process' hold through scheduling for example and let the system proceed. Why this is a popular choice in this realm is that there is no way of knowing which resources a program will select without running the program. This is an extension of Rice's theorem \cite{rice} that says that we cannot know any semantic feature without running the program (semantic meaning like what files it tries to open). So theoretically, it is sound. The problem then gets introduced that we could reach a livelock scenario if we preempt a set of resources again and again. The way around this is mostly probabilistic. The operating system chooses a random resource to break hold and wait. Now even though a user can craft a program where breaking hold and wait on each resource will result in a livelock, this doesn't happen as often on machines that run programs in practice or the livelock that does happen happens for a couple of cycles. These kind of systems are good for products that need to maintain a non-deadlocked state but can tolerate a small chance of livelock for a short period of time. The following proof \textbf{is not required for our 241 related puproses but is included for concreteness}.
 
+\begin{comment}
 \begin{proof} 
 That livelock terminates with high probability. This meaning that for any probability level $l$ we can produce a number of iterations $n$ that the probability that the system is not livelocked after that state is at least $l$.
 
@@ -112,6 +113,7 @@ P(n) >& l \\
 \end{align*}
 We have found the number of steps in the set $E$ and since our set has the property that gaps between non-one elements is finite, we can reconstruct the number of iterations by picking an $n$ that satifies the $E$ criteria and just adding the finite gaps together, which is what we needed to show.
 \end{proof}
+\end{comment}
 
 Deadlock prevention is making sure that deadlock cannot happen, meaning that you break a Coffman condition. This works the best inside a single program and the software engineer making the choice to break a certain coffman condition. Consider the \href{https://en.wikipedia.org/wiki/Banker's_algorithm}{Banker's Algorithm} \cite{Dijkstra:1965:CSP:1102034}. It is another algorithm for deadlock avoidance. The whole implementation is outside the scope of this class, just know that there are more generalized algorithms for operating systems.
 

@@ -1,4 +1,5 @@
-\documentclass[hidelinks,11pt]{book}
+\documentclass[hidelinks,10pt]{book}
+
 
 \usepackage[T1]{fontenc}
 \usepackage{microtype}
@@ -11,9 +12,10 @@
 \usepackage{mdframed}
 \usepackage{setspace}
 \usepackage{mfirstuc}
-\usepackage{comment}
 \usepackage{graphicx,changepage}
 \usepackage{pgffor}
+
+% For development
 \usepackage{comment}
 
 % Make hyperrefs work
@@ -21,6 +23,8 @@
 
 % Set up bibliography
 \usepackage[semicolon,square,sort&compress,sectionbib,numbers]{natbib}
+
+% Chapter by chapter bib
 \usepackage{chapterbib}   
 
 % Set up glossaries
@@ -30,21 +34,18 @@
 
 % Set up source code highlighting
 \usepackage{listings}
-\usepackage[usenames,dvipsnames]{color}
 \lstset{
 basicstyle=\ttfamily,
 columns=flexible,
 breaklines=true
 }
 
-\usepackage{color}
+\usepackage[usenames,dvipsnames]{color}
 \definecolor{greencomments}{rgb}{0,0.5,0}
 \definecolor{redstrings}{rgb}{0.9,0,0}
 \definecolor{mygreen}{rgb}{0,0.6,0}
 \definecolor{mygray}{rgb}{0.5,0.5,0.5}
 \definecolor{mymauve}{rgb}{0.58,0,0.82}
-\usepackage{xcolor}
-
 \definecolor{foreground}{HTML}{4D4D4C}
 \definecolor{background}{HTML}{FFFFFF}
 \definecolor{selection}{HTML}{D6D6D6}
@@ -58,6 +59,7 @@ breaklines=true
 \definecolor{blue}{HTML}{4271AE}
 \definecolor{purple}{HTML}{8959A8}
 \definecolor{window}{HTML}{EFEFEF}
+
 % Has to be name shadecolor
 \definecolor{shadecolor}{HTML}{EEEEEE}
 \usepackage{framed}
@@ -173,19 +175,19 @@ rulecolor=\color{shadecolor},}
 \tableofcontents
 
 \include{introduction/introduction}
-%% \include{introc/introc}
-%% \include{processes/processes}
-%% \include{malloc/malloc}
-%% \include{threads/threads}
-%% \include{synchronization/synchronization}
+\include{introc/introc}
+\include{processes/processes}
+\include{malloc/malloc}
+\include{threads/threads}
+\include{synchronization/synchronization}
 \include{deadlock/deadlock}
-%% \include{scheduling/scheduling}
-%% \include{ipc/ipc}
-%% \include{networking/networking}
+\include{scheduling/scheduling}
+\include{ipc/ipc}
+\include{networking/networking}
 \include{filesystems/filesystems}
-%% \include{signals/signals}
-%% \include{review/review}
-%\include{appendix/appendix}
+\include{signals/signals}
+\include{review/review}
+\include{appendix/appendix}
 
 \printglossaries
 

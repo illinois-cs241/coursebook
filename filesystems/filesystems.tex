@@ -2,7 +2,8 @@
 
 \epigraph{TODO}{}
 
-Filesystems are integral to modern computers. Filesystems not only deal with storing local files, they handle special devices that allow for safe communication between the kernel and user space. Filesystems also deal with failures, scalability, indexing, encryption, compression and performance
+Filesystems are integral to modern computers. Filesystems not only deal with storing local files, they handle special devices that allow for safe communication between the kernel and user space. Filesystems also deal with failures, scalability, indexing, encryption, compression and performance. Filesystems handle the abstraction between a file which contains data and how exactly that data is stored on disk, partitioned, and protected.
+
 
 
 \section{Unix Filesystem Conventions}
@@ -21,37 +22,37 @@ In standard unix file systems:
 
 Absolute paths are paths that start from the `root node' of your directory tree. Relative paths are paths that start from your current position in the tree. If you start in your home directory ("~" for short), then \keyword{Desktop/cs241} would be a relative path. Its absolute path counterpart might be something like \keyword{/Users/[yourname]/Desktop/cs241}.
 
-\subsection{\texorpdfstring{How do I simplify \texttt{a/b/../c/./}?}{How do I simplify a/b/../c/./?}}\label{how-do-i-simplify-ab..c.}
-
 Paths are continually getting simplified too it is possible to have a path called \texttt{a/b/../c/./} and you can ask the filesystem to compress the path or get the realpath. To simplify by hand remember that \keyword{..} means `parent folder' and that \keyword{.} means `current folder'.
 
 \begin{enumerate}
   \item \keyword{cd a} (in a) 
-  Step 2: \keyword{cd b} (in a/b)
-  Step 3: \keyword{cd ..} (in a, because .. represents `parent folder')
-  Step 4: \keyword{cd c} (in a/c)
-  Step 5: \keyword{cd .} (in a/c, because . represents `current folder')
+  \item \keyword{cd b} (in a/b)
+  \item \keyword{cd ..} (in a, because .. represents `parent folder')
+  \item \keyword{cd c} (in a/c)
+  \item \keyword{cd .} (in a/c, because . represents `current folder')
 \end{enumerate}
 
 Thus, this path can be simplified to \keyword{a/c}.
 
-\section{So what's a File System?}\label{so-whats-a-file-system}
-
-A filesystem is how information is organized on disk. Whenever you want to access a file, the filesystem dictates how the file is read. Here is a sample image of a filesystem.
-
 \begin{figure}[htbp]
 \centering
-\includegraphics{http://tinf2.vub.ac.be/~dvermeir/manual/uintro/disk.gif}
+\includegraphics[width=.8\textwidth]{filesystems/images/disk.gif}
 \caption{}
 \end{figure}
 
-Whoa that's a lot let's break it down * Superblock: This block contains metadata about the filesystem, how large, last modified time, a journal, number of inodes and the first inode start, number of data block and the first data block start. * Inode: This is the the key abstraction. An inode is a file. * Disk Blocks: These are where the data is stored. The actual contents of the file
+Whoa that's a lot let's break it down 
+
+\begin{enumerate}
+\item Superblock: This block contains metadata about the filesystem, how large, last modified time, a journal, number of inodes and the first inode start, number of data block and the first data block start. 
+\item Inode: This is the the key abstraction. An inode is a file. 
+\item Disk Blocks: These are where the data is stored. The actual contents of the file
+\end{enumerate}
 
 \subsection{How does inode store the file contents?}\label{how-does-inode-store-the-file-contents}
 
 \begin{figure}[htbp]
 \centering
-\includegraphics{https://classes.soe.ucsc.edu/cmps111/Fall08/inode_with_signatures.jpg}
+\includegraphics[width=.8\textwidth]{filesystems/images/inode_with_signatures.jpg}
 \caption{}
 \end{figure}
 
@@ -66,6 +67,8 @@ To read the first few bytes of the file, follow the first direct block pointer t
 \begin{quote}
 ``All problems in computer science can be solved by another level of indirection.'' - David Wheeler
 \end{quote}
+
+Except the problem of too many layers of indirection.
 
 \subsection{Why make disk blocks the same size as memory pages?}\label{why-make-disk-blocks-the-same-size-as-memory-pages}
 
@@ -93,17 +96,25 @@ To support virtual memory, so we can page stuff in and out of memory.
 
 \subsection{What are the traditional permissions: user -- group -- other permissions for a file?}\label{what-are-the-traditional-permissions-user-group-other-permissions-for-a-file}
 
-Some common file permissions include: * 755: \keyword{rwx r-x r-x}
+Some common file permissions include: 
+
+\begin{enumerate}
+
+\item 755: \keyword{rwx r-x r-x}
 
 user: \keyword{rwx}, group: \keyword{r-x}, others: \keyword{r-x}
 
-User can read, write and execute. Group and others can only read and execute. * 644: \keyword{rw- r-- r--}
+User can read, write and execute. Group and others can only read and execute. 
+
+\item 644: \keyword{rw- r-- r--}
 
 user: \keyword{rw-}, group: \keyword{r--}, others: \keyword{r--}
 
 User can read and write. Group and others can only read.
 
-\subsection{What are the the 3 permission bits for a regular file for each role?}\label{what-are-the-the-3-permission-bits-for-a-regular-file-for-each-role}
+\end{enumerate}
+
+\subsection{What are the the 3 permission bits for a regular file for each role?}
 
 \begin{itemize}
 \tightlist
@@ -115,13 +126,6 @@ User can read and write. Group and others can only read.
   Execute (least significant bit)
 \end{itemize}
 
-\subsection{\texorpdfstring{What do ``644'' ``755'' mean?}{What do 644 755 mean?}}\label{what-do-644-755-mean}
-
-These are examples of permissions in octal format (base 8). Each octal digit corresponds to a different role (user, group, world).
-
-We can read permissions in octal format as follows:\\
-* 644 - R/W user permissions, R group permissions, R world permissions\\
-* 755 - R/W/X user permissions, R/X group permissions, R/X world permissions
 
 \subsection{How many pointers can you store in each indirection table?}\label{how-many-pointers-can-you-store-in-each-indirection-table}
 
@@ -145,7 +149,10 @@ A directory is just a mapping of names to inode numbers. POSIX provides a small 
 
 Let's think about what it looks like in the actual file system. Theoretically, directories are just like actual files. The disk blocks will contain \emph{directory entries} or \emph{dirents}. What that means is that our disk block can look like this
 
-\textbar{} inode\_num \textbar{} name \textbar{} \textbar{}-----------\textbar{}------\textbar{} \textbar{} 2043567 \textbar{} hi.txt \textbar{} \ldots{}
+\begin{lstlisting}
+| inode_num | name   | | ----------- | ------ | 
+| 2043567   | hi.txt | | ... |
+\end{lstlisting}
 
 Each directory entry could either be a fixed size, or a variable c-string. It depends on how the particular filesystem implements it at the lower level.
 
@@ -165,52 +172,50 @@ From C, call one of the stat functions (introduced below).
 Use the stat calls. For example, to find out when my `notes.txt' file was last accessed -
 
 \begin{lstlisting}[language=C]
-   struct stat s;
-   stat("notes.txt", &s);
-   printf("Last accessed %s", ctime(&s.st_atime));
+struct stat s;
+stat("notes.txt", &s);
+printf("Last accessed %s", ctime(&s.st_atime));
 \end{lstlisting}
 
 There are actually three versions of \keyword{stat};
 
 \begin{lstlisting}[language=C]
-       int stat(const char *path, struct stat *buf);
-       int fstat(int fd, struct stat *buf);
-       int lstat(const char *path, struct stat *buf);
+int stat(const char *path, struct stat *buf);
+int fstat(int fd, struct stat *buf);
+int lstat(const char *path, struct stat *buf);
 \end{lstlisting}
 
 For example you can use \keyword{fstat} to find out the meta-information about a file if you already have an file descriptor associated with that file
 
 \begin{lstlisting}[language=C]
-   FILE *file = fopen("notes.txt", "r");
-   int fd = fileno(file); /* Just for fun - extract the file descriptor from a C FILE struct */
-   struct stat s;
-   fstat(fd, & s);
-   printf("Last accessed %s", ctime(&s.st_atime));
+FILE *file = fopen("notes.txt", "r");
+int fd = fileno(file); /* Just for fun - extract the file descriptor from a C FILE struct */
+struct stat s;
+fstat(fd, & s);
+printf("Last accessed %s", ctime(&s.st_atime));
 \end{lstlisting}
 
-The third call `lstat' we will discuss when we introduce symbolic links.
-
-In addition to access,creation, and modified times, the stat structure includes the inode number, length of the file and owner information.
+The third call `lstat' we will discuss when we introduce symbolic links. In addition to access, creation, and modified times, the stat structure includes the inode number, length of the file and owner information.
 
 \begin{lstlisting}[language=C]
 struct stat {
-               dev_t     st_dev;     /* ID of device containing file */
-               ino_t     st_ino;     /* inode number */
-               mode_t    st_mode;    /* protection */
-               nlink_t   st_nlink;   /* number of hard links */
-               uid_t     st_uid;     /* user ID of owner */
-               gid_t     st_gid;     /* group ID of owner */
-               dev_t     st_rdev;    /* device ID (if special file) */
-               off_t     st_size;    /* total size, in bytes */
-               blksize_t st_blksize; /* blocksize for file system I/O */
-               blkcnt_t  st_blocks;  /* number of 512B blocks allocated */
-               time_t    st_atime;   /* time of last access */
-               time_t    st_mtime;   /* time of last modification */
-               time_t    st_ctime;   /* time of last status change */
-           };
+   dev_t     st_dev;     /* ID of device containing file */
+   ino_t     st_ino;     /* inode number */
+   mode_t    st_mode;    /* protection */
+   nlink_t   st_nlink;   /* number of hard links */
+   uid_t     st_uid;     /* user ID of owner */
+   gid_t     st_gid;     /* group ID of owner */
+   dev_t     st_rdev;    /* device ID (if special file) */
+   off_t     st_size;    /* total size, in bytes */
+   blksize_t st_blksize; /* blocksize for file system I/O */
+   blkcnt_t  st_blocks;  /* number of 512B blocks allocated */
+   time_t    st_atime;   /* time of last access */
+   time_t    st_mtime;   /* time of last modification */
+   time_t    st_ctime;   /* time of last status change */
+};
 \end{lstlisting}
 
-\subsection{How do I list the contents of a directory ?}\label{how-do-i-list-the-contents-of-a-directory}
+\subsection{How do I list the contents of a directory?}
 
 Let's write our own version of `ls' to list the contents of a directory.
 
@@ -234,9 +239,9 @@ int main(int argc, char **argv) {
 }
 \end{lstlisting}
 
-\subsection{How do I read the contents of a directory?}\label{how-do-i-read-the-contents-of-a-directory}
+\subsection{How do I read the contents of a directory?}
 
-Ans: Use opendir readdir closedir For example, here's a very simple implementation of `ls' to list the contents of a directory.
+Use opendir readdir closedir For example, here's a very simple implementation of `ls' to list the contents of a directory.
 
 \begin{lstlisting}[language=C]
 #include <stdio.h>
@@ -260,7 +265,7 @@ int main(int argc, char **argv) {
 
 Note: after a call to fork(), either (XOR) the parent or the child can use readdir(), rewinddir() or seekdir(). If both the parent and the child use the above, behavior is undefined.
 
-\subsection{How do I check to see if a file is in the current directory?}\label{how-do-i-check-to-see-if-a-file-is-in-the-current-directory}
+\subsection{How do I check to see if a file is in the current directory?}
 
 For example, to see if a particular directory includes a file (or filename) `name', we might write the following code. (Hint: Can you spot the bug?)
 
@@ -283,21 +288,21 @@ The above code has a subtle bug: It leaks resources! If a matching filename is f
 
 The fix is to ensure we free up resources in every possible code-path. In the above code this means calling \keyword{closedir} before \keyword{return 1}. Forgetting to release resources is a common C programming bug because there is no support in the C lanaguage to ensure resources are always released with all codepaths.
 
-\subsection{What are the gotcha's of using readdir? For example to recursively search directories?}\label{what-are-the-gotchas-of-using-readdir-for-example-to-recursively-search-directories}
+\subsection{What are the gotcha's of using readdir? For example to recursively search directories?}
 
 There are two main gotchas and one consideration: The \keyword{readdir} function returns ``.'' (current directory) and ``..'' (parent directory). If you are looking for sub-directories, you need to explicitly exclude these directories.
 
 For many applications it's reasonable to check the current directory first before recursively searching sub-directories. This can be achieved by storing the results in a linked list, or resetting the directory struct to restart from the beginning.
 
-One final note of caution: \keyword{readdir} is not thread-safe! For multi-threaded searches use \keyword{readdir_r} which requires the caller to pass in the address of an existing dirent struct.
+One final note of caution: \keyword{readdir} is not thread-safe! For multi-threaded searches use \keyword{readdir\_r} which requires the caller to pass in the address of an existing dirent struct.
 
 See the man page of readdir for more details.
 
 \subsection{How do I determine if a directory entry is a directory?}\label{how-do-i-determine-if-a-directory-entry-is-a-directory}
 
-Ans: Use \keyword{S_ISDIR} to check the mode bits stored in the stat structure
+Ans: Use \keyword{S\_ISDIR} to check the mode bits stored in the stat structure
 
-And to check if a file is regular file use \keyword{S_ISREG},
+And to check if a file is regular file use \keyword{S\_ISREG},
 
 \begin{lstlisting}[language=C]
    struct stat s;
@@ -352,11 +357,11 @@ For simplicity the above examples made hard links inside the same directory howe
 
 When you remove a file (using \keyword{rm} or \keyword{unlink}) you are removing an inode reference from a directory. However the inode may still be referenced from other directories. In order to determine if the contents of the file are still required, each inode keeps a reference count that is updated whenever a new link is created or destroyed.
 
-\subsection{Case study: Back up software that minimizes file duplication}\label{case-study-back-up-software-that-minimizes-file-duplication}
+\subsection{Case study: Back up software that minimizes file duplication}
 
 An example use of hard-links is to efficiently create multiple archives of a file system at different points in time. Once the archive area has a copy of a particular file, then future archives can re-use these archive files rather than creating a duplicate file. Apple's ``Time Machine'' software does this.
 
-\subsection{Can I create hard links to directories as well as regular files?}\label{can-i-create-hard-links-to-directories-as-well-as-regular-files}
+\subsection{Can I create hard links to directories as well as regular files?}
 
 No. Well yes. Not really\ldots{} Actually you didn't really want to do this, did you? The POSIX standard says no you may not! The \keyword{ln} command will only allow root to do this and only if you provide the \keyword{-d} option. However even root may not be able to perform this because most filesystems prevent it!
 
@@ -400,7 +405,7 @@ The file has an owner. If your process has the same user id as the owner (or roo
 
 Use \keyword{chmod} (short for ``change the file mode bits'')
 
-There is a system call, \keyword{int chmod(const char *path, mode_t mode);} but we will concentrate on the shell command. There's two common ways to use \keyword{chmod} ; with an octal value or with a symbolic string:
+There is a system call, \keyword{int chmod(const char *path, mode\_t mode);} but we will concentrate on the shell command. There's two common ways to use \keyword{chmod} ; with an octal value or with a symbolic string:
 
 \begin{lstlisting}
 $ chmod 644 file1
@@ -412,11 +417,27 @@ $ chmod o-rx file4
 
 The base-8 (`octal') digits describe the permissions for each role: The user who owns the file, the group and everyone else. The octal number is the sum of three values given to the three types of permission: read(4), write(2), execute(1)
 
-Example: chmod 755 myfile * r + w + x = digit * user has 4+2+1, full permission * group has 4+0+1, read and execute permission * all users have 4+0+1, read and execute permission
+Example: chmod 755 myfile 
+
+\begin{enumerate}
+\item r + w + x = digit * user has 4+2+1, full permission 
+\item group has 4+0+1, read and execute permission 
+\item all users have 4+0+1, read and execute permission
+\end{enumerate}
 
 \subsection{How do I read the permission string from ls?}\label{how-do-i-read-the-permission-string-from-ls}
 
-Use `ls -l'. Note that the permissions will output in the format `drwxrwxrwx'. The first character indicates the type of file type. Possible values for the first character: * (-) regular file * (d) directory * (c) character device file * (l) symbolic link * (p) pipe * (b) block device * (s) socket
+Use `ls -l'. Note that the permissions will output in the format `drwxrwxrwx'. The first character indicates the type of file type. Possible values for the first character: 
+
+\begin{enumerate}
+\item (-) regular file 
+\item (d) directory 
+\item (c) character device file 
+\item (l) symbolic link 
+\item (p) pipe 
+\item (b) block device 
+\item (s) socket
+\end{enumerate}
 
 \subsection{What is sudo?}\label{what-is-sudo}
 
@@ -433,7 +454,7 @@ Use \keyword{chown username filename}
 
 \subsection{How do I set permissions from code?}\label{how-do-i-set-permissions-from-code}
 
-\keyword{chmod(const char *path, mode_t mode);}
+\keyword{chmod(const char *path, mode\_t mode);}
 
 \subsection{\texorpdfstring{Why are some files `setuid'? What does this mean?}{Why are some files setuid? What does this mean?}}\label{why-are-some-files-setuid-what-does-this-mean}
 
@@ -474,7 +495,7 @@ The `s' bit means execute and set-uid; the effective userid of the process will 
 
 \subsection{How do I find out if file (an inode) is a regular file or directory?}\label{how-do-i-find-out-if-file-an-inode-is-a-regular-file-or-directory}
 
-Use the \keyword{S_ISDIR} macro to check the mode bits in the stat struct:
+Use the \keyword{S\_ISDIR} macro to check the mode bits in the stat struct:
 
 \begin{lstlisting}[language=C]
 struct stat s;
@@ -673,7 +694,7 @@ open("myfile", O_CREAT, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOT
 If umask is octal 022, then the permissions of the created file will be 0666 \& \textasciitilde{}022 ie.
 
 \begin{lstlisting}[language=C]
-           S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH
+S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH
 \end{lstlisting}
 
 \subsection{How can I copy bytes from one file to another?}\label{how-can-i-copy-bytes-from-one-file-to-another}
@@ -764,9 +785,9 @@ none on /proc/sys/fs/binfmt_misc type binfmt_misc (rw)
 
 \subsection{Differences between random and urandom?}\label{differences-between-random-and-urandom}
 
-/dev/random is a file which contains number generator where the entropy is determined from environmental noise. Random will block/wait until enough entropy is collected from the environment.
+\keyword{/dev/random} is a file which contains number generator where the entropy is determined from environmental noise. Random will block/wait until enough entropy is collected from the environment.
 
-/dev/urandom is like random, but differs in the fact that it allows for repetition (lower entropy threshold), thus wont block.
+\keyword{/dev/urandom} is like random, but differs in the fact that it allows for repetition (lower entropy threshold), thus wont block.
 
 \subsection{Other Filesystems}\label{other-filesystems}
 
@@ -797,10 +818,10 @@ $ mount | grep proc
 
 \subsection{How do I mount a disk image?}\label{how-do-i-mount-a-disk-image}
 
-Suppose you had downloaded a bootable linux disk image\ldots{}
+Suppose you had downloaded a bootable linux disk image from the \href{http://cosmos.cites.illinois.edu/pub/archlinux/iso/2015.04.01/archlinux-2015.04.01-dual.iso}{URL}
 
 \begin{lstlisting}
-wget http://cosmos.cites.illinois.edu/pub/archlinux/iso/2015.04.01/archlinux-2015.04.01-dual.iso
+wget $URL
 \end{lstlisting}
 
 Before putting the filesystem on a CD, we can mount the file as a filesystem and explore its contents. Note, mount requires root access, so let's run it using sudo
@@ -827,15 +848,21 @@ $ touch arch/nocando
 touch: cannot touch `/home/demo/arch/nocando': Read-only file system
 \end{lstlisting}
 
-\subsection{How does the operating system load my process and libraries into memory?}\label{how-does-the-operating-system-load-my-process-and-libraries-into-memory}
+\subsection{How does the operating system load my process and libraries into memory?}
 
-By mapping the files' contents into the address-space of the process. If many programs only need read-access to the same file (e.g. /bin/bash, the C library) then the same physical memory can be shared between multiple processes.
+By mapping the files' contents into the address-space of the process. If many programs only need read-access to the same file (e.g. \keyword{/bin/bash}, the C library) then the same physical memory can be shared between multiple processes.
 
 The same mechanism can be used by programs to directly map files into memory
 
 \subsection{How do I map a file into memory?}\label{how-do-i-map-a-file-into-memory}
 
-A simple program to map a file into memory is shown below. The key points to notice are: * mmap requires a filedescriptor, so we need to \keyword{open} the file first * We seek to our desired size and write one byte to ensure that the file is sufficient length * When finished call munmap to unmap the file from memory.
+A simple program to map a file into memory is shown below. The key points to notice are: 
+
+\begin{enumerate}
+\item \keyword{mmap} requires a filedescriptor, so we need to \keyword{open} the file first 
+\item We seek to our desired size and write one byte to ensure that the file is sufficient length 
+\item When finished call munmap to unmap the file from memory.
+\end{enumerate}
 
 This example also shows the preprocessor constants ``\textbf{LINE}'' and ``\textbf{FILE}'' that hold the current line number and filename of the file currently being compiled.
 
@@ -892,7 +919,7 @@ $ hexdump data
 
 The careful reader may notice that our integers were written in least-significant-byte format (because that is the endianess of the CPU) and that we allocated a file that is one byte too many!
 
-The \keyword{PROT_READ | PROT_WRITE} options specify the virtual memory protection. The option \keyword{PROT_EXEC} (not used here) can be set to allow CPU execution of instructions in memory (e.g.~this would be useful if you mapped an executable or library).
+The \keyword{PROT\_READ | PROT\_WRITE} options specify the virtual memory protection. The option \keyword{PROT\_EXEC} (not used here) can be set to allow CPU execution of instructions in memory (e.g.~this would be useful if you mapped an executable or library).
 
 \subsection{What are the advantages of memory mapping a file}\label{what-are-the-advantages-of-memory-mapping-a-file}
 
@@ -900,11 +927,11 @@ For many applications the main advantages are:\\
 Simplified coding - the file data is immediately available. No need to parse the incoming data and store it in new memory structures.\\
 Sharing of files - memory mapped files are particularly efficient when the same data is shared between multiple processes.
 
-Note for simple sequential processing memory mapped files are not necessarily faster than standard `stream-based' approaches of \keyword{read} / fscanf etc.
+Note for simple sequential processing memory mapped files are not necessarily faster than standard `stream-based' approaches of \keyword{read} / \keyword{fscanf} etc.
 
 \subsection{How do I share memory between a parent and child process?}\label{how-do-i-share-memory-between-a-parent-and-child-process}
 
-Easy - Use \keyword{mmap} without a file - just specify the MAP\_ANONYMOUS and MAP\_SHARED options!
+Easy - Use \keyword{mmap} without a file - just specify the \keyword{MAP\_ANONYMOUS} and \keyword{MAP\_SHARED} options!
 
 \begin{lstlisting}[language=C]
 #include <stdio.h>
@@ -986,7 +1013,7 @@ RAID-3 uses parity codes instead of mirroring the data. For each N-bits written 
 
 \begin{figure}[htbp]
 \centering
-\includegraphics{http://devnull.typepad.com/.a/6a00e551c39e1c88340133ed18ed66970b-pi}
+\includegraphics{filesystems/images/raid.gif}
 \caption{}
 \end{figure}
 
@@ -1016,7 +1043,7 @@ RAID-5 is similar to RAID-3 except that the check block (parity information) is 
 
 \begin{figure}[htbp]
 \centering
-\includegraphics{http://www.seagate.com/files/www-content/manuals/business-storage-nas-os-manual/_shared/images/118a_ill_raid_5.png}
+\includegraphics[width=.8\textwidth]{filesystems/images/raid_5.png}
 \caption{}
 \end{figure}
 
@@ -1028,9 +1055,9 @@ Solutions Simple redundancy (2 or 3 copies of each file) e.g., Google GFS (2001)
 
 \subsection{Under construction}\label{under-construction}
 
-\subsection{Please can you explain a simple model of how the file's content is stored in a simple i-node based filesystem?}\label{please-can-you-explain-a-simple-model-of-how-the-files-content-is-stored-in-a-simple-i-node-based-filesystem}
+\subsection{Please can you explain a simple model of how the file's content is stored in a simple i-node based filesystem?}
 
-Sure! To answer this question, we'll build a virtual disk and then write some C code to access its contents. Our filesystem will divide the bytes available into space for inodes and a much larger space for disk blocks. Each disk block will be 4096 bytes-
+Sure! To answer this question, we'll build a virtual disk and then write some C code to access its contents. Our filesystem will divide the bytes available into space for inodes and a much larger space for disk blocks. Each disk block will be 4096 bytes.
 
 \begin{lstlisting}[language=C]
 // Disk size:
@@ -1123,15 +1150,7 @@ int lookup_physical_block_index(inode*inode, int block_count) {
 
 For a typical filesystem, our index values are 32 bits i.e.~4bytes. Thus in 4096 bytes we can store 4096 / 4 = 1024 entries. This means our indirect block can refer to 1024 * 4KB = 4MB of data. With the first ten direct blocks, we can therefore accommodate files up to 40KB + 1024 * 4KB= 4136KB . Some of the later table entries can be invalid for files that are smaller than this.
 
-For even larger files, we could use two indirect blocks. However there's a better alternative, that will allow us to efficiently scale up to huge files. We will include a double-indirect pointer and if that's not enough a triple indirect pointer. The double indirect pointer means we have a table of 1024 entries to disk blocks that are used as 1024 entries. This means we can refer to 1024*1024 disk blocks of data.
-
-\begin{figure}[htbp]
-\centering
-\includegraphics{http://uw714doc.sco.com/en/FS_admin/graphics/s5chain.gif}
-\caption{inode disk blocks for data}
-\end{figure}
-
-(source: http://uw714doc.sco.com/en/FS\_admin/graphics/s5chain.gif)
+For even larger files, we could use two indirect blocks. However there's a better alternative, that will allow us to efficiently scale up to huge files. We will include a double-indirect pointer and if that's not enough a triple indirect pointer. The double indirect pointer means we have a table of 1024 entries to disk blocks that are used as 1024 entries. This means we can refer to 1024*1024 disk blocks of data. \href{http://uw714doc.sco.com/en/FS\_admin/graphics/s5chain.gif}{Here is a link}
 
 \begin{lstlisting}[language=C]
 int lookup_physical_block_index(inode*inode, int block_count) {
@@ -1214,4 +1233,4 @@ Notice that reading a byte using double indirect requires 3 disk block reads (tw
 \end{itemize}
 
 \bibliographystyle{plainnat}
-\bibliography{filesystems/filesystem}
+\bibliography{filesystems/filesystems}
