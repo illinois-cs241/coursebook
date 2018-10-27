@@ -5,10 +5,10 @@ language: generic
 branches:
     only:
     - /.*/
-before_install:
-    - sudo apt-get update
-install:
-    - sudo apt-get install -y texlive-full
+addons:
+    apt:
+        packages:
+            - texlive-full
 script:
     - latexmk
     - git checkout -b deploy
