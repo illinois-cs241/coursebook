@@ -1,5 +1,4 @@
-# We need xenial otherwise we will get an ssl error with tornado install
-dist: xenial
+dist: trusty
 sudo: required
 language: generic
 branches:
