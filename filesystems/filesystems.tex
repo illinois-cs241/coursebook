@@ -2,37 +2,47 @@
 
 \epigraph{TODO}{}
 
-Filesystems are integral to modern computers. Filesystems not only deal with storing local files, they handle special devices that allow for safe communication between the kernel and user space. Filesystems also deal with failures, scalability, indexing, encryption, compression and performance. Filesystems handle the abstraction between a file which contains data and how exactly that data is stored on disk, partitioned, and protected.
+\section{What is a filesystem?}
 
+You may have encountered the old unix adage, "everything is a file". In most UNIX systems, files operations provide an interface to abstract many different operations. Network sockets, hardware devices and even data on disk are all represented by a file-like object.
 
+A file-like object must follow certain conventions:
 
-\section{Unix Filesystem Conventions}
+\begin{enumerate}
+  \item It must present it self to the filesystem
+  \item It must support common filesystem operations, such as \keyword{open}, \keyword{read}, \keyword{write}
+\end{enumerate}
 
-In standard unix file systems: 
+A filesystem is an implementation of the file interface. In this chapter, we will be exploring the various callbacks a filesystem provides and some typical functionality or implementation details associated with this. In this class, we will mostly talk about filesystems that serve to allow users to access data on disk. These filesystems are integral to modern computers. Filesystems not only deal with storing local files, they handle special devices that allow for safe communication between the kernel and user space. Filesystems also deal with failures, scalability, indexing, encryption, compression and performance. Filesystems handle the abstraction between a file which contains data and how exactly that data is stored on disk, partitioned, and protected.
+
+Although filesystems are usually thought of as a kind of tree, most filesystems are usually a directed graph, a model we will explore in depth later in this chapter.
+
+\section{Examples of filesystems}
+
+Before we dive into the details of a filesystem, let's take a look at some examples.
 
 \begin{enumerate}
 
-\item \keyword{.} represents the current directory
-\item \keyword{..} represents the parent directory
-\item \keyword{...} is NOT a valid representation of any directory (this not the grandparent directory). It \emph{could} however be the name of a file on disk.
-\item \keyword{~} is the name of the home directory usually
+  \item \keyword{ext4} Usually mounted at /, this is the filesystem that usually provides disk access as you're used to.
+  \item \keyword{procfs} Usually mounted at /proc, provides information and control over processes.
+  \item \keyword{sysfs} Usually mounted at /sys, a more mordern version of /proc that also allows control over various other hardware such as network sockets.
+  \item \keyword{tmpfs} Mounted at /tmp in some systems, an in-memory filesystem to hold temporary files.
+  \item \keyword{sshfs} A filesystem that syncs files across the ssh protocol.
+
 \end{enumerate}
 
-\subsection{Pathing}
+As you may have noticed, some of these filesystems provide an interface to things that aren't a "file" as you might colloquially refer to them. Filesystems such as \keyword{procfs} are usually refered to as  \emph{virtual} filesystems, since they don't provide data access in the same sense as a traditional filesystem would.
 
-Absolute paths are paths that start from the `root node' of your directory tree. Relative paths are paths that start from your current position in the tree. If you start in your home directory ("~" for short), then \keyword{Desktop/cs241} would be a relative path. Its absolute path counterpart might be something like \keyword{/Users/[yourname]/Desktop/cs241}.
+\section{Storing data on disk}
 
-Paths are continually getting simplified too it is possible to have a path called \texttt{a/b/../c/./} and you can ask the filesystem to compress the path or get the realpath. To simplify by hand remember that \keyword{..} means `parent folder' and that \keyword{.} means `current folder'.
-
+In order to understand how a filesystem interacts with data on disk, there are three key terms we will be using.
 \begin{enumerate}
-  \item \keyword{cd a} (in a) 
-  \item \keyword{cd b} (in a/b)
-  \item \keyword{cd ..} (in a, because .. represents `parent folder')
-  \item \keyword{cd c} (in a/c)
-  \item \keyword{cd .} (in a/c, because . represents `current folder')
-\end{enumerate}
+  \item \keyword{disk block}
+  \item \keyword{superblock}
+  \item \keyword{inode}
+\end {enumerate}
 
-Thus, this path can be simplified to \keyword{a/c}.
+These structures all are presented in the diagram below.
 
 \begin{figure}[htbp]
 \centering
@@ -40,15 +50,27 @@ Thus, this path can be simplified to \keyword{a/c}.
 \caption{}
 \end{figure}
 
-Whoa that's a lot let's break it down 
+It may seem overwhelming, but by the end of this chapter, we will be able to make sense of every part of the filesystem.
 
-\begin{enumerate}
-\item Superblock: This block contains metadata about the filesystem, how large, last modified time, a journal, number of inodes and the first inode start, number of data block and the first data block start. 
-\item Inode: This is the the key abstraction. An inode is a file. 
-\item Disk Blocks: These are where the data is stored. The actual contents of the file
-\end{enumerate}
+In order to reason about data on some form of storage (spinning disks, solid state drives, magnetic tape, etc.), it is common practice to first consider the medium of storage as a collection of \emph{blocks}. A block can be thought of as a continguous region on disk, and while it's size is sometimes determined by some property of the underlying hardware, it is more frequently determined based off of the size of a page of memory for a given system, so that data from the disk can be cached in memory for faster access - a very important feature of many filesystems.
 
-\subsection{How does inode store the file contents?}\label{how-does-inode-store-the-file-contents}
+Usually, a filesystem has a special block denoted as a \emph{superblock} which stores metadata about the filesystem such as a journal (which logs changes to the filesystem), a table of inodes and where the first inode is stored on disk, etc. The important thing about a superblock is that it is in a known location on disk.
+
+
+The inode is the most important structure for our filesystem as it represents a file. Before we explore it in depth, let's list out the key information we need to have a usable file:
+
+\begin{itemize}
+\tightlist
+  \item Filename
+  \item File size
+  \item Time created, last modified, last accessed
+  \item Permissions
+  \item Filepath
+  \item Checksum
+  \item File data
+\end{itemize}
+
+\subsection{How does an inode store file contents?}\label{how-does-an-inode-store-file-contents}
 
 \begin{figure}[htbp]
 \centering
@@ -62,7 +84,15 @@ From \href{http://en.wikipedia.org/wiki/Inode}{Wikipedia}:
 \emph{In a Unix-style file system, an index node, informally referred to as an inode, is a data structure used to represent a filesystem object, which can be one of various things including a file or a directory. Each inode stores the attributes and disk block location(s) of the filesystem object's data. Filesystem object attributes may include manipulation metadata (e.g.~change, access, modify time), as well as owner and permission data (e.g.~group-id, user-id, permissions).}
 \end{quote}
 
-To read the first few bytes of the file, follow the first direct block pointer to the first direct block and read the first few bytes, writing is the same process. If you want to read the entire file, keep reading direct blocks until your size runs out (we will talk about indirect blocks in a bit)
+Typically, the superblock stores an array of inodes, each of which stores direct, and potentially several kinds of indirect pointers to disk blocks. Since inodes are stored in the superblock, most filesystems have a limit on how many inodes can exist. Since each inode corresponds to a file, this is also a limit on how many files that filesystem can have. Trying to overcome this problem by storing inodes in some other location greatly increases the complexity of the filesystem. Trying to reallocate space for the inode table is also infeasible since every byte following the end of the inode array would have to be shifted, a highly expensive operation. This isn't to say there aren't any solutions at all, although typically there is no need to increase the number of inodes since the number of inodes is usually sufficiently high.
+
+Big idea: Forget names of files: The `inode' is the file.
+
+    It is common to think of the file name as the `actual' file. It's not! Instead consider the inode as the file. The inode holds the meta-information (last accessed, ownership, size) and points to the disk blocks used to hold the file contents. However, the inode does not usually store a filename. Filenames are usually only stored in directories. (see below)
+
+For example, to read the first few bytes of the file, follow the first direct block pointer to the first direct block and read the first few bytes. Writing follows the same process. If you want to read the entire file, keep reading direct blocks until you've read a number of bytes equal to the size of the file. If the total size of the file is less than that of the number of direct blocks multiplied by the size of a block, then unsued block pointers will be undefined. Similarly, if the size of a file is not a multiple of the size of a block, data past the end of the last byte in the last block will be garbage.
+
+What if a file is bigger than the maximum space addressable by it's direct blocks?
 
 \begin{quote}
 ``All problems in computer science can be solved by another level of indirection.'' - David Wheeler
@@ -70,62 +100,7 @@ To read the first few bytes of the file, follow the first direct block pointer t
 
 Except the problem of too many layers of indirection.
 
-\subsection{Why make disk blocks the same size as memory pages?}\label{why-make-disk-blocks-the-same-size-as-memory-pages}
-
-To support virtual memory, so we can page stuff in and out of memory.
-
-\subsection{What information do we want to store for each file?}\label{what-information-do-we-want-to-store-for-each-file}
-
-\begin{itemize}
-\tightlist
-\item
-  Filename
-\item
-  File size
-\item
-  Time created, last modified, last accessed
-\item
-  Permissions
-\item
-  Filepath
-\item
-  Checksum
-\item
-  File data (inode)
-\end{itemize}
-
-\subsection{What are the traditional permissions: user -- group -- other permissions for a file?}\label{what-are-the-traditional-permissions-user-group-other-permissions-for-a-file}
-
-Some common file permissions include: 
-
-\begin{enumerate}
-
-\item 755: \keyword{rwx r-x r-x}
-
-user: \keyword{rwx}, group: \keyword{r-x}, others: \keyword{r-x}
-
-User can read, write and execute. Group and others can only read and execute. 
-
-\item 644: \keyword{rw- r-- r--}
-
-user: \keyword{rw-}, group: \keyword{r--}, others: \keyword{r--}
-
-User can read and write. Group and others can only read.
-
-\end{enumerate}
-
-\subsection{What are the the 3 permission bits for a regular file for each role?}
-
-\begin{itemize}
-\tightlist
-\item
-  Read (most significant bit)\\
-\item
-  Write (2nd bit)\\
-\item
-  Execute (least significant bit)
-\end{itemize}
-
+To solve this problem, we introduce the indirect blocks. An indirect block is a block that store pointers to more data blocks. Similarly a double indirect block stores pointers to indirect blocks and the concept can be generalized to arbitrary levels of indirection. This is a very important concept, since as inodes are stored in the superblock, or some other strucutre in a well known location with a constant amount of space, indirection allows exponential increases in the amount of space an inode can keep track of.
 
 \subsection{How many pointers can you store in each indirection table?}\label{how-many-pointers-can-you-store-in-each-indirection-table}
 
@@ -139,37 +114,227 @@ For the same disk configuration, a double indirect block stores 1024 pointers to
 
 Similarly, a triple indirect block can refer up to 4TB of data.
 
-Big idea: Forget names of files: The `inode' is the file.
-
-It is common to think of the file name as the `actual' file. It's not! Instead consider the inode as the file. The inode holds the meta-information (last accessed, ownership, size) and points to the disk blocks used to hold the file contents.
-
 \subsection{So\ldots{} How do we implement a directory?}\label{so-how-do-we-implement-a-directory}
 
-A directory is just a mapping of names to inode numbers. POSIX provides a small set of functions to read the filename and inode number for each entry (see below)
+A directory is just a mapping of names to inode numbers. It's typically just a normal file, but with some special bits set in its inode and a very specific structure for its contents. POSIX provides a small set of functions to read the filename and inode number for each entry, which we will talk about in depth later in this chapter.
 
 Let's think about what it looks like in the actual file system. Theoretically, directories are just like actual files. The disk blocks will contain \emph{directory entries} or \emph{dirents}. What that means is that our disk block can look like this
 
 \begin{lstlisting}
-| inode_num | name   | | ----------- | ------ | 
+| inode_num | name   | | ----------- | ------ |
 | 2043567   | hi.txt | | ... |
 \end{lstlisting}
 
-Each directory entry could either be a fixed size, or a variable c-string. It depends on how the particular filesystem implements it at the lower level.
-
-\subsection{How can I find the inode number of a file?}\label{how-can-i-find-the-inode-number-of-a-file}
-
-From a shell, use \keyword{ls} with the \keyword{-i} option
+Each directory entry could either be a fixed size, or a variable c-string. It depends on how the particular filesystem implements it at the lower level. To see a mapping of filenames to inode numbers on a POSIX system, from a shell, use \keyword{ls} with the \keyword{-i} option
 
 \begin{lstlisting}
-$ ls -i
+# ls -i
 12983989 dirlist.c      12984068 sandwich.c
 \end{lstlisting}
 
-From C, call one of the stat functions (introduced below).
+\subsection{Directory conventions}
+In standard unix file systems the following entries are specially added on requests to read a directory.
+
+\begin{enumerate}
+  \item \keyword{.} represents the current directory
+  \item \keyword{..} represents the parent directory
+  \item \keyword{\~} is the name of the home directory usually
+\end{enumerate}
+
+Note that \keyword{...} is NOT a valid representation of any directory (this not the grandparent directory). It \emph{could} however be the name of a file on disk.
+
+Additional facts about name-related conventions:
+\begin{enumerate}
+  \item Files that start with '.' on disk are conventionally considered 'hidden' and will not be listed by programs like \keyword{ls} without additional flags (\keyword{-a}). This is not a feature of the filesystem and programs may choose to ignore this.
+  \item Some files may also start with a null byte. These are usually \emph{abstract unix sockets} and are used to prevent cluttering up the filesystem since they will be effectively hidden by any program not expecting them. They will, however, be listed by tools that detail information about sockets, so this is not a feature providing security.
+\end{enumerate}
+
+\subsection{How do I list the contents of a directory?}
+
+While interacting with a file in C is done by using \keyword{open} to open the file and then \keyword{read} or \keyword{write} to interact with the file before calling \keyword{close} to release resources, directories have special calls such as, \keyword{opendir}, \keyword{closedir} and \keyword{readdir}. There is no function \keyword{writedir} since typically that implies creating a file or link.
+
+To explore these functions, let's write a program to search the contents of a directory for a particular file. (The code below has a bug, try to spot it!)
+
+\begin{lstlisting}[language=C]
+int exists(char *directory, char *name)  {
+    struct dirent *dp;
+    DIR *dirp = opendir(directory);
+    while ((dp = readdir(dirp)) != NULL) {
+        puts(dp->d_name);
+        if (!strcmp(dp->d_name, name)) {
+        return 1; /* Found */
+        }
+    }
+    closedir(dirp);
+    return 0; /* Not Found */
+}
+\end{lstlisting}
+
+The above code has a subtle bug: It leaks resources! If a matching filename is found then `closedir' is never called as part of the early return. Any file descriptors opened, and any memory allocated, by opendir are never released. This means eventually the process will run out of resources and an \keyword{open} or \keyword{opendir} call will fail.
+
+The fix is to ensure we free up resources in every possible code-path. In the above code this means calling \keyword{closedir} before \keyword{return 1}. Forgetting to release resources is a common C programming bug because there is no support in the C lanaguage to ensure resources are always released with all codepaths.
+
+\end{lstlisting}
+
+Note: after a call to fork(), either (XOR) the parent or the child can use readdir(), rewinddir() or seekdir(). If both the parent and the child use the above, behavior is undefined.
+
+\subsection{What are the gotcha's of using readdir? For example to recursively search directories?}
+
+There are two main gotchas and one consideration: The \keyword{readdir} function returns ``.'' (current directory) and ``..'' (parent directory). If you are looking for sub-directories, you need to explicitly exclude these directories.
+
+For many applications it's reasonable to check the current directory first before recursively searching sub-directories. This can be achieved by storing the results in a linked list, or resetting the directory struct to restart from the beginning.
+
+The following code attempts to list all files in a directory recursively. As an exercise, try to identify the bugs it introduces.
+
+\begin{lstlisting}[language=C]
+void dirlist(char *path) {
+
+  struct dirent *dp;
+  DIR *dirp = opendir(path);
+  while ((dp = readdir(dirp)) != NULL) {
+     char newpath[strlen(path) + strlen(dp->d_name) + 1];
+     sprintf(newpath,"%s/%s", newpath, dp->d_name);
+     printf("%s\n", dp->d_name);
+     dirlist(newpath);
+  }
+}
+
+int main(int argc, char **argv) { dirlist(argv[1]); return 0; }
+\end{lstlisting}
+
+Did you find all 5 bugs?
+
+\begin{lstlisting}[language=C]
+// Check opendir result (perhaps user gave us a path that can not be opened as a directory
+if (!dirp) { perror("Could not open directory"); return; }
+// +2 as we need space for the / and the terminating 0
+char newpath[strlen(path) + strlen(dp->d_name) + 2];
+// Correct parameter
+sprintf(newpath,"%s/%s", path, dp->d_name);
+// Perform stat test (and verify) before recursing
+if (0 == stat(newpath,&s) && S_ISDIR(s.st_mode)) dirlist(newpath)
+// Resource leak: the directory file handle is not closed after the while loop
+closedir(dirp);
+\end{lstlisting}
+
+One final note of caution: \keyword{readdir} is not thread-safe! For multi-threaded searches use \keyword{readdir\_r} which requires the caller to pass in the address of an existing dirent struct.
+
+See the man page of readdir for more details.
+
+\subsection{Linking}
+
+Links are what force us to model a filesystem as a tree rather than a graph. While modelling the filesystem as a tree would imply that every inode has a unique parent directory, links allow inodes to present themselves as files in multiple places, potentially with different names, thus leading to an inode having multiple parents directories.
+
+The first kind of link is a hard link. A hard link is simply an entry in a directory assigning some name to an inode number that already has a different name and mapping in either the same directory or a different one. If we already have a file on a file system we can create another link to the same inode using the `ln' command:
+
+\begin{lstlisting}
+$ ln file1.txt blip.txt
+\end{lstlisting}
+
+However blip.txt \emph{is} the same file; if I edit blip I'm editing the same file as `file1.txt!' We can prove this by showing that both file names refer to the same inode:
+
+\begin{lstlisting}
+$ ls -i file1.txt blip.txt
+134235 file1.txt
+134235 blip.txt
+\end{lstlisting}
+
+The equivalent C call is \keyword{link}
+
+\begin{lstlisting}[language=C]
+// Function Prototype
+int link(const char *path1, const char *path2);
+
+link("file1.txt", "blip.txt");
+\end{lstlisting}
+
+For simplicity the above examples made hard links inside the same directory. Hard links can be created anywhere inside the same filesystem.
+
+The second kind of link is a soft link - or a symbolic link (or a symlink if you don't have the time). A symbolic link is different because it does not deal with inode numbers directly. Instead a symbolic link is a regular file with a special bit set and stores a path to another file. Quite simply, without the special bit, it is nothing more than a text file with a file path inside. Note that when people generally talk about a link without specifying hard or soft, they are referring to a hard link.
+
+To create a symbolic link in the shell use \keyword{ln -s}. To read the contents of the link as just a file use \keyword{readlink}. These are both demonstrated below:
+
+\begin{lstlisting}
+$ ln -s file1.txt file2.txt
+$ ls -i file1.txt blip.txt
+134235 file1.txt
+134236 file2.txt
+134235 blip.txt
+$ cat file1.txt
+file1!
+$ cat file2.txt
+file1!
+$ cat blip.txt
+file1!
+$ echo edited file2 >> file2.txt # >> is bash syntax for append to file
+$ cat file1.txt
+file1!
+edited file2
+$ cat file2.txt
+I'm file1!
+edited file2
+$ cat blip.txt
+file1!
+edited file2
+$ readlink myfile.txt
+file2.txt
+\end{lstlisting}
+
+Note that \keyword{file2.txt} and \keyword{file1.txt} have different inode numbers, unlike the hard link, \keyword{blip.txt}.
+
+There is a C library call to create symlinks which is similar to link:
+
+\begin{lstlisting}[language=C]
+symlink(const char *target, const char *symlink);
+\end{lstlisting}
+
+\subsection{Advantages of symbolic links}\label{advantages-of-symbolic-links}
+
+\begin{itemize}
+\tightlist
+\item
+  Can refer to files that don't exist yet
+\item
+  Unlike hard links, can refer to directories as well as regular files
+\item
+  Can refer to files (and directories) that exist outside of the current file system
+\end{itemize}
+
+However, symlinks have a key disadvantage, they as slower than regular files and directories. When the links contents are read, they must be interpreted as a new path to the target file, resulting in an additional call to open and read since the real file must be opened and read.
+
+\subsection{\texorpdfstring{What happens when I \texttt{rm} (remove) a file?}{What happens when I rm (remove) a file?}}\label{what-happens-when-i-rm-remove-a-file}
+
+When you remove a file (using \keyword{rm} or \keyword{unlink}) you are removing an inode reference from a directory. However the inode may still be referenced from other directories. In order to determine if the contents of the file are still required, each inode keeps a reference count that is updated whenever a new link is created or destroyed. This count only tracks hard links, symlinks are allowed to refer to a non-existant file and thus, do not matter.
+
+\subsection{Case study: Back up software that minimizes file duplication}
+
+An example use of hard-links is to efficiently create multiple archives of a file system at different points in time. Once the archive area has a copy of a particular file, then future archives can re-use these archive files rather than creating a duplicate file. Apple's ``Time Machine'' software does this.
+
+\subsection{Can I create hard links to directories as well as regular files?}
+
+While this is dependant on the underlying filesystem, the POSIX standard says no you may not! The \keyword{ln} command will only allow root to do this and only if you provide the \keyword{-d} option. However even root may not be able to perform this because most filesystems prevent it!
+
+The integrity of the file system assumes the directory structure (excluding softlinks which we will talk about later) is a non-cyclic tree that is reachable from the root directory. It becomes expensive to enforce or verify this constraint if directory linking is allowed. Breaking these assumptions can cause file integrity tools to not be able to repair the file system. Recursive searches potentially never terminate and directories can have more than one parent but ``..'' can only refer to a single parent. All in all, a bad idea.
+
+\subsection{Pathing}
+
+Now that we have definitions talk about directories, we come across the concept of a path. A path is a sequence of directories that provide one with a "path" in the filesystem graph. However, there are some nuances. It is possible to have a path called \texttt{a/b/../c/./}. Since \keyword{..} and \keyword{.} are special entries in directories, this is a valid path that actually refers to \texttt{a/c}. Most filesystem functions will allow uncompressed paths to be passed in. The C library provides a function \keyword{realpath} to compress the path or get the realpath. To simplify by hand remember that \keyword{..} means `parent folder' and that \keyword{.} means `current folder'. Below is an example that illustrates the simplification of the \texttt{a/b/../c/.} by using \keyword{cd} in a shell to navigate a filesystem.
+
+\begin{enumerate}
+  \item \keyword{cd a} (in a)
+  \item \keyword{cd b} (in a/b)
+  \item \keyword{cd ..} (in a, because .. represents `parent folder')
+  \item \keyword{cd c} (in a/c)
+  \item \keyword{cd .} (in a/c, because . represents `current folder')
+\end{enumerate}
+
+Thus, this path can be simplified to \keyword{a/c}.
 
 \subsection{How do I find out meta-information about a file (or directory)?}\label{how-do-i-find-out-meta-information-about-a-file-or-directory}
 
-Use the stat calls. For example, to find out when my `notes.txt' file was last accessed -
+How can we distinguish between a regular file and a directory? For that matter there's many other attributes that files also might contain. You may know that on most UNIX systems, unlike windows systems, a file's type is not determined by its extension. How does the system know what type the file is?
+
+All of this information is stored within an inode. To access it, use the stat calls. For example, to find out when my `notes.txt' file was last accessed -
 
 \begin{lstlisting}[language=C]
 struct stat s;
@@ -195,114 +360,32 @@ fstat(fd, & s);
 printf("Last accessed %s", ctime(&s.st_atime));
 \end{lstlisting}
 
-The third call `lstat' we will discuss when we introduce symbolic links. In addition to access, creation, and modified times, the stat structure includes the inode number, length of the file and owner information.
+\keyword{lstat} is almost the same as \keyword{stat} but handles symbolic links differently. From the \keyword{stat} man page:
+\begin{quote}
+lstat() is identical to stat(), except that if pathname is a symbolic link, then it returns information about the link itself, not the file that it refers to.
+\end{quote}
+
+The stat functions make use of \keyword{struct stat}. From the \keyword{stat} man page:
 
 \begin{lstlisting}[language=C]
 struct stat {
-   dev_t     st_dev;     /* ID of device containing file */
-   ino_t     st_ino;     /* inode number */
-   mode_t    st_mode;    /* protection */
-   nlink_t   st_nlink;   /* number of hard links */
-   uid_t     st_uid;     /* user ID of owner */
-   gid_t     st_gid;     /* group ID of owner */
-   dev_t     st_rdev;    /* device ID (if special file) */
-   off_t     st_size;    /* total size, in bytes */
-   blksize_t st_blksize; /* blocksize for file system I/O */
-   blkcnt_t  st_blocks;  /* number of 512B blocks allocated */
-   time_t    st_atime;   /* time of last access */
-   time_t    st_mtime;   /* time of last modification */
-   time_t    st_ctime;   /* time of last status change */
+    dev_t     st_dev;         /* ID of device containing file */
+    ino_t     st_ino;         /* Inode number */
+    mode_t    st_mode;        /* File type and mode */
+    nlink_t   st_nlink;       /* Number of hard links */
+    uid_t     st_uid;         /* User ID of owner */
+    gid_t     st_gid;         /* Group ID of owner */
+    dev_t     st_rdev;        /* Device ID (if special file) */
+    off_t     st_size;        /* Total size, in bytes */
+    blksize_t st_blksize;     /* Block size for filesystem I/O */
+    blkcnt_t  st_blocks;      /* Number of 512B blocks allocated */
+    struct timespec st_atim;  /* Time of last access */
+    struct timespec st_mtim;  /* Time of last modification */
+    struct timespec st_ctim;  /* Time of last status change */
 };
 \end{lstlisting}
 
-\subsection{How do I list the contents of a directory?}
-
-Let's write our own version of `ls' to list the contents of a directory.
-
-\begin{lstlisting}[language=C]
-#include <stdio.h>
-#include <dirent.h>
-#include <stdlib.h>
-int main(int argc, char **argv) {
-    if(argc == 1) {
-        printf("Usage: %s [directory]\n", *argv);
-        exit(0);
-    }
-    struct dirent *dp;
-    DIR *dirp = opendir(argv[1]);
-    while ((dp = readdir(dirp)) != NULL) {
-        puts(dp->d_name);
-    }
-
-    closedir(dirp);
-    return 0;
-}
-\end{lstlisting}
-
-\subsection{How do I read the contents of a directory?}
-
-Use opendir readdir closedir For example, here's a very simple implementation of `ls' to list the contents of a directory.
-
-\begin{lstlisting}[language=C]
-#include <stdio.h>
-#include <dirent.h>
-#include <stdlib.h>
-int main(int argc, char **argv) {
-    if(argc ==1) {
-        printf("Usage: %s [directory]\n", *argv);
-        exit(0);
-    }
-    struct dirent *dp;
-    DIR *dirp = opendir(argv[1]);
-    while ((dp = readdir(dirp)) != NULL) {
-        printf("%s %lu\n", dp-> d_name, (unsigned long)dp-> d_ino );
-    }
-
-    closedir(dirp);
-    return 0;
-}
-\end{lstlisting}
-
-Note: after a call to fork(), either (XOR) the parent or the child can use readdir(), rewinddir() or seekdir(). If both the parent and the child use the above, behavior is undefined.
-
-\subsection{How do I check to see if a file is in the current directory?}
-
-For example, to see if a particular directory includes a file (or filename) `name', we might write the following code. (Hint: Can you spot the bug?)
-
-\begin{lstlisting}[language=C]
-int exists(char *directory, char *name)  {
-    struct dirent *dp;
-    DIR *dirp = opendir(directory);
-    while ((dp = readdir(dirp)) != NULL) {
-        puts(dp->d_name);
-        if (!strcmp(dp->d_name, name)) {
-        return 1; /* Found */
-        }
-    }
-    closedir(dirp);
-    return 0; /* Not Found */
-}
-\end{lstlisting}
-
-The above code has a subtle bug: It leaks resources! If a matching filename is found then `closedir' is never called as part of the early return. Any file descriptors opened, and any memory allocated, by opendir are never released. This means eventually the process will run out of resources and an \keyword{open} or \keyword{opendir} call will fail.
-
-The fix is to ensure we free up resources in every possible code-path. In the above code this means calling \keyword{closedir} before \keyword{return 1}. Forgetting to release resources is a common C programming bug because there is no support in the C lanaguage to ensure resources are always released with all codepaths.
-
-\subsection{What are the gotcha's of using readdir? For example to recursively search directories?}
-
-There are two main gotchas and one consideration: The \keyword{readdir} function returns ``.'' (current directory) and ``..'' (parent directory). If you are looking for sub-directories, you need to explicitly exclude these directories.
-
-For many applications it's reasonable to check the current directory first before recursively searching sub-directories. This can be achieved by storing the results in a linked list, or resetting the directory struct to restart from the beginning.
-
-One final note of caution: \keyword{readdir} is not thread-safe! For multi-threaded searches use \keyword{readdir\_r} which requires the caller to pass in the address of an existing dirent struct.
-
-See the man page of readdir for more details.
-
-\subsection{How do I determine if a directory entry is a directory?}\label{how-do-i-determine-if-a-directory-entry-is-a-directory}
-
-Ans: Use \keyword{S\_ISDIR} to check the mode bits stored in the stat structure
-
-And to check if a file is regular file use \keyword{S\_ISREG},
+The \keyword{st\_mode} field can be used to distinguish between regular files and directories. To accomplish this, you will also need the macros, \keyword{S\_ISDIR} and \keyword{S\_ISREG}.
 
 \begin{lstlisting}[language=C]
    struct stat s;
@@ -315,97 +398,50 @@ And to check if a file is regular file use \keyword{S\_ISREG},
    }
 \end{lstlisting}
 
-\subsection{Does a directory have an inode too?}\label{does-a-directory-have-an-inode-too}
+\section{Permissions}
 
-Yes! Though a better way to think about this, is that a directory (like a file) \emph{is} an inode (with some data - the directory name and inode contents). It just happens to be a special kind of inode.
-
-From \href{http://en.wikipedia.org/wiki/Inode}{Wikipedia}: \textgreater{} Unix directories are lists of association structures, each of which contains one filename and one inode number.
-
-Remember, inodes don't contain filenames--only other file metadata.
-
-\subsection{How can I have the same file appear in two different places in my file system?}\label{how-can-i-have-the-same-file-appear-in-two-different-places-in-my-file-system}
-
-First remember that a file name != the file. Think of the inode as `the file' and a directory as just a list of names with each name mapped to an inode number. Some of those inodes may be regular file inodes, others may be directory inodes.
-
-If we already have a file on a file system we can create another link to the same inode using the `ln' command
-
-\begin{lstlisting}
-$ ln file1.txt blip.txt
-\end{lstlisting}
-
-However blip.txt \emph{is} the same file; if I edit blip I'm editing the same file as `file1.txt!' We can prove this by showing that both file names refer to the same inode:
-
-\begin{lstlisting}
-$ ls -i file1.txt blip.txt
-134235 file1.txt
-134235 blip.txt
-\end{lstlisting}
-
-These kinds of links (aka directory entries) are called `hard links'
-
-The equivalent C call is \keyword{link}
-
-\begin{lstlisting}[language=C]
-link(const char *path1, const char *path2);
-
-link("file1.txt", "blip.txt");
-\end{lstlisting}
-
-For simplicity the above examples made hard links inside the same directory however hard links can be created anywhere inside the same filesystem.
-
-\subsection{\texorpdfstring{What happens when I \texttt{rm} (remove) a file?}{What happens when I rm (remove) a file?}}\label{what-happens-when-i-rm-remove-a-file}
-
-When you remove a file (using \keyword{rm} or \keyword{unlink}) you are removing an inode reference from a directory. However the inode may still be referenced from other directories. In order to determine if the contents of the file are still required, each inode keeps a reference count that is updated whenever a new link is created or destroyed.
-
-\subsection{Case study: Back up software that minimizes file duplication}
-
-An example use of hard-links is to efficiently create multiple archives of a file system at different points in time. Once the archive area has a copy of a particular file, then future archives can re-use these archive files rather than creating a duplicate file. Apple's ``Time Machine'' software does this.
-
-\subsection{Can I create hard links to directories as well as regular files?}
-
-No. Well yes. Not really\ldots{} Actually you didn't really want to do this, did you? The POSIX standard says no you may not! The \keyword{ln} command will only allow root to do this and only if you provide the \keyword{-d} option. However even root may not be able to perform this because most filesystems prevent it!
-
-Why? The integrity of the file system assumes the directory structure (excluding softlinks which we will talk about later) is a non-cyclic tree that is reachable from the root directory. It becomes expensive to enforce or verify this constraint if directory linking is allowed. Breaking these assumptions can cause file integrity tools to not be able to repair the file system. Recursive searches potentially never terminate and directories can have more than one parent but ``..'' can only refer to a single parent. All in all, a bad idea.
-
-\section{Remind Me What do Permissions mean again?}\label{remind-me-what-do-permissions-mean-again}
-
-Every file and directory has a set of 9 permission bits and a type field * r, permission to read the file * w, permission to write to the file * x, permission to execute the file
-
-chmod 777
-
-\begin{longtable}[c]{@{}llll@{}}
-\toprule
-chmod & 7 & 7 & 7\tabularnewline
-\midrule
-\endhead
-01 & 111 & 111 & 111\tabularnewline
-d & rwx & rwx & rwx\tabularnewline
-1 & 2 & 3 & 4\tabularnewline
-\bottomrule
-\end{longtable}
+Permissions are a key part of the way UNIX systems provide security in a filesystem. You may have noticed that the \keyword{st\_mode} field in \keyword{struct stat} contains more than just the file type. It also contains the mode, a description detailing what a user can and can't do with a given file. There are usually three sets of permissions for any file. Permissions for the \emph{user}, the \emph{group} and \emph{other}. For each of the three catagories we need to keep track of whether or not the user is allowed to read the file, write to the file, and execute the file. Since there are three categories and three permissions, permissions are usually represented as a 3-digit octal number. For each digit the least significant byte corresponds to read privilages, the middle one to write privilages and the final byte to execute privilages. They are always presented as \emph{User}, \emph{Group}, \emph{Other} (\emph{UGO}). Below are some common examples:
 
 \begin{enumerate}
-\def\labelenumi{\arabic{enumi}.}
-\tightlist
-\item
-  Type of the file
-\item
-  Owner Permissions
-\item
-  Group Permissions
-\item
-  Everybody else's permission
+
+\item 755: \keyword{rwx r-x r-x}
+
+user: \keyword{rwx}, group: \keyword{r-x}, others: \keyword{r-x}
+
+User can read, write and execute. Group and others can only read and execute.
+
+\item 644: \keyword{rw- r-- r--}
+
+user: \keyword{rw-}, group: \keyword{r--}, others: \keyword{r--}
+
+User can read and write. Group and others can only read.
+
 \end{enumerate}
 
-\keyword{mknod} changes the first field, the type of the file. \keyword{chmod} takes a number and a file and changes the permission bits.
+There are several command line utilities for interacting with a file's mode. \keyword{mknod} changes the type of the file. \keyword{chmod} takes a number and a file and changes the permission bits. However, before we can dicuss chmod in detail, we must also understand the user id (\keyword{uid}) and group id (\keyword{gid}) as well.
 
-The file has an owner. If your process has the same user id as the owner (or root) then the permissions in the first triad apply to you. If you are in the same group as the file (all files are also owned by a group) then the next set of permission bits applies to you. If none of the above apply, the last triad applies to you.
+\subsection{User id/Group id}
+Every user in a UNIX system has a user id. This is a unique number that can identify a user. Similarly, users can be added to collections called groups, and every group also has a uniquely identifying number. Groups have a variety of uses on UNIX systems. They can be assigned capabilities - a way of describing the level of control a user has over a system. For example, a group you may have run into is the \keyword{sudoers} group, a set of trusted users who are allowed to use the command \keyword{sudo} to temporarily gain higher privilages. (We'll talk more about how \keyword{sudo} works in this chapter). Every file, upon creation, an owner, the creator of the file. This owner's user id (\keyword{uid}) can be found inside the \keyword{st\_mode} file of a \keyword{struct stat} with a call to \keyword{stat}. Similarly the group id (\keyword{gid}) is set as well.
 
-\subsection{How do I change the permissions on a file?}\label{how-do-i-change-the-permissions-on-a-file}
+Every process can determine it's \keyword{uid} and \keyword{gid} with \keyword{getuid} and \keyword{getgid}. When a processes tries to open a file with a specific mode, it's \keyword{uid} and \keyword{gid} are compared with the \keyword{uid} and \keyword{gid} of the file. If the \keyword{uid}s match, then the process's request to open the file will be compared with the bits on the user field of the file's permissions. Similarly, if the \keyword{gid}s match, then the process's request will be compared with the group field of the permissions. Finally, if none of the ids match, then the other field will apply.
 
-Use \keyword{chmod} (short for ``change the file mode bits'')
+\subsection{Changing file permissions}
 
-There is a system call, \keyword{int chmod(const char *path, mode\_t mode);} but we will concentrate on the shell command. There's two common ways to use \keyword{chmod} ; with an octal value or with a symbolic string:
+Before we discuss how to change permission bits, we should be able to read them. In C, the \keyword{stat} family of library calls can be used. To read permission bits from the command line, use `ls -l'. Note that the permissions will outputed in the format `drwxrwxrwx'. The first character indicates the type of file type. Possible values for the first character:
+
+\begin{enumerate}
+\item (-) regular file
+\item (d) directory
+\item (c) character device file
+\item (l) symbolic link
+\item (p) pipe
+\item (b) block device
+\item (s) socket
+\end{enumerate}
+
+Alternatively, use the program \keyword{stat} which presents all the information that one could retrieve from the \keyword{stat} library call.
+
+To change the permission bits, there is a system call, \keyword{int chmod(const char *path, mode\_t mode);}. In order to simplify our examples, we will be using the command line utility of the same name \keyword{chmod} (short of ``change mode''). There are two common ways to use \keyword{chmod} ; either with an octal value or with a symbolic string:
 
 \begin{lstlisting}
 $ chmod 644 file1
@@ -417,28 +453,35 @@ $ chmod o-rx file4
 
 The base-8 (`octal') digits describe the permissions for each role: The user who owns the file, the group and everyone else. The octal number is the sum of three values given to the three types of permission: read(4), write(2), execute(1)
 
-Example: chmod 755 myfile 
+Example: chmod 755 myfile
 
 \begin{enumerate}
-\item r + w + x = digit * user has 4+2+1, full permission 
-\item group has 4+0+1, read and execute permission 
+\item r + w + x = digit * user has 4+2+1, full permission
+\item group has 4+0+1, read and execute permission
 \item all users have 4+0+1, read and execute permission
 \end{enumerate}
 
-\subsection{How do I read the permission string from ls?}\label{how-do-i-read-the-permission-string-from-ls}
+% TODO connect this better
+\subsection{What happens if I turn off the execute bit on directories?}\label{what-happens-if-i-turn-off-the-execute-bit-on-directories}
 
-Use `ls -l'. Note that the permissions will output in the format `drwxrwxrwx'. The first character indicates the type of file type. Possible values for the first character: 
+The execute bit for a directory is used to control whether the directory contents is listable.
 
-\begin{enumerate}
-\item (-) regular file 
-\item (d) directory 
-\item (c) character device file 
-\item (l) symbolic link 
-\item (p) pipe 
-\item (b) block device 
-\item (s) socket
-\end{enumerate}
+\begin{lstlisting}
+$ chmod ugo-x dir1
+$ ls -l
+drw-r--r--   3 angrave  staff   102 Nov 10 11:22 dir1
+\end{lstlisting}
 
+However when attempting to list the contents of the directory,
+
+\begin{lstlisting}
+$ ls dir1
+ls: dir1: Permission denied
+\end{lstlisting}
+
+In other words, the directory itself is discoverable but its contents cannot be listed.
+
+% TODO connect this sections better. Maybe talk about ownership first?
 \subsection{What is sudo?}\label{what-is-sudo}
 
 Use \keyword{sudo} to become the admin on the machine. e.g.~Normally (unless explicitly specified in the `/etc/fstab' file, you need root access to mount a filesystem). \keyword{sudo} can be used to temporarily run a command as root (provided the user has sudo privileges)
@@ -493,159 +536,15 @@ The `s' bit means execute and set-uid; the effective userid of the process will 
   Check the effective permissions of the user by calling \keyword{geteuid()}. A return value of zero means the program is running effectively as root.
 \end{itemize}
 
-\subsection{How do I find out if file (an inode) is a regular file or directory?}\label{how-do-i-find-out-if-file-an-inode-is-a-regular-file-or-directory}
-
-Use the \keyword{S\_ISDIR} macro to check the mode bits in the stat struct:
-
-\begin{lstlisting}[language=C]
-struct stat s;
-stat("/tmp", &s);
-if (S_ISDIR(s.st_mode)) { ... 
-\end{lstlisting}
-
-Note, later we will write robust code to verify that the stat call succeeds (returns 0); if the \keyword{stat} call fails, we should assume the stat struct content is arbitrary.
-
-\subsection{How do I recurse into subdirectories?}\label{how-do-i-recurse-into-subdirectories}
-
-First a puzzle - how many bugs can you find in the following code?
-
-\begin{lstlisting}[language=C]
-void dirlist(char *path) {
-  
-  struct dirent *dp;
-  DIR *dirp = opendir(path);
-  while ((dp = readdir(dirp)) != NULL) {
-     char newpath[strlen(path) + strlen(dp->d_name) + 1];
-     sprintf(newpath,"%s/%s", newpath, dp->d_name);
-     printf("%s\n", dp->d_name);
-     dirlist(newpath);
-  }
-}
-
-int main(int argc, char **argv) { dirlist(argv[1]); return 0; }
-\end{lstlisting}
-
-Did you find all 5 bugs?
-
-\begin{lstlisting}[language=C]
-// Check opendir result (perhaps user gave us a path that can not be opened as a directory
-if (!dirp) { perror("Could not open directory"); return; }
-// +2 as we need space for the / and the terminating 0
-char newpath[strlen(path) + strlen(dp->d_name) + 2]; 
-// Correct parameter
-sprintf(newpath,"%s/%s", path, dp->d_name); 
-// Perform stat test (and verify) before recursing
-if (0 == stat(newpath,&s) && S_ISDIR(s.st_mode)) dirlist(newpath)
-// Resource leak: the directory file handle is not closed after the while loop
-closedir(dirp);
-\end{lstlisting}
-
-\subsection{What are symbolic links? How do they work? How do I make one?}\label{what-are-symbolic-links-how-do-they-work-how-do-i-make-one}
-
-\begin{lstlisting}[language=C]
-symlink(const char *target, const char *symlink);
-\end{lstlisting}
-
-To create a symbolic link in the shell use \keyword{ln -s}
-
-To read the contents of the link as just a file use \keyword{readlink}
-
-\begin{lstlisting}
-$ readlink myfile.txt
-../../dir1/notes.txt
-\end{lstlisting}
-
-To read the meta-(stat) information of a symbolic link use \keyword{lstat} not \keyword{stat}
-
-\begin{lstlisting}[language=C]
-struct stat s1, s2;
-stat("myfile.txt", &s1); // stat info about  the notes.txt file
-lstat("myfile.txt", &s2); // stat info about the symbolic link
-\end{lstlisting}
-
-\subsection{Advantages of symbolic links}\label{advantages-of-symbolic-links}
-
-\begin{itemize}
-\tightlist
-\item
-  Can refer to files that don't exist yet
-\item
-  Unlike hard links, can refer to directories as well as regular files
-\item
-  Can refer to files (and directories) that exist outside of the current file system
-\end{itemize}
-
-Main disadvantage: Slower than regular files and directories. When the links contents are read, they must be interpreted as a new path to the target file.
-
-\subsection{\texorpdfstring{What is \texttt{/dev/null} and when is it used?}{What is /dev/null and when is it used?}}\label{what-is-devnull-and-when-is-it-used}
-
-The file \keyword{/dev/null} is a great place to store bits that you never need to read! Bytes sent to \keyword{/dev/null/} are never stored - they are simply discarded. A common use of \keyword{/dev/null} is to discard standard output. For example,
-
-\begin{lstlisting}
-$ ls . >/dev/null
-\end{lstlisting}
-
 \subsection{Why would I want to set a directory's sticky bit?}\label{why-would-i-want-to-set-a-directorys-sticky-bit}
 
 When a directory's sticky bit is set only the file's owner, the directory's owner, and the root user can rename (or delete) the file. This is useful when multiple users have write access to a common directory.
 
 A common use of the sticky bit is for the shared and writable \keyword{/tmp} directory.
 
-\subsection{\texorpdfstring{Why do shell and script programs start with \texttt{\#!/usr/bin/env\ python} ?}{Why do shell and script programs start with \#!/usr/bin/env python ?}}\label{why-do-shell-and-script-programs-start-with-usrbinenv-python}
+\subsection{\texorpdfstring{What is \texttt{/dev/null} and when is it used?}{What is /dev/null and when is it used?}}\label{what-is-devnull-and-when-is-it-used}
 
-Ans: For portability! While it is possible to write the fully qualified path to a python or perl interpreter, this approach is not portable because you may have installed python in a different directory.
-
-To overcome this use the \keyword{env} utility is used to find and execute the program on the user's path. The env utility itself has historically been stored in \keyword{/usr/bin} - and it must be specified with an absolute path.
-
-\subsection{\texorpdfstring{How do I make `hidden' files i.e.~not listed by ``ls''? How do I list them?}{How do I make hidden files i.e.~not listed by ls? How do I list them?}}\label{how-do-i-make-hidden-files-i.e.not-listed-by-ls-how-do-i-list-them}
-
-Easy! Create files (or directories) that start with a ``.'' - then (by default) they are not displayed by standard tools and utilities.
-
-This is often used to hide configuration files inside the user's home directory. For example \keyword{ssh} stores its preferences inside a directory called \keyword{.sshd}
-
-To list all files including the normally hidden entries use \keyword{ls} with \keyword{-a} option
-
-\begin{lstlisting}
-$ ls -a
-.           a.c         myls
-..          a.out           other.txt
-.secret 
-\end{lstlisting}
-
-\subsection{What happens if I turn off the execute bit on directories?}\label{what-happens-if-i-turn-off-the-execute-bit-on-directories}
-
-The execute bit for a directory is used to control whether the directory contents is listable.
-
-\begin{lstlisting}
-$ chmod ugo-x dir1
-$ ls -l
-drw-r--r--   3 angrave  staff   102 Nov 10 11:22 dir1
-\end{lstlisting}
-
-However when attempting to list the contents of the directory,
-
-\begin{lstlisting}
-$ ls dir1
-ls: dir1: Permission denied
-\end{lstlisting}
-
-In other words, the directory itself is discoverable but its contents cannot be listed.
-
-\subsection{What is file globbing (and who does it)?}\label{what-is-file-globbing-and-who-does-it}
-
-Before executing the program the shell expands parameters into matching filenames. For example, if the current directory has three filenames that start with my ( my1.txt mytext.txt myomy), then
-
-\begin{lstlisting}
-$ echo my*
-\end{lstlisting}
-
-Expands to
-
-\begin{lstlisting}
-$ echo my1.txt mytext.txt myomy
-\end{lstlisting}
-
-This is known as file globbing and is processed before the command is executed. ie the command's parameters are identical to manually typing every matching filename.
+The file \keyword{/dev/null} is a great place to store bits that you never need to read! Bytes sent to \keyword{/dev/null/} are never stored - they are simply discarded. A common use of \keyword{/dev/null} is to discard standard output. For example,
 
 \subsection{Creating secure directories}\label{creating-secure-directories}
 
@@ -696,6 +595,27 @@ If umask is octal 022, then the permissions of the created file will be 0666 \& 
 \begin{lstlisting}[language=C]
 S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH
 \end{lstlisting}
+
+
+\begin{lstlisting}
+$ ls . >/dev/null
+\end{lstlisting}
+
+\subsection{What is file globbing (and who does it)?}\label{what-is-file-globbing-and-who-does-it}
+
+Before executing the program the shell expands parameters into matching filenames. For example, if the current directory has three filenames that start with my ( my1.txt mytext.txt myomy), then
+
+\begin{lstlisting}
+$ echo my*
+\end{lstlisting}
+
+Expands to
+
+\begin{lstlisting}
+$ echo my1.txt mytext.txt myomy
+\end{lstlisting}
+
+This is known as file globbing and is processed before the command is executed. ie the command's parameters are identical to manually typing every matching filename.
 
 \subsection{How can I copy bytes from one file to another?}\label{how-can-i-copy-bytes-from-one-file-to-another}
 
@@ -856,11 +776,11 @@ The same mechanism can be used by programs to directly map files into memory
 
 \subsection{How do I map a file into memory?}\label{how-do-i-map-a-file-into-memory}
 
-A simple program to map a file into memory is shown below. The key points to notice are: 
+A simple program to map a file into memory is shown below. The key points to notice are:
 
 \begin{enumerate}
-\item \keyword{mmap} requires a filedescriptor, so we need to \keyword{open} the file first 
-\item We seek to our desired size and write one byte to ensure that the file is sufficient length 
+\item \keyword{mmap} requires a filedescriptor, so we need to \keyword{open} the file first
+\item We seek to our desired size and write one byte to ensure that the file is sufficient length
 \item When finished call munmap to unmap the file from memory.
 \end{enumerate}
 
@@ -878,33 +798,33 @@ This example also shows the preprocessor constants ``\textbf{LINE}'' and ``\text
 #include <string.h>
 
 
-int fail(char *filename, int linenumber) { 
-  fprintf(stderr, "%s:%d %s\n", filename, linenumber, strerror(errno)); 
+int fail(char *filename, int linenumber) {
+  fprintf(stderr, "%s:%d %s\n", filename, linenumber, strerror(errno));
   exit(1);
   return 0; /*Make compiler happy */
 }
 #define QUIT fail(__FILE__, __LINE__ )
 
 int main() {
-  // We want a file big enough to hold 10 integers  
+  // We want a file big enough to hold 10 integers
   int size = sizeof(int) * 10;
 
   int fd = open("data", O_RDWR | O_CREAT | O_TRUNC, 0600); //6 = read+write for me!
 
   lseek(fd, size, SEEK_SET);
   write(fd, "A", 1);
-  
+
   void *addr = mmap(0, size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
   printf("Mapped at %p\n", addr);
   if (addr == (void*) -1 ) QUIT;
-  
+
   int *array = addr;
   array[0] = 0x12345678;
   array[1] = 0xdeadc0de;
 
   munmap(addr,size);
   return 0;
-  
+
 }
 \end{lstlisting}
 
@@ -914,7 +834,7 @@ The contents of our binary file can be listed using hexdump
 $ hexdump data
 0000000 78 56 34 12 de c0 ad de 00 00 00 00 00 00 00 00
 0000010 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-0000020 00 00 00 00 00 00 00 00 41   
+0000020 00 00 00 00 00 00 00 00 41
 \end{lstlisting}
 
 The careful reader may notice that our integers were written in least-significant-byte format (because that is the endianess of the CPU) and that we allocated a file that is one byte too many!
@@ -945,11 +865,11 @@ Easy - Use \keyword{mmap} without a file - just specify the \keyword{MAP\_ANONYM
 #include <string.h>
 
 int main() {
-  
-  int size = 100 * sizeof(int);  
+
+  int size = 100 * sizeof(int);
   void *addr = mmap(0, size, PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
   printf("Mapped at %p\n", addr);
-  
+
   int *shared = addr;
   pid_t mychild = fork();
   if (mychild > 0) {
@@ -1091,7 +1011,7 @@ char readbyte(inode*inode,long position) {
   if(position <0 || position >= inode->size) return -1; // invalid offset
 
   int  block_count = position / 4096,offset = position % 4096;
-  
+
   // block count better be 0..9 !
   int physical_idx = lookup_physical_block_index(inode, block_count );
 
@@ -1134,15 +1054,15 @@ int lookup_physical_block_index(inode*inode, int block_count) {
 
   if( block_count < 10)
      return inode->directblocks[ block_count ];
-  
+
   // read the indirect block from disk:
   block_t* oneblock = & blocks[ inode->indirectblock ];
 
   // Treat the 4KB as an array of 1024 pointers to other disk blocks
   int* table = (int*) oneblock;
-  
+
  // Look up the correct entry in the table
- // Offset by 10 because the first 10 blocks of data are already 
+ // Offset by 10 because the first 10 blocks of data are already
  // accounted for
   return table[ block_count - 10 ];
 }
@@ -1159,7 +1079,7 @@ int lookup_physical_block_index(inode*inode, int block_count) {
 
   // Use indirect block for the next 1024 blocks:
   // Assumes 1024 ints can fit inside each block!
-  if( block_count < 1024 + 10) {   
+  if( block_count < 1024 + 10) {
       int* table = (int*) & blocks[ inode->indirectblock ];
       return table[ block_count - 10 ];
   }
@@ -1171,7 +1091,7 @@ int lookup_physical_block_index(inode*inode, int block_count) {
    // The first table tells us where to read the second table ...
   int* table2 = (int*) & blocks[   table1[i]   ];
   return table2[j];
- 
+
    // For gigantic files we will need to implement triple-indirect (table of tables of tables)
 }
 \end{lstlisting}
