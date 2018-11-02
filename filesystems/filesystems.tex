@@ -17,7 +17,7 @@ A filesystem is an implementation of the file interface. In this chapter, we wil
 
 Although filesystems are usually thought of as a kind of tree, most filesystems are usually a directed graph, a model we will explore in depth later in this chapter.
 
-\section{Examples of filesystems}
+\subsection{Examples of filesystems}
 
 Before we dive into the details of a filesystem, let's take a look at some examples.
 
@@ -32,6 +32,21 @@ Before we dive into the details of a filesystem, let's take a look at some examp
 \end{enumerate}
 
 As you may have noticed, some of these filesystems provide an interface to things that aren't a "file" as you might colloquially refer to them. Filesystems such as \keyword{procfs} are usually refered to as  \emph{virtual} filesystems, since they don't provide data access in the same sense as a traditional filesystem would.
+
+\subsection{The file API}
+
+A filesystem must provide callback functions to a variety of actions. Some of them as listed below:
+
+\begin{itemize}
+  \item \keyword{open} Opens a file for IO
+  \item \keyword{read} Read contents of a file 
+  \item \keyword{write} Write to a file 
+  \item \keyword{close} Close a file and free associated resources
+  \item \keyword{chmod} Modify permissions of a file
+  \item \keyword{ioctl} Interact with device parameters of character devices such as terminals
+\end{itemize}
+
+Not every filesystem supports all the possible callback functions. For example many filesystems do not implement \keyword{ioctl} or \keyword{link}. In this chapter, we will not be examining each filesystem callback. If you would like to learn more about this interface, try looking at the documentation for FUSE, the source code for glibc or the linux manpages.
 
 \section{Storing data on disk}
 
@@ -418,6 +433,8 @@ User can read and write. Group and others can only read.
 
 \end{enumerate}
 
+It is worth noting that the \keyword{rwx} bits for a directory have slightly different meaning. Write-access to a directory will allow you to create or delete new files or directories inside (you can think about this as just having write access to the dirent mappings). Read-access to a directory will allow you to list a directory's contents (this is just read access to the dirent mapping). Execute will allow you to enter the directory and access it. Without the execute bit it is not possible to create or remove files or directories since you cannot access them. You can, however, list the contents of the directory.
+
 There are several command line utilities for interacting with a file's mode. \keyword{mknod} changes the type of the file. \keyword{chmod} takes a number and a file and changes the permission bits. However, before we can dicuss chmod in detail, we must also understand the user id (\keyword{uid}) and group id (\keyword{gid}) as well.
 
 \subsection{User id/Group id}
@@ -425,7 +442,7 @@ Every user in a UNIX system has a user id. This is a unique number that can iden
 
 Every process can determine it's \keyword{uid} and \keyword{gid} with \keyword{getuid} and \keyword{getgid}. When a processes tries to open a file with a specific mode, it's \keyword{uid} and \keyword{gid} are compared with the \keyword{uid} and \keyword{gid} of the file. If the \keyword{uid}s match, then the process's request to open the file will be compared with the bits on the user field of the file's permissions. Similarly, if the \keyword{gid}s match, then the process's request will be compared with the group field of the permissions. Finally, if none of the ids match, then the other field will apply.
 
-\subsection{Changing file permissions}
+\subsection{Reading/Changing file permissions}
 
 Before we discuss how to change permission bits, we should be able to read them. In C, the \keyword{stat} family of library calls can be used. To read permission bits from the command line, use `ls -l'. Note that the permissions will outputed in the format `drwxrwxrwx'. The first character indicates the type of file type. Possible values for the first character:
 
@@ -461,64 +478,47 @@ Example: chmod 755 myfile
 \item all users have 4+0+1, read and execute permission
 \end{enumerate}
 
-% TODO connect this better
-\subsection{What happens if I turn off the execute bit on directories?}\label{what-happens-if-i-turn-off-the-execute-bit-on-directories}
+\subsection{Understanding the `umask'}
 
-The execute bit for a directory is used to control whether the directory contents is listable.
+The umask \emph{subtracts} (reduces) permission bits from \keyword{777} and is used when new files and new directories are created by open,mkdir etc. By default the umask is set to \keyword{022} (octal), which means that group and other privileges will not include the writable bit . Each process (including the shell) has a current umask value. When forking, the child inherits the parent's umask value.
 
-\begin{lstlisting}
-$ chmod ugo-x dir1
-$ ls -l
-drw-r--r--   3 angrave  staff   102 Nov 10 11:22 dir1
-\end{lstlisting}
-
-However when attempting to list the contents of the directory,
+For example, by setting the umask to \keyword{077} in the shell, ensures that future file and directory creation will only be accessible to the current user,
 
 \begin{lstlisting}
-$ ls dir1
-ls: dir1: Permission denied
+$ umask 077
+$ mkdir secretdir
 \end{lstlisting}
 
-In other words, the directory itself is discoverable but its contents cannot be listed.
+As a code example, suppose a new file is created with \keyword{open()} and mode bits \keyword{666} (write and read bits for user,group and other):
 
-% TODO connect this sections better. Maybe talk about ownership first?
-\subsection{What is sudo?}\label{what-is-sudo}
+\begin{lstlisting}[language=C]
+open("myfile", O_CREAT, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH);
+\end{lstlisting}
 
-Use \keyword{sudo} to become the admin on the machine. e.g.~Normally (unless explicitly specified in the `/etc/fstab' file, you need root access to mount a filesystem). \keyword{sudo} can be used to temporarily run a command as root (provided the user has sudo privileges)
+If umask is octal \keyword{022}, then the permissions of the created file will be \keyword{0666} \& \textasciitilde{}\keyword{022} ie.
+
+\begin{lstlisting}[language=C]
+S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH
+\end{lstlisting}
+
+\section{Additional Mode Bits}
+
+\subsection{The `setuid' bit}
+
+You may have noticed an additional bit that files with execute permission may have set. This bit is the \keyword{setuid} bit. It indicated that when run, the program with set the uid of the user to that of the owner of the file. Similar, there is a \keyword{setgid} bit which sets the gid of the executor to the gid of the owner. The canonical example of a program with \keyword{setuid} set is \keyword{sudo}.
+
+\keyword{sudo} is usually a program that is owned by the root user - a user that has all capabilities. By using \keyword{sudo} an otherwise unprivilaged user can gain access to most parts of the system. This is useful for running programs that may require elevated privilages, such as using \keyword{chown} to change ownership of a file, or to use \keyword{mount} to mount or unmount filesystems (an action we will discuss later in this chapter). Here are some examples:
 
 \begin{lstlisting}
 $ sudo mount /dev/sda2 /stuff/mydisk
 $ sudo adduser fred
-\end{lstlisting}
-
-\subsection{How do I change ownership of a file?}\label{how-do-i-change-ownership-of-a-file}
-
-Use \keyword{chown username filename}
-
-\subsection{How do I set permissions from code?}\label{how-do-i-set-permissions-from-code}
-
-\keyword{chmod(const char *path, mode\_t mode);}
-
-\subsection{\texorpdfstring{Why are some files `setuid'? What does this mean?}{Why are some files setuid? What does this mean?}}\label{why-are-some-files-setuid-what-does-this-mean}
-
-The set-user-ID-on-execution bit changes the user associated with the process when the file is run. This is typically used for commands that need to run as root but are executed by non-root users. An example of this is \keyword{sudo}
-
-The set-group-ID-on-execution changes the group under which the process is run.
-
-\subsection{Why are they useful?}\label{why-are-they-useful}
-
-The most common usecase is so that the user can have root(admin) access for the duration of the program.
-
-\subsection{What permissions does sudo run as ?}\label{what-permissions-does-sudo-run-as}
-
-\begin{lstlisting}
 $ ls -l /usr/bin/sudo
 -r-s--x--x  1 root  wheel  327920 Oct 24 09:04 /usr/bin/sudo
 \end{lstlisting}
 
-The `s' bit means execute and set-uid; the effective userid of the process will be different from the parent process. In this example it will be root
+\subsubsection{Effective uid/gid}
 
-\subsection{What's the difference between getuid() and geteuid()?}\label{whats-the-difference-between-getuid-and-geteuid}
+When executing a process with the setuid bit, it is still possible to determine a user's original uid with \keyword{getuid}. The real action of the \keyword{setuid} bit is to set the effective userid (\keyword{euid}) which can be determined with \keyword{geteuid}. The actions of \keyword{getuid} and \keyword{geteuid} are described below.
 
 \begin{itemize}
 \tightlist
@@ -528,23 +528,62 @@ The `s' bit means execute and set-uid; the effective userid of the process will 
   \keyword{geteuid} returns the effective userid (zero if acting as root, e.g.~due to the setuid flag set on a program)
 \end{itemize}
 
-\subsection{How do I ensure only privileged users can run my code?}\label{how-do-i-ensure-only-privileged-users-can-run-my-code}
+These functions can allow one to write a program that can only be run by a privilaged user by checking \keyword{geteuid} or go a step further and ensure that the only user who can run the code is root by using \keyword{getuid}.
 
-\begin{itemize}
-\tightlist
-\item
-  Check the effective permissions of the user by calling \keyword{geteuid()}. A return value of zero means the program is running effectively as root.
-\end{itemize}
+\subsection{The `sticky' bit}
 
-\subsection{Why would I want to set a directory's sticky bit?}\label{why-would-i-want-to-set-a-directorys-sticky-bit}
+Sticky bits as we use them today do not serve the same purpose as their intial introduction. Sticky bits were a bit that could be set on an executable file that would allow a program's text segment to remain in swap even after the end of the program's execution. This made subsequent executions of the same program faster. Today, this behavior is no longer supported and the sticky bit only holds meaning when set on a directory,
 
-When a directory's sticky bit is set only the file's owner, the directory's owner, and the root user can rename (or delete) the file. This is useful when multiple users have write access to a common directory.
+When a directory's sticky bit is set only the file's owner, the directory's owner, and the root user can rename (or delete) the file. This is useful when multiple users have write access to a common directory. A common use of the sticky bit is for the shared and writable \keyword{/tmp} directory.
 
-A common use of the sticky bit is for the shared and writable \keyword{/tmp} directory.
+To set the sticky bit, use \keyword{chmod +t}.
 
-\subsection{\texorpdfstring{What is \texttt{/dev/null} and when is it used?}{What is /dev/null and when is it used?}}\label{what-is-devnull-and-when-is-it-used}
+\begin{lstlisting}
+aneesh$ mkdir sticky
+aneesh$ chmod +t sticky 
+aneesh$ ls -l
+drwxr-xr-x  7 aneesh aneesh    4096 Nov  1 14:19 .
+drwxr-xr-x 53 aneesh aneesh    4096 Nov  1 14:19 ..
+drwxr-xr-t  2 aneesh aneesh    4096 Nov  1 14:19 sticky
+aneesh$ su newuser
+newuser$ rm -rf sticky
+rm: cannot remove 'sticky': Permission denied
+newuser$ exit
+aneesh$ rm -rf sticky
+aneesh$ ls -l
+drwxr-xr-x  7 aneesh aneesh    4096 Nov  1 14:19 .
+drwxr-xr-x 53 aneesh aneesh    4096 Nov  1 14:19 ..
+\end{lstlisting}
 
-The file \keyword{/dev/null} is a great place to store bits that you never need to read! Bytes sent to \keyword{/dev/null/} are never stored - they are simply discarded. A common use of \keyword{/dev/null} is to discard standard output. For example,
+Note that in the example above, the username is prepended to the prompt, and the command \keyword{su} is used to switch users.
+
+\section{Virtual filesystems and other filesystems}
+
+POSIX systems, such as Linux and Mac OSX (which is based on BSD) include several virtual filesystems that are mounted (available) as part of the file-system. Files inside these virtual filesystems do not exist on the disk; they are generated dynamically by the kernel when a process requests a directory listing. Linux provides 3 main virtual filesystems
+
+\begin{lstlisting}
+/dev  - A list of physical and virtual devices (for example network card, cdrom, random number generator)
+/proc - A list of resources used by each process and (by tradition) set of system information
+/sys - An organized list of internal kernel entities
+\end{lstlisting}
+
+For example if I want a continuous stream of 0s, I can \keyword{cat /dev/zero}.
+
+Another example is the file \keyword{/dev/null} - a great place to store bits that you never need to read! Bytes sent to \keyword{/dev/null/} are never stored - they are simply discarded. A common use of \keyword{/dev/null} is to discard standard output. For example,
+
+\begin{lstlisting}
+$ ls . >/dev/null
+\end{lstlisting}
+
+\subsection{OverlayFS}
+
+Not all virtual filesystems are as abstract as the ones above. Some, like \keyword{OverlayFS} are a good example of how a virtual filesystem may simply augment the functionality of what a filesystem provides. OverlayFS takes in a path to a directory containing some data (a lower directory), and a directory that is preferably empty (a work directory) when it is mounted. It then pretends to hold the contents of the lower directory and will allow a user to read or modify the contents of those files without checking permissions. While the user may think that they are editing file that they normally do not have access to, OverlayFS is not actually writing the changes back to the lower directory, but instead to a file in the work directory, thus writing to an `overlay' on top of a real filesystem (if you are familiar with photoshop or other image editing tools, it is similar to the idea of a layer).
+
+This filesystem is used to implement containers (such as Docker) and other related isolation tools. It is commonly used in conjunction with \keyword{chroot}.
+
+\section{Managing files and filesystems}
+
+Given the multitude of operations that are availible to you from the filesystem, let's explore some tools and techniques that can be used to manage files and filesystems. 
 
 \subsection{Creating secure directories}\label{creating-secure-directories}
 
@@ -573,49 +612,11 @@ $ mkdir -p d1/d2/d3
 
 Will automatically create d1 and d2 if they don't exist.
 
-\subsection{My default umask 022; what does this mean?}\label{my-default-umask-022-what-does-this-mean}
+\subsection{Obtaining random data}\label{differences-between-random-and-urandom}
 
-The umask \emph{subtracts} (reduces) permission bits from 777 and is used when new files and new directories are created by open,mkdir etc. Thus \keyword{022} (octal) means that group and other privileges will not include the writable bit . Each process (including the shell) has a current umask value. When forking, the child inherits the parent's umask value.
+\keyword{/dev/random} is a file which contains number generator where the entropy is determined from environmental noise. Random will block/wait until enough entropy is collected from the environment.
 
-For example, by setting the umask to 077 in the shell, ensures that future file and directory creation will only be accessible to the current user,
-
-\begin{lstlisting}
-$ umask 077
-$ mkdir secretdir
-\end{lstlisting}
-
-As a code example, suppose a new file is created with \keyword{open()} and mode bits \keyword{666} (write and read bits for user,group and other):
-
-\begin{lstlisting}[language=C]
-open("myfile", O_CREAT, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH);
-\end{lstlisting}
-
-If umask is octal 022, then the permissions of the created file will be 0666 \& \textasciitilde{}022 ie.
-
-\begin{lstlisting}[language=C]
-S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH
-\end{lstlisting}
-
-
-\begin{lstlisting}
-$ ls . >/dev/null
-\end{lstlisting}
-
-\subsection{What is file globbing (and who does it)?}\label{what-is-file-globbing-and-who-does-it}
-
-Before executing the program the shell expands parameters into matching filenames. For example, if the current directory has three filenames that start with my ( my1.txt mytext.txt myomy), then
-
-\begin{lstlisting}
-$ echo my*
-\end{lstlisting}
-
-Expands to
-
-\begin{lstlisting}
-$ echo my1.txt mytext.txt myomy
-\end{lstlisting}
-
-This is known as file globbing and is processed before the command is executed. ie the command's parameters are identical to manually typing every matching filename.
+\keyword{/dev/urandom} is like random, but differs in the fact that it allows for repetition (lower entropy threshold), thus wont block.
 
 \subsection{How can I copy bytes from one file to another?}\label{how-can-i-copy-bytes-from-one-file-to-another}
 
@@ -625,20 +626,9 @@ Use the versatile \keyword{dd} command. For example, the following command copie
 $ dd if=/dev/urandom of=/dev/null bs=1k count=1024
 \end{lstlisting}
 
-Both the input and output files in the example above are virtual - they don't exist on a disk. This means the speed of the transfer is unaffected by hardware power. Instead they are part of the \keyword{dev} filesystem, which is virtual filesystem provided by the kernel. The virtual file \keyword{/dev/urandom} provides an infinite stream of random bytes, while the virtal file \keyword{/dev/null} ignores all bytes written to it. A common use of \keyword{/dev/null} is to discard the output of a command,
+Both the input and output files in the example above are virtual - they don't exist on a disk. This means the speed of the transfer is unaffected by hardware power.
 
-\begin{lstlisting}
-$ myverboseexecutable > /dev/null
-\end{lstlisting}
-
-Another commonly used /dev virtual file is \keyword{/dev/zero} which provides an infinite stream of zero bytes. For example, we can benchmark the operating system performance of reading stream zero bytes in the kernel into a process memory and writing the bytes back to the kernel without any disk I/O. Note the throughput (\textasciitilde{}20GB/s) is strongly dependent on blocksize. For small block sizes the overhead of additional \keyword{read} and \keyword{write} system calls will dominate.
-
-\begin{lstlisting}
-$ dd if=/dev/zero of=/dev/null bs=1M count=1024
-1024+0 records in
-1024+0 records out
-1073741824 bytes (1.1 GB) copied, 0.0539153 s, 19.9 GB/s
-\end{lstlisting}
+\keyword{dd} is also commonly used to make a copy of a disk or an entire filesystem to create images that can either be burned on to other disks or to distribute data to other users.
 
 \subsection{What happens when I touch a file?}\label{what-happens-when-i-touch-a-file}
 
@@ -664,21 +654,10 @@ $ touch myprogram.c   # force my source file to be recompiled
 $ make
 \end{lstlisting}
 
-\subsection{Virtual file systems}\label{virtual-file-systems}
 
-POSIX systems, such as Linux and Mac OSX (which is based on BSD) include several virtual filesystems that are mounted (available) as part of the file-system. Files inside these virtual filesystems do not exist on the disk; they are generated dynamically by the kernel when a process requests a directory listing. Linux provides 3 main virtual filesystems
+\subsection{Managing Filesystems}\label{how-do-i-find-out-what-filesystems-are-currently-available-mounted}
 
-\begin{lstlisting}
-/dev  - A list of physical and virtual devices (for example network card, cdrom, random number generator)
-/proc - A list of resources used by each process and (by tradition) set of system information
-/sys - An organized list of internal kernel entities
-\end{lstlisting}
-
-For example if I want a continuous stream of 0s, I can \keyword{cat /dev/zero}.
-
-\subsection{How do I find out what filesystems are currently available (mounted)?}\label{how-do-i-find-out-what-filesystems-are-currently-available-mounted}
-
-Use \keyword{mount} Using mount without any options generates a list (one filesystem per line) of mounted filesystems including networked, virtual and local (spinning disk / SSD-based) filesystems. Here is a typical output of mount
+To manage filesystems on your machine, use \keyword{mount}. Using mount without any options generates a list (one filesystem per line) of mounted filesystems including networked, virtual and local (spinning disk / SSD-based) filesystems. Here is a typical output of mount
 
 \begin{lstlisting}
 $ mount
@@ -703,40 +682,7 @@ proc on /proc type proc (rw)
 none on /proc/sys/fs/binfmt_misc type binfmt_misc (rw)
 \end{lstlisting}
 
-\subsection{Differences between random and urandom?}\label{differences-between-random-and-urandom}
-
-\keyword{/dev/random} is a file which contains number generator where the entropy is determined from environmental noise. Random will block/wait until enough entropy is collected from the environment.
-
-\keyword{/dev/urandom} is like random, but differs in the fact that it allows for repetition (lower entropy threshold), thus wont block.
-
-\subsection{Other Filesystems}\label{other-filesystems}
-
-\begin{lstlisting}
-$ cat /proc/sys/kernel/random/entropy_avail
-$ hexdump /dev/random
-$ hexdump /dev/urandom
-
-$ cat /proc/meminfo
-$ cat /proc/cpuinfo
-$ cat /proc/cpuinfo | grep bogomips
-
-$ cat /proc/meminfo | grep Swap
-
-$ cd /proc/self
-$ echo $$; cd /proc/12345; cat maps
-\end{lstlisting}
-
-\subsection{Mounting a filesystem}\label{mounting-a-filesystem}
-
-Let's say I have a filesystem hooked up on \keyword{/dev/cdrom} that I want to read from. I have to mound it to a directory before I can do any operations.
-
-\begin{lstlisting}
-$ sudo mount /dev/cdrom /media/cdrom
-$ mount
-$ mount | grep proc
-\end{lstlisting}
-
-\subsection{How do I mount a disk image?}\label{how-do-i-mount-a-disk-image}
+\subsubsection{How do I mount a disk image?}\label{how-do-i-mount-a-disk-image}
 
 Suppose you had downloaded a bootable linux disk image from the \href{http://cosmos.cites.illinois.edu/pub/archlinux/iso/2015.04.01/archlinux-2015.04.01-dual.iso}{URL}
 
@@ -768,15 +714,17 @@ $ touch arch/nocando
 touch: cannot touch `/home/demo/arch/nocando': Read-only file system
 \end{lstlisting}
 
-\subsection{How does the operating system load my process and libraries into memory?}
+\section{Memory Mapped IO}
 
-By mapping the files' contents into the address-space of the process. If many programs only need read-access to the same file (e.g. \keyword{/bin/bash}, the C library) then the same physical memory can be shared between multiple processes.
+While we traditionally think of reading and writing from a file as operation that happen by using the \keyword{read} and \keyword{write} calls, there is an alternative, mapping a file into memory using \keyword{mmap}. \keyword{mmap} can also be used for IPC, and you can see more about \keyword{mmap} as a system call that enables shared memory in the IPC chapter. In this chapter, we'll briefly explore \keyword{mmap} as a filesystem operation.
 
-The same mechanism can be used by programs to directly map files into memory
+\keyword{mmap} takes a file and maps its contents into memory. This allows a user to treat the entire file as a buffer in memory for easier semantics while programming, and to avoid having to read a file as discreete chunks explicitly.
 
-\subsection{How do I map a file into memory?}\label{how-do-i-map-a-file-into-memory}
+Not all filesystems support using \keyword{mmap} for IO, but amongst those that do, not all have the same behavior. Some will simply implement \keyword{mmap} as a wrapper around \keyword{read} and \keyword{write}. Others will add additional optimizations by taking advantage of the kernel's page cache. Of course, such optimization can be used in the implementation of \keyword{read} and \keyword{write} as well, so often using \keyword{mmap} does not impact performance.
 
-A simple program to map a file into memory is shown below. The key points to notice are:
+\keyword{mmap} is used to perform some operations such as loading libraries and processes into memory. If many programs only need read-access to the same file (e.g. \keyword{/bin/bash}, the C library) then the same physical memory can be shared between multiple processes.
+
+The process to map a file into memory is simple:
 
 \begin{enumerate}
 \item \keyword{mmap} requires a filedescriptor, so we need to \keyword{open} the file first
@@ -828,66 +776,9 @@ int main() {
 }
 \end{lstlisting}
 
-The contents of our binary file can be listed using hexdump
-
-\begin{lstlisting}
-$ hexdump data
-0000000 78 56 34 12 de c0 ad de 00 00 00 00 00 00 00 00
-0000010 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-0000020 00 00 00 00 00 00 00 00 41
-\end{lstlisting}
-
 The careful reader may notice that our integers were written in least-significant-byte format (because that is the endianess of the CPU) and that we allocated a file that is one byte too many!
 
 The \keyword{PROT\_READ | PROT\_WRITE} options specify the virtual memory protection. The option \keyword{PROT\_EXEC} (not used here) can be set to allow CPU execution of instructions in memory (e.g.~this would be useful if you mapped an executable or library).
-
-\subsection{What are the advantages of memory mapping a file}\label{what-are-the-advantages-of-memory-mapping-a-file}
-
-For many applications the main advantages are:\\
-Simplified coding - the file data is immediately available. No need to parse the incoming data and store it in new memory structures.\\
-Sharing of files - memory mapped files are particularly efficient when the same data is shared between multiple processes.
-
-Note for simple sequential processing memory mapped files are not necessarily faster than standard `stream-based' approaches of \keyword{read} / \keyword{fscanf} etc.
-
-\subsection{How do I share memory between a parent and child process?}\label{how-do-i-share-memory-between-a-parent-and-child-process}
-
-Easy - Use \keyword{mmap} without a file - just specify the \keyword{MAP\_ANONYMOUS} and \keyword{MAP\_SHARED} options!
-
-\begin{lstlisting}[language=C]
-#include <stdio.h>
-#include <stdlib.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <sys/mman.h> /* mmap() is defined in this header */
-#include <fcntl.h>
-#include <unistd.h>
-#include <errno.h>
-#include <string.h>
-
-int main() {
-
-  int size = 100 * sizeof(int);
-  void *addr = mmap(0, size, PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
-  printf("Mapped at %p\n", addr);
-
-  int *shared = addr;
-  pid_t mychild = fork();
-  if (mychild > 0) {
-    shared[0] = 10;
-    shared[1] = 20;
-  } else {
-    sleep(1); // We will talk about synchronization later
-    printf("%d\n", shared[1] + shared[0]);
-  }
-
-  munmap(addr,size);
-  return 0;
-}
-\end{lstlisting}
-
-\subsection{Can I use shared memory for IPC ?}\label{can-i-use-shared-memory-for-ipc}
-
-Yes! As a simple example you could reserve just a few bytes and change the value in shared memory when you want the child process to quit. Sharing memory is a very efficient form of inter-process communication because there is no copying overhead - the two processes literally share the same \emph{physical} frame of memory.
 
 \section{Reliable Single Disk Filesystems}\label{reliable-single-disk-filesystems}
 
@@ -1116,6 +1007,8 @@ Notice that reading a byte using double indirect requires 3 disk block reads (tw
   Hard and Soft Links
 \item
   Permission Bits
+\item
+  Mode bits
 \item
   Working with Directories
 \item
