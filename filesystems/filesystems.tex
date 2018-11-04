@@ -4,9 +4,7 @@
 
 \section{What is a filesystem?}
 
-You may have encountered the old unix adage, "everything is a file". In most UNIX systems, files operations provide an interface to abstract many different operations. Network sockets, hardware devices and even data on disk are all represented by a file-like object.
-
-A file-like object must follow certain conventions:
+You may have encountered the old unix adage, "everything is a file". In most UNIX systems, files operations provide an interface to abstract many different operations. Network sockets, hardware devices and even data on disk are all represented by a file-like object. A file-like object must follow certain conventions:
 
 \begin{enumerate}
   \item It must present it self to the filesystem
@@ -15,11 +13,7 @@ A file-like object must follow certain conventions:
 
 A filesystem is an implementation of the file interface. In this chapter, we will be exploring the various callbacks a filesystem provides and some typical functionality or implementation details associated with this. In this class, we will mostly talk about filesystems that serve to allow users to access data on disk. These filesystems are integral to modern computers. Filesystems not only deal with storing local files, they handle special devices that allow for safe communication between the kernel and user space. Filesystems also deal with failures, scalability, indexing, encryption, compression and performance. Filesystems handle the abstraction between a file which contains data and how exactly that data is stored on disk, partitioned, and protected.
 
-Although filesystems are usually thought of as a kind of tree, most filesystems are usually a directed graph, a model we will explore in depth later in this chapter.
-
-\subsection{Examples of filesystems}
-
-Before we dive into the details of a filesystem, let's take a look at some examples.
+Although filesystems are usually thought of as a kind of tree, most filesystems are usually a directed graph, a model we will explore in depth later in this chapter. Before we dive into the details of a filesystem, let's take a look at some examples.
 
 \begin{enumerate}
 
@@ -31,9 +25,11 @@ Before we dive into the details of a filesystem, let's take a look at some examp
 
 \end{enumerate}
 
-As you may have noticed, some of these filesystems provide an interface to things that aren't a "file" as you might colloquially refer to them. Filesystems such as \keyword{procfs} are usually refered to as  \emph{virtual} filesystems, since they don't provide data access in the same sense as a traditional filesystem would.
+To clarify, a mount point is simply a mapping of a directory to a filesystem represented in the kernel. What this means is that to resolve which filesystem a structure a call must resolve to. Meaning that \keyword{/root} is resolved by the \keyword{ext4} filesystem in our case, but \keyword{/proc/2} is resolved by the \keyword{procfs} system even though it contains \keyword{/} as a subsystem.
 
-\subsection{The file API}
+As you may have noticed, some of these filesystems provide an interface to things that aren't a "file" as you might colloquially refer to them. Filesystems such as \keyword{procfs} are usually refered to as \emph{virtual} filesystems, since they don't provide data access in the same sense as a traditional filesystem would. Technically, all filesystems in the kernel are represented by virtual filesystem, but in our class we will differentiate \emph{virtual} filesystems as filesystems that actually don't store anything on a hard disk.
+
+\subsection{The File API}
 
 A filesystem must provide callback functions to a variety of actions. Some of them as listed below:
 
@@ -52,10 +48,10 @@ Not every filesystem supports all the possible callback functions. For example m
 
 In order to understand how a filesystem interacts with data on disk, there are three key terms we will be using.
 \begin{enumerate}
-  \item \keyword{disk block}
-  \item \keyword{superblock}
-  \item \keyword{inode}
-\end {enumerate}
+  \item \keyword{disk block} A disk block is a portion of the disk that is reserved for storing the contents of a file or a directory.
+  \item \keyword{inode} An inode \emph{is} a file or directory. This means that an inode contains metadata about the file as well as pointers to disk blocks so that the file can actually be written to or read from.
+  \item \keyword{superblock} A superblock contains metadata about the inodes and disk blocks. An example superblock can store how full each disk block is, which inodes are being used etc. Modern filesystems may actually contain multiple superblocks and a sort-of super-super block that keeps track of which sectors are governed by which superblocks. This tends to help with fragmentation.
+\end{enumerate}
 
 These structures all are presented in the diagram below.
 
@@ -71,12 +67,11 @@ In order to reason about data on some form of storage (spinning disks, solid sta
 
 Usually, a filesystem has a special block denoted as a \emph{superblock} which stores metadata about the filesystem such as a journal (which logs changes to the filesystem), a table of inodes and where the first inode is stored on disk, etc. The important thing about a superblock is that it is in a known location on disk.
 
-
 The inode is the most important structure for our filesystem as it represents a file. Before we explore it in depth, let's list out the key information we need to have a usable file:
 
 \begin{itemize}
 \tightlist
-  \item Filename
+  \item Name
   \item File size
   \item Time created, last modified, last accessed
   \item Permissions
@@ -85,7 +80,7 @@ The inode is the most important structure for our filesystem as it represents a 
   \item File data
 \end{itemize}
 
-\subsection{How does an inode store file contents?}\label{how-does-an-inode-store-file-contents}
+\subsection{File Contents}
 
 \begin{figure}[htbp]
 \centering
@@ -103,7 +98,7 @@ Typically, the superblock stores an array of inodes, each of which stores direct
 
 Big idea: Forget names of files: The `inode' is the file.
 
-    It is common to think of the file name as the `actual' file. It's not! Instead consider the inode as the file. The inode holds the meta-information (last accessed, ownership, size) and points to the disk blocks used to hold the file contents. However, the inode does not usually store a filename. Filenames are usually only stored in directories. (see below)
+It is common to think of the file name as the `actual' file. It's not! Instead consider the inode as the file. The inode holds the meta-information (last accessed, ownership, size) and points to the disk blocks used to hold the file contents. However, the inode does not usually store a filename. Filenames are usually only stored in directories. (see below)
 
 For example, to read the first few bytes of the file, follow the first direct block pointer to the first direct block and read the first few bytes. Writing follows the same process. If you want to read the entire file, keep reading direct blocks until you've read a number of bytes equal to the size of the file. If the total size of the file is less than that of the number of direct blocks multiplied by the size of a block, then unsued block pointers will be undefined. Similarly, if the size of a file is not a multiple of the size of a block, data past the end of the last byte in the last block will be garbage.
 
@@ -117,17 +112,7 @@ Except the problem of too many layers of indirection.
 
 To solve this problem, we introduce the indirect blocks. An indirect block is a block that store pointers to more data blocks. Similarly a double indirect block stores pointers to indirect blocks and the concept can be generalized to arbitrary levels of indirection. This is a very important concept, since as inodes are stored in the superblock, or some other strucutre in a well known location with a constant amount of space, indirection allows exponential increases in the amount of space an inode can keep track of.
 
-\subsection{How many pointers can you store in each indirection table?}\label{how-many-pointers-can-you-store-in-each-indirection-table}
-
-As a worked example, suppose we divide the disk into 4KB blocks and we want to address up to 2\^{}32 blocks.
-
-The maximum disk size is 4KB *2\^{}32 = 16TB (remember 2\^{}10 = 1024)
-
-A disk block can store 4KB / 4B (each pointer needs to be 32 bits) = 1024 pointers. Each pointer refers to a 4KB disk block - so you can refer up to 1024*4KB = 4MB of data
-
-For the same disk configuration, a double indirect block stores 1024 pointers to 1024 indirection tables. Thus a double-indirect block can refer up to 1024 * 4MB = 4GB of data.
-
-Similarly, a triple indirect block can refer up to 4TB of data.
+As a worked example, suppose we divide the disk into 4KB blocks and we want to address up to 2\^{}32 blocks. The maximum disk size is 4KB *2\^{}32 = 16TB (remember 2\^{}10 = 1024). A disk block can store 4KB / 4B (each pointer needs to be 32 bits) = 1024 pointers. Each pointer refers to a 4KB disk block - so you can refer up to 1024*4KB = 4MB of data. For the same disk configuration, a double indirect block stores 1024 pointers to 1024 indirection tables. Thus a double-indirect block can refer up to 1024 * 4MB = 4GB of data. Similarly, a triple indirect block can refer up to 4TB of data. Naturally though, this is three times as slow.
 
 \subsection{So\ldots{} How do we implement a directory?}\label{so-how-do-we-implement-a-directory}
 
@@ -147,7 +132,8 @@ Each directory entry could either be a fixed size, or a variable c-string. It de
 12983989 dirlist.c      12984068 sandwich.c
 \end{lstlisting}
 
-\subsection{Directory conventions}
+\subsection{Unix Directory Conventions}
+
 In standard unix file systems the following entries are specially added on requests to read a directory.
 
 \begin{enumerate}
@@ -156,7 +142,7 @@ In standard unix file systems the following entries are specially added on reque
   \item \keyword{\~} is the name of the home directory usually
 \end{enumerate}
 
-Note that \keyword{...} is NOT a valid representation of any directory (this not the grandparent directory). It \emph{could} however be the name of a file on disk.
+Note that \keyword{...} is NOT a valid representation of any directory (this not the grandparent directory). It \emph{could} however be the name of a file on disk. Though confusingly, \keyword{zsh} provides this as a handy shortcut to the grandparent directory should it exist.
 
 Additional facts about name-related conventions:
 \begin{enumerate}
@@ -192,8 +178,6 @@ The fix is to ensure we free up resources in every possible code-path. In the ab
 \end{lstlisting}
 
 Note: after a call to fork(), either (XOR) the parent or the child can use readdir(), rewinddir() or seekdir(). If both the parent and the child use the above, behavior is undefined.
-
-\subsection{What are the gotcha's of using readdir? For example to recursively search directories?}
 
 There are two main gotchas and one consideration: The \keyword{readdir} function returns ``.'' (current directory) and ``..'' (parent directory). If you are looking for sub-directories, you need to explicitly exclude these directories.
 
@@ -317,7 +301,7 @@ symlink(const char *target, const char *symlink);
 
 However, symlinks have a key disadvantage, they as slower than regular files and directories. When the links contents are read, they must be interpreted as a new path to the target file, resulting in an additional call to open and read since the real file must be opened and read.
 
-\subsection{\texorpdfstring{What happens when I \texttt{rm} (remove) a file?}{What happens when I rm (remove) a file?}}\label{what-happens-when-i-rm-remove-a-file}
+\subsection{What happens when I \texttt{rm} (remove) a file?}{What happens when I rm (remove) a file?}
 
 When you remove a file (using \keyword{rm} or \keyword{unlink}) you are removing an inode reference from a directory. However the inode may still be referenced from other directories. In order to determine if the contents of the file are still required, each inode keeps a reference count that is updated whenever a new link is created or destroyed. This count only tracks hard links, symlinks are allowed to refer to a non-existant file and thus, do not matter.
 
@@ -480,7 +464,7 @@ Example: chmod 755 myfile
 
 \subsection{Understanding the `umask'}
 
-The umask \emph{subtracts} (reduces) permission bits from \keyword{777} and is used when new files and new directories are created by open,mkdir etc. By default the umask is set to \keyword{022} (octal), which means that group and other privileges will not include the writable bit . Each process (including the shell) has a current umask value. When forking, the child inherits the parent's umask value.
+The umask \emph{subtracts} (reduces) permission bits from \keyword{777} and is used when new files and new directories are created by open, mkdir etc. By default the umask is set to \keyword{022} (octal), which means that group and other privileges will not include the writable bit . Each process (including the shell) has a current umask value. When forking, the child inherits the parent's umask value.
 
 For example, by setting the umask to \keyword{077} in the shell, ensures that future file and directory creation will only be accessible to the current user,
 
@@ -501,7 +485,7 @@ If umask is octal \keyword{022}, then the permissions of the created file will b
 S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH
 \end{lstlisting}
 
-\section{Additional Mode Bits}
+\section{A bit about bits}
 
 \subsection{The `setuid' bit}
 
@@ -534,7 +518,7 @@ These functions can allow one to write a program that can only be run by a privi
 
 Sticky bits as we use them today do not serve the same purpose as their intial introduction. Sticky bits were a bit that could be set on an executable file that would allow a program's text segment to remain in swap even after the end of the program's execution. This made subsequent executions of the same program faster. Today, this behavior is no longer supported and the sticky bit only holds meaning when set on a directory,
 
-When a directory's sticky bit is set only the file's owner, the directory's owner, and the root user can rename (or delete) the file. This is useful when multiple users have write access to a common directory. A common use of the sticky bit is for the shared and writable \keyword{/tmp} directory.
+When a directory's sticky bit is set only the file's owner, the directory's owner, and the root user can rename or delete the file. This is useful when multiple users have write access to a common directory. A common use of the sticky bit is for the shared and writable \keyword{/tmp} directory.
 
 To set the sticky bit, use \keyword{chmod +t}.
 
@@ -575,26 +559,18 @@ Another example is the file \keyword{/dev/null} - a great place to store bits th
 $ ls . >/dev/null
 \end{lstlisting}
 
-\subsection{OverlayFS}
-
-Not all virtual filesystems are as abstract as the ones above. Some, like \keyword{OverlayFS} are a good example of how a virtual filesystem may simply augment the functionality of what a filesystem provides. OverlayFS takes in a path to a directory containing some data (a lower directory), and a directory that is preferably empty (a work directory) when it is mounted. It then pretends to hold the contents of the lower directory and will allow a user to read or modify the contents of those files without checking permissions. While the user may think that they are editing file that they normally do not have access to, OverlayFS is not actually writing the changes back to the lower directory, but instead to a file in the work directory, thus writing to an `overlay' on top of a real filesystem (if you are familiar with photoshop or other image editing tools, it is similar to the idea of a layer).
-
-This filesystem is used to implement containers (such as Docker) and other related isolation tools. It is commonly used in conjunction with \keyword{chroot}.
-
-\section{Managing files and filesystems}
+\subsection{Managing files and filesystems}
 
 Given the multitude of operations that are availible to you from the filesystem, let's explore some tools and techniques that can be used to manage files and filesystems. 
 
-\subsection{Creating secure directories}\label{creating-secure-directories}
-
-Suppose you created your own directory in /tmp and then set the permissions so that only you can use the directory (see below). Is this secure?
+One example is creating a secure directory. Suppose you created your own directory in /tmp and then set the permissions so that only you can use the directory (see below). Is this secure?
 
 \begin{lstlisting}
 $ mkdir /tmp/mystuff
 $ chmod 700 /tmp/mystuff
 \end{lstlisting}
 
-There is a window of opportunity between when the directory is created and when it's permissions are changed. This leads to several vulnerabilities that are based on a race condition (where an attacker modifies the directory in some way before the privileges are removed). Some examples include:
+There is a window of opportunity between when the directory is created and when it's permissions are changed. This leads to several vulnerabilities that are based on a race condition.
 
 Another user replaces \keyword{mystuff} with a hardlink to an existing file or directory owned by the second user, then they would be able to read and control the contents of the \keyword{mystuff} directory. Oh no - our secrets are no longer secret!
 
@@ -603,14 +579,6 @@ However in this specific example the \keyword{/tmp} directory has the sticky bit
 \begin{lstlisting}
 $ mkdir -m 700 /tmp/mystuff
 \end{lstlisting}
-
-\subsection{How do I automatically create parent directories?}\label{how-do-i-automatically-create-parent-directories}
-
-\begin{lstlisting}
-$ mkdir -p d1/d2/d3
-\end{lstlisting}
-
-Will automatically create d1 and d2 if they don't exist.
 
 \subsection{Obtaining random data}\label{differences-between-random-and-urandom}
 
@@ -655,7 +623,7 @@ $ make
 \end{lstlisting}
 
 
-\subsection{Managing Filesystems}\label{how-do-i-find-out-what-filesystems-are-currently-available-mounted}
+\subsection{Managing Filesystems}
 
 To manage filesystems on your machine, use \keyword{mount}. Using mount without any options generates a list (one filesystem per line) of mounted filesystems including networked, virtual and local (spinning disk / SSD-based) filesystems. Here is a typical output of mount
 
@@ -732,7 +700,7 @@ The process to map a file into memory is simple:
 \item When finished call munmap to unmap the file from memory.
 \end{enumerate}
 
-This example also shows the preprocessor constants ``\textbf{LINE}'' and ``\textbf{FILE}'' that hold the current line number and filename of the file currently being compiled.
+Here is a quick example.
 
 \begin{lstlisting}[language=C]
 #include <stdio.h>
@@ -776,49 +744,31 @@ int main() {
 }
 \end{lstlisting}
 
-The careful reader may notice that our integers were written in least-significant-byte format (because that is the endianess of the CPU) and that we allocated a file that is one byte too many!
-
-The \keyword{PROT\_READ | PROT\_WRITE} options specify the virtual memory protection. The option \keyword{PROT\_EXEC} (not used here) can be set to allow CPU execution of instructions in memory (e.g.~this would be useful if you mapped an executable or library).
+The careful reader may notice that our integers were written in least-significant-byte format (because that is the endianess of the CPU) and that we allocated a file that is one byte too many! The \keyword{PROT\_READ | PROT\_WRITE} options specify the virtual memory protection. The option \keyword{PROT\_EXEC} (not used here) can be set to allow CPU execution of instructions in memory (e.g.~this would be useful if you mapped an executable or library).
 
 \section{Reliable Single Disk Filesystems}\label{reliable-single-disk-filesystems}
 
-\subsection{How and why does the kernel cache the filesystem?}\label{how-and-why-does-the-kernel-cache-the-filesystem}
+Most filesystems cache significant amounts of disk data in physical memory. Linux, in this respect, is particularly extreme: All unused memory is used as a giant disk cache. The disk cache can have significant impact on overall system performance because disk I/O is slow. This is especially true for random access requests on spinning disks where the disk read-write latency is dominated by the seek time required to move the read-write disk head to the correct position.
 
-Most filesystems cache significant amounts of disk data in physical memory. Linux, in this respect, is particularly extreme: All unused memory is used as a giant disk cache.
-
-The disk cache can have significant impact on overall system performance because disk I/O is slow. This is especially true for random access requests on spinning disks where the disk read-write latency is dominated by the seek time required to move the read-write disk head to the correct position.
-
-For efficiency, the kernel caches recently used disk blocks. For writing we have to choose a trade-off between performance and reliability: Disk writes can also be cached (``Write-back cache'') where modified disk blocks are stored in memory until evicted. Alternatively a `write-through cache' policy can be employed where disk writes are sent immediately to the disk. The latter is safer (as filesystem modifications are quickly stored to persistent media) but slower than a write-back cache; If writes are cached then they can be delayed and efficiently scheduled based on the physical position of each disk block.
-
-Note this is a simplified description because solid state drives (SSDs) can be used as a secondary write-back cache.
+For efficiency, the kernel caches recently used disk blocks. For writing, we have to choose a trade-off between performance and reliability: Disk writes can also be cached (``Write-back cache'') where modified disk blocks are stored in memory until evicted. Alternatively a `write-through cache' policy can be employed where disk writes are sent immediately to the disk. The latter is safer (as filesystem modifications are quickly stored to persistent media) but slower than a write-back cache; If writes are cached then they can be delayed and efficiently scheduled based on the physical position of each disk block. Note this is a simplified description because solid state drives (SSDs) can be used as a secondary write-back cache.
 
 Both solid state disks (SSD) and spinning disks have improved performance when reading or writing sequential data. Thus operating system can often use a read-ahead strategy to amortize the read-request costs (e.g.~time cost for a spinning disk) and request several contiguous disk blocks per request. By issuing an I/O request for the next disk block before the user application requires the next disk block, the apparent disk I/O latency can be reduced.
 
-\subsection{My data is important! Can I force the disk writes to be saved to the physical media and wait for it to complete?}\label{my-data-is-important-can-i-force-the-disk-writes-to-be-saved-to-the-physical-media-and-wait-for-it-to-complete}
+If your data is important and needs to be force written to disk, call \keyword{sync} to request that a filesystem changes be written (flushed) to disk. However, not all operating systems honor this request and even if the data is evicted from the kernel buffers the disk firmware use an internal on-disk cache or may not yet have finished changing the physical media. Note you can also request that all changes associated with a particular file descriptor are flushed to disk using \keyword{fsync(int fd)}
 
-Yes (almost). Call \keyword{sync} to request that a filesystem changes be written (flushed) to disk. However, not all operating systems honor this request and even if the data is evicted from the kernel buffers the disk firmware use an internal on-disk cache or may not yet have finished changing the physical media.
+If your operating system fails in the middle of an operation, most modern file systems do something called \textbf{journalling} that work around this. What the file system does is before it completes a potentially expensive operation, is that it writes what it is going to do down in a journal. In the case of a crash or failure, one can step through the journal and see which files are corrupt and fix them. This is a way to salvage hard disks in cases there is critical data and there is no apparent backup.
 
-Note you can also request that all changes associated with a particular file descriptor are flushed to disk using \keyword{fsync(int fd)}
+Even though it is unlikely for your computer, programming for datacenters means that disks fail every few seconds. Disk failures are measured using ``Mean-Time-Failure''. For large arrays, the mean failure time can be surprisingly short. For example if the MTTF(single disk) = 30,000 hours, then the MTTF(1000 disks)= 30000/1000=30 hours or about a day and a half!
 
-\subsection{What if my disk fails in the middle of an important operation?}\label{what-if-my-disk-fails-in-the-middle-of-an-important-operation}
+\subsection{RAID}\label{redundancy}
 
-Don't worry most modern file systems do something called \textbf{journalling} that work around this. What the file system does is before it completes a potentially expensive operation, is that it writes what it is going to do down in a journal. In the case of a crash or failure, one can step through the journal and see which files are corrupt and fix them. This is a way to salvage hard disks in cases there is critical data and there is no apparent backup.
-
-\subsection{How likely is a disk failure?}\label{how-likely-is-a-disk-failure}
-
-Disk failures are measured using ``Mean-Time-Failure''. For large arrays, the mean failure time can be surprisingly short. For example if the MTTF(single disk) = 30,000 hours, then the MTTF(100 disks)= 30000/100=300 hours ie about 12 days!
-
-\section{Redundancy}\label{redundancy}
-
-\subsection{How do I protect my data from disk failure?}\label{how-do-i-protect-my-data-from-disk-failure}
-
-Easy! Store the data twice! This is the main principle of a ``RAID-1'' disk array. RAID is short for redundant array of inexpensive disks. By duplicating the writes to a disk with writes to another (backup disk) there are exactly two copies of the data. If one disk fails, the other disk serves as the only copy until it can be re-cloned. Reading data is faster (since data can be requested from either disk) but writes are potentially twice as slow (now two write commands need to be issued for every disk block write) and, compared to using a single disk, the cost of storage per byte has doubled.
+One way to protect against this is to store the data twice! This is the main principle of a ``RAID-1'' disk array. RAID is short for redundant array of inexpensive disks. By duplicating the writes to a disk with writes to another backup disk, there are exactly two copies of the data. If one disk fails, the other disk serves as the only copy until it can be re-cloned. Reading data is faster since data can be requested from either disk, but writes are potentially twice as slow because now two write commands need to be issued for every disk block write. Compared to using a single disk, the cost of storage per byte has doubled.
 
 Another common RAID scheme is RAID-0, meaning that a file could be split up amoung two disks, but if any one of the disks fail then the files are irrecoverable. This has the benefit of halving write times because one part of the file could be writing to hard disk one and another part to hard disk two.
 
-It is also common to combine these systems. If you have a lot of hard disks, consider RAID-10. This is where you have two systems of RAID-1, but the systems are hooked up in RAID-0 to each other. This means you would get roughly the same speed from the slowdowns but now any one disk can fail and you can recover that disk. (If two disks from opposing raid partitions fail there is a chance that recover can happen though we don't could on it most of the time).
+It is also common to combine these systems. If you have a lot of hard disks, consider RAID-10. This is where you have two systems of RAID-1, but the systems are hooked up in RAID-0 to each other. This means you would get roughly the same speed from the slowdowns but now any one disk can fail and you can recover that disk. If two disks from opposing raid partitions fail there is a chance that recover can happen though we don't could on it most of the time.
 
-\subsection{What is RAID-3?}\label{what-is-raid-3}
+\subsection{Higher Level Raids}
 
 RAID-3 uses parity codes instead of mirroring the data. For each N-bits written we will write one extra bit, the `Parity bit' that ensures the total number of 1s written is even. The parity bit is written to an additional disk. If any one disk (including the parity disk) is lost, then its contents can still be computed using the contents of the other disks.
 
@@ -830,8 +780,6 @@ RAID-3 uses parity codes instead of mirroring the data. For each N-bits written 
 
 One disadvantage of RAID-3 is that whenever a disk block is written, the parity block will always be written too. This means that there is effectively a bottleneck in a separate disk. In practice, this is more likely to cause a failure because one disk is being used 100\% of the time and once that disk fails then the other disks are more prone to failure.
 
-\subsection{How secure is RAID-3 to data-loss?}\label{how-secure-is-raid-3-to-data-loss}
-
 A single disk failure will not result in data loss (because there is sufficient data to rebuild the array from the remaining disks). Data-loss will occur when a two disks are unusable because there is no longer sufficient data to rebuild the array. We can calculate the probability of a two disk failure based on the repair time which includes not just the time to insert a new disk but the time required to rebuild the entire contents of the array.
 
 \begin{lstlisting}
@@ -842,13 +790,9 @@ N = number of original disks
 p = MTTR / (MTTF-one-disk / (N-1))
 \end{lstlisting}
 
-Using typical numbers (MTTR=1day, MTTF=1000days, N-1 = 9,, p=0.009
+Using typical numbers (MTTR=1day, MTTF=1000days, N-1 = 9, p=0.009)
 
-There is a 1\% chance that another drive will fail during the rebuild process (at that point you had better hope you still have an accessible backup of your original data.
-
-In practice the probability of a second failure during the repair process is likely higher because rebuilding the array is I/O-intensive (and on top of normal I/O request activity). This higher I/O load will also stress the disk array
-
-\subsection{What is RAID-5?}\label{what-is-raid-5}
+There is a 1\% chance that another drive will fail during the rebuild process (at that point you had better hope you still have an accessible backup of your original data. In practice the probability of a second failure during the repair process is likely higher because rebuilding the array is I/O-intensive (and on top of normal I/O request activity). This higher I/O load will also stress the disk array
 
 RAID-5 is similar to RAID-3 except that the check block (parity information) is assigned to different disks for different blocks. The check-block is `rotated' through the disk array. RAID-5 provides better read and write performance than RAID-3 because there is no longer the bottleneck of the single parity disk. The one drawback is that you need more disks to have this setup and there are more complicated algorithms need to be used
 
@@ -858,17 +802,13 @@ RAID-5 is similar to RAID-3 except that the check block (parity information) is 
 \caption{}
 \end{figure}
 
-\subsection{Distributed storage}\label{distributed-storage}
-
-Failure is the common case Google reports 2-10\% of disks fail per year Now multiply that by 60,000+ disks in a single warehouse\ldots{} Must survive failure of not just a disk, but a rack of servers or a whole data center
+Failure is the common case. Google reports 2-10\% of disks fail per year Now multiply that by 60,000+ disks in a single warehouse\ldots{} Must survive failure of not just a disk, but a rack of servers or a whole data center
 
 Solutions Simple redundancy (2 or 3 copies of each file) e.g., Google GFS (2001) More efficient redundancy (analogous to RAID 3++) e.g., \href{http://goo.gl/LwFIy}{Google Colossus filesystem} (\textasciitilde{}2010): customizable replication including Reed-Solomon codes with 1.5x redundancy
 
-\subsection{Under construction}\label{under-construction}
+\section{Under construction - Simple Filesystem Model}
 
-\subsection{Please can you explain a simple model of how the file's content is stored in a simple i-node based filesystem?}
-
-Sure! To answer this question, we'll build a virtual disk and then write some C code to access its contents. Our filesystem will divide the bytes available into space for inodes and a much larger space for disk blocks. Each disk block will be 4096 bytes.
+We'll build a virtual disk and then write some C code to access its contents. Our filesystem will divide the bytes available into space for inodes and a much larger space for disk blocks. Each disk block will be 4096 bytes.
 
 \begin{lstlisting}[language=C]
 // Disk size:

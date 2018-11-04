@@ -9,7 +9,7 @@ addons:
         packages:
             - texlive-full
 script:
-    - latexmk
+    - make
     - git checkout -b deploy
     - git add main.pdf
     - git commit -m "Updating main.pdf at `date`"
