@@ -1,6 +1,6 @@
 \chapter{Filesystems}
 
-\epigraph{TODO}{}
+\epigraph{\texttt{/home} is where another mount point should be if you are fault tolerant}{Bhuvy}
 
 \section{What is a filesystem?}
 
@@ -114,7 +114,7 @@ To solve this problem, we introduce the indirect blocks. An indirect block is a 
 
 As a worked example, suppose we divide the disk into 4KB blocks and we want to address up to 2\^{}32 blocks. The maximum disk size is 4KB *2\^{}32 = 16TB (remember 2\^{}10 = 1024). A disk block can store 4KB / 4B (each pointer needs to be 32 bits) = 1024 pointers. Each pointer refers to a 4KB disk block - so you can refer up to 1024*4KB = 4MB of data. For the same disk configuration, a double indirect block stores 1024 pointers to 1024 indirection tables. Thus a double-indirect block can refer up to 1024 * 4MB = 4GB of data. Similarly, a triple indirect block can refer up to 4TB of data. Naturally though, this is three times as slow.
 
-\subsection{So\ldots{} How do we implement a directory?}\label{so-how-do-we-implement-a-directory}
+\subsection{Directory Implementation}
 
 A directory is just a mapping of names to inode numbers. It's typically just a normal file, but with some special bits set in its inode and a very specific structure for its contents. POSIX provides a small set of functions to read the filename and inode number for each entry, which we will talk about in depth later in this chapter.
 
@@ -249,7 +249,7 @@ link("file1.txt", "blip.txt");
 
 For simplicity the above examples made hard links inside the same directory. Hard links can be created anywhere inside the same filesystem.
 
-The second kind of link is a soft link - or a symbolic link (or a symlink if you don't have the time). A symbolic link is different because it does not deal with inode numbers directly. Instead a symbolic link is a regular file with a special bit set and stores a path to another file. Quite simply, without the special bit, it is nothing more than a text file with a file path inside. Note that when people generally talk about a link without specifying hard or soft, they are referring to a hard link.
+The second kind of link is a soft link - or a symbolic link or a symlink. A symbolic link is different because it does not deal with inode numbers directly. Instead a symbolic link is a regular file with a special bit set and stores a path to another file. Quite simply, without the special bit, it is nothing more than a text file with a file path inside. Note that when people generally talk about a link without specifying hard or soft, they are referring to a hard link.
 
 To create a symbolic link in the shell use \keyword{ln -s}. To read the contents of the link as just a file use \keyword{readlink}. These are both demonstrated below:
 
@@ -287,7 +287,7 @@ There is a C library call to create symlinks which is similar to link:
 symlink(const char *target, const char *symlink);
 \end{lstlisting}
 
-\subsection{Advantages of symbolic links}\label{advantages-of-symbolic-links}
+Some advantages of symbolic links are
 
 \begin{itemize}
 \tightlist
@@ -299,21 +299,13 @@ symlink(const char *target, const char *symlink);
   Can refer to files (and directories) that exist outside of the current file system
 \end{itemize}
 
-However, symlinks have a key disadvantage, they as slower than regular files and directories. When the links contents are read, they must be interpreted as a new path to the target file, resulting in an additional call to open and read since the real file must be opened and read.
+However, symlinks have a key disadvantage, they as slower than regular files and directories. When the links contents are read, they must be interpreted as a new path to the target file, resulting in an additional call to open and read since the real file must be opened and read. Another disadvantage is that POSIX will not let you hard link directories whereas softlinks are allowed. The \keyword{ln} command will only allow root to do this and only if you provide the \keyword{-d} option. However even root may not be able to perform this because most filesystems prevent it!
 
-\subsection{What happens when I \texttt{rm} (remove) a file?}{What happens when I rm (remove) a file?}
+The integrity of the file system assumes the directory structure (excluding softlinks which we will talk about later) is a non-cyclic tree that is reachable from the root directory. It becomes expensive to enforce or verify this constraint if directory linking is allowed. Breaking these assumptions can cause file integrity tools to not be able to repair the file system. Recursive searches potentially never terminate and directories can have more than one parent but ``..'' can only refer to a single parent. All in all, a bad idea.
 
 When you remove a file (using \keyword{rm} or \keyword{unlink}) you are removing an inode reference from a directory. However the inode may still be referenced from other directories. In order to determine if the contents of the file are still required, each inode keeps a reference count that is updated whenever a new link is created or destroyed. This count only tracks hard links, symlinks are allowed to refer to a non-existant file and thus, do not matter.
 
-\subsection{Case study: Back up software that minimizes file duplication}
-
 An example use of hard-links is to efficiently create multiple archives of a file system at different points in time. Once the archive area has a copy of a particular file, then future archives can re-use these archive files rather than creating a duplicate file. Apple's ``Time Machine'' software does this.
-
-\subsection{Can I create hard links to directories as well as regular files?}
-
-While this is dependant on the underlying filesystem, the POSIX standard says no you may not! The \keyword{ln} command will only allow root to do this and only if you provide the \keyword{-d} option. However even root may not be able to perform this because most filesystems prevent it!
-
-The integrity of the file system assumes the directory structure (excluding softlinks which we will talk about later) is a non-cyclic tree that is reachable from the root directory. It becomes expensive to enforce or verify this constraint if directory linking is allowed. Breaking these assumptions can cause file integrity tools to not be able to repair the file system. Recursive searches potentially never terminate and directories can have more than one parent but ``..'' can only refer to a single parent. All in all, a bad idea.
 
 \subsection{Pathing}
 
@@ -329,11 +321,11 @@ Now that we have definitions talk about directories, we come across the concept 
 
 Thus, this path can be simplified to \keyword{a/c}.
 
-\subsection{How do I find out meta-information about a file (or directory)?}\label{how-do-i-find-out-meta-information-about-a-file-or-directory}
+\subsection{Metadata}
 
 How can we distinguish between a regular file and a directory? For that matter there's many other attributes that files also might contain. You may know that on most UNIX systems, unlike windows systems, a file's type is not determined by its extension. How does the system know what type the file is?
 
-All of this information is stored within an inode. To access it, use the stat calls. For example, to find out when my `notes.txt' file was last accessed -
+All of this information is stored within an inode. To access it, use the stat calls. For example, to find out when my `notes.txt' file was last accessed.
 
 \begin{lstlisting}[language=C]
 struct stat s;
@@ -349,7 +341,7 @@ int fstat(int fd, struct stat *buf);
 int lstat(const char *path, struct stat *buf);
 \end{lstlisting}
 
-For example you can use \keyword{fstat} to find out the meta-information about a file if you already have an file descriptor associated with that file
+For example, you can use \keyword{fstat} to find out the meta-information about a file if you already have an file descriptor associated with that file
 
 \begin{lstlisting}[language=C]
 FILE *file = fopen("notes.txt", "r");
@@ -397,7 +389,7 @@ The \keyword{st\_mode} field can be used to distinguish between regular files an
    }
 \end{lstlisting}
 
-\section{Permissions}
+\section{Permissions and bits}
 
 Permissions are a key part of the way UNIX systems provide security in a filesystem. You may have noticed that the \keyword{st\_mode} field in \keyword{struct stat} contains more than just the file type. It also contains the mode, a description detailing what a user can and can't do with a given file. There are usually three sets of permissions for any file. Permissions for the \emph{user}, the \emph{group} and \emph{other}. For each of the three catagories we need to keep track of whether or not the user is allowed to read the file, write to the file, and execute the file. Since there are three categories and three permissions, permissions are usually represented as a 3-digit octal number. For each digit the least significant byte corresponds to read privilages, the middle one to write privilages and the final byte to execute privilages. They are always presented as \emph{User}, \emph{Group}, \emph{Other} (\emph{UGO}). Below are some common examples:
 
@@ -484,8 +476,6 @@ If umask is octal \keyword{022}, then the permissions of the created file will b
 \begin{lstlisting}[language=C]
 S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH
 \end{lstlisting}
-
-\section{A bit about bits}
 
 \subsection{The `setuid' bit}
 
@@ -580,13 +570,14 @@ However in this specific example the \keyword{/tmp} directory has the sticky bit
 $ mkdir -m 700 /tmp/mystuff
 \end{lstlisting}
 
-\subsection{Obtaining random data}\label{differences-between-random-and-urandom}
+\subsection{Obtaining random data}
 
 \keyword{/dev/random} is a file which contains number generator where the entropy is determined from environmental noise. Random will block/wait until enough entropy is collected from the environment.
 
 \keyword{/dev/urandom} is like random, but differs in the fact that it allows for repetition (lower entropy threshold), thus wont block.
 
-\subsection{How can I copy bytes from one file to another?}\label{how-can-i-copy-bytes-from-one-file-to-another}
+
+\subsection{Copying Files}
 
 Use the versatile \keyword{dd} command. For example, the following command copies 1 MB of data from the file \keyword{/dev/urandom} to the file \keyword{/dev/null}. The data is copied as 1024 blocks of blocksize 1024 bytes.
 
@@ -598,7 +589,7 @@ Both the input and output files in the example above are virtual - they don't ex
 
 \keyword{dd} is also commonly used to make a copy of a disk or an entire filesystem to create images that can either be burned on to other disks or to distribute data to other users.
 
-\subsection{What happens when I touch a file?}\label{what-happens-when-i-touch-a-file}
+\subsection{Updating Modification Time}\label{what-happens-when-i-touch-a-file}
 
 The \keyword{touch} executable creates file if it does not exist and also updates the file's last modified time to be the current time. For example, we can make a new private file with the current time:
 
@@ -621,7 +612,6 @@ An example use of touch is to force make to recompile a file that is unchanged a
 $ touch myprogram.c   # force my source file to be recompiled
 $ make
 \end{lstlisting}
-
 
 \subsection{Managing Filesystems}
 
@@ -650,7 +640,7 @@ proc on /proc type proc (rw)
 none on /proc/sys/fs/binfmt_misc type binfmt_misc (rw)
 \end{lstlisting}
 
-\subsubsection{How do I mount a disk image?}\label{how-do-i-mount-a-disk-image}
+\subsubsection{Filesystem Mounting}\label{how-do-i-mount-a-disk-image}
 
 Suppose you had downloaded a bootable linux disk image from the \href{http://cosmos.cites.illinois.edu/pub/archlinux/iso/2015.04.01/archlinux-2015.04.01-dual.iso}{URL}
 
@@ -746,7 +736,7 @@ int main() {
 
 The careful reader may notice that our integers were written in least-significant-byte format (because that is the endianess of the CPU) and that we allocated a file that is one byte too many! The \keyword{PROT\_READ | PROT\_WRITE} options specify the virtual memory protection. The option \keyword{PROT\_EXEC} (not used here) can be set to allow CPU execution of instructions in memory (e.g.~this would be useful if you mapped an executable or library).
 
-\section{Reliable Single Disk Filesystems}\label{reliable-single-disk-filesystems}
+\section{Reliable Single Disk Filesystems}
 
 Most filesystems cache significant amounts of disk data in physical memory. Linux, in this respect, is particularly extreme: All unused memory is used as a giant disk cache. The disk cache can have significant impact on overall system performance because disk I/O is slow. This is especially true for random access requests on spinning disks where the disk read-write latency is dominated by the seek time required to move the read-write disk head to the correct position.
 

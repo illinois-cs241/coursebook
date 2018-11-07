@@ -1,10 +1,12 @@
 \chapter{Memory Allocators}
 
-\todo{Epigraph}
+\epigraph{Memory memory Everywhere but not a allocation to be made}{A really fragmented heap}
 
-\todo{Introduction}
+\section{Introduction}
 
-Memory allocation is very important! Allocating and de-allocating heap memory is a common operation in most applications.
+Memory allocation is very important! Allocating and de-allocating heap memory is maybe the most common operation in application. The heap at the system level is contiguous series of addresses that the program can expand or contract and use as its own accord -- POSIX this is called \keyword{sbrk}. Most programs don't interact directly with this call, they use a memory allocation system around it to handle chunking up and keeping track of which memory is allocated and which is free'd.
+
+We will mainly be looking into how the c standard library does memory allocations and that c-api for it. Just know that there are other ways of dividing up memory like with \texttt{mmap} or other allocation schemes and methods like \keyword{jemalloc}.
 
 \section{C Memory Allocation Functions}
 
