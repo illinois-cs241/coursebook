@@ -34,3 +34,9 @@ Otherwise, you should probably make an issue first to see what either the course
 ## What that means
 * Not everything you find on here will be in the quiz
 * This is class is meant to be pragmatic. Unless extremely relevent, you won't get asked to cite dates and facts.
+
+## Building
+
+To build this project, we have provided a make file and a rebuild script. To compile the latex, just run `make` from the root of the project. If you'd like the project to automatically recompile as you make changes, run `./rebuilder.sh` instead.
+
+By default, `./rebuilder.sh` will create a new file in /tmp and will re-use it every time it is ran for logging purposes. If a command line argument is specified, `./rebuilder.sh` will treat the argument as a path and will use that as its logging file instead.
