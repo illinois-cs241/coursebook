@@ -71,3 +71,83 @@
 	name=Ostrich Algorithm,
 	description={For a system not to care about deadlock, instead stick its head in the sand}
 }
+
+
+%%%%%%%%%%%%%%%%%%%%%%%% Networking %%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\newglossaryentry{octet}{
+	name=Octet,
+	description={Defined as exactly 8 bits. This definition is used for concreteness in IPv4}
+}
+
+\newglossaryentry{IPv4}{
+	name=Internet Protocol Version 4,
+	description={4th Version of the internet protocol that deals with how to route, chunk, and reassemble packets over the web}
+}
+
+
+\newglossaryentry{IPv6}{
+	name=Internet Protocol Version 6,
+	description={6th Version of the internet protocol that deals with how to route, chunk, and reassemble packets over the web}
+}
+
+\newglossaryentry{IPv4 address}{
+	name=IPv4 Address,
+	description={A thirty two bit number that addresses a computer}
+}
+
+\newglossaryentry{hostnames}{
+  name=Hostname,
+  description={Giving the machine a user-readable address that maps to an IP Address}
+}
+
+\newglossaryentry{DNS}{
+  name=Domain Name Service,
+  description={Service provided by ISPs among other}
+}
+
+\newglossaryentry{TCP}{
+  name=Transport Control Protocol,
+  description={A layer 4 protocol that deals with the reliable delivery of bytes between two computers.}
+}
+
+\newglossaryentry{Ports}{
+name=Port,
+description={A construct defined by layer 4 protocols that allows separate applications to share a single conenction. Each layer 4 protocol communicates with a port and application can send and receive on specific ports}
+}
+
+\newglossaryentry{Internet Engineering Task Force}{
+name=Internet Engineering Task Force,
+description={A group of computing professionals who oversee the development of new standards and protocols devices that communicate which each other should abide by.}
+}
+
+\newglossaryentry{packets}{
+name=Packet,
+description={A packet is a logical piece of data that gets sent over the internet. Packets differ from datagrams because datagrams may have multiple fragments when floating through the internet -- meaning they do not make ``sense'' without the other datagram fragments whereas one packet means something to higher level protocols}
+}
+
+\newglossaryentry{datagram}{
+name=Datagram,
+description={A datagram is a set of bytes that is transmitted along a path to a destination. This differs from a packet because a single datagram may not make sense to higher level protocols because it could be a fragment of a larger packet}
+}
+
+\newglossaryentry{HTTP}{
+name=Hyper Text Transfer Protocol,
+description={A protocol that describes how to send a VERB (GET, PUT, DELETE...) to a particular endpoint and what response to accept back. This is most commonly used to surf the web. There are a few versions of the protocol, namely 1.0, 1.1, and 2.0. 1.0 Uses one TCP connection a request, 1.1 can let you send multiple TCP connections with requests, and 2.0 is a binary wire protocol versus a plain text protocol to name a few differences}
+}
+
+\newglossaryentry{FTP}{
+name=File Transfer Protocol,
+description={A protocol that deals with listing and transfering files of arbitrary size to a receiver.}
+}
+
+\newglossaryentry{Ethernet}{
+name=Ethernet,
+description={A set of protocols that allow two computers to communicate directly over a physical Ethernet Compliant cable}
+}
+
+\newglossaryentry{WiFi}{
+name=WiFi,
+description={Usually referring to 802.11, wifi is a series of protocols that delimit how a computer is able to communicate wirelessly with another computer. There are many different flavors of WIFI that all provide some benefit. Most of the time, you use WIFI to communicate with your router}
+}
+

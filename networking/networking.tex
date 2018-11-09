@@ -1,40 +1,86 @@
 \chapter{Networking}
 
-\epigraph{The Web as I envisaged it, we have not seen it yet. The future is still so much bigger than the past}{Tim Berners-Lee}
+\epigraph{The Web as I envisaged it, we have not seen it yet.
+  The future is still so much bigger than the past}{Tim Berners-Lee}
 
-Networking has become arguably the most important use of computers in the past 10-20 years. Most of us nowadays can't stand a place without wifi or any connectivity, so it is crucial as programmers that you have an understanding of networking and how to program to communicate across networks. Although it may sound complicated, POSIX has defined nice standards that make connecting to the outside world easy. POSIX also lets you peer underneath the hood and optimize all the little parts of each connection to write high performant
+Networking has become arguably the most important use of computers in the past 10-20 years.
+Most of us nowadays can't stand a place without wifi or any connectivity, so it is crucial as programmers that you have an understanding of networking and how to program to communicate across networks.
+Although it may sound complicated, POSIX has defined nice standards that make connecting to the outside world easy.
+POSIX also lets you peer underneath the hood and optimize all the little parts of each connection to write high performant
 
 \section{The OSI Model}
 
-The Open Source Interconnection 7 layer model (OSI Model) is a sequence of segments that define standards for both infrastructure and protocols for forms of radio communication, in our case the internet. The 7 layer model is as follows
+The Open Source Interconnection 7 layer model (OSI Model) is a sequence of segments that define standards for both infrastructure and protocols for forms of radio communication, in our case the internet.
+The 7 layer model is as follows
 
 \begin{enumerate}
-\item Layer 1: The physical layer. These are the actual waves that carry the bauds across the wire. As an aside, bits don't cross the wire because in most mediums you can alter two characterstics of a wave -- the amplitude and the frequency -- and get more bits per clock cycle.
-\item Layer 2: The link layer. This is how each of the agents react to certain events (error detection, noisy channels, etc). This is where Ethernet and WiFi live.
-\item Layer 3: The network layer. This is the heart of the internet. The bottom two protocols deal with communication between two different computers that are directly connected. This layer deals with routing packets from one endpoint to another.
-\item Layer 4: The transport layer. This layer specifies how the slices of data are received. The bottom three layers make no guarantee about the order that packets are received and what happens when a packet is dropped. Using different protocols, this layer can.
-\item Layer 5: The session layer. This layer makes sure that if a connection in the previous layers is dropped, a new connection in the lower layers can be established, and it looks like a nothing happened to the end user.
-\item Layer 6: The presentation layer. This layer deals with encryption, compression, and data translation. For example, portability between different operating systems like translating newlines to windows newlines.
-\item Layer 7: The application layer. The application layer is where many different protocols live. HTTP and FTP are both defined at this level. This is typically where we define protocols across the internet. As programmers, we only go lower when we think we can create algorithms that are more suited to our needs than all of the below.
+\item Layer 1: The physical layer.
+  These are the actual waves that carry the bauds across the wire.
+  As an aside, bits don't cross the wire because in most mediums you can alter two characterstics of a wave -- the amplitude and the frequency -- and get more bits per clock cycle.
+
+\item Layer 2: The link layer.
+  This is how each of the agents react to certain events (error detection, noisy channels, etc).
+  This is where \gls{Ethernet} and \gls{WiFi} live.
+
+\item Layer 3: The network layer.
+  This is the heart of the internet.
+  The bottom two protocols deal with communication between two different computers that are directly connected.
+  This layer deals with routing packets from one endpoint to another.
+
+\item Layer 4: The transport layer.
+  This layer specifies how the slices of data are received.
+  The bottom three layers make no guarantee about the order that packets are received and what happens when a packet is dropped.
+  Using different protocols, this layer can.
+
+\item Layer 5: The session layer.
+  This layer makes sure that if a connection in the previous layers is dropped, a new connection in the lower layers can be established, and it looks like a nothing happened to the end user.
+
+\item Layer 6: The presentation layer.
+  This layer deals with encryption, compression, and data translation.
+  For example, portability between different operating systems like translating newlines to windows newlines.
+
+\item Layer 7: The application layer.
+  The application layer is where many different protocols live.
+  \gls{HTTP} and \gls{FTP} are both defined at this level.
+  This is typically where we define protocols across the internet.
+  As programmers, we only go lower when we think we can create algorithms that are more suited to our needs than all of the below.
+
 \end{enumerate}
 
-Just to be clear this is not a networking class. We won't go over most of these layers in depth. We will focus on some aspects of layers 3, 4, and 7 because they are essential to know if you are going to be doing something with the internet, which at some point in your career you will be. As for another definition, a protocol is a set of specifications put forward by the Internet Engineering Task Force that govern how implementers of protocol have their program or circuit behave under specific circumastnces.
+Just to be clear this is not a networking class.
+We won't go over most of these layers in depth.
+We will focus on some aspects of layers 3, 4, and 7 because they are essential to know if you are going to be doing something with the internet, which at some point in your career you will be.
+As for another definition, a protocol is a set of specifications put forward by the \gls{Internet Engineering Task Force} that govern how implementers of protocol have their program or circuit behave under specific circumastnces.
+
 
 \section{Layer 3: The Internet Protocol}
 
-The following is the ``30 second'' introduction to internet protocol (IP) - which is the primary way to send packets (``datagrams'') of information from one machine to another. ``IP4'', or more precisely, ``IPv4'' is version 4 of the Internet Protocol that describes how to send packets of information across a network from one machine to another. Roughly 95\% of all packets on the Internet today are IPv4 packets. A significant limitation of IPv4 is that source and destination addresses are limited to 32 bits. IPv4 was designed at a time when the idea of 4 billion devices connected to the same network was unthinkable - or at least not worth making the packet size larger. IPv4 address are written typically in a sequence of four octets delimited by periods "255.255.255.0" for example.
+The following is the 30 second introduction to internet protocol (IP), the primary way to send datagrams of information from one machine to another.
+``IP4'', or more precisely, \gls{IPv4} is version 4 of the Internet Protocol that describes how to send \gls{packets} of information across a network from one machine to another.
+Roughly 95\% of all packets on the Internet today are IPv4 packets. \todo{Citation Needed}
+A significant limitation of IPv4 is that source and destination addresses are limited to 32 bits.
+IPv4 was designed at a time when the idea of 4 billion devices connected to the same network was unthinkable or at least not worth making the packet size larger.
+\gls{IPv4 address} are written typically in a sequence of four octets delimited by periods "255.255.255.0" for example.
 
-Each IPv4 packet includes a very small header - typically 20 bytes (more precisely, ``octets''), that includes a source and destination address. Conceptually the source and destination addresses can be split into two: a network number (the upper bits) and the lower bits represent a particular host number on that network.
+Each IPv4 \gls{datagram} includes a very small header - typically 20 \gls{octets}, that includes a source and destination address.
+Conceptually the source and destination addresses can be split into two: a network number the upper bits and the lower bits represent a particular host number on that network.
 
-A newer packet protocol ``IPv6'' solves many of the limitations of IPv4 like making routing tables simpler and 128 bit addresses. However, less than 5\% of web traffic is IPv6 based. We write IPv6 addresses in a sequence of eight, four hexadecimal delimiters like "1F45:0000:0000:0000:0000:0000:0000:0000". Since that can get unruly, we can omit the zeros "1F45::".
+A newer packet protocol \gls{IPv6} solves many of the limitations of IPv4 like making routing tables simpler and 128 bit addresses.
+However, less than 5\% of web traffic is IPv6 based. \todo{Citation Needed}
+We write IPv6 addresses in a sequence of eight, four hexadecimal delimiters like "1F45:0000:0000:0000:0000:0000:0000:0000".
+Since that can get unruly, we can omit the zeros "1F45::". A machine can have an IPv6 address and an IPv4 address.
 
-A machine can have an IPv6 address and an IPv4 address.
+There are special IP Addresses.
+One such in IPv4 is \keyword{127.0.0.1}, IPv6 as \keyword{0:0:0:0:0:0:0:1} or \keyword{::1} also known as localhost.
+Packets sent to 127.0.0.1 will never leave the machine; the address is specified to be the same machine.
+There are a lot of others that are denoted by certain octets being zeros or 255, the maximum value. You won't need to know all the terminology, just keep in mind that the actual number of IP addresses that a machine can have globally over the internet is smaller than the number of ``raw'' addresses.
+For the purposes of the class, you need to know at this layer that IP deals with routing, fragmenting, and reassembling upper level protocols. A more in-depth aside follows.
 
-A special IPv4 address is \texttt{127.0.0.1}, IPv6 as \texttt{0:0:0:0:0:0:0:1} or \texttt{::1} also known as localhost. Packets sent to 127.0.0.1 will never leave the machine; the address is specified to be the same machine.
-
+\begin{aside}
 \subsection{In-depth IPv4 Specification}
 
-The internet protocol deals with routing, fragmentation, and reassembly of datagram fragments. Datagrams are formatted as such
+The internet protocol deals with routing, fragmentation, and reassembly of fragments.
+Datagrams are formatted as such
 
 \begin{center}
 \includegraphics[width=.8\textwidth]{networking/images/ipv4_header.png}
@@ -42,39 +88,73 @@ The internet protocol deals with routing, fragmentation, and reassembly of datag
 
 \begin{enumerate}
   \item The first octet is the version number, either 4 or 6
-  \item The next octet is how long the header is. Although it may seem that the header is constant size, you can include optional parameters to augment the path taken or other instructions
-  \item The next two octets specify the total length of the datagram. This means this is the header, the data, footer, and padding. This is given in multiple of octets, meaning that a value of 20 means 20 octets.
-  \item The next two are Identification number. IP handles taking packets that are too big to be sent over the phsyical wire and chunks them up. As such, this number identifies what datagram this originally belonged to.
+  \item The next octet is how long the header is.
+    Although it may seem that the header is constant size, you can include optional parameters to augment the path taken or other instructions
+  \item The next two octets specify the total length of the datagram.
+    This means this is the header, the data, footer, and padding.
+    This is given in multiple of octets, meaning that a value of 20 means 20 octets.
+  \item The next two are Identification number.
+    IP handles taking packets that are too big to be sent over the phsyical wire and chunks them up.
+    As such, this number identifies what datagram this originally belonged to.
   \item The next octet is various bit flags that can be set.
-  \item The next octet and half is fragment number. If this packet was fragmented, this is the number this fragment represents
-  \item The next octet is time to live. So this is the number of "hops" (travels over a wire) a packet is allowed to go. This is set because different routing protocols could cuase packets to go in circles, the packets must be dropped at some point.
-  \item The next octet is the protocol number. Although protocols between different layers of the OCI model are supposed to be black boxes, this is included, so that hardware can peer into the underlying protocol efficiently. Take for example IP over IP (yes you can do that!). Your ISP wraps IPv4 packets sent from your computer to the ISP in another IP layer and sends the packet off to be delivered to the website. On the reverse trip the packet is "unwrapped" and the original IP datagram is sent to your computer. This was done because we ran out of IP addresses, and this adds additional overhead but it is a necessary fix. Other common protocols are TCP, UDP, etc.
-  \item The next two octets is an internet checksum. This is a CRC that is calculated to make sure that a wide variety of bit errors are detected.
-  \item Source address is what people generally refer to as the IP address. There is no verification of this, so one host can pretend to be any IP address possible
-  \item Destination address is where you want the packet to be sent to. This is crucial in the routing process as you need that to route.
+  \item The next octet and half is fragment number.
+    If this packet was fragmented, this is the number this fragment represents
+  \item The next octet is time to live.
+    So this is the number of "hops" (travels over a wire) a packet is allowed to go.
+    This is set because different routing protocols could cuase packets to go in circles, the packets must be dropped at some point.
+  \item The next octet is the protocol number.
+    Although protocols between different layers of the OCI model are supposed to be black boxes, this is included, so that hardware can peer into the underlying protocol efficiently.
+    Take for example IP over IP (yes you can do that!).
+    Your ISP wraps IPv4 packets sent from your computer to the ISP in another IP layer and sends the packet off to be delivered to the website.
+    On the reverse trip the packet is "unwrapped" and the original IP datagram is sent to your computer.
+    This was done because we ran out of IP addresses, and this adds additional overhead but it is a necessary fix.
+    Other common protocols are TCP, UDP, etc.
+  \item The next two octets is an internet checksum.
+    This is a CRC that is calculated to make sure that a wide variety of bit errors are detected.
+  \item Source address is what people generally refer to as the IP address.
+    There is no verification of this, so one host can pretend to be any IP address possible
+  \item Destination address is where you want the packet to be sent to.
+    This is crucial in the routing process as you need that to route.
   \item After: Your data! All layer of higher order protocols are put in there
   \item Additional options: Hosts of additional options
   \item Footer: A bit of padding to make sure your data is a multiple of 8
 \end{enumerate}
 
-\begin{aside}
 
 \subsection{Routing}
 
-The internet protocol routing is an amazing intersection of theory and application. We can imagine the entire internet as a set of graphs. Most peers are connected to what we call "peering points" these are the WIFI routers and the ethernet ports that one finds in their house, work, or public. These peering points are then connected to a wired network of routers, switches, and servers that all route themselves. At a top level there are two types of routing
+The internet protocol routing is an amazing intersection of theory and application.
+We can imagine the entire internet as a set of graphs.
+Most peers are connected to what we call "peering points" these are the WIFI routers and the ethernet ports that one finds in their house, work, or public.
+These peering points are then connected to a wired network of routers, switches, and servers that all route themselves.
+At a top level there are two types of routing
 
 \begin{enumerate}
-  \item Internal Routing Protocols. Internal protocols is routing designed for within an ISP's network. These protocols are meant to be fast and more trusting because all computers, switches, and routers are part of an ISP. communication between two routers.
-  \item External Routing Protocols. These typically happen to be ISP to ISP protocol. Certain routers are designated as border routers. These routers talk to routers from ISPs have have different policies from accepting or receiving packets. If an evil ISP is trying to dump all network traffic onto your ISP, these routers would deal with that. These protocols also deal with gathering information about the outside world to each router. In most routing protocols using link state or OSPF, a router must necessarily calculate the shortest path to the destination. This means it needs information about the "foreign" routers which is disseminated according to these protocols.
+\item Internal Routing Protocols.
+  Internal protocols is routing designed for within an ISP's network.
+  These protocols are meant to be fast and more trusting because all computers, switches, and routers are part of an ISP.
+  communication between two routers.
+\item External Routing Protocols.
+  These typically happen to be ISP to ISP protocol.
+  Certain routers are designated as border routers.
+  These routers talk to routers from ISPs have have different policies from accepting or receiving packets.
+  If an evil ISP is trying to dump all network traffic onto your ISP, these routers would deal with that.
+  These protocols also deal with gathering information about the outside world to each router.
+  In most routing protocols using link state or OSPF, a router must necessarily calculate the shortest path to the destination.
+  This means it needs information about the "foreign" routers which is disseminated according to these protocols.
 \end{enumerate}
 
-These two protocols have to interplay with each other nicely in order to make sure that packets are mostly delivered. In addition, ISPs need to be nice to each other because theoretically an ISP can handle lower load by forwarding all packets to another ISP. If everyone does that then, no packets get delivered at all which won't make customers happy at all. So these two protocols need to be fair so the end result works
+These two protocols have to interplay with each other nicely in order to make sure that packets are mostly delivered.
+In addition, ISPs need to be nice to each other because theoretically an ISP can handle lower load by forwarding all packets to another ISP.
+If everyone does that then, no packets get delivered at all which won't make customers happy at all.
+So these two protocols need to be fair so the end result works
 
 If you want to read more about this, look at the wikipedia page for routing here \href{https://en.wikipedia.org/wiki/Routing}{Routing}.
 
 \subsection{Fragmentation/Reassembly}
 
-Lower layers like WiFi and Ethernet have maximum transmission sizes. The reason being is
+Lower layers like WiFi and Ethernet have maximum transmission sizes.
+The reason being is
 
 \begin{enumerate}
   \item One host shouldn't crowd the medium for too long
@@ -82,27 +162,47 @@ Lower layers like WiFi and Ethernet have maximum transmission sizes. The reason 
   \item There are physical limitations as well, keeping a laser beam in optics working continuously may cause bit errors.
 \end{enumerate}
 
-As such if the internet protocol receives a packet that is too big for the maximum size, it must chunk it up. TCP calculates how many datagrams it needs to construct a packet and ensures that they are all transmitted and reconstructed at the end receiver. The reason that we barely use this feature is that if any fragment is lost, the entire packet is lost. Meaning that, assuming the probability of receiving a packet assuming each fragment is lost with an independent percentage, the probability of successfully sending a packet drops off exponentially as packet size increases.
+As such if the internet protocol receives a packet that is too big for the maximum size, it must chunk it up.
+TCP calculates how many datagrams it needs to construct a packet and ensures that they are all transmitted and reconstructed at the end receiver.
+The reason that we barely use this feature is that if any fragment is lost, the entire packet is lost.
+Meaning that, assuming the probability of receiving a packet assuming each fragment is lost with an independent percentage, the probability of successfully sending a packet drops off exponentially as packet size increases.
 
-As such, TCP slices its packets so that it fits inside on IP datagram. The only time that this applies is when sending UDP packets that are too big, but most people who are using UDP optimize and set the same packet size as well.
+As such, TCP slices its packets so that it fits inside on IP datagram.
+The only time that this applies is when sending UDP packets that are too big, but most people who are using UDP optimize and set the same packet size as well.
 
 \subsection{IP Multicast}
 
-A little known feature is that using the IP protocol one can send a datagram to all devices connected to a router in what is called a multicast. Multicasts can also be configured with groups, so one can efficiently slice up all connected routers and send a piece of information to all of them efficiently. To access this in a higher protocol, you need to use UDP and specify a few more options. Note that this will cause undo stress on the network, so a series of multicasts could flood the network fast.
+A little known feature is that using the IP protocol one can send a datagram to all devices connected to a router in what is called a multicast.
+Multicasts can also be configured with groups, so one can efficiently slice up all connected routers and send a piece of information to all of them efficiently.
+To access this in a higher protocol, you need to use UDP and specify a few more options.
+Note that this will cause undo stress on the network, so a series of multicasts could flood the network fast.
 
 \subsection{What's the deal with IPv6?}
 
-One of the big features of IPv6 is the address space. The world ran out of IP addresses a while ago and has been using hacks to get around that. With IPv6 there are enough internal and external addresses, so that unless we discover alien civilizations, we probably won't run out. The other benefit is that these addresses are leased not bought, meaning that if something drastic happens in let's say the internet of things and there needs to be a change in the block addressing scheme, it can be done.
+One of the big features of IPv6 is the address space.
+The world ran out of IP addresses a while ago and has been using hacks to get around that.
+With IPv6 there are enough internal and external addresses, so that unless we discover alien civilizations, we probably won't run out.
+The other benefit is that these addresses are leased not bought, meaning that if something drastic happens in let's say the internet of things and there needs to be a change in the block addressing scheme, it can be done.
 
-Another big feature is security through IPsec. IPv4 was designed with little to no security in mind. As such, now there is a key exchange similar to TLS in higher layers that allows you to encrypt communication.
+Another big feature is security through IPsec.
+IPv4 was designed with little to no security in mind.
+As such, now there is a key exchange similar to TLS in higher layers that allows you to encrypt communication.
 
-Another feature is simplified processing. In order to make the internet fast, IPv4 and IPv6 headers alike are actually implemented in hardware. That means that all header options are processed in circuits as they come in. The problem is that as the IPv4 spec grew to include a copious amount of headers, the hardware had to become more and more advanced to support those headers. IPv6 reorders the headers so that packets can be dropped and routed with less hardware cycles. In the case of the internet, every cycle matters when trying to route the world's traffic.
+Another feature is simplified processing.
+In order to make the internet fast, IPv4 and IPv6 headers alike are actually implemented in hardware.
+That means that all header options are processed in circuits as they come in.
+The problem is that as the IPv4 spec grew to include a copious amount of headers, the hardware had to become more and more advanced to support those headers.
+IPv6 reorders the headers so that packets can be dropped and routed with less hardware cycles.
+In the case of the internet, every cycle matters when trying to route the world's traffic.
 
 \end{aside}
 
-\subsection{getnameinfo Example: What's my IP address?}\label{getnameinfo-example-whats-my-ip-address}
+\subsection{What's My Address?}
 
-To obtain a linked list of IP addresses of the current machine use \texttt{getifaddrs} which will return a linked list of IPv4 and IPv6 IP addresses (and potentially other interfaces too). We can examine each entry and use \texttt{getnameinfo} to print the host's IP address. The ifaddrs struct includes the family but does not include the sizeof the struct. Therefore we need to manually determine the struct sized based on the family (IPv4 v IPv6)
+To obtain a linked list of IP addresses of the current machine use \keyword{getifaddrs} which will return a linked list of IPv4 and IPv6 IP addresses among other interfaces as well.
+We can examine each entry and use \keyword{getnameinfo} to print the host's IP address.
+The \keyword{ifaddrs} struct includes the family but does not include the sizeof the struct.
+Therefore we need to manually determine the struct sized based on the family.
 
 \begin{lstlisting}[language=C]
  (family == AF_INET) ? sizeof(struct sockaddr_in) : sizeof(struct sockaddr_in6)
@@ -128,9 +228,7 @@ The complete code is shown below.
         }
 \end{lstlisting}
 
-\subsection{IP Address, Shell Version}\label{whats-my-machines-ip-address-shell-version}
-
-Answer: use \texttt{ifconfig} (or Windows's ipconfig) However this command generates a lot of output for each interface, so we can filter the output using grep
+To get your IP Address from the command line use \keyword{ifconfig} (or Windows's \keyword{ipconfig}) However this command generates a lot of output for each interface, so we can filter the output using grep
 
 \begin{lstlisting}
 ifconfig | grep inet
@@ -143,9 +241,9 @@ Example output:
     inet 192.168.1.100 netmask 0xffffff00 broadcast 192.168.1.255
 \end{lstlisting}
 
-\subsection{\texorpdfstring{How do I use \texttt{getaddrinfo} to convert the hostname into an IP address?}{How do I use getaddrinfo to convert the hostname into an IP address?}}
-
-The function \texttt{getaddrinfo} can convert a human readable domain name (e.g. \texttt{www.illinois.edu}) into an IPv4 and IPv6 address. In fact it will return a linked-list of addrinfo structs:
+To actually grab the IP Address of a remote website. The function \keyword{getaddrinfo} can convert a human readable domain name (e.g.
+\keyword{www.illinois.edu}) into an IPv4 and IPv6 address.
+In fact it will return a linked-list of addrinfo structs:
 
 \begin{lstlisting}[language=C]
 struct addrinfo {
@@ -160,7 +258,10 @@ struct addrinfo {
 };
 \end{lstlisting}
 
-It's very easy to use. For example, suppose you wanted to find out the numeric IPv4 address of a webserver at www.bbc.com. We do this in two stages. First use getaddrinfo to build a linked-list of possible connections. Secondly use \texttt{getnameinfo} to convert the binary address into a readable form.
+For example, suppose you wanted to find out the numeric IPv4 address of a webserver at \keyword{www.bbc.com}
+We do this in two stages.
+First use getaddrinfo to build a linked-list of possible connections.
+Secondly use \keyword{getnameinfo} to convert the binary address into a readable form.
 
 \begin{lstlisting}[language=C]
 #include <stdio.h>
@@ -194,119 +295,128 @@ int main() {
 }
 \end{lstlisting}
 
-Typical output:
-
 \begin{lstlisting}
 212.58.244.70
 212.58.244.71
 \end{lstlisting}
 
-If you are wondering how the the computer maps hostnames to addresses, we will talk about that in Layer 7. Spoiler: It is a service called DNS
-
-\subsection{What is a port?}\label{what-is-a-port}
-
-A port is actually not a part of the IP protocol. IP packets are sent to addresses, but we frequently see IP addresses linked with ports. Ports help higher order protocols multiplexes multiple clients sending packets to the same IP address.
-
-A process can listen for incoming packets on a particular port. However only processes with super-user (root) access can listen on ports \textless{} 1024. Any process can listen on ports 1024 or higher. An often used port is port 80: Port 80 is used for unencrypted http requests (i.e.~web pages). For example, if a web browser connects to http://www.bbc.com/, then it will be connecting to port 80.
+If you are wondering how the the computer maps \gls{hostnames} to addresses, we will talk about that in Layer 7.
+Spoiler: It is a service called \gls{DNS}
 
 \section{Layer 4: TCP and Client}
 
-\subsection{What is TCP? When is it used?}\label{what-is-tcp-when-is-it-used}
+Most services on the Internet today use \gls{TCP} because it efficiently hides the complexity of lower, packet-level nature of the Internet.
+TCP or Transport Control Protocol is a connection-based protocol that is built on top of IPv4 and IPv6 and therefore can be described as ``TCP/IP'' or ``TCP over IP''.
+TCP creates a \emph{pipe} between two machines and abstracts away the low level packet-nature of the Internet. Thus, under most conditions, bytes sent over a TCP connection will not be lost or corrupted.
 
-TCP is a connection-based protocol that is built on top of IPv4 and IPv6 (and therefore can be described as ``TCP/IP'' or ``TCP over IP''). TCP creates a \emph{pipe} between two machines and abstracts away the low level packet-nature of the Internet: Thus, under most conditions, bytes sent from one machine will eventually arrive at the other end without duplication or data loss.
-
-TCP will automatically manage resending packets, ignoring duplicate packets, re-arranging out-of-order packets and changing the rate at which packets are sent.
-
-TCP's three way handshake is known as SYN, SYN-ACK, and ACK. The diagram on this page helps with understanding the TCP handshake. \href{http://www.inetdaemon.com/tutorials/internet/tcp/3-way_handshake.shtml}{TCP Handshake}
-
-Most services on the Internet today (e.g.~a web service) use TCP because it hides the complexity of lower, packet-level nature of the Internet.
-
-\begin{aside}
-\subsection{TCP In Depth}
-
-TCP has a number of features that set it apart from the other transport protocol UDP. 
+TCP has a number of features that set it apart from the other transport protocol UDP.
 
 \begin{enumerate}
-  \item Ports. With IP, you are only allowed to send packets to a machine. If you want one machine to handle multiple flows of data, you have to do it manually with IP. TCP abstracts that an gives the programmer a set of virtual sockets. Clients specify the socket that you want the packet sent to and the TCP protocol makes sure that applications that are waiting for packets on that port receive that.
+  \item \gls{Ports}
+  With IP, you are only allowed to send packets to a machine.
+  If you want one machine to handle multiple flows of data, you have to do it manually with IP.
+  TCP abstracts that an gives the programmer a set of virtual sockets.
+  Clients specify the socket that you want the packet sent to and the TCP protocol makes sure that applications that are waiting for packets on that port receive that.
+  A process can listen for incoming packets on a particular port.
+  However only processes with \gls{super-user} (root) access can listen on ports less than 1024.
+  Any process can listen on ports 1024 or higher.
+  An often used port is port 80: Port 80 is used for unencrypted http requests or web pages.
+  For example, if a web browser connects to \keyword{http://www.bbc.com/} then it will be connecting to port 80.
 
-  \item Retransmission. Packets can get dropped due to network errors or congestion. As such, they need to be retransmitted but at the same time the retransmission shouldn't cause packets more packets to be dropped. This needs to balance the tradeoff between flooding the network and speed.
+\item \gls{Retransmission}
+  Packets can get dropped due to network errors or congestion.
+  As such, they need to be retransmitted but at the same time the retransmission shouldn't cause packets more packets to be dropped.
+  This needs to balance the tradeoff between flooding the network and speed.
 
-  \item Out of order packets. Packets may get routed more favorably due to various reasons in IP. If a later packet arrives before another packet, the protocol should detect and reorder them.
+\item Out of order packets.
+  Packets may get routed more favorably due to various reasons in IP.
+  If a later packet arrives before another packet, the protocol should detect and reorder them.
 
-  \item Duplicate packets. Packets can arrive twice. Packets can arrive twice. As such, a protocol need to be able to differentiate between two packets given a sequence number subject to overflow.
+\item Duplicate packets.
+  Packets can arrive twice.
+  Packets can arrive twice.
+  As such, a protocol need to be able to differentiate between two packets given a sequence number subject to overflow.
 
-  \item Error correction. There is a TCP checksum that handles bit errors. This is rarely used though.
+\item Error correction.
+  There is a TCP checksum that handles bit errors.
+  This is rarely used though.
 
-  \item Flow Control. Flow control is performed on the receiver side. This may be done so that a slow receiver doesn't get overwhelmed with packets. Servers especially that may handle 10000 or 10 million concurrent connection may need to tell receivers to slow down, but not disconnect due to load. There are also other prorblem of making sure the local network is not overwhelmed
+\item Flow Control.
+  Flow control is performed on the receiver side.
+  This may be done so that a slow receiver doesn't get overwhelmed with packets.
+  Servers especially that may handle 10000 or 10 million concurrent connection may need to tell receivers to slow down, but not disconnect due to load.
+  There are also other prorblem of making sure the local network is not overwhelmed
 
-  \item Congestion control. Congestion control is performed on the sender side. Congestion control is to avoid a sender from flooding the network with too many packets. This is really important to make sure that each TCP connection is treated fairly. Meaning that two connections leaving a computer to google and youtube receive the same bandwidth and ping as each other. One can easily define a protocol that takes all the bandwidth and leaves other protocols in the dust, but this tends to be malicious because more often than not limiting a computer to a single TCP connection will yield the same result.
+\item Congestion control.
+  Congestion control is performed on the sender side.
+  Congestion control is to avoid a sender from flooding the network with too many packets.
+  This is really important to make sure that each TCP connection is treated fairly.
+  Meaning that two connections leaving a computer to google and youtube receive the same bandwidth and ping as each other.
+  One can easily define a protocol that takes all the bandwidth and leaves other protocols in the dust, but this tends to be malicious because more often than not limiting a computer to a single TCP connection will yield the same result.
 
-  \item Connection oriented/lifecycle oriented. You can really imagine a TCP connection as a series of bytes sent through a pipe. TCP handles setting up the connection through SYN SYN-ACK ACK. Then every so often if a packet is not sent, TCP will trade zero length packets to make sure the connection is still alive. At any point, the client and server can say that I am done writing on this connection, I will only consume and same for reading. Finally TCP has ways of detecting a connection dies and whether a connection comes back to life in the specified time frame.
-
+\item Connection oriented/lifecycle oriented.
+  You can really imagine a TCP connection as a series of bytes sent through a pipe.
+  There is a ``lifecycle'' to a TCP connection though. What this means is that a TCP connection has a series of states and certain packets received can or not received can move it to another state.
+  TCP handles setting up the connection through SYN SYN-ACK ACK. This means the client will send a SYNchronization packet that tells TCP what starting sequence to start on. Then the receiver will send a SYN-ACK message acknowledging the synchronization number.
+  Then the client will ACKnowledge that with one last packet.
+  The connection is now open for both reading and writing on both ends
+  TCP will send data and the receiver of the data will acknowledge that it received a packet.
+  Then every so often if a packet is not sent, TCP will trade zero length packets to make sure the connection is still alive.
+  At any point, the client and server can send a FIN packet meaning that the server will not transmit.
+  This packet can be altered with bits that only close the read or write end of a particular connection. When all ends are closed then the connection is over.
 \end{enumerate}
 
 There are a list of things that TCP doesn't provide though
 
 \begin{enumerate}
-  \item Security. This means that if you connect to an IP address that says that it is a certain website, TCP does not verify that this website is in fact that IP address. You could be sending packets to a malicious computer.
-  \item Encryption. Anybody can listen in on plain TCP. The packets in transport are in plain text meaning that important things like your passwords could easily be skimmed by servers and regularly are.
-  \item Session Reconnection. This is handled by a higher protocols, but if a TCP connection dies then a whole new one hast to be created and the transmission has to be started over again.
-  \item Delimiting Requests. TCP is naturally connection oriented. Applications that are communicating over TCP need to find a unique way of telling each other that this request or response is over. HTTP uses either a length field or one keeps listening until the connection closes
+\item Security.
+  This means that if you connect to an IP address that says that it is a certain website, TCP does not verify that this website is in fact that IP address.
+  You could be sending packets to a malicious computer.
+\item Encryption.
+  Anybody can listen in on plain TCP.
+  The packets in transport are in plain text meaning that important things like your passwords could easily be skimmed by servers and regularly are.
+\item Session Reconnection.
+  This is handled by a higher protocols, but if a TCP connection dies then a whole new one hast to be created and the transmission has to be started over again.
+\item Delimiting Requests.
+  TCP is naturally connection oriented.
+  Applications that are communicating over TCP need to find a unique way of telling each other that this request or response is over.
+  HTTP delimits the header through two carriage returns and uses either a length field or one keeps listening until the connection closes
 \end{enumerate}
-
-\end{aside}
 
 \subsection{Note on network orders}
 
-Integers can be represented in least significant byte first or most-significant byte first. Either approach is reasonable as long as the machine itself is internally consistent. For network communications we need to standardize on agreed format.
+Integers can be represented in least significant byte first or most-significant byte first.
+Either approach is reasonable as long as the machine itself is internally consistent.
+For network communications we need to standardize on agreed format.
 
-\texttt{htons(xyz)} returns the 16 bit unsigned integer `short' value xyz in network byte order. \texttt{htonl(xyz)} returns the 32 bit unsigned integer `long' value xyz in network byte order.
+\keyword{htons(xyz)} returns the 16 bit unsigned integer `short' value xyz in network byte order.
+\keyword{htonl(xyz)} returns the 32 bit unsigned integer `long' value xyz in network byte order.
 
-These functions are read as `host to network'; the inverse functions (ntohs, ntohl) convert network ordered byte values to host-ordered ordering. So, is host-ordering little-endian or big-endian? The answer is - it depends on your machine! It depends on the actual architecture of the host running the code. If the architecture happens to be the same as network ordering then the result of these functions is just the argument. For x86 machines, the host and network ordering \emph{is} different.
+These functions are read as `host to network'; the inverse functions (\keyword{ntohs}, \keyword{ntohl}) convert network ordered byte values to host-ordered ordering.
+So, is host-ordering little-endian or big-endian? The answer is - it depends on your machine! It depends on the actual architecture of the host running the code.
+If the architecture happens to be the same as network ordering then the result of these functions is just the argument.
+For x86 machines, the host and network ordering is different.
 
-Summary: Whenever you read or write the low level C network structures (e.g.~port and address information), remember to use the above functions to ensure correct conversion to/from a machine format. Otherwise the displayed or specified value may be incorrect.
+Unless agreed otherwise whenever you read or write the low level C network structures (e.g.~port and address information), remember to use the above functions to ensure correct conversion to/from a machine format.
+Otherwise the displayed or specified value may be incorrect.
 
-\subsection{How do I connect to a TCP server?}
+
+This doesn't apply to protocols that negotiate the endianness before-hand.
+If two computers are CPU bound by converting the messages between network orders -- this happens with JSON parsing all the time in high performance systems -- it may be worth it to negotiate if they are on similar endians to send in little endian order.
+
+\subsection{TCP Client}
 
 There are three basic system calls you need to connect to a remote machine:
 
 \begin{enumerate}
-\item \texttt{getaddrinfo} determines the remote addresses of a remote host
-\item \texttt{socket} creates a socket
-\item \texttt{connect} connects to the remote host using the socket and address information
-\end{enumerate}
 
-The \texttt{getaddrinfo} call if successful, creates a linked-list of \texttt{addrinfo} structs and sets the given pointer to point to the first one.
+\item \keyword{int getaddrinfo(const char *node, const char *service,
+                       const struct addrinfo *hints,
+                       struct addrinfo **res);}
 
-The socket call creates an outgoing socket and returns a descriptor (sometimes called a `file descriptor') that can be used with \texttt{read} and \texttt{write} etc. In this sense it is the network analog of \texttt{open} that opens a file stream - except that we haven't connected the socket to anything yet!
+The \keyword{getaddrinfo} call if successful, creates a linked-list of \keyword{addrinfo} structs and sets the given pointer to point to the first one.
 
-Finally the connect call attempts the connection to the remote machine. We pass the original socket descriptor and also the socket address information which is stored inside the addrinfo structure. There are different kinds of socket address structures (e.g.~IPv4 vs IPv6) which can require more memory. So in addition to passing the pointer, the size of the structure is also passed:
-
-\begin{lstlisting}[language=C]
-// Pull out the socket address info from the addrinfo struct:
-connect(sockfd, p->ai_addr, p->ai_addrlen)
-\end{lstlisting}
-
-To clean up code call \texttt{freeaddrinfo} on the top-most \texttt{addrinfo} struct:
-
-\begin{lstlisting}[language=C]
-void freeaddrinfo(struct addrinfo *ai);
-\end{lstlisting}
-
-Error handling with \texttt{getaddrinfo} is a little different: The return value \emph{is} the error code (i.e.~don't use \texttt{errno}) * Use \texttt{gai\_strerror} to get the equivalent short English error text.
-
-\begin{lstlisting}[language=C]
-int result = getaddrinfo(...);
-if(result) { 
-   const char *mesg = gai_strerror(result); 
-   ...
-}
-\end{lstlisting}
-
-\subsection{Can I request only IPv4 or IPv6 connection? TCP only?}
-
-Yes! Use the addrinfo structure that is passed into \texttt{getaddrinfo} to define the kind of connection you'd like.
-
+In addition, you can use the hints struct to only grab certain entries like certain IP protocols etc. The addrinfo structure that is passed into \keyword{getaddrinfo} to define the kind of connection you'd like.
 For example, to specify stream-based protocols over IPv6:
 
 \begin{lstlisting}[language=C]
@@ -316,74 +426,362 @@ memset(&hints, 0, sizeof(hints));
 hints.ai_family = AF_INET6; // Only want IPv6 (use AF_INET for IPv4)
 hints.ai_socktype = SOCK_STREAM; // Only want stream-based connection
 \end{lstlisting}
+Error handling with \keyword{getaddrinfo} is a little different: The return value \emph{is} the error code. To convert to a human-readable error use \keyword{gai\_strerror} to get the equivalent short English error text.
 
-\subsection{What about code examples that use gethostbyname?}
+\begin{lstlisting}[language=C]
+int result = getaddrinfo(...);
+if(result) { 
+   const char *mesg = gai_strerror(result); 
+   ...
+}
+\end{lstlisting}
 
-The old function \texttt{gethostbyname} is deprecated; it's the old way convert a host name into an IP address. The port address still needs to be manually set using htons function. It's much easier to write code to support IPv4 AND IPv6 using the newer \texttt{getaddrinfo}
 
-\subsection{Is it that easy!?}\label{is-it-that-easy}
+\item \keyword{int socket(int domain, int socket\_type, int protocol);}
 
-Yes and no. It's easy to create a simple TCP client - however network communications offers many different levels of abstraction and several attributes and options that can be set at each level of abstraction (for example we haven't talked about \texttt{setsockopt} which can manipulate options for the socket). For more information see this \href{http://www.beej.us/guide/bgnet/output/html/multipage/getaddrinfoman.html}{guide}.
+The socket call creates an outgoing socket and returns a descriptor that can be used with \keyword{read} and \keyword{write}.
+In this sense it is the network analog of \keyword{open} that opens a file stream - except that we haven't connected the socket to anything yet!
 
-\subsection{\texorpdfstring{\texttt{socket}}{socket}}\label{socket}
+Socket creates a socket with domain
+~AF\_INET for IPv4 or AF\_INET6 for IPv6, \keyword{socket\_type} is whether to use UDP or TCP or other socket type, \keyword{protocol} is an optional choice of protocol configuration (for our examples this we can just leave this as 0 for default).
+This call creates a socket object in the kernel with which one can communicate with the outside world/network.
+You can use the result of \keyword{getaddressinfo} to fill in the \keyword{socket} parameters, or provide them manually.
 
-\texttt{int socket(int domain, int socket\_type, int protocol);}
+The socket call returns an integer - a file descriptor - and, for TCP clients, you can use it like a regular file descriptor i.e.~you can use \keyword{read} and \keyword{write} to receive or send packets.
 
-Socket creates a socket with domain (e.g. ~AF\_INET for IPv4 or AF\_INET6 for IPv6), \texttt{socket\_type} is whether to use UDP or TCP or other socket type, \texttt{protocol} is an optional choice of protocol configuration (for our examples this we can just leave this as 0 for default). This call creates a socket object in the kernel with which one can communicate with the outside world/network. You can use the result of \texttt{getaddressinfo} to fill in the \texttt{socket} parameters, or provide them manually.
+TCP sockets are similar to \keyword{pipes} except that they allow full duplex communication i.e.~you can send and receive data in both directions independently.
 
-The socket call returns an integer - a file descriptor - and, for TCP clients, you can use it like a regular file descriptor i.e.~you can use \texttt{read} and \texttt{write} to receive or send packets.
+\item \keyword{connect(int sockfd, const struct sockaddr *addr, socklen\_t addrlen);}
 
-TCP sockets are similar to \texttt{pipes} except that they allow full duplex communication i.e.~you can send and receive data in both directions independently.
+Finally the connect call attempts the connection to the remote machine.
+We pass the original socket descriptor and also the socket address information which is stored inside the addrinfo structure.
+There are different kinds of socket address structures which can require more memory.
+So in addition to passing the pointer, the size of the structure is also passed.
+To help identify errors and mistakes it is good practice to check the return value of all networking calls, including \keyword{connect}
 
-\subsection{getaddressinfo}
 
-We saw this in the last section! You're experts at this.
+\begin{lstlisting}[language=C]
+// Pull out the socket address info from the addrinfo struct:
+connect(sockfd, p->ai_addr, p->ai_addrlen)
+\end{lstlisting}
 
-\subsection{\texttt{connect}}
+\item (Optional) To clean up code call \keyword{freeaddrinfo(struct addrinfo *ai)} on the first level \keyword{addrinfo} struct.
+\end{enumerate}
 
-\texttt{int connectok = connect(int sockfd, const struct sockaddr *addr, socklen\_t addrlen);}
+\begin{aside}
+There is an old function \keyword{gethostbyname} is deprecated; it's the old way convert a host name into an IP address.
+The port address still needs to be manually set using \keyword{htons} function.
+It's much easier to write code to support IPv4 AND IPv6 using the newer \keyword{getaddrinfo}
+\end{aside}
 
-Pass \texttt{connect} the socket file descriptor, the address you want to connect to and the length in bytes of the address structure. To help identify errors and mistakes it is good practice to check the return value of all networking calls, including \texttt{connect}
+This is all that is needed to create a \textit{simple} TCP client - however network communications offers many different levels of abstraction and several attributes and options that can be set at each level of abstraction.
+For example we haven't talked about \keyword{setsockopt} which can manipulate options for the socket.
+For more information see this \href{http://www.beej.us/guide/bgnet/output/html/multipage/getaddrinfoman.html}{guide}.
 
-\subsection{\texorpdfstring{\texttt{read}/\texttt{write}}{read/write}}\label{readwrite}
+\subsection{Sending some data}
 
-Once we have a successful connection we can read or write like any old file descriptor. Keep in mind if you are connected to a website, you want to conform to the HTTP protocol specification in order to get any sort of meaningful results back. There are libraries to do this, usually you don't connect at the socket level because there are other libraries or packages around it.
+Once we have a successful connection we can read or write like any old file descriptor.
+Keep in mind if you are connected to a website, you want to conform to the HTTP protocol specification in order to get any sort of meaningful results back.
+There are libraries to do this, usually you don't connect at the socket level because there are other libraries or packages around it.
+The number of bytes read or written may be smaller than expected.
+Thus it is important to check the return value of read and write.
+A simple HTTP client that sends a request to compliant URL is below.
 
-The number of bytes read or written may be smaller than expected. Thus it is important to check the return value of read and write.
+\begin{lstlisting}[language=C]
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <string.h>
+#include <sys/types.h> 
+#include <sys/socket.h> 
+#include <netdb.h>
+#include <errno.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#ifndef _GNU_SOURCE
+#define _GNU_SOURCE
+#endif
+
+typedef struct _host_info {
+	char *hostname;
+	char *port;
+	char *resource;
+} host_info;
+
+host_info *get_info(char *uri);
+void free_info(host_info *info);
+host_info *send_request(host_info *info);
+
+ssize_t min(ssize_t a, ssize_t b) {
+	return a < b ? a : b;
+}
+
+host_info *get_info(char *uri) {
+
+	const char *http = "http://";
+	int http_len = strlen(http);
+	int uri_len = strlen(uri);
+	if (uri_len < http_len && !strncmp(uri, http, min(strlen(http), uri_len))) {
+		fprintf(stderr, "The uri must start with \"%s\"", http);
+		exit(1);
+	} else {
+		uri += http_len;
+		uri_len -= http_len;
+	}
+	char *hostname = malloc(uri_len+1);
+	char *port = malloc(6);
+	char *ptr = hostname;
+	while(*uri && *uri != '/' && *uri != ':') {
+		*ptr++ = *uri++;
+	}
+	*ptr = '\0';
+
+	if(*uri == ':') {
+		ptr = port;
+		uri++;
+		while(*uri != '/') {
+			*ptr++ = *uri++;
+		}
+		*ptr = '\0';
+	} else {
+		free(port);
+		port = strdup("80");
+	}
+	char *resource = NULL;
+	int len = strlen(uri);
+	if (len == 0) {
+		// Empty means get the index
+		resource = strdup("/");
+	} else {
+		resource = strdup(uri);
+	}
+
+	host_info *info = malloc(sizeof(*info));
+	info->hostname = hostname;
+	info->port = port;
+	info->resource = resource;	
+	return info;
+}
+
+void free_info(host_info *info) {
+	free(info->hostname);
+	free(info->port);
+	free(info->resource);
+	free(info);
+}
+
+static void send_get_request(FILE *sock_file, host_info *info) {
+	char *buffer;
+	asprintf(&buffer, 
+		"GET %s HTTP/1.0\r\n"
+		"Connection: close\r\n"
+		"Accept: */*\r\n\r\n", 
+		info->resource);
+	int sock_fd = fileno(sock_file);
+	write(sock_fd, buffer, strlen(buffer));
+	free(buffer);
+}
+
+static void connect_to_address(int sock_fd, host_info *info) {
+	struct addrinfo current, *result;
+ 	memset(&current, 0, sizeof(struct addrinfo));
+ 	current.ai_family = AF_INET;
+ 	current.ai_socktype = SOCK_STREAM;
+	int s = getaddrinfo(info->hostname, info->port, &current, &result);
+ 	if (s != 0) {
+		fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(s));
+		exit(1);
+ 	}
+	if(connect(sock_fd, result->ai_addr, result->ai_addrlen) == -1){
+		perror("connection error");
+		exit(1);
+	}
+	freeaddrinfo(result);
+}
+
+
+host_info *send_request(host_info *info) {
+	int sock_fd = socket(AF_INET, SOCK_STREAM, 0);
+	if (sock_fd == -1) {
+		perror("socket");
+		exit(1);
+	}
+	int optval = 1;
+	int retval = setsockopt(sock_fd, SOL_SOCKET, SO_REUSEADDR, &optval,
+				sizeof(optval));
+	if(retval == -1) {
+		perror("setsockopt");
+		exit(1);
+	}
+	connect_to_address(sock_fd, info);
+
+	// Open so you can use getline
+	FILE *sock_file = fdopen(sock_fd, "r+");
+	setvbuf(sock_file, NULL, _IONBF, 0);
+
+	send_get_request(sock_file, info);
+	host_info *ret = NULL;
+	if (is_redirect(sock_file)) {
+		ret = handle_redirect(sock_file);
+	} else {
+		handle_okay(sock_file);
+	}
+
+	fclose(sock_file);
+	return ret;
+}
+
+int main(int argc, char *argv[]) {
+	if(argc != 2) {
+		fprintf(stderr, "Usage: %s http://hostname[:port]/path\n", *argv);
+		return 1;	
+	}
+	char *uri = argv[1];
+	host_info *info = get_info(uri);
+	do {
+		host_info *temp = send_request(info);
+		free_info(info);
+		info = NULL;
+		if (temp) {
+			info = temp;
+		}
+	} while(info);
+
+	return 0;
+}
+\end{lstlisting}
+
+The example above demonstrates a request to the server using Hypertext Transfer Protocol.
+A web page (or other resources) are requested using the following request:
+
+\begin{lstlisting}
+GET / HTTP/1.0
+\end{lstlisting}
+
+There are four parts the method e.g.~GET,POST,\ldots{}); the resource (e.g. / /index.html /image.png); the proctocol ``HTTP/1.0'' and two new lines (\texttt{\\r\\n\\r\\n})
+
+The server's first response line describes the HTTP version used and whether the request is successful using a 3 digit response code:
+
+\begin{lstlisting}
+HTTP/1.1 200 OK
+\end{lstlisting}
+
+If the client had requested a non existing file, e.g.
+\keyword{GET /nosuchfile.html HTTP/1.0} Then the first line includes the response code is the well-known \keyword{404} response code:
+
+\begin{lstlisting}
+HTTP/1.1 404 Not Found
+\end{lstlisting}
+
 
 \section{Layer 4: TCP Server}
 
-The four system calls required to create a TCP server are: \texttt{socket}, \texttt{bind} \texttt{listen} and \texttt{accept}. Each has a specific purpose and should be called in the above order
+The four system calls required to create a TCP server are: \keyword{socket}, \keyword{bind} \keyword{listen} and \keyword{accept}.
+Each has a specific purpose and should be called in roughly the above order
 
-The port information (used by bind) can be set manually (many older IPv4-only C code examples do this), or be created using \texttt{getaddrinfo}
 
-We also see examples of setsockopt later too.
+\begin{enumerate}
 
-\subsection{\texttt{int socket(int domain, int socket\_type, int protocol)}}
+  \item \keyword{int socket(int domain, int socket\_type, int protocol)}
 
-To create a endpoint for networking communication. A new socket by itself is not particularly useful. Though we've specified either a packet or stream-based connections, it is not bound to a particular network interface or port. Instead socket returns a network descriptor that can be used with later calls to bind, listen and accept.
+  To create a endpoint for networking communication.
+  A new socket by itself is not particularly useful.
+  Though we've specified either a packet or stream-based connections, it is not bound to a particular network interface or port.
+  Instead socket returns a network descriptor that can be used with later calls to bind, listen and accept.
 
-\subsection{\texttt{int bind(int sockfd, const struct sockaddr *addr, socklen_t addrlen);}}
+  As one gotcha, these sockets must be declared passive. Passive server sockets do not actively try to connect to another host; instead they wait for incoming connections.
+  Additionally, server sockets are not closed when the peer disconnects.
+  Instead the client communicates with a separate active socket on the server that is specific to that connection.
 
-The \texttt{bind} call associates an abstract socket with an actual network interface and port. It is possible to call bind on a TCP client.
+  Since a TCP connection is defined by the sender address and port along with a receiver address and port, a particular server port there can be one passive server socket but multiple active sockets: one for each currently open connection.
+  The server's operating system maintains a lookup table that associates a unique tuple with active sockets, so that incoming packets can be correctly routed to the correct socket.
 
-\subsection{\texttt{int listen(int sockfd, int backlog);}}
+  \item \keyword{int bind(int sockfd, const struct sockaddr *addr, socklen\_t addrlen);}
 
-The \texttt{listen} call specifies the queue size for the number of incoming, unhandled connections i.e.~that have not yet been assigned a network descriptor by \texttt{accept} Typical values for a high performance server are 128 or more.
+  The \keyword{bind} call associates an abstract socket with an actual network interface and port.
+  It is possible to call bind on a TCP client.
+  The port information used by bind can be set manually many older IPv4-only C code examples do this, or be created using \keyword{getaddrinfo}
 
-\subsection{\texttt{int accept(int sockfd, struct sockaddr *addr, socklen_t *addrlen);}}
+  By default a port is not immediately released when the server socket is closed.
+  Instead, the port enters a ``TIMED-WAIT'' state.
+  This can lead to significant confusion during development because the timeout can make valid networking code appear to fail.
 
-Once the server socket has been initialized the server calls \texttt{accept} to wait for new connections. Unlike \texttt{socket} \texttt{bind} and \texttt{listen}, this call will block. i.e.~if there are no new connections, this call will block and only return when a new client connects. The returned TCP socket is associated with a particular tuple \texttt{(client IP, client port, server IP, server port)} and will be used for all future incoming and outgoing TCP packets that match this tuple.
+  To be able to immediately re-use a port, specify \keyword{SO\_REUSEPORT} before binding to the port.
 
-Note the \texttt{accept} call returns a new file descriptor. This file descriptor is specific to a particular client. It is common programming mistake to use the original server socket descriptor for server I/O and then wonder why networking code has failed.
+  \begin{lstlisting}[language=C]
+  int optval = 1;
+  setsockopt(sfd, SOL_SOCKET, SO_REUSEPORT, &optval, sizeof(optval));
 
-\subsection{Why are server sockets passive?}\label{why-are-server-sockets-passive}
+  bind(...);
+  \end{lstlisting}
 
-Server sockets do not actively try to connect to another host; instead they wait for incoming connections. Additionally, server sockets are not closed when the peer disconnects. Instead the client communicates with a separate active socket on the server that is specific to that connection.
+  Here's \href{http://stackoverflow.com/questions/14388706/socket-options-so-reuseaddr-and-so-reuseport-how-do-they-differ-do-they-mean-t}{an extended stackoverflow introductory discussion of \keyword{SO\_REUSEPORT}}.
 
-Unique TCP connections are identified by the tuple \texttt{(source ip, source port, destination ip, destination port)} It is possible to have multiple connections from a web browser to the same server port (e.g.~port 80) because the the source port on each arriving packet is unique. i.e.~For a particular server port (e.g.~port 80) there can be one passive server socket but multiple active sockets (one for each currently open connection) and the server's operating system maintains a lookup table that associates a unique tuple with active sockets, so that incoming packets can be correctly routed to the correct socket.
 
-\subsection{What are the gotchas of creating a TCP-server?}\label{what-are-the-gotchas-of-creating-a-tcp-server}
+  \item \keyword{int listen(int sockfd, int backlog);}
+
+  The \keyword{listen} call specifies the queue size for the number of incoming, unhandled connections i.e.~that have not yet been assigned a network descriptor by \keyword{accept} Typical values for a high performance server are 128 or more.
+
+  \item \keyword{int accept(int sockfd, struct sockaddr *addr, socklen_t *addrlen);}
+
+  Once the server socket has been initialized the server calls \keyword{accept} to wait for new connections.
+  Unlike \keyword{socket} \keyword{bind} and \keyword{listen}, this call will block.
+  i.e.~if there are no new connections, this call will block and only return when a new client connects.
+  The returned TCP socket is associated with a particular tuple \keyword{(client IP, client port, server IP, server port)} and will be used for all future incoming and outgoing TCP packets that match this tuple.
+
+  Note the \keyword{accept} call returns a new file descriptor.
+  This file descriptor is specific to a particular client.
+  It is common programming mistake to use the original server socket descriptor for server I/O and then wonder why networking code has failed.
+
+  The \keyword{accept} system call can optionally provide information about the remote client, by passing in a sockaddr struct.
+  Different protocols have differently variants of the \keyword{struct sockaddr}, which are different sizes.
+  The simplest struct to use is the \keyword{sockaddr\_storage} which is sufficiently large to represent all possible types of sockaddr.
+  Notice that C does not have any model of inheritance.
+  Therefore we need to explicitly cast our struct to the `base type' struct sockaddr.
+
+  \begin{lstlisting}[language=C]
+  struct sockaddr_storage clientaddr;
+  socklen_t clientaddrsize = sizeof(clientaddr);
+  int client_id = accept(passive_socket,
+          (struct sockaddr *) &clientaddr,
+          &clientaddrsize);
+  \end{lstlisting}
+
+  We've already seen \keyword{getaddrinfo} that can build a linked list of addrinfo entries (and each one of these can include socket configuration data).
+  What if we wanted to turn socket data into IP and port addresses? Enter \keyword{getnameinfo} that can be used to convert a local or remote socket information into a domain name or numeric IP.
+  Similarly the port number can be represented as a service name (e.g.
+  ``http'' for port 80).
+  In the example below we request numeric versions for the client IP address and client port number.
+
+  \begin{lstlisting}[language=C]
+  socklen_t clientaddrsize = sizeof(clientaddr);
+  int client_id = accept(sock_id, (struct sockaddr *) &clientaddr, &clientaddrsize);
+  char host[256], port[256];
+  getnameinfo((struct sockaddr *) &clientaddr,
+        clientaddrsize, host, sizeof(host), port, sizeof(port),
+        NI_NUMERICHOST | NI_NUMERICSERV);
+  \end{lstlisting}
+
+  \todo{Discuss NI\_MAXHOST and NI\_MAXSERV, and NI\_NUMERICHOST}
+
+  \item (optional but highly recommended) \keyword{int close(int fd)} and \keyword{int shutdown(int fd, int how)}
+
+  Use the \keyword{shutdown} call when you no longer need to read any more data from the socket, write more data, or have finished doing both.
+  When you shutdown a socket for further writing (or reading) that information is also sent to the other end of the connection.
+  For example if you shutdown the socket for further writing at the server end, then a moment later, a blocked \keyword{read} call could return 0 to indicate that no more bytes are expected.
+
+  Use \keyword{close} when your process no longer needs the socket file descriptor.
+
+  If you \keyword{fork}-ed after creating a socket file descriptor, all processes need to close the socket before the socket resources can be re-used.
+  If you shutdown a socket for further read then all process are be affected because you've changed the socket, not just the file descriptor.
+
+  Well written code will \keyword{shutdown} a socket before calling \keyword{close} it.
+
+
+\end{enumerate}
+
+There are a few gotchas to creating a server.
 
 \begin{itemize}
 \tightlist
@@ -396,14 +794,15 @@ Unique TCP connections are identified by the tuple \texttt{(source ip, source po
 \item
   Not initializing the unused struct entries
 \item
-  The \texttt{bind} call will fail if the port is currently in use
+  The \keyword{bind} call will fail if the port is currently in use. Ports are per machine -- not per process or user.
+  In other words, you cannot use port 1234 while another process is using that port.
+  Worse, ports are by default `tied up' after a process has finished.
 \end{itemize}
 
-Note, ports are per machine- not per process or per user. In other words, you cannot use port 1234 while another process is using that port. Worse, ports are by default `tied up' after a process has finished.
+\subsection{Server code example}
 
-\subsection{Server code example}\label{server-code-example}
-
-A working simple server example is shown below. Note this example is incomplete - for example it does not close either socket descriptor, or free up memory created by \texttt{getaddrinfo}
+A working simple server example is shown below.
+Note this example is incomplete - for example it does not close either socket descriptor, or free up memory created by \keyword{getaddrinfo}
 
 \begin{lstlisting}[language=C]
 #include <string.h>
@@ -461,68 +860,138 @@ int main(int argc, char **argv)
 }
 \end{lstlisting}
 
-\subsection{Why can't my server re-use the port?}\label{why-cant-my-server-re-use-the-port}
-
-By default a port is not immediately released when the server socket is closed. Instead, the port enters a ``TIMED-WAIT'' state. This can lead to significant confusion during development because the timeout can make valid networking code appear to fail.
-
-To be able to immediately re-use a port, specify \texttt{SO\_REUSEPORT} before binding to the port.
-
-\begin{lstlisting}[language=C]
-int optval = 1;
-setsockopt(sfd, SOL_SOCKET, SO_REUSEPORT, &optval, sizeof(optval));
-
-bind(....
-\end{lstlisting}
-
-Here's \href{http://stackoverflow.com/questions/14388706/socket-options-so-reuseaddr-and-so-reuseport-how-do-they-differ-do-they-mean-t}{an extended stackoverflow introductory discussion of \texttt{SO\_REUSEPORT}}.
-
-\subsection{What is the difference shutdown and close?}\label{what-is-the-difference-shutdown-and-close}
-
-Use the \texttt{shutdown} call when you no longer need to read any more data from the socket, write more data, or have finished doing both. When you shutdown a socket for further writing (or reading) that information is also sent to the other end of the connection. For example if you shutdown the socket for further writing at the server end, then a moment later, a blocked \texttt{read} call could return 0 to indicate that no more bytes are expected.
-
-Use \texttt{close} when your process no longer needs the socket file descriptor.
-
-If you \texttt{fork}-ed after creating a socket file descriptor, all processes need to close the socket before the socket resources can be re-used. If you shutdown a socket for further read then all process are be affected because you've changed the socket, not just the file descriptor.
-
-Well written code will \texttt{shutdown} a socket before calling \texttt{close} it.
-
-\subsection{Who connected to my server?}\label{who-connected-to-my-server}
-
-The \texttt{accept} system call can optionally provide information about the remote client, by passing in a sockaddr struct. Different protocols have differently variants of the \texttt{struct sockaddr}, which are different sizes. The simplest struct to use is the \texttt{sockaddr\_storage} which is sufficiently large to represent all possible types of sockaddr. Notice that C does not have any model of inheritance. Therefore we need to explicitly cast our struct to the `base type' struct sockaddr.
-
-\begin{lstlisting}[language=C]
-struct sockaddr_storage clientaddr;
-socklen_t clientaddrsize = sizeof(clientaddr);
-int client_id = accept(passive_socket,
-        (struct sockaddr *) &clientaddr,
-         &clientaddrsize);
-\end{lstlisting}
-
-We've already seen \texttt{getaddrinfo} that can build a linked list of addrinfo entries (and each one of these can include socket configuration data). What if we wanted to turn socket data into IP and port addresses? Enter \texttt{getnameinfo} that can be used to convert a local or remote socket information into a domain name or numeric IP. Similarly the port number can be represented as a service name (e.g. ``http'' for port 80). In the example below we request numeric versions for the client IP address and client port number.
-
-\begin{lstlisting}[language=C]
-socklen_t clientaddrsize = sizeof(clientaddr);
-int client_id = accept(sock_id, (struct sockaddr *) &clientaddr, &clientaddrsize);
-char host[256], port[256];
-getnameinfo((struct sockaddr *) &clientaddr,
-      clientaddrsize, host, sizeof(host), port, sizeof(port),
-      NI_NUMERICHOST | NI_NUMERICSERV);
-\end{lstlisting}
-
-\todo{Discuss NI\_MAXHOST and NI\_MAXSERV, and NI\_NUMERICHOST}
-
 \section{Layer 4: UDP}
 
-\subsection{What is UDP? When is it used?}
+UDP is a connectionless protocol that is built on top of IPv4 and IPv6.
+It's very simple to use: Decide the destination address and port and send your data packet! However the network makes no guarantee about whether the packets will arrive.
+Packets (aka Datagrams) may be dropped if the network is congested.
+Packets may be duplicated or arrive out of order.
 
-UDP is a connectionless protocol that is built on top of IPv4 and IPv6. It's very simple to use: Decide the destination address and port and send your data packet! However the network makes no guarantee about whether the packets will arrive. Packets (aka Datagrams) may be dropped if the network is congested. Packets may be duplicated or arrive out of order.
+Between two distant data-centers it's typical to see 3\% packet loss. \todo{Citation Needed}
+A typical use case for UDP is when receiving up to date data is more important than receiving all of the data.
+For example, a game may send continuous updates of player positions.
+A streaming video signal may send picture updates using UDP
 
-Between two distant data-centers it's typical to see 3\% packet loss. A typical use case for UDP is when receiving up to date data is more important than receiving all of the data. For example, a game may send continuous updates of player positions. A streaming video signal may send picture updates using UDP
+\subsection{UDP Attributes}
 
-\subsection{UDP Server}\label{how-do-i-create-a-udp-server}
+\begin{itemize}
+  \tightlist
+\item Unreliable Datagram Protocol
+  Packets sent through UDP are not guaranteed to reach their destination. The probability that the packet gets delivered goes down over time.
+\item Simple
+  The UDP protocol is supposed to have much less fluff than TCP.
+  Meaning that for TCP there are a lot of configurable parameters and a lot of edge cases in the implementation.
+  UDP is just fire and forget.
+\item Stateless/Transaction
+  The UDP protocol does not keep a ``state'' of the connection.
+  This makes the protocol more simple and let's the protocol represent simple transactions like requesting or responding to queries.
+  There is also less overhead to sending a UDP message because there is no three way handshake.
+\item Manual Flow/Congestion Control
+  You have to manually manage the flow and congestion control which is a double edged sword.
+  On one hand you have full control over everything, but on the other hand TCP has \textit{decades} of optimization, meaning your protocol for its use cases needs to be more efficient that that to be more beneficial to use it.
+\item Multicast
+  This is one thing that you can only do with UDP.
+  This means that you can send a message to every peer connected to a particular router that is part of a particular group.
+\end{itemize}
 
-There are a variety of function calls available to send UDP sockets. We will use the newer getaddrinfo to help set up a socket structure. Remember that UDP is a simple packet-based (`data-gram') protocol ; there is no connection to set up between the two hosts.
+\subsection{UDP Client}
 
+UDP Clients are pretty versatile below is a simple client that sends a packet to a server specified through the command line.
+Note that this client sends a packet and doesn't wait for acknowledgement.
+It fires and forgets.
+The example below also uses \keyword{gethostbyname} because some legacy functionality still works pretty well for setting up a client.
+
+\begin{lstlisting}[language=C]
+	struct sockaddr_in addr;
+	memset(&addr, 0, sizeof(addr));
+	addr.sin_family = AF_INET;
+	addr.sin_port = htons((uint16_t)port);
+  struct hostent *serv = gethostbyname(hostname);
+  if (!serv) {
+    perror("gethostbyname");
+    exit(1);
+  }	
+\end{lstlisting}
+
+The previous code grabs an entry \keyword{hostent} that matches by hostname.
+Even though this isn't portable, it definitely gets the job done.
+The full example follows.
+
+\begin{lstlisting}[language=C]
+#include <stdint.h>
+#include <arpa/inet.h>
+#include <sys/types.h>
+#include <sys/time.h>
+#include <assert.h>
+#include <arpa/inet.h>
+#include <sys/time.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netdb.h>
+#include <pthread.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <sys/mman.h>
+#include <unistd.h>
+#include <string.h>
+
+int connectToUDP(int port, char *hostname, struct sockaddr_in *ipaddr) {
+
+    int sockfd = socket(AF_INET, SOCK_DGRAM, 0);
+    if (sockfd < 0) {
+    	perror("socket");
+    }
+    int optval = 1;
+    // Let them reuse
+	setsockopt(sockfd, SOL_SOCKET, SO_REUSEPORT, &optval, sizeof(optval));
+
+	struct sockaddr_in addr;
+	memset(&addr, 0, sizeof(addr));
+	addr.sin_family = AF_INET;
+	addr.sin_port = htons((uint16_t)port);
+  struct hostent *serv = gethostbyname(hostname);
+  if (!serv) {
+    perror("gethostbyname");
+    exit(1);
+  }	
+
+  memcpy(&addr.sin_addr.s_addr, serv->h_addr, serv->h_length);
+
+  if (ipaddr) {
+    memcpy(ipaddr, &addr, sizeof(*ipaddr));
+  }
+
+	// Timeouts for resending acks and whatnot
+	struct timeval tv;
+	tv.tv_sec = 0;
+	tv.tv_usec = SOCKET_TIMEOUT;
+	setsockopt(sockfd, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv));
+
+	return sockfd;
+}
+
+int main(int argc, char **argv) {
+  char *hostname = argv[1];
+  int port = strtoll(argv[2], NULL, 10);
+  struct sock_addr_in ipaddr;
+
+  port = connectToUDP(port, hostname, &ipaddr, 0) 
+  char *to_send = "Hello!"
+  int send_ret = sendto(port, to_send, packet_size, 0, 
+			(struct sockaddr *)&ipaddr, 
+			sizeof(ipaddr));
+  return 0;
+}
+\end{lstlisting}
+
+\subsection{UDP Server}
+
+There are a variety of function calls available to send UDP sockets.
+We will use the newer getaddrinfo to help set up a socket structure.
+Remember that UDP is a simple packet-based (`data-gram') protocol ; there is no connection to set up between the two hosts.
 First, initialize the hints addrinfo struct to request an IPv6, passive datagram socket.
 
 \begin{lstlisting}[language=C]
@@ -541,9 +1010,12 @@ sockfd = socket(res->ai_family, res->ai_socktype, res->ai_protocol);
 bind(sockfd, res->ai_addr, res->ai_addrlen);
 \end{lstlisting}
 
-The port number is less than 1024, so the program will need \texttt{root} privileges. We could have also specified a service name instead of a numeric port value.
+The port number is less than 1024, so the program will need \keyword{root} privileges.
+We could have also specified a service name instead of a numeric port value.
 
-So far the calls have been similar to a TCP server. For a stream-based service we would call \texttt{listen} and accept. For our UDP-serve we can just start waiting for the arrival of a packet on the socket-
+So far the calls have been similar to a TCP server.
+For a stream-based service we would call \keyword{listen} and accept.
+For our UDP-serve we can just start waiting for the arrival of a packet on the socket-
 
 \begin{lstlisting}[language=C]
 struct sockaddr_storage addr;
@@ -554,9 +1026,9 @@ int addrlen = sizeof(addr);
 byte_count = recvfrom(sockfd, buf, sizeof(buf), 0, &addr, &addrlen);
 \end{lstlisting}
 
-The addr struct will hold sender (source) information about the arriving packet. Note the \texttt{sockaddr\_storage} type is a sufficiently large enough to hold all possible types of socket addresses (e.g.~IPv4, IPv6 and other socket types).
-
-\subsection{Full Code}\label{full-code}
+The addr struct will hold sender (source) information about the arriving packet.
+Note the \keyword{sockaddr\_storage} type is a sufficiently large enough to hold all possible types of socket addresses (e.g.~IPv4, IPv6 and other socket types).
+The full UDP server code is below.
 
 \begin{lstlisting}[language=C]
 #include <string.h>
@@ -606,122 +1078,49 @@ int main(int argc, char **argv)
 
 \section{Layer 7: HTTP}
 
-Layer 7 of the OSI layer deals with application level interfaces. Meaning that you can ignore everything below this layer and treat an internet as a way of communicating with another computer than can be secure and the session may reconnect. Common layer 7 protocols are the following
+Layer 7 of the OSI layer deals with application level interfaces.
+Meaning that you can ignore everything below this layer and treat an internet as a way of communicating with another computer than can be secure and the session may reconnect.
+Common layer 7 protocols are the following
 
 \begin{enumerate}
-  \item HTTP(S) - Hyper Text Transfer Protocol. Sends arbitrary data and executes remote actions on a web server.
-  \item FTP - File Transfer Protocol. Transfers a file from one computer to another
-  \item TFTP - Trivial File Transfer Protocol. Same as above but using UDP.
-  \item DNS - Domain Name Service. Translates hostnames to IP addresses
-  \item SMTP - Simple Mail Transfer Protocol. Allows one to send plain text emails to an email server
-  \item SSH - Secure SHell. Allows one computer to connect to another computer and execute commands remotely.
+  \item HTTP(S) - Hyper Text Transfer Protocol.
+    Sends arbitrary data and executes remote actions on a web server.
+  \item FTP - File Transfer Protocol.
+    Transfers a file from one computer to another
+  \item TFTP - Trivial File Transfer Protocol.
+    Same as above but using UDP.
+  \item DNS - Domain Name Service.
+    Translates hostnames to IP addresses
+  \item SMTP - Simple Mail Transfer Protocol.
+    Allows one to send plain text emails to an email server
+  \item SSH - Secure SHell.
+    Allows one computer to connect to another computer and execute commands remotely.
   \item Bitcoin - Decentralized crypto currency
   \item BitTorrent - Peer to peer file sharing protocol
-  \item NTP - Network Time Protocol. This protocol helps keep your computer's clock synced with the outside world
+  \item NTP - Network Time Protocol.
+    This protocol helps keep your computer's clock synced with the outside world
 \end{enumerate}
-
-\subsection{Complete Simple TCP Client Example}\label{complete-simple-tcp-client-example}
-
-\begin{lstlisting}[language=C]
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netdb.h>
-#include <unistd.h>
-
-int main(int argc, char **argv)
-{
-    int s;
-    int sock_fd = socket(AF_INET, SOCK_STREAM, 0);
-
-    struct addrinfo hints, *result;
-    memset(&hints, 0, sizeof(struct addrinfo));
-    hints.ai_family = AF_INET; /* IPv4 only */
-    hints.ai_socktype = SOCK_STREAM; /* TCP */
-
-    s = getaddrinfo("www.illinois.edu", "80", &hints, &result);
-    if (s != 0) {
-            fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(s));
-            exit(1);
-    }
-
-    if(connect(sock_fd, result->ai_addr, result->ai_addrlen) == -1){
-                perror("connect");
-                exit(2);
-        }
-
-    char *buffer = "GET / HTTP/1.0\r\n\r\n";
-    printf("SENDING: %s", buffer);
-    printf("===\n");
-
-        // For this trivial demo just assume write() sends all bytes in one go and is not interrupted
-
-    write(sock_fd, buffer, strlen(buffer));
-
-
-    char resp[1000];
-    int len = read(sock_fd, resp, 999);
-    resp[len] = '\0';
-    printf("%s\n", resp);
-
-    return 0;
-}
-\end{lstlisting}
-
-Example output:
-
-\begin{lstlisting}
-SENDING: GET / HTTP/1.0
-
-===
-HTTP/1.1 200 OK
-Date: Mon, 27 Oct 2014 19:19:05 GMT
-Server: Apache/2.2.15 (Red Hat) mod_ssl/2.2.15 OpenSSL/1.0.1e-fips mod_jk/1.2.32
-Last-Modified: Fri, 03 Feb 2012 16:51:10 GMT
-ETag: "401b0-49-4b8121ea69b80"
-Accept-Ranges: bytes
-Content-Length: 73
-Connection: close
-Content-Type: text/html
-
-Provided by Web Services at Public Affairs at the University of Illinois
-\end{lstlisting}
-
-\subsection{Comment on HTTP request and response}\label{comment-on-http-request-and-response}
-
-The example above demonstrates a request to the server using Hypertext Transfer Protocol. A web page (or other resources) are requested using the following request:
-
-\begin{lstlisting}
-GET / HTTP/1.0
-\end{lstlisting}
-
-There are four parts (the method e.g.~GET,POST,\ldots{}); the resource (e.g. / /index.html /image.png); the proctocol ``HTTP/1.0'' and two new lines (\r\n\r\n)
-
-The server's first response line describes the HTTP version used and whether the request is successful using a 3 digit response code:
-
-\begin{lstlisting}
-HTTP/1.1 200 OK
-\end{lstlisting}
-
-If the client had requested a non existing file, e.g. \texttt{GET /nosuchfile.html HTTP/1.0} Then the first line includes the response code is the well-known \texttt{404} response code:
-
-\begin{lstlisting}
-HTTP/1.1 404 Not Found
-\end{lstlisting}
 
 \subsection{How is a website converted into an IP address?}
 
-A system called ``DNS'' (Domain Name Service) is used. If a machine does not hold the answer locally then it sends a UDP packet to a local DNS server. This server in turn may query other upstream DNS servers. 
+A system called ``DNS'' (Domain Name Service) is used.
+If a machine does not hold the answer locally then it sends a UDP packet to a local DNS server.
+This server in turn may query other upstream DNS servers.
 
-DNS by itself is fast but not secure. DNS requests are not encrypted and susceptible to `man-in-the-middle' attacks. For example, a coffee shop internet connection could easily subvert your DNS requests and send back different IP addresses for a particular domain. The way this is usually subverted is that after the IP address is obtained then a connection is usually made over HTTPS. HTTPS uses what is called the TLS (formerly known as SSL) to secure transmissions and verify the IP address is who they say they are.
+DNS by itself is fast but not secure.
+DNS requests are not encrypted and susceptible to `man-in-the-middle' attacks.
+For example, a coffee shop internet connection could easily subvert your DNS requests and send back different IP addresses for a particular domain.
+The way this is usually subverted is that after the IP address is obtained then a connection is usually made over HTTPS.
+HTTPS uses what is called the TLS (formerly known as SSL) to secure transmissions and verify the IP address is who they say they are.
 
 \section{Nonblocking IO}
 
-Normally, when you call \texttt{read()}, if the data is not available yet it will wait until the data is ready before the function returns. When you're reading data from a disk, that delay may not be long, but when you're reading from a slow network connection it may take a long time for that data to arrive, if it ever arrives.
+Normally, when you call \keyword{read()}, if the data is not available yet it will wait until the data is ready before the function returns.
+When you're reading data from a disk, that delay may not be long, but when you're reading from a slow network connection it may take a long time for that data to arrive, if it ever arrives.
 
-POSIX lets you set a flag on a file descriptor such that any call to \texttt{read()} on that file descriptor will return immediately, whether it has finished or not. With your file descriptor in this mode, your call to \texttt{read()} will start the read operation, and while it's working you can do other useful work. This is called ``nonblocking'' mode, since the call to \texttt{read()} doesn't block.
+POSIX lets you set a flag on a file descriptor such that any call to \keyword{read()} on that file descriptor will return immediately, whether it has finished or not.
+With your file descriptor in this mode, your call to \keyword{read()} will start the read operation, and while it's working you can do other useful work.
+This is called ``nonblocking'' mode, since the call to \keyword{read()} doesn't block.
 
 To set a file descriptor to be nonblocking:
 
@@ -731,19 +1130,31 @@ int flags = fcntl(fd, F_GETFL, 0);
 fcntl(fd, F_SETFL, flags | O_NONBLOCK);
 \end{lstlisting}
 
-For a socket, you can create it in nonblocking mode by adding \texttt{SOCK\_NONBLOCK} to the second argument to \texttt{socket()}:
+For a socket, you can create it in nonblocking mode by adding \keyword{SOCK\_NONBLOCK} to the second argument to \keyword{socket()}:
 
 \begin{lstlisting}[language=C]
 fd = socket(AF_INET, SOCK_STREAM | SOCK_NONBLOCK, 0);
 \end{lstlisting}
 
-When a file is in nonblocking mode and you call \texttt{read()}, it will return immediately with whatever bytes are available. Say 100 bytes have arrived from the server at the other end of your socket and you call \texttt{read(fd, buf, 150)}. Read will return immediately with a value of 100, meaning it read 100 of the 150 bytes you asked for. Say you tried to read the remaining data with a call to \texttt{read(fd, buf+100, 50)}, but the last 50 bytes still hadn't arrived yet. \texttt{read()} would return -1 and set the global error variable \textbf{errno} to either EAGAIN or EWOULDBLOCK. That's the system's way of telling you the data isn't ready yet.
+When a file is in nonblocking mode and you call \keyword{read()}, it will return immediately with whatever bytes are available.
+Say 100 bytes have arrived from the server at the other end of your socket and you call \keyword{read(fd, buf, 150)}.
+Read will return immediately with a value of 100, meaning it read 100 of the 150 bytes you asked for.
+Say you tried to read the remaining data with a call to \keyword{read(fd, buf+100, 50)}, but the last 50 bytes still hadn't arrived yet.
+\keyword{read()} would return -1 and set the global error variable \textbf{errno} to either EAGAIN or EWOULDBLOCK.
+That's the system's way of telling you the data isn't ready yet.
 
-\texttt{write()} also works in nonblocking mode. Say you want to send 40,000 bytes to a remote server using a socket. The system can only send so many bytes at a time. Common systems can send about 23,000 bytes at a time. In nonblocking mode, \texttt{write(fd, buf, 40000)} would return the number of bytes it was able to send immediately, or about 23,000. If you called \texttt{write()} right away again, it would return -1 and set errno to EAGAIN or EWOULDBLOCK. That's the system's way of telling you it's still busy sending the last chunk of data, and isn't ready to send more yet.
+\keyword{write()} also works in nonblocking mode.
+Say you want to send 40,000 bytes to a remote server using a socket.
+The system can only send so many bytes at a time.
+Common systems can send about 23,000 bytes at a time.
+In nonblocking mode, \keyword{write(fd, buf, 40000)} would return the number of bytes it was able to send immediately, or about 23,000.
+If you called \keyword{write()} right away again, it would return -1 and set errno to EAGAIN or EWOULDBLOCK.
+That's the system's way of telling you it's still busy sending the last chunk of data, and isn't ready to send more yet.
 
-\subsubsection{How do I check when the I/O has finished?}\label{how-do-i-check-when-the-io-has-finished}
+\subsubsection{How do I check when the I/O has finished?}
 
-There are a few ways. Let's see how to do it using \emph{select} and \emph{epoll}.
+There are a few ways.
+Let's see how to do it using \emph{select} and \emph{epoll}.
 
 \begin{lstlisting}[language=C]
 int select(int nfds, 
@@ -753,15 +1164,23 @@ int select(int nfds,
            struct timeval *timeout);
 \end{lstlisting}
 
-Given three sets of file descriptors, \texttt{select()} will wait for any of those file descriptors to become `ready'. 
+Given three sets of file descriptors, \keyword{select()} will wait for any of those file descriptors to become `ready'.
+
 
 \begin{enumerate}
-\item \texttt{readfds} - a file descriptor in \texttt{readfds} is ready when there is data that can be read or EOF has been reached. 
-\item \texttt{writefds} - a file descriptor in \texttt{writefds} is ready when a call to write() will succeed. 
-\item \texttt{exceptfds} - system-specific, not well-defined. Just pass NULL for this.
+\item \keyword{readfds} - a file descriptor in \keyword{readfds} is ready when there is data that can be read or EOF has been reached.
+
+\item \keyword{writefds} - a file descriptor in \keyword{writefds} is ready when a call to write() will succeed.
+
+\item \keyword{exceptfds} - system-specific, not well-defined.
+  Just pass NULL for this.
 \end{enumerate}
 
-\texttt{select()} returns the total number of file descriptors that are ready. If none of them become ready during the time defined by \emph{timeout}, it will return 0. After \texttt{select()} returns, the caller will need to loop through the file descriptors in readfds and/or writefds to see which ones are ready. As readfds and writefds act as both input and output parameters, when \texttt{select()} indicates that there are file descriptors which are ready, it would have overwritten them to reflect only the file descriptors which are ready. Unless it is the caller's intention to call \texttt{select()} only once, it would be a good idea to save a copy of readfds and writefds before calling it.
+\keyword{select()} returns the total number of file descriptors that are ready.
+If none of them become ready during the time defined by \emph{timeout}, it will return 0.
+After \keyword{select()} returns, the caller will need to loop through the file descriptors in readfds and/or writefds to see which ones are ready.
+As readfds and writefds act as both input and output parameters, when \keyword{select()} indicates that there are file descriptors which are ready, it would have overwritten them to reflect only the file descriptors which are ready.
+Unless it is the caller's intention to call \keyword{select()} only once, it would be a good idea to save a copy of readfds and writefds before calling it.
 
 \begin{lstlisting}[language=C]
 fd_set readfds, writefds;
@@ -794,17 +1213,22 @@ if (num_ready < 0) {
 
 \href{http://pubs.opengroup.org/onlinepubs/9699919799/functions/select.html}{For more information on select()}
 
-\section{epoll}\label{epoll}
+\section{epoll}
 
-\emph{epoll} is not part of POSIX, but it is supported by Linux. It is a more efficient way to wait for many file descriptors. It will tell you exactly which descriptors are ready. It even gives you a way to store a small amount of data with each descriptor, like an array index or a pointer, making it easier to access your data associated with that descriptor.
+\emph{epoll} is not part of POSIX, but it is supported by Linux.
+It is a more efficient way to wait for many file descriptors.
+It will tell you exactly which descriptors are ready.
+It even gives you a way to store a small amount of data with each descriptor, like an array index or a pointer, making it easier to access your data associated with that descriptor.
 
-To use epoll, first you must create a special file descriptor with \href{http://linux.die.net/man/2/epoll_create}{epoll\_create()}. You won't read or write to this file descriptor; you'll just pass it to the other epoll\_xxx functions and call close() on it at the end.
+To use epoll, first you must create a special file descriptor with \href{http://linux.die.net/man/2/epoll_create}{epoll\_create()}.
+You won't read or write to this file descriptor; you'll just pass it to the other epoll\_xxx functions and call close() on it at the end.
 
 \begin{lstlisting}[language=C]
     epfd = epoll_create(1);
 \end{lstlisting}
 
-For each file descriptor you want to monitor with epoll, you'll need to add it to the epoll data structures using \href{http://linux.die.net/man/2/epoll_ctl}{epoll\_ctl()} with the \texttt{EPOLL\_CTL\_ADD} option. You can add any number of file descriptors to it.
+For each file descriptor you want to monitor with epoll, you'll need to add it to the epoll data structures using \href{http://linux.die.net/man/2/epoll_ctl}{epoll\_ctl()} with the \keyword{EPOLL\_CTL\_ADD} option.
+You can add any number of file descriptors to it.
 
 \begin{lstlisting}[language=C]
 struct epoll_event event;
@@ -813,7 +1237,9 @@ event.data.ptr = mypointer;
 epoll_ctl(epfd, EPOLL_CTL_ADD, mypointer->fd, &event)
 \end{lstlisting}
 
-To wait for some of the file descriptors to become ready, use \href{http://linux.die.net/man/2/epoll_wait}{epoll\_wait()}. The epoll\_event struct that it fills out will contain the data you provided in event.data when you added this file descriptor. This makes it easy for you to look up your own data associated with this file descriptor.
+To wait for some of the file descriptors to become ready, use \href{http://linux.die.net/man/2/epoll_wait}{epoll\_wait()}.
+The epoll\_event struct that it fills out will contain the data you provided in event.data when you added this file descriptor.
+This makes it easy for you to look up your own data associated with this file descriptor.
 
 \begin{lstlisting}[language=C]
 int num_ready = epoll_wait(epfd, &event, 1, timeout_milliseconds);
@@ -823,7 +1249,8 @@ if (num_ready > 0) {
 }
 \end{lstlisting}
 
-Say you were waiting to write data to a file descriptor, but now you want to wait to read data from it. Just use \texttt{epoll\_ctl()} with the \texttt{EPOLL\_CTL\_MOD} option to change the type of operation you're monitoring.
+Say you were waiting to write data to a file descriptor, but now you want to wait to read data from it.
+Just use \keyword{epoll\_ctl()} with the \keyword{EPOLL\_CTL\_MOD} option to change the type of operation you're monitoring.
 
 \begin{lstlisting}[language=C]
 event.events = EPOLLOUT;
@@ -831,7 +1258,7 @@ event.data.ptr = mypointer;
 epoll_ctl(epfd, EPOLL_CTL_MOD, mypointer->fd, &event);
 \end{lstlisting}
 
-To unsubscribe one file descriptor from epoll while leaving others active, use \texttt{epoll\_ctl()} with the \texttt{EPOLL\_CTL\_DEL} option.
+To unsubscribe one file descriptor from epoll while leaving others active, use \keyword{epoll\_ctl()} with the \keyword{EPOLL\_CTL\_DEL} option.
 
 \begin{lstlisting}[language=C]
 epoll_ctl(epfd, EPOLL_CTL_DEL, mypointer->fd, NULL);
@@ -843,21 +1270,30 @@ To shut down an epoll instance, close its file descriptor.
 close(epfd);
 \end{lstlisting}
 
-In addition to nonblocking \texttt{read()} and \texttt{write()}, any calls to \texttt{connect()} on a nonblocking socket will also be nonblocking. To wait for the connection to complete, use \texttt{select()} or epoll to wait for the socket to be writable. There are definitely reasons to use epoll over select but due to to interface, there are fundamental problems with doing so.
+In addition to nonblocking \keyword{read()} and \keyword{write()}, any calls to \keyword{connect()} on a nonblocking socket will also be nonblocking.
+To wait for the connection to complete, use \keyword{select()} or epoll to wait for the socket to be writable.
+There are definitely reasons to use epoll over select but due to to interface, there are fundamental problems with doing so.
 
 \href{https://idea.popcount.org/2017-01-06-select-is-fundamentally-broken/}{Blogpost about select being broken}
 
-\section{Remote Procedure Calls}\label{what-is-rpc}
+\section{Remote Procedure Calls}
 
-Remote Procedure Call. RPC is the idea that we can execute a procedure (function) on a different machine. In practice the procedure may execute on the same machine, however it may be in a different context - for example under a different user with different permissions and different lifecycle.
+Remote Procedure Call.
+RPC is the idea that we can execute a procedure (function) on a different machine.
+In practice the procedure may execute on the same machine, however it may be in a different context - for example under a different user with different permissions and different lifecycle.
 
-\subsection{What is Privilege Separation?}\label{what-is-privilege-separation}
+\subsection{What is Privilege Separation?}
 
-The remote code will execute under a different user and with different privileges from the caller. In practice the remote call may execute with more or fewer privileges than the caller. This in principle can be used to improve the security of a system (by ensuring components operate with least privilege). Unfortunately, security concerns need to be carefully assessed to ensure that RPC mechanisms cannot be subverted to perform unwanted actions. For example, an RPC implementation may implicitly trust any connected client to perform any action, rather than a subset of actions on a subset of the data.
+The remote code will execute under a different user and with different privileges from the caller.
+In practice the remote call may execute with more or fewer privileges than the caller.
+This in principle can be used to improve the security of a system (by ensuring components operate with least privilege).
+Unfortunately, security concerns need to be carefully assessed to ensure that RPC mechanisms cannot be subverted to perform unwanted actions.
+For example, an RPC implementation may implicitly trust any connected client to perform any action, rather than a subset of actions on a subset of the data.
 
-\subsection{What is stub code? What is marshalling?}\label{what-is-stub-code-what-is-marshalling}
+\subsection{What is stub code? What is marshalling?}
 
-The stub code is the necessary code to hide the complexity of performing a remote procedure call. One of the roles of the stub code is to \emph{marshall} the necessary data into a format that can be sent as a byte stream to a remote server.
+The stub code is the necessary code to hide the complexity of performing a remote procedure call.
+One of the roles of the stub code is to \emph{marshall} the necessary data into a format that can be sent as a byte stream to a remote server.
 
 \begin{lstlisting}[language=C]
 // On the outside 'getHiscore' looks like a normal function call
@@ -883,13 +1319,14 @@ int getHighScore(char* game) {
 }
 \end{lstlisting}
 
-\subsection{What is server stub code? What is unmarshalling?}\label{what-is-server-stub-code-what-is-unmarshalling}
+\subsection{What is server stub code? What is unmarshalling?}
 
 The server stub code will receive the request, unmarshall the request into a valid in-memory data call the underlying implementation and send the result back to the caller.
 
-\subsection{How do you send an int? float? a struct? A linked list? A graph?}\label{how-do-you-send-an-int-float-a-struct-a-linked-list-a-graph}
+\subsection{How do you send an int? float? a struct? A linked list? A graph?}
 
-To implement RPC you need to decide (and document) which conventions you will use to serialize the data into a byte sequence. Even a simple integer has several common choices: 
+To implement RPC you need to decide (and document) which conventions you will use to serialize the data into a byte sequence.
+Even a simple integer has several common choices:
 
 \begin{enumerate}
 \item Signed or unsigned? 
@@ -898,29 +1335,38 @@ To implement RPC you need to decide (and document) which conventions you will us
 \item Little or Big endian binary format?
 \end{enumerate}
 
-To marshall a struct, decide which fields need to be serialized. It may not be necessary to send all data items (for example, some items may be irrelevant to the specific RPC or can be re-computed by the server from the other data items present).
+To marshall a struct, decide which fields need to be serialized.
+It may not be necessary to send all data items (for example, some items may be irrelevant to the specific RPC or can be re-computed by the server from the other data items present).
 
-To marshall a linked list it is unnecessary to send the link pointers- just stream the values. As part of unmarshalling the server can recreate a linked list structure from the byte sequence.
+To marshall a linked list it is unnecessary to send the link pointers- just stream the values.
+As part of unmarshalling the server can recreate a linked list structure from the byte sequence.
 
-By starting at the head node/vertex, a simple tree can be recursively visited to create a serialized version of the data. A cyclic graph will usually require additional memory to ensure that each edge and vertex is processed exactly once.
+By starting at the head node/vertex, a simple tree can be recursively visited to create a serialized version of the data.
+A cyclic graph will usually require additional memory to ensure that each edge and vertex is processed exactly once.
 
 \subsection{What is an Interface Description Language (IDL)?}
 
-Writing stub code by hand is painful, tedious, error prone, difficult to maintain and difficult to reverse engineer the wire protocol from the implemented code. A better approach is specify the data objects, messages and services and automatically generate the client and server code.
+Writing stub code by hand is painful, tedious, error prone, difficult to maintain and difficult to reverse engineer the wire protocol from the implemented code.
+A better approach is specify the data objects, messages and services and automatically generate the client and server code.
 
 A modern example of an Interface Description Language is Google's Protocol Buffer .proto files.
 
 \subsection{Complexity and challenges of RPC vs local calls?}
 
-Remote Procedure Calls are significantly slower (10x to 100x) and more complex than local calls. An RPC must marshall data into a wire-compatible format. This may require multiple passes through the data structure, temporary memory allocation and transformation of the data representation.
+Remote Procedure Calls are significantly slower (10x to 100x) and more complex than local calls.
+An RPC must marshall data into a wire-compatible format.
+This may require multiple passes through the data structure, temporary memory allocation and transformation of the data representation.
 
-Robust RPC stub code must intelligently handle network failures and versioning. For example, a server may have to process requests from clients that are still running an early version of the stub code.
+Robust RPC stub code must intelligently handle network failures and versioning.
+For example, a server may have to process requests from clients that are still running an early version of the stub code.
 
 A secure RPC will need to implement additional security checks (including authentication and authorization), validate data and encrypt communication between the client and host.
 
 \subsection{Transferring large amounts of structured data}
 
-Let's examine three methods of transferring data using 3 different formats - JSON, XML and Google Protocol Buffers. JSON and XML are text-based protocols. Examples of JSON and XML messages are below.
+Let's examine three methods of transferring data using 3 different formats - JSON, XML and Google Protocol Buffers.
+JSON and XML are text-based protocols.
+Examples of JSON and XML messages are below.
 
 \begin{lstlisting}[language=XML]
 <ticket><price currency='dollar'>10</price><vendor>travelocity</vendor></ticket>
@@ -930,11 +1376,14 @@ Let's examine three methods of transferring data using 3 different formats - JSO
 { 'currency':'dollar' , 'vendor':'travelocity', 'price':'10' }
 \end{lstlisting}
 
-Google Protocol Buffers is an open-source efficient binary protocol that places a strong emphasis on high throughput with low CPU overhead and minimal memory copying. Implementations exist for multiple languages including Go, Python, C++ and C. This means client and server stub code in multiple languages can be generated from the .proto specification file to marshall data to and from a binary stream.
+Google Protocol Buffers is an open-source efficient binary protocol that places a strong emphasis on high throughput with low CPU overhead and minimal memory copying.
+Implementations exist for multiple languages including Go, Python, C++ and C.
+This means client and server stub code in multiple languages can be generated from the .proto specification file to marshall data to and from a binary stream.
 
-\href{https://developers.google.com/protocol-buffers/docs/overview}{Google Protocol Buffers} reduces the versioning problem by ignoring unknown fields that are present in a message. See the introduction to Protocol Buffers for more information.
+\href{https://developers.google.com/protocol-buffers/docs/overview}{Google Protocol Buffers} reduces the versioning problem by ignoring unknown fields that are present in a message.
+See the introduction to Protocol Buffers for more information.
 
-\section{Topics}\label{topics}
+\section{Topics}
 
 \begin{itemize}
 \tightlist
@@ -962,14 +1411,15 @@ Google Protocol Buffers is an open-source efficient binary protocol that places 
   RPC
 \end{itemize}
 
-\section{Questions}\label{questions}
+\section{Questions}
 
 \begin{itemize}
 \tightlist
 \item
   What is IPv4? IPv6? What are the differences between them?
 \item
-  What is TCP? UDP? Give me advantages and disadvantages of both of them. When would I use one and not the other?
+  What is TCP? UDP? Give me advantages and disadvantages of both of them.
+  When would I use one and not the other?
 \item
   Which protocol is connection less and which one is connection based?
 \item
@@ -983,9 +1433,9 @@ Google Protocol Buffers is an open-source efficient binary protocol that places 
 \item
   What is the difference between a socket shutdown and closing?
 \item
-  When can you use \texttt{read} and \texttt{write}? How about \texttt{recvfrom} and \texttt{sendto}?
+  When can you use \keyword{read} and \keyword{write}? How about \keyword{recvfrom} and \keyword{sendto}?
 \item
-  What are some advantages to \texttt{epoll} over \texttt{select}? How about \texttt{select} over \texttt{epoll}?
+  What are some advantages to \keyword{epoll} over \keyword{select}? How about \keyword{select} over \keyword{epoll}?
 \item
   What is a remote procedure call? When should I use it?
 \item
