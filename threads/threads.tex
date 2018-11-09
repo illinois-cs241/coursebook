@@ -49,10 +49,10 @@ The threads you create all live inside the same virtual memory because they are 
 
 To use pthreads you will need to include \keyword{pthread.h} and compile with \keyword{-pthread} (or \keyword{-lpthread}) compiler option. This option tells the compiler that your program requires threading support. To create a thread use the function \keyword{pthread\_create}. This function takes four arguments:
 
-\begin{code}[language=C]
+\begin{lstlisting}[language=C]
 int pthread_create(pthread_t *thread, const pthread_attr_t *attr,
                    void *(*start_routine) (void *), void *arg);
-\end{code}
+\end{lstlisting}
 
 \begin{itemize}
 \tightlist
@@ -68,7 +68,7 @@ int pthread_create(pthread_t *thread, const pthread_attr_t *attr,
 
 The argument \keyword{void *(*start\_routine) (void *)} is difficult to read! It means a pointer that takes a \keyword{void *} pointer and returns a \keyword{void *} pointer. It looks like a function declaration except that the name of the function is wrapped with \keyword{(* .... )}
 
-\begin{code}[language=C]
+\begin{lstlisting}[language=C]
 #include <stdio.h>
 #include <pthread.h>
 // remember to set compilation option -pthread
@@ -88,7 +88,7 @@ int main() {
     pthread_join(id, &result);
 #endif
 }
-\end{code}
+\end{lstlisting}
 
 In the above example, \keyword{result} will be \keyword{null} because the busy function returned \keyword{null}. We need to pass the address-of result because \keyword{pthread\_join} will be writing into the contents of our pointer.
 
@@ -99,7 +99,7 @@ In the above example, \keyword{result} will be \keyword{null} because the busy f
 \item \keyword{pthread\_cancel} stops a thread. Note the thread may not actually be stopped immediately. For example it can be terminated when the thread makes an operating system call (e.g. \keyword{write}). In practice, \keyword{pthread\_cancel} is rarely used because it does not give a thread an opportunity to clean up after itself (for example, it may have opened some files). An alternative implementation is to use a boolean (int) variable whose value is used to inform other threads that they should finish and clean up.
 \item \keyword{pthread\_exit(void *)} stops the calling thread i.e.~the thread never returns after calling \keyword{pthread\_exit}. The pthread library will automatically finish the process if there are no other threads running. \keyword{pthread\_exit(...)} is equivalent to returning from the thread's function; both finish the thread and also set the return value (void *pointer) for the thread. Calling \keyword{pthread\_exit} in the the \keyword{main} thread is a common way for simple programs to ensure that all threads finish. For example, in the following program, the \keyword{myfunc} threads will probably not have time to get started. On the other hand \keyword{exit()} exits the entire process and sets the processes exit value. This is equivalent to \keyword{return ();} in the main method. All threads inside the process are stopped. Note the \keyword{pthread\_exit} version creates thread zombies, however this is not a long-running processes, so we don't care. 
 
-\begin{code}[language=C]
+\begin{lstlisting}[language=C]
 int main() {
   pthread_t tid1, tid2;
   pthread_create(&tid1, NULL, myfunc, "Jabberwocky");
@@ -112,18 +112,18 @@ int main() {
 
   // No code is run after exit
 }
-\end{code}
+\end{lstlisting}
 
 \item \keyword{pthread\_join()} waits for a thread to finish and records its return value. Finished threads will continue to consume resources. Eventually, if enough threads are created, \keyword{pthread\_create} will fail. In practice, this is only an issue for long-running processes but is not an issue for simple, short-lived processes as all thread resources are automatically freed when the process exits. This is equivalent to turning your children into zombies, so keep this in mind for long running processes. In the exit example, we could also wait on all the threads.
 
-\begin{code}[language=C]
+\begin{lstlisting}[language=C]
 // ...
   void* result;
   pthread_join(tid1, &result);
   pthread_join(tid2, &result); 
   return 42;
 // ...
-\end{code}
+\end{lstlisting}
 
 \item You've heard about this already, but how can a thread be terminated? 
 \begin{itemize}
@@ -140,18 +140,18 @@ int main() {
 
 Race conditions are whenever the outcome of a program is determined by its sequence of events. Meaning that the same program can run multiple times and depending on how the kernel schedules the threads could produce inaccurate results. Take for example this race condition with one thread. We create a stack variable and pass it to our pthread function.
 
-\begin{code}
+\begin{lstlisting}
 pthread_t start_threads() {
   int start = 42;
   pthread_t tid;
   pthread_create(&tid, 0, myfunc, &start); // ERROR!
   return tid;
 }
-\end{code}
+\end{lstlisting}
 
 The above code is invalid because the function \keyword{start\_threads} will likely return before \keyword{myfunc} even starts. The function passes the address-of \keyword{start}, however by the time \keyword{myfunc} is executes, \keyword{start} is no longer in scope and its address will re-used for another variable. This ia race condition because there is a situation where the thread that called pthread\_create could be suspended indefinitely, and the code actually works. One way we can fix this is keep the function from returning before the thread finishes.
 
-\begin{code}
+\begin{lstlisting}
 void start_threads() {
   int start = 42;
   void *result;
@@ -159,11 +159,11 @@ void start_threads() {
   pthread_create(&tid, 0, myfunc, &start); // OK - start will be valid!
   pthread_join(tid, &result);
 }
-\end{code}
+\end{lstlisting}
 
 Here is another small race condition. The following code is supposed to start ten threads with values 0,1,2,3,\ldots{}9 However, when run prints out \keyword{1 7 8 8 8 8 8 8 8 10}! Can you see why?
 
-\begin{code}[language=C]
+\begin{lstlisting}[language=C]
 #include <pthread.h>
 void* myfunc(void* ptr) {
     int i = *((int *) ptr);
@@ -180,11 +180,11 @@ int main() {
     }
     pthread_exit(NULL);
 }
-\end{code}
+\end{lstlisting}
 
 The above code suffers from a \keyword{race condition} - the value of i is changing. The new threads start later (in the example output the last thread starts after the loop has finished). To overcome this race-condition, we will give each thread a pointer to it's own data area. For example, for each thread we may want to store the id, a starting value and an output value. We will instead treat i as a pointer and cast it by value.
 
-\begin{code}[language=C]
+\begin{lstlisting}[language=C]
 void* myfunc(void* ptr) {
     int data = ((int) ptr);
     printf("%d ", data);
@@ -200,24 +200,24 @@ int main() {
     }
     pthread_exit(NULL);
 }
-\end{code}
+\end{lstlisting}
 
 Some functions e.g. asctime, getenv, strtok, strerror not thread-safe. Let's look at a simple function that is also not `thread-safe' The result buffer could be stored in global memory. This is good - we wouldn't want to return a pointer to an invalid address on the stack, but there's only one result buffer in the entire memory. If two threads were to use it at the same time then one would corrupt the other:
 
-\begin{code}[language=C]
+\begin{lstlisting}[language=C]
 char *to_message(int num) {
     char static result [256];
     if (num < 10) sprintf(result, "%d : blah blah" , num);
     else strcpy(result, "Unknown");
     return result;
 }
-\end{code}
+\end{lstlisting}
 
 There are ways around this like using synchronization locks. These are synchronization locks that are used to prevent race conditions and ensure proper synchronization between threads running in the same program. In addition, these locks are conceptually identical to the primitives used inside the kernel.
 
 In case you were wondering, you can fork inside a process with multiple threads! However, the child process only has a single thread, which is a clone of the thread that called \keyword{fork}. We can see this as a simple example, where the background threads never print out a second message in the child process.
 
-\begin{code}[language=C]
+\begin{lstlisting}[language=C]
 #include <pthread.h>
 #include <stdio.h>
 #include <unistd.h>
@@ -247,7 +247,7 @@ int main() {
   pthread_exit(NULL);
   return 0; /* Never executes */
 }
-\end{code}
+\end{lstlisting}
 
 \begin{verbatim}
 8970:New Thread One starting up...
@@ -277,14 +277,14 @@ In practice, creating threads before forking can lead to unexpected errors becau
 
 The study of parallel algorithms has exploded over the past few years. An embarrassingly parallel problem is any problem that needs little effort to turn parallel. A lot of them have some synchronization concepts with them but not always. You already know a parallelizable algorithm, Merge Sort!
 
-\begin{code}[language=C]
+\begin{lstlisting}[language=C]
 void merge_sort(int *arr, size_t len){
    if(len > 1){
    //Mergesort the left half
    //Mergesort the right half
    //Merge the two halves
    }
-\end{code}
+\end{lstlisting}
 
 With your new understanding of threads, all you need to do is create a thread for the left half, and one for the right half. Given that your CPU has multiple real cores, you will see a speedup in accordance with \href{https://en.wikipedia.org/wiki/Amdahl's_law}{Amdahl's Law}. The time complexity analysis gets interesting here as well. The parallel algorithm runs in $O(\log^3(n))$ running time (because we fancy analysis assuming that we have a lot of cores.
 
@@ -294,7 +294,7 @@ In practice though, we typically do two changes. One, once the array gets small 
 
 Say we want to apply a function to an entire array, one element at a time.
 
-\begin{code}[language=C]
+\begin{lstlisting}[language=C]
 
 int *map(int (*func)(int), int *arr, size_t len){
   int *ret = malloc(len*sizeof(*arr));
@@ -302,7 +302,7 @@ int *map(int (*func)(int), int *arr, size_t len){
       ret[i] = func(arr[i]);
   return ret;
 }
-\end{code}
+\end{lstlisting}
 
 Since none of the elements depend on any other element, how would you go about parallelizing this? What do you think would be the best way to split up the work between threads.
 

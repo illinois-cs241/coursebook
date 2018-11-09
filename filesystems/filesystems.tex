@@ -175,7 +175,6 @@ The above code has a subtle bug: It leaks resources! If a matching filename is f
 
 The fix is to ensure we free up resources in every possible code-path. In the above code this means calling \keyword{closedir} before \keyword{return 1}. Forgetting to release resources is a common C programming bug because there is no support in the C lanaguage to ensure resources are always released with all codepaths.
 
-\end{lstlisting}
 
 Note: after a call to fork(), either (XOR) the parent or the child can use readdir(), rewinddir() or seekdir(). If both the parent and the child use the above, behavior is undefined.
 

@@ -7,13 +7,19 @@ OTHER_FILES=$(addprefix $(BASE),.aux .log .synctex.gz .toc .out .blg .bbl .glg .
 BIBS=$(shell find . -maxdepth 2 -mindepth 2 -path "./.git*" -prune -o -type f -iname "*.bib" -print)
 LATEX_COMMAND=pdflatex -quiet -synctex=1 -interaction=nonstopmode $(MAIN_TEX) > /dev/null 2>&1
 OTHER=$$(find . -iname *aux) $$(find . -iname *bbl) $$(find . -iname *blg)
+ORDER_TEX=order.tex
+ORDER_TEX_DEP=order.yaml
+
 .PHONY: all
 all: $(PDF_TEX)
 
 .PHONY: debug
 debug: $(PDF_TEX)-debug
 
-$(PDF_TEX): $(TEX) $(MAIN_TEX) $(BIBS) Makefile
+$(ORDER_TEX): $(ORDER_TEX_DEP)
+	python3 _scripts/gen_order.py $^ > $@
+
+$(PDF_TEX): $(TEX) $(MAIN_TEX) $(BIBS) Makefile $(ORDER_TEX)
 	-@latexmk -quiet -interaction=nonstopmode -f -pdf $(MAIN_TEX) 2>&1 >/dev/null
 	-@latexmk -c
 	-@rm *aux *bbl *glg *glo *gls *ist *latexmk *fls

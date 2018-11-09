@@ -87,7 +87,7 @@ Signals can be genrated multiple ways. The user can send a signal. For example, 
 
 You can temporarily pause a running process by sending it a SIGSTOP signal. If it succeeds it will freeze a process, the process will not be allocated any more CPU time. To allow a process to resume execution send it the SIGCONT signal. For example, Here's program that slowly prints a dot every second, up to 59 dots.
 
-\begin{code}[language=C]
+\begin{lstlisting}[language=C]
 #include <unistd.h>
 #include <stdio.h>
 int main() {
@@ -100,30 +100,30 @@ int main() {
   write(1, "Done!",5);
   return 0;
 }
-\end{code}
+\end{lstlisting}
 
 We will first start the process in the background (notice the \& at the end). Then send it a signal from the shell process by using the kill command.
 
-\begin{code}[language=C]
+\begin{lstlisting}[language=C]
 >./program &
 My pid is 403
 ...
 >kill -SIGSTOP 403
 >kill -SIGCONT 403
-\end{code}
+\end{lstlisting}
 
 In C, you can send a signal to the child using \keyword{kill} POSIX call,
 
-\begin{code}[language=C]
+\begin{lstlisting}[language=C]
 kill(child, SIGUSR1); // Send a user-defined signal
 kill(child, SIGSTOP); // Stop the child process (the child cannot prevent this)
 kill(child, SIGTERM); // Terminate the child process (the child can prevent this)
 kill(child, SIGINT); // Equivalent to CTRL-C (by default closes the process)
-\end{code}
+\end{lstlisting}
 
 As we saw above there is also a \keyword{kill} command available in the shell. Another command \keyword{killall} works the exact same way but instead of looking up by PID, it tries to match the name of the process. \keyword{ps} is an important utility that can help you find the pid of a process.
 
-\begin{code}[language=console]
+\begin{lstlisting}[language=console]
 # First let's use ps and grep to find the process we want to send a signal to
 $ ps au | grep myprogram
 angrave  4409   0.0  0.0  2434892    512 s004  R+    2:42PM   0:00.00 myprogram 1 2 3
@@ -136,14 +136,14 @@ $ kill -SIGKILL 4409
 $ kill -9 4409
 # Use kill all instead
 $ killall -l firefox
-\end{code}
+\end{lstlisting}
 
 In order to send a signal to the current, use \keyword{raise} or \keyword{kill} with \keyword{getpid()}
 
-\begin{code}[language=C]
+\begin{lstlisting}[language=C]
 raise(int sig); // Send a signal to myself!
 kill(getpid(), int sig); // Same as
-\end{code}
+\end{lstlisting}
 
 For non-root processes, signals can only be sent to processes of the same user. You cant just SIGKILL my processes! \keyword{man -s2 kill} for more details.
 
@@ -152,13 +152,13 @@ For non-root processes, signals can only be sent to processes of the same user. 
 
 There are strict limitations on the executable code inside a signal handler. Most library and system calls are not \keyword{async-signal-safe} - they may not be used inside a signal handler because they are not re-entrant safe. Re-entrant safe means that imagine that your function can be frozen at any point and executed again, can you guarentee that your function wouldn't fail? Let's take the following
 
-\begin{code}[language=C]
+\begin{lstlisting}[language=C]
 int func(const char *str) {
   static char buffer[200];
   strncpy(buffer, str, 199); # We finish this line and get recalled
   printf("%s\n", buffer)
 }
-\end{code}
+\end{lstlisting}
 
 \begin{enumerate}
 \item We execute \keyword(func("Hello"))
@@ -171,7 +171,7 @@ int func(const char *str) {
 
 Guarenteeing that your functions are signal handler safe are not as simple as not having shared buffers. You must also think about multithreading and synchronization i.e. what happens when I double lock a mutex? You also have to make sure that each subfunction call is re-entrant safe. Suppose your original program was interrupted while executing the library code of \keyword{malloc} ; the memory structures used by malloc will not be in a consistent state. Calling \keyword{printf} (which uses \keyword{malloc}) as part of the signal handler is unsafe and will result in \keyword{undefined behavior} i.e.~it is no longer a useful,predictable program. In practice your program might crash, compute or generate incorrect results or stop functioning (\keyword{deadlock}), depending on exactly what your program was executing when it was interrupted to execute the signal handler code. One common use of signal handlers is to set a boolean flag that is occasionally polled (read) as part of the normal running of the program. For example,
 
-\begin{code}[language=C]
+\begin{lstlisting}[language=C]
 int pleaseStop ; // See notes on why "volatile sig_atomic_t" is better
 
 void handle_sigint(int signal) {
@@ -186,15 +186,15 @@ int main() {
    }
   /* cleanup code here */
 }
-\end{code}
+\end{lstlisting}
 
 The above code might appear to be correct on paper. However, we need to provide a hint to the compiler and to the CPU core that will execute the \keyword{main()} loop. We need to prevent a compiler optimization: The expression \keyword{!\ pleaseStop} appears to be a loop invariant meaning it will be true forever, so can be simplified to \keyword{true}. Secondly, we need to ensure that the value of \keyword{pleaseStop} is not cached using a CPU register and instead always read from and written to main memory. The \keyword{sig\_atomic\_t} type implies that all the bits of the variable can be read or modified as an \keyword{atomic operation} - a single uninterruptable operation. It is impossible to read a value that is composed of some new bit values and old bit values.
 
 By specifying \keyword{pleaseStop} with the correct type \keyword{volatile\ sig\_atomic\_t}, we can write portable code where the main loop will be exited after the signal handler returns. The \keyword{sig\_atomic\_t} type can be as large as an \keyword{int} on most modern platforms but on embedded systems can be as small as a \keyword{char} and only able to represent (-127 to 127) values.
 
-\begin{code}[language=C]
+\begin{lstlisting}[language=C]
 volatile sig_atomic_t pleaseStop;
-\end{code}
+\end{lstlisting}
 
 Two examples of this pattern can be found in \keyword{COMP} a terminal based 1Hz 4bit computer \cite{Sorn_2015}. Two boolean flags are used. One to mark the delivery of \keyword{SIGINT} (CTRL-C), and gracefully shutdown the program, and the other to mark \keyword{SIGWINCH} signal to detect terminal resize and redraw the entire display.
 
@@ -204,43 +204,43 @@ You can also choose a handle pending signals asynchronously or synchronously. In
 
 You should use \keyword{sigaction} instead of \keyword{signal} because it has better defined semantics. \keyword{signal} on different operating system does different things which is \textbf{bad} \keyword{sigaction} is more portable and is better defined for threads if need be. To change the \keyword{signal disposition} of a process - i.e.~what happens when a signal is delivered to your process - use \keyword{sigaction} You can use system call \keyword{sigaction} to set the current handler for a signal or read the current signal handler for a particular signal.
 
-\begin{code}[language=C]
+\begin{lstlisting}[language=C]
 int sigaction(int signum, const struct sigaction *act, struct sigaction *oldact);
-\end{code}
+\end{lstlisting}
 
 The sigaction struct includes two callback functions (we will only look at the `handler' version), a signal mask and a flags field -
 
-\begin{code}[language=C]
+\begin{lstlisting}[language=C]
 struct sigaction {
                void     (*sa_handler)(int);
                void     (*sa_sigaction)(int, siginfo_t *, void *);
                sigset_t   sa_mask;
                int        sa_flags;
 }; 
-\end{code}
+\end{lstlisting}
 
 Suppose you installed a signal handler for the alarm signal,
 
-\begin{code}[language=C]
+\begin{lstlisting}[language=C]
 signal(SIGALRM, myhandler);
-\end{code}
+\end{lstlisting}
 
 The equivalent \keyword{sigaction} code is:
 
-\begin{code}[language=C]
+\begin{lstlisting}[language=C]
 struct sigaction sa; 
 sa.sa_handler = myhandler;
 sigemptyset(&sa.sa_mask);
 sa.sa_flags = 0; 
 sigaction(SIGALRM, &sa, NULL)
-\end{code}
+\end{lstlisting}
 
 However, we typically may also set the mask and the flags field. The mask is a temporary signal mask used during the signal handler execution. The \keyword{SA\_RESTART} flag will automatically restart some (but not all) system calls that otherwise would have returned early (with EINTR error). The latter means we can simplify the rest of code somewhat because a restart loop may no longer be required.
 
-\begin{code}[language=C]
+\begin{lstlisting}[language=C]
 sigfillset(&sa.sa_mask);
 sa.sa_flags = SA_RESTART; /* Restart functions if  interrupted by handler */     
-\end{code}
+\end{lstlisting}
 
 \subsection{Sigwait}
 
@@ -250,7 +250,7 @@ One advantage of writing a custom signal handling thread (such as the example be
 
 Based on Sigmask Code\cite{pthread_sigmask}
 
-\begin{code}[language=C]
+\begin{lstlisting}[language=C]
 static sigset_t   signal_mask;  /* signals to block         */
 
 int main (int argc, char *argv[]) {
@@ -285,7 +285,7 @@ void *signal_thread (void *arg) {
         break;
     }
 }
-\end{code}
+\end{lstlisting}
 
 \section{Signal Disposition}
 
@@ -303,9 +303,9 @@ After forking, The child process inherits a copy of the parent's signal disposit
 
 To block signals use \keyword{sigprocmask}! With sigprocmask you can set the new mask, add new signals to be blocked to the process mask, and unblock currently blocked signals. You can also determine the existing mask (and use it for later) by passing in a non-null value for oldset.
 
-\begin{code}[language=C]
+\begin{lstlisting}[language=C]
 int sigprocmask(int how, const sigset_t *set, sigset_t *oldset);`
-\end{code}
+\end{lstlisting}
 
 From the Linux man page of sigprocmask,
 
@@ -319,32 +319,32 @@ SIG_SETMASK: The set of blocked signals is set to the argument set.
 
 The sigset type behaves as a bitmap, except functions are used rather than explicitly setting and unsetting bits using \& and \textbar{}. It is a common error to forget to initialize the signal set before modifying one bit. For example,
 
-\begin{code}[language=C]
+\begin{lstlisting}[language=C]
 sigset_t set, oldset;
 sigaddset(&set, SIGINT); // Ooops!
 sigprocmask(SIG_SETMASK, &set, &oldset)
-\end{code}
+\end{lstlisting}
 
 Correct code initializes the set to be all on or all off. For example,
 
-\begin{code}[language=C]
+\begin{lstlisting}[language=C]
 sigfillset(&set); // all signals
 sigprocmask(SIG_SETMASK, &set, NULL); // Block all the signals!
 // (Actually SIGKILL or SIGSTOP cannot be blocked...)
 
 sigemptyset(&set); // no signals 
 sigprocmask(SIG_SETMASK, &set, NULL); // set the mask to be empty again
-\end{code}
+\end{lstlisting}
 
 
 \section{Signals in a multithreaded program}
 
 The new thread inherits a copy of the calling thread's mask. On initialization the calling thread's mask is the exact same as the processes mask because threads are essentially processes. After a new thread is created though, the processes signal mask turns into a gray area. Instead, the kernel likes to threat the process as a collection of thread, each of which can institute a signal mask and receive signals. In order to start setting your mask you can use,
 
-\begin{code}[language=C]
+\begin{lstlisting}[language=C]
 pthread_sigmask( ... ); // set my mask to block delivery of some signals
 pthread_create( ... ); // new thread will start with a copy of the same mask
-\end{code}
+\end{lstlisting}
 
 Blocking signals is similar in multi-threaded programs to single-threaded programs: 
 * Use \keyword{pthread\_sigmask} instead of \keyword{sigprocmask}
@@ -352,7 +352,7 @@ Blocking signals is similar in multi-threaded programs to single-threaded progra
 
 The easiest method to ensure a signal is blocked in all threads is to set the signal mask in the main thread before new threads are created
 
-\begin{code}[language=C]
+\begin{lstlisting}[language=C]
 sigemptyset(&set);
 sigaddset(&set, SIGQUIT);
 sigaddset(&set, SIGINT);
@@ -360,31 +360,31 @@ pthread_sigmask(SIG_BLOCK, &set, NULL);
 
 // this thread and the new thread will block SIGQUIT and SIGINT
 pthread_create(&thread_id, NULL, myfunc, funcparam);
-\end{code}
+\end{lstlisting}
 
 Just as we saw with \keyword{sigprocmask}, \keyword{pthread\_sigmask} includes a `how' parameter that defines how the signal set is to be used:
 
-\begin{code}[language=C]
+\begin{lstlisting}[language=C]
 pthread_sigmask(SIG_SETMASK, &set, NULL) - replace the thread's mask with given signal set
 pthread_sigmask(SIG_BLOCK, &set, NULL) - add the signal set to the thread's mask
 pthread_sigmask(SIG_UNBLOCK, &set, NULL) - remove the signal set from the thread's mask
-\end{code}
+\end{lstlisting}
 
 A signal then can delivered to any signal thread that is not blocking that signal. If the two or more threads can receive the signal then which thread will be interrupted is arbitrary! A common practice is to have one thread that can receive all signals or if there is a certain signal that requires special logic, have multiple threads for multiple signals. Even though programs from the outside can't send signals to specific threads (unless a thread is assigned a signal), you can do that in your program with \keyword{pthread\_kill(pthread\_t thread, int sig)}. In the example below, the newly created thread executing \keyword{func} will be interrupted by \keyword{SIGINT}
 
-\begin{code}[language=C]
+\begin{lstlisting}[language=C]
 pthread_create(&tid, NULL, func, args);
 pthread_kill(tid, SIGINT);
 pthread_kill(pthread_self(), SIGKILL); // send SIGKILL to myself
-\end{code}
+\end{lstlisting}
 
 As a word of warning \keyword{pthread\_kill(threadid, SIGKILL)} will kill the entire process. Though individual threads can set a signal mask, the signal disposition (the table of handlers/action performed for each signal) is \emph{per-proces}s not \emph{per-thread}. This means \keyword{sigaction} can be called from any thread because you will be setting a signal handler for all threads in the process.
 
 The linux man pages discusses signal system calls in section 2. There is also a longer article in section 7 (though not in OSX/BSD):
 
-\begin{code}[language=C]
+\begin{lstlisting}[language=C]
 man -s7 signal
-\end{code}
+\end{lstlisting}
 
 \section{Topics}\label{topics}
 

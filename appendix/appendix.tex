@@ -12,7 +12,7 @@ Make your code modular using helper functions. If there is a repeated task (gett
 
 Let's say that we are doing selection sort by finding the minimum element each iteration like so,
 
-\begin{code}[language=C]
+\begin{lstlisting}[language=C]
 void selection_sort(int *a, long len){
      for(long i = len-1; i > 0; --i){
          long max_index = i;
@@ -27,16 +27,16 @@ void selection_sort(int *a, long len){
      }
 
 }
-\end{code}
+\end{lstlisting}
 
 Many can see the bug in the code, but it can help to refactor the above
 method into
 
-\begin{code}[language=C]
+\begin{lstlisting}[language=C]
 long max_index(int *a, long start, long end);
 void swap(int *a, long idx1, long idx2);
 void selection_sort(int *a, long len);
-\end{code}
+\end{lstlisting}
 
 And the error is specifically in one function. In the end, we are not a class about refactoring/debugging your code. In fact, most kernel code is so atrocious that you don't want to read it. But for the sake of debugging, it may benefit you in the long run to adopt some of these practices.
 
@@ -46,10 +46,10 @@ Use assertions to make sure your code works up to a certain point -- and importa
 
 Here's a quick example with assert. Let's say that I'm writing code using memcpy
 
-\begin{code}[language=C]
+\begin{lstlisting}[language=C]
 assert(!(src < dest+n && dest < src+n)); //Checks overlap
 memcpy(dest, src, n);
-\end{code}
+\end{lstlisting}
 
 This check can be turned off at compile time, but will save you \textbf{tons} of trouble debugging!
 
@@ -61,13 +61,13 @@ When all else fails, print like crazy! Each of your functions should have an ide
 
 Valgrind is a suite of tools designed to provide debugging and profiling tools to make your programs more correct and detect some runtime issues. The most used of these tools is Memcheck, which can detect many memory-related errors that are common in C and C++ programs and that can lead to crashes and unpredictable behaviour (for example, unfreed memory buffers). To run Valgrind on your program:
 
-\begin{code}[language=C]
+\begin{lstlisting}[language=C]
 valgrind --leak-check=full --show-leak-kinds=all myprogram arg1 arg2
-\end{code}
+\end{lstlisting}
 
 Arguments are optional and the default tool that will run is Memcheck. The output will be presented in form of number of allocations, number of freed allocations, and the number of errors.Suppose we have a simple program like this:
 
-\begin{code}[language=C]
+\begin{lstlisting}[language=C]
 #include <stdlib.h>
 
 void dummy_function() {
@@ -79,11 +79,11 @@ int main(void) {
 	dummy_function();
 	return 0;
 }
-\end{code}
+\end{lstlisting}
 
 This program compiles and run with no errors. Let's see what Valgrind will output.
 
-\begin{code}[language=C]
+\begin{lstlisting}[language=C]
 ==29515== Memcheck, a memory error detector
 ==29515== Copyright (C) 2002-2015, and GNU GPL'd, by Julian Seward et al.
 ==29515== Using Valgrind-3.11.0 and LibVEX; rerun with -h for copyright info
@@ -112,7 +112,7 @@ This program compiles and run with no errors. Let's see what Valgrind will outpu
 ==29515== 
 ==29515== For counts of detected and suppressed errors, rerun with: -v
 ==29515== ERROR SUMMARY: 1 errors from 1 contexts (suppressed: 0 from 0)
-\end{code}
+\end{lstlisting}
 
 \textbf{Invalid write}: It detected our heap block overrun, writing outside of allocated block.
 
@@ -126,7 +126,7 @@ For more information, you can refer to the \href{http://valgrind.org/docs/manual
 
 ThreadSanitizer is a tool from Google, built into clang and gcc, to help you detect race conditions in your code. For more information about the tool, see the Github wiki. Note, that running with tsan will slow your code down a bit. Consider the following code.
 
-\begin{code}[language=C]
+\begin{lstlisting}[language=C]
 #include <pthread.h>
 #include <stdio.h>
 
@@ -144,11 +144,11 @@ int main() {
     pthread_join(t[0], NULL);
 }
 // compile with gcc -fsanitize=thread -pie -fPIC -ltsan -g simple_race.c
-\end{code}
+\end{lstlisting}
 
 We can see that there is a race condition on the variable \texttt{global}. Both the main thread and the thread created with \textt{pthread\_create} will try to change the value at the same time. But, does ThreadSantizer catch it?
 
-\begin{code}[language=C]
+\begin{lstlisting}[language=C]
 $ ./a.out
 ==================
 WARNING: ThreadSanitizer: data race (pid=28888)
@@ -166,7 +166,7 @@ WARNING: ThreadSanitizer: data race (pid=28888)
 SUMMARY: ThreadSanitizer: data race /home/zmick2/simple_race.c:7 Thread1
 ==================
 ThreadSanitizer: reported 1 warnings
-\end{code}
+\end{lstlisting}
 
 If we compiled with the debug flag, then it would give us the variable name as well.
 
@@ -178,16 +178,16 @@ If we compiled with the debug flag, then it would give us the variable name as w
 
 A very useful trick when debugging complex C programs with GDB is setting breakpoints in the source code.
 
-\begin{code}[language=C]
+\begin{lstlisting}[language=C]
 int main() {
     int val = 1;
     val = 42;
     asm("int $3"); // set a breakpoint here
     val = 7;
 }
-\end{code}
+\end{lstlisting}
 
-\begin{code}[language=C]
+\begin{lstlisting}[language=C]
 $ gcc main.c -g -o main && ./main
 (gdb) r
 [...]
@@ -196,7 +196,7 @@ main () at main.c:6
 6     val = 7;
 (gdb) p val
 $1 = 42
-\end{code}
+\end{lstlisting}
 
 \paragraph{Checking memory content}\label{checking-memory-content}
 
@@ -204,19 +204,19 @@ $1 = 42
 
 For example,
 
-\begin{code}[language=C]
+\begin{lstlisting}[language=C]
 int main() {
     char bad_string[3] = {'C', 'a', 't'};
     printf("%s", bad_string);
 }
-\end{code}
+\end{lstlisting}
 
-\begin{code}
+\begin{lstlisting}
 $ gcc main.c -g -o main && ./main
 $ Cat ZVQ� $
-\end{code}
+\end{lstlisting}
 
-\begin{code}
+\begin{lstlisting}
 (gdb) l
 1 #include <stdio.h>
 2 int main() {
@@ -234,7 +234,7 @@ Breakpoint 1, main () at main.c:4
 0x7fff5fbff9d5: 0x7f  0x00  0x00  0xfd  0xb5  0x23  0x89  0xff
 
 (gdb)
-\end{code}
+\end{lstlisting}
 
 Here, by using the \texttt{x} command with parameters \texttt{16xb}, we can see that starting at memory address \texttt{0x7fff5fbff9c} (value of \texttt{bad\_string}), \texttt{printf} would actually see the following sequence of bytes as a string because we provided a malformed string without a null terminator.
 
@@ -289,15 +289,15 @@ A terminal is just an application that displays the output form the shell. You c
 \begin{enumerate}
 \item \keyword{cat} concatenate multiple files. It is regularly used to print out the contents of a file to the terminal but the original use was concatenation.
 
-\begin{code}[language=console]
+\begin{lstlisting}[language=console]
 $ cat file.txt
 ...
 $ cat shakespeare.txt shakespeare.txt > two_shakes.txt
-\end{code}
+\end{lstlisting}
 
 \item \keyword{diff} tells you the difference of the two files. If nothing is printed, then zero is returned meaning the files are the same byte for byte. Otherwise, the longest common subsequence difference is printed
 
-\begin{code}[language=console]
+\begin{lstlisting}[language=console]
 $ cat prog.txt
 hello
 world
@@ -310,25 +310,25 @@ $ diff shakespeare.txt shakespeare.txt
 < world
 ---
 > it's me
-\end{code}
+\end{lstlisting}
 
 \item \keyword{grep} tells you which lines in a file or standard in match a POSIX pattern.
 
-\begin{code}[language=console]
+\begin{lstlisting}[language=console]
 $ grep it adele.txt
 it's me
-\end{code}
+\end{lstlisting}
 
 \item \keyword{ls} tells you which files are in the current directory.
 \item \keyword{cd} this is a shell builtin but it changes to a relative or absolute directory
 
-\begin{code}[language=console]
+\begin{lstlisting}[language=console]
 $ cd /usr
 $ cd lib/
 $ cd -
 $ pwd
 /usr/
-\end{code}
+\end{lstlisting}
 
 \item \keyword{man} every system programmers favorite command, tells you more about all your favorite functions!
 \item \keyword{make} executes programs according to a makefile.
@@ -339,30 +339,30 @@ $ pwd
 
 Shells have many useful utilities like saving output to a file using redirection \keyword{>}. This overwrites the file from the beginning. If you only meant to append to the file, you can use \keyword{>>}. Unix also allows file descriptor swapping. This means that you can take the output going to one file descriptor and make it seem like its coming out of another. The most common one is \keyword{2>&1} which means take the stderr and make it seem like it is coming out of standard out. This is important because when you use \keyword{>} and \keyword{>>} they only write the standard output of the file. There are some examples below.
 
-\begin{code}[language=console]
+\begin{lstlisting}[language=console]
 $ ./program > output.txt # To overwrite
 $ ./program >> output.txt # To append
 $ ./program 2>&1 > output_all.txt # stderr & stdout
 $ ./program 2>&1 > /dev/null # don't care about any output
-\end{code}
+\end{lstlisting}
 
 The pipe operator has a fascinating history. The UNIX philosophy is writing small programs and chaining them together to do new and interesting things. Back in the early days, hard disk space was limited and write times were slow. Brian Kernighan wanted to maintain the philosophy while also not having to write a bunch of intermediate files that take up hard drive space. So, the UNIX pipe was born. A pipe take the \keyword{stdout} of the program on its left and feeds it to the \keyword{stdin} of the program on its write. Consider the command \keyword{tee}. It can be used as a replacement for the redirection operators because tee will both write to a file and output to standard out. It also has the added benefit that it doesn't need to be the last command in the list. Meaning, that you can write an intermediate result and continue your piping.
 
-\begin{code}[language=console]
+\begin{lstlisting}[language=console]
 $ ./program | tee output.txt # Overwrite
 $ ./program | tee -a output.txt # Append
 $ head output.txt | wc | head -n 1 # Multi pipes
 $ ((head output.txt) | wc) | head -n 1 # Same as above
 $ ./program | tee intermediate.txt | wc
-\end{code}
+\end{lstlisting}
 
 The \keyword{&&} and \keyword{||} operator are operators that execute a command sequentially. \keyword{&&} only executes a command if the previous command succeeds, and \keyword{||} always executes the next command.
 
-\begin{code}[language=console]
+\begin{lstlisting}[language=console]
 $ false && echo "Hello!"
 $ true && echo "Hello!"
 $ false || echo "Hello!"
-\end{code}
+\end{lstlisting}
 
 \todo{Shell Tricks}
 
@@ -382,7 +382,7 @@ Each thread uses a stack memory. The stack `grows downwards' - if a function cal
 
 The example below demonstrates how the return address is stored on the stack. For a particular 32 bit architecture \href{http://cs-education.github.io/sys/}{Live Linux Machine}, we determine that the return address is stored at an address two pointers (8 bytes) above the address of the automatic variable. The code deliberately changes the stack value so that when the input function returns, rather than continuing on inside the main method, it jumps to the exploit function instead.
 
-\begin{code}[language=C]
+\begin{lstlisting}[language=C]
 // Overwrites the return address on the following machine:
 // http://cs-education.github.io/sys/
 #include <stdio.h>
@@ -411,7 +411,7 @@ int main() {
 
     return 0;
 }
-\end{code}
+\end{lstlisting}
 
 There are \href{https://en.wikipedia.org/wiki/Stack_buffer_overflow}{a lot} of ways that computers tend to get around this.
 

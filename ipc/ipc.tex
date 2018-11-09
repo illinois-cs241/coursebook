@@ -9,7 +9,7 @@ In very simple embedded systems and early computers, processes directly access m
 \item The circuit first checks the Translation Lookaside Buffer (TLB) if the address page is cached into memory. It skips to the reading from/writing to phase if found otherwise the request goes to the MMU.
 \item The Memory Management Unit (MMU) performs the address translation. If the translation succeeds (more on that later), the page get pulled from RAM -- conceptually the entire page isn't loaded up. The result is cached in the TLB. 
 \item The CPU performs the operation by either reading from the physical address or writing to the address.
-\end{enuemrate}
+\end{enumerate}
 
 \section{MMU and Translating Addresses}
 
@@ -58,9 +58,9 @@ A \textbf{frame} (or sometimes called a `page frame') is a block of \emph{physic
 A \textbf{page table} is a mapping between a page to the frame. For example Page 1 might be mapped to frame 45, page 2 mapped to frame 30. Other frames might be currently unused or assigned to other running processes, or used internally by the operating system.
 
 A simple page table could be imagined as an array.
-\begin{code}[language=C]
+\begin{lstlisting}[language=C]
 int frame_num = table[page_num]; 
-\end{code}
+\end{lstlisting}
 
 For a 32 bit machine with 4KB pages, each entry needs to hold a frame number - i.e.~20 bits because we calculated there are $2^{20}$ frames. That's 2.5 bytes per entry! In practice, we'll round that up to 4 bytes per entry and find a use for those spare bits. With 4 bytes per entry x $2^{20}$ entries = 4 MB of physical memory are required to hold the page table 
 For a 64 bit machine with 4KB pages, each entry needs 52 bits. Let's round up to 64 bits (8 bytes) per entry. With $2^{52}$ entries thats $2^{55}$ bytes (roughly 40 peta bytes\ldots{}) Oops our page table is too large 
@@ -143,7 +143,7 @@ What does the following code do? Well it \keyword{ls}'s the current directory (t
 
 The numbers in the pipes are the file descriptors for each process and the arrow represents the redirect or where the output of the pipe is going. A POSIX pipe is almost like its real counterpart - you can stuff bytes down one end and they will appear at the other end in the same order. Unlike real pipes however, the flow is always in the same direction, one file descriptor is used for reading and the other for writing. The \keyword{pipe} system call is used to create a pipe. These file descriptors can be used with \keyword{read} and with \keyword{write}. A common method of using pipes is to create the pipe before forking in order to communicate with a child process
 
-\begin{code}[language=C]
+\begin{lstlisting}[language=C]
 int filedes[2];
 pipe (filedes);
 pid_t child = fork();
@@ -154,11 +154,11 @@ if (child > 0) { /* I must be the parent */
 } else {
 	write(filedes[1], "done", 4);
 }
-\end{code}
+\end{lstlisting}
 
 One can use pipes inside of the same process, but there tends to be no added benefit. Here's an example program that sends a message to itself:
 
-\begin{code}[language=C]
+\begin{lstlisting}[language=C]
 #include <unistd.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -180,11 +180,11 @@ int main() {
     
     return 0;
 }
-\end{code}
+\end{lstlisting}
 
 The problem with using a pipe in this fashion is that writing to a pipe can block meaning the pipe only has a limited buffering capacity. If the pipe is full the writing process will block! The maximum size of the buffer is system dependent; typical values from 4KB upto 128KB.
 
-\begin{code}[language=C]
+\begin{lstlisting}[language=C]
 int main() {
     int fh[2];
     pipe(fh);
@@ -197,13 +197,13 @@ int main() {
     }
     return 0;
 }
-\end{code}
+\end{lstlisting}
 
 \subsection{Pipe Gotchas}\label{pipe-gotchas}
 
 Here's a complete example that doesn't work! The child reads one byte at a time from the pipe and prints it out - but we never see the message! Can you see why?
 
-\begin{code}[language=C]
+\begin{lstlisting}[language=C]
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -232,26 +232,26 @@ int main() {
     }
     return 0;
 }
-\end{code}
+\end{lstlisting}
 
 The parent sends the bytes \keyword{H,i,(space),C...!} into the pipe (this may block if the pipe is full). The child starts reading the pipe one byte at a time. In the above case, the child process will read and print each character. However it never leaves the while loop! When there are no characters left to read it simply blocks and waits for more 
 
 The call \keyword{putchar} writes the characters out but we never flush the \keyword{stdout} buffer. i.e.~We have transferred the message from one process to another but it has not yet been printed. To see the message we could flush the buffer e.g. \keyword{fflush(stdout)} (or \keyword{printf("\textbackslash{}n")} if the output is going to a terminal). A better solution would also exit the loop by checking for an end-of-message marker,
 
-\begin{code}[language=C]
+\begin{lstlisting}[language=C]
         while ((bytesread = read(fd[0], &buf, 1)) > 0) {
             putchar(buf);
             if (buf == '!') break; /* End of message */
         }
-\end{code}
+\end{lstlisting}
 
 Processes receive the signal SIGPIPE when no process is listening! From
 the pipe(2) man page -
 
-\begin{code}[language=C]
+\begin{lstlisting}[language=C]
 If all file descriptors referring to the read end of a pipe have been closed,
  then a write(2) will cause a SIGPIPE signal to be generated for the calling process. 
-\end{code}
+\end{lstlisting}
 
 Tip: Notice only the writer (not a reader) can use this signal. To
 inform the reader that a writer is closing their end of the pipe, you
@@ -261,7 +261,7 @@ could write your own special byte (e.g.~0xff) or a message (
 Here's an example of catching this signal that does not work! Can you
 see why?
 
-\begin{code}[language=C]
+\begin{lstlisting}[language=C]
 #include <stdio.h>
 #include <stdio.h>
 #include <unistd.h>
@@ -291,7 +291,7 @@ int main() {
     }
     return 0;
 }
-\end{code}
+\end{lstlisting}
 
 The mistake in above code is that there is still a reader for the pipe! The child still has the pipe's first file descriptor open and remember the specification? All readers must be closed 
 
@@ -301,13 +301,13 @@ When forking, \emph{It is common practice} to close the unnecessary (unused) end
 
 Reads and writes hang on Named Pipes until there is at least one reader and one writer, take this
 
-\begin{code}[language=C]
+\begin{lstlisting}[language=C]
 1$ mkfifo fifo
 1$ echo Hello > fifo
 # This will hang until I do this on another terminal or another process
 2$ cat fifo
 Hello
-\end{code}
+\end{lstlisting}
 
 Any \keyword{open} is called on a named pipe the kernel blocks until another process calls the opposite open. Meaning, echo calls \keyword{open(..,\ O\_RDONLY)} but that blocks until cat calls \keyword{open(..,\ O\_WRONLY)}, then the programs are allowed to continue.
 
@@ -315,7 +315,7 @@ Any \keyword{open} is called on a named pipe the kernel blocks until another pro
 
 What is wrong with the following program?
 
-\begin{code}[language=C]
+\begin{lstlisting}[language=C]
 //Program 1
 
 int main(){
@@ -334,7 +334,7 @@ int main() {
     printf("%s\n", buffer);
     return 0;
 }
-\end{code}
+\end{lstlisting}
 
 This may never print hello because of a race condition. Since you opened the pipe in the first process under both permissions, open won't wait for a reader because you told the operating system that you are a reader! Sometimes it looks like it works because the execution of the code looks something like this.
 
@@ -370,7 +370,7 @@ full?}\label{what-is-filling-up-the-pipe-what-happens-when-the-pipe-becomes-full
 
  POSIX file descriptors are simple integers 0,1,2,3\ldots{} At the C library level, C wraps these with a buffer and useful functions like printf and scanf, so we that we can easily print or parse integers, strings etc. If you already have a file descriptor then you can `wrap' it yourself into a FILE pointer using \keyword{fdopen} :
 
-\begin{code}[language=C]
+\begin{lstlisting}[language=C]
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
@@ -383,13 +383,13 @@ int main() {
     FILE *f = fdopen(filedes, "w");
     fprintf(f, "Name:%s Score:%d\n", name, score);
     fclose(f);
-\end{code}
+\end{lstlisting}
 
 For writing to files this is unnecessary - just use \keyword{fopen} which does the same as \keyword{open} and \keyword{fdopen} However for pipes, we already have a file descriptor - so this is great time to use \keyword{fdopen} 
 
 Here's a complete example using pipes that almost works! Can you spot the error? Hint: The parent never prints anything!
 
-\begin{code}[language=C]
+\begin{lstlisting}[language=C]
 #include <unistd.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -410,14 +410,14 @@ int main() {
     }
     return 0;
 }
-\end{code}
+\end{lstlisting}
 
 Note the unnamed pipe resource will disappear once both the child and parent have exited. In the above example the child will send the bytes and the parent will receive the bytes from the pipe. However, no end-of-line character is ever sent, so \keyword{fscanf} will continue to ask for bytes because it is waiting for the end of the line i.e.~it will wait forever! The fix is to ensure we send a newline character, so that \keyword{fscanf} will return.
 
-\begin{code}[language=C]
+\begin{lstlisting}[language=C]
 change:   fprintf(writer, "Score %d", 10 + 10);
 to:       fprintf(writer, "Score %d\n", 10 + 10);
-\end{code}
+\end{lstlisting}
 
 If you want your bytes to be sent to the pipe immediately, you'll need to fflush! At the beginning of this course we assumed that file streams are always \emph{line buffered} i.e.~the C library will flush its buffer everytime you send a newline character. Actually this is only true for terminal streams - for other filestreams the C library attempts to improve performance by only flushing when it's internal buffer is full or the file is closed.
 
@@ -474,20 +474,20 @@ simple way to accomplish this:
 
 Move to the end of the file and find out the current position.
 
-\begin{code}[language=C]
+\begin{lstlisting}[language=C]
 fseek(f, 0, SEEK_END);
 long pos = ftell(f);
-\end{code}
+\end{lstlisting}
 
 This tells us the current position in the file in bytes - i.e.~the
 length of the file!
 
 \keyword{fseek} can also be used to set the absolute position.
 
-\begin{code}[language=C]
+\begin{lstlisting}[language=C]
 fseek(f, 0, SEEK_SET); // Move to the start of the file 
 fseek(f, posn, SEEK_SET);  // Move to 'posn' in the file.
-\end{code}
+\end{lstlisting}
 
 All future reads and writes in the parent or child processes will honor
 this position. Note writing or reading from the file will change the
@@ -499,13 +499,13 @@ See the man pages for fseek and ftell for more information.
 
 \textbf{Note: This is not recommended in the usual case because of a quirk with the C language}. That quirk is that longs only need to be \textbf{4 Bytes big} meaning that the maximum size that \keyword{ftell} can return is a little under 2 Gigabytes (which we know nowadays our files could be hundreds of gigabytes or even terabytes on a distributed file system). What should we do instead? Use \keyword{stat}! We will cover stat in a later part but here is some code that will tell you the size of the file
 
-\begin{code}[language=C]
+\begin{lstlisting}[language=C]
 struct stat buf;
 if(stat(filename, &buf) == -1){
     return -1;
 }
 return (ssize_t)buf.st_size;
-\end{code}
+\end{lstlisting}
 
 \keyword{buf.st\_size} is of type \keyword{off\_t} which is big enough for large files.
 
@@ -517,11 +517,11 @@ Closing a file stream is unique to each process. Other processes can continue to
 
 One of the general uses for mmap is to map a file to memory. This does not mean that the file is malloc'ed to memory right away. Take the following code for example.
 
-\begin{code}[language=C]
+\begin{lstlisting}[language=C]
 int fd = open(...); //File is 2 Pages
 char* addr = mmap(..fd..);
 addr[0] = 'l';
-\end{code}
+\end{lstlisting}
 
  The kernel may say, ``okay I see that you want to mmap the file into memory, so I'll reserve some space in your address space that is the length of the file''. That means when you write to addr{[}0{]} that you are actually writing to the first byte of the file. The kernel can actually do some optimizations too. Instead of loading the file into memory, it may only load pages at a time because if the file is 1024 pages; you may only access 3 or 4 pages making loading the entire file a waste of time. That is why page faults are so powerful! They let the operating system take control of how much you use your files.
 

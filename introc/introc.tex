@@ -25,13 +25,13 @@ Fast forward however many years, and we are at the current C standard put forth 
 
 The only way to start learning C is by starting with hello world. As per the original example that Kernighan and Ritchie proposed way back when, the hello world hasn't changed that much.
 
-\begin{code}[language=C]
+\begin{lstlisting}[language=C]
 #include <stdio.h>
 int main(void) { 
     printf("Hello World\n");
     return 0; 
 }
-\end{code}
+\end{lstlisting}
 
 \begin{enumerate}
   \item The \keyword{\#include} directive takes the file \keyword{stdio.h} (which stands for \textbf{st}an\textbf{d}ard \textbf{i}nput and \textbf{o}utput) located somewhere in your operating system, copies the text, and substitutes it where the \keyword{\#include} was.
@@ -40,12 +40,12 @@ int main(void) {
   \item \keyword{return 0;}. \keyword{main} has to return an integer. By convention, \keyword{return 0} means success and anything else means failure \cite{CITATION_NEEDED}.
 \end{enumerate}
 
-\begin{code}
+\begin{lstlisting}
 $ gcc main.c -o main
 $ ./main
 Hello World
 $
-\end{code}
+\end{lstlisting}
 
 \begin{enumerate}
 \item \keyword{gcc} is short for the GNU-Compiler-Collection which has a host of compilers ready for use. The compiler infers from the extension that you are trying to compile a .c file
@@ -56,36 +56,36 @@ $
 
 What is the preprocessor? Preprocessing is an operation that the compiler performs \textbf{before} actually compiling the program. It is a copy and paste command. Meaning the following susbtitution is performed.
 
-\begin{code}[language=C]
+\begin{lstlisting}[language=C]
 #define MAX_LENGTH 10
 char buffer[MAX_LENGTH]
 // After
 char buffer[10]
-\end{code}
+\end{lstlisting}
 
 There are side effects to the preprocessor though. One problem is that the preprocessor needs to be able to tokenize properly, meaning trying to redefine the interals of the C language with a preprocessor may be impossible. Another problem is that they can't be nested infinitely -- there is an unbounded depth where they need to stop. Macros are also just simple text substitutions.
 
-\begin{code}[language=C]
+\begin{lstlisting}[language=C]
 #define min(a,b) ((a)<(b) ? (a) : (b))
 int x = 4;
 if(min(x++, 5)) printf("%d is six", x);
-\end{code}
+\end{lstlisting}
 
 Macros are simple text substitution so the above example expands to \keyword{x++\ \textless{}\ 100\ ?\ x++\ :\ 100} (parenthesis omitted for clarity). Now for this case, it is opaque what gets printed out but it will be 6. Also consider the edge case when operator precedence comes into play.
 
-\begin{code}[language=C]
+\begin{lstlisting}[language=C]
 #define min(a,b) a<b ? a : b
 int x = 99;
 int r = 10 + min(99, 100); // r is 100!
-\end{code}
+\end{lstlisting}
 
 Macros are simple text substitution so the above example expands to \keyword{10\ +\ 99\ \textless{}\ 100\ ?\ 99\ :\ 100}. You can have logical problems with the flexibility of certain parameters. One common source of confusion is with static arrays and the \keyword{sizeof} operator.
 
-\begin{code}[language=C]
+\begin{lstlisting}[language=C]
 #define ARRAY_LENGTH(A) (sizeof((A)) / sizeof((A)[0]))
 int static_array[10]; // ARRAY_LENGTH(static_array) = 10
 int* dynamic_array = malloc(10); // ARRAY_LENGTH(dynamic_array) = 2 or 1
-\end{code}
+\end{lstlisting}
 
 What is wrong with the macro? Well, it works if we have a static array like the first array because \keyword{sizeof} a static array returns the number of bytes that array takes up, and dividing it by the \keyword{sizeof(an\_element)} would give you the number of entries. But if we use a pointer to a piece of memory, taking the sizeof the pointer and dividing it by the size of the first entry won't always give us the size of the array.
 
@@ -98,7 +98,7 @@ C has an assortment of keywords. Here are some constructs that you should know b
 \begin{enumerate}
 \item \keyword{break} is a keyword that is used in case statements or looping statements. When used in a case statement, the program jumps to the end of the block.
 \\
-\begin{code}[language=C]
+\begin{lstlisting}[language=C]
 switch(1) {
   case 1: /* Goes to this switch */
     puts("1");
@@ -107,60 +107,60 @@ switch(1) {
     puts("2");
     break;
 } /* Continues here */
-\end{code}
+\end{lstlisting}
 \\
 In the context of a loop, it breaks out of the inner-most loop. The loop can be either a \keyword{for}, \keyword{while}, or \keyword{do-while} construct
 \\
-\begin{code}[language=C]
+\begin{lstlisting}[language=C]
 while(1) {
   while(2) {
     break; /* Breaks out of while(2) */
   } /* Jumps here */
   break; /* Breaks out of while(1) */
 } /* Continues here */
-\end{code}
+\end{lstlisting}
 \item \keyword{const} is a language level construct that tells the compiler that this data should not be modified. If one tries to change a const variable, the program will not even compile. \keyword{const} works a little differently when put before the type, the compiler flips the first type and const. Then the compiler uses a left associativity rule. Meaning that whatever is left of the pointer is constant. This is known as const-correctedness.
 \\
-\begin{code}[language=C]
+\begin{lstlisting}[language=C]
 const int i = 0; // Same as "int const i = 0"
 char *str = ...; // Mutable pointer to a mutable string
 const char *const_str = ...; // Mutable pointer to a constant string
 char const *const_str2 = ...; // Same as above
 const char *const const_ptr_str = ...;
 // Constant pointer to a constant string
-\end{code}
+\end{lstlisting}
 
 But, it is important to know that this is a compiler imposed restriction only. There are ways of getting around this and the program will run fine with defined behavior. In systems programming, the only type of memory that you can't write to is system write-protected memory.
 
-\begin{code}[language=C]
+\begin{lstlisting}[language=C]
 const int i = 0; // Same as "int const i = 0"
 (*((int *)&i)) = 1; // i == 1 now
 const char *ptr = "hi";
 *ptr = '\0'; // Will cause a Segmentation Violation
-\end{code}
+\end{lstlisting}
 
 \item \keyword{continue} is a control flow statement that exists only in loop constructions. Continue will skip the rest of the loop body and set the program counter back to the start of the loop before.
 
-\begin{code}[language=C]
+\begin{lstlisting}[language=C]
 int i = 10;
 while(i--) {
   if(1) continue; /* This gets triggered */
   *((int *)NULL) = 0;
 } /* Then reaches the end of the while loop */
-\end{code}
+\end{lstlisting}
 
 \item \keyword{do \{\} while();} is another loop constructs. These loops execute the body and then check the condition at the bottom of the loop. If the condition is zero, the loop body is not executed and the rest of the program is executed. Otherwise, the loop body is executed.
 
-\begin{code}[language=C]
+\begin{lstlisting}[language=C]
 int i = 1;
 do {
   printf("%d\n", i--);
 } while (i > 10) /* Only executed once */
-\end{code}
+\end{lstlisting}
 
 \item \keyword{enum} is to declare an enumeration. An enumeration is a type that can take on many, finite values. If you have an enum and don't specify any numerics, the c compiler when generate a unique number for that enum (within the context of the current enum) and use that for comparisons. To declare an instance of an enum, you must say \keyword{enum <type> varname}. The added benefit to this is that C can type check these expressions to make sure that you are only comparing alike types.
 
-\begin{code}[language=C]
+\begin{lstlisting}[language=C]
 enum day{ monday, tuesday, wednesday,
   thursday, friday, saturday, sunday};
 
@@ -171,11 +171,11 @@ void process_day(enum day foo) {
     // ...
   }
 }
-\end{code}
+\end{lstlisting}
 
 It is completely possible to assign enum values to either be different or the same. Just don't rely on the compiler for consistent numbering. If you are going to use this abstraction, try not to break it.
 
-\begin{code}[language=C]
+\begin{lstlisting}[language=C]
 enum day{ 
   monday = 0, 
   tuesday = 0, 
@@ -192,11 +192,11 @@ void process_day(enum day foo) {
     // ...
   }
 }
-\end{code}
+\end{lstlisting}
 
 \item \keyword{extern} is a special keyword that tells the compiler that the variable may be defined in another object file or a library, so the compiler doesn't throw an error when either the variable is not defined or if the variable is defined twice because the first file will really be referencing the variable in the other file.
 
-\begin{code}[language=C]
+\begin{lstlisting}[language=C]
 // file1.c
 extern int panic;
 
@@ -211,11 +211,11 @@ void foo() {
 //file2.c
 
 int panic = 1;
-\end{code}
+\end{lstlisting}
 
 \item \keyword{for} is a keyword that allows you to iterate with an initialization condition, a loop invariant, and an update condition. This is meant to be a replacement for the while loop
 
-\begin{code}[language=C]
+\begin{lstlisting}[language=C]
 for (initialization; check; update) {
   //...
 }
@@ -225,15 +225,15 @@ int i;
 for (i = 0; i < 10; i++) {
   //...
 }
-\end{code}
+\end{lstlisting}
 
 One thing to note is that as of the C89 standard, you cannot declare variables inside the \keyword{for} loop. This is because there was a disagreement in the standard for how the scoping rules of a variable defined in the loop would work. It has since been resolved with more recent standards, so people can use the for loop that they know and love today
 
-\begin{code}[language=C]
+\begin{lstlisting}[language=C]
 for(int i = 0; i < 10; ++i) {
   
 }
-\end{code}
+\end{lstlisting}
 
 The order of evaluation for a \keyword{for} loop is as follows
 
@@ -247,7 +247,7 @@ The order of evaluation for a \keyword{for} loop is as follows
 
 \item \keyword{goto} is a keyword that allows you to do conditional jumps. Do not use \keyword{goto} in your programs. The reason being is that it makes your code infinitely more hard to understand when strung together with multiple chains. It is fine to use in some contexts though. The keyword is usually used in kernel contexts when adding another stack frame for cleanup isn't a good idea. The canonical example of kernel cleanup is as below.
 
-\begin{code}[language=C]
+\begin{lstlisting}[language=C]
 void setup(void) {
   Doe *deer;
   Ray *drop;
@@ -274,10 +274,10 @@ cleanupdoe:
 finish:
   return;
 } 
-\end{code}
+\end{lstlisting}
 \item \keyword{if else else-if} are control flow keywords. There are a few ways to use these (1) A bare if (2) An if with an else (3) an if with an else-if (4) an if with an else if and else. The statements are always executed from the if to the else. If any of the intermediate conditions are true, the if block performs that action and goes to the end of that block.
 
-\begin{code}[language=C]
+\begin{lstlisting}[language=C]
 // (1)
 
 if (connect(...))
@@ -305,11 +305,11 @@ if (connect(...)) {
 } else {
   printf("Successfully bound!");
 }
-\end{code}
+\end{lstlisting}
 
 \item \keyword{inline} is a compiler keyword that tells the compiler it's okay not to create a new function in the assembly. Instead, the compile is hinted at substituting the function body directly into the calling function. This is not always recommended explicitly as the compiler is usually smart enough to know when to \keyword{inline} a function for you.
 
-\begin{code}[language=C]
+\begin{lstlisting}[language=C]
 inline int max(int a, int b) {
   return a < b ? a : b;
 }
@@ -318,11 +318,11 @@ int main() {
   printf("Max %d", max(a, b));
   // printf("Max %d", a < b ? a : b);
 }
-\end{code}
+\end{lstlisting}
 
 \item \keyword{restrict} is a keyword that tells the compiler that this particular memory region shouldn't overlap with all other memory regions. The use case for this is to tell users of the program that it is undefined behavior if the memory regions overlap.
 
-\begin{code}[language=C]
+\begin{lstlisting}[language=C]
 memcpy(void * restrict dest, const void* restrict src, size_t bytes);
 
 void add_array(int *a, int * restrict c) {
@@ -332,10 +332,10 @@ int *a = malloc(3*sizeof(*a));
 *a = 1; *a = 2; *a = 3;
 add_array(a + 1, a) // Well defined
 add_array(a, a) // Undefined
-\end{code}
+\end{lstlisting}
 \item \keyword{return} is a control flow operator that exits the current function. If the function is \keyword{void} then it simply exits the functions. Otherwise another parameter follows as the return value.
 
-\begin{code}[language=C]
+\begin{lstlisting}[language=C]
 void process() {
   if (connect(...)) {
     return -1;
@@ -344,29 +344,29 @@ void process() {
   }
   return 0;
 }
-\end{code}
+\end{lstlisting}
 
 \item \keyword{signed} is a modifier which is rarely used, but it forces an type to be signed instead of unsigned. The reasont that this is so rarely used is because types are signed by default and need to have the \keyword{unsigned} modifier to make them unsigned but it may be useful in cases where you want the compiler to default a signed type like.
 
-\begin{code}[language=C]
+\begin{lstlisting}[language=C]
 int count_bits_and_sign(signed representation) {
   //...
 }
-\end{code}
+\end{lstlisting}
 \item \keyword{sizeof} is an operator that is evaluated at compile time, which evaluates to the number of bytes that the expression contains. Meaning that when the compiler infers the type the following code changes.
-\begin{code}[language=C]
+\begin{lstlisting}[language=C]
 char a = 0;
 printf("%zu", sizeof(a++));
-\end{code}
+\end{lstlisting}
 
-\begin{code}[language=C]
+\begin{lstlisting}[language=C]
 char a = 0;
 printf("%zu", 1);
-\end{code}
+\end{lstlisting}
 
 Which then the compiler is allowed to operate on further. A note that you must have a complete definition of the type at compile time or else you may get an odd error. Consider the following
 
-\begin{code}[language=C]
+\begin{lstlisting}[language=C]
 // file.c
 struct person;
 
@@ -377,26 +377,27 @@ printf("%zu", sizeof(person));
 struct person {
   // Declarations
 }
-\end{code}
+\end{lstlisting}
 
 This code will not compile because sizeof is not able to compile \keyword{file.c} without knowing the full declaration of the \texttt{person} struct. That is typically why we either put the full declaration in a header file or we abstract the creation and the interaction away so that users cannot access the internals of our struct. Also, if the compiler knows the full length of an array object, it will use that in the expression instead of decaying it to a pointer.
 
-\begin{code}[language=C]
+\begin{lstlisting}[language=C]
 char str1[] = "will be 11";
 char* str2 = "will be 8";
 sizeof(str1) //11 because it is an array
 sizeof(str2) //8 because it is a pointer
-\end{code}
+\end{lstlisting}
 
 Be careful, using sizeof for the length of a string!
 
 \item \keyword{static} is a type specifier with three meanings.
-\begin{enuemrate}
+
+\begin{enumerate}
 \item When used with a global variable or function declaration it means that the scope of the variable or the function is only limited to the file.
 \item When used with a function variable, that declares that the variable has static allocation -- meaning that the variable is allocated once at program start up not every time the program is run.
 \end{enumerate}
 
-\begin{code}[language=C]
+\begin{lstlisting}[language=C]
 static int i = 0;
 
 static int _perform_calculation(void) {
@@ -407,11 +408,11 @@ char *print_time(void) {
   static char buffer[200]; // Shared every time a function is called
   // ...
 }
-\end{code}
+\end{lstlisting}
 
 \item \keyword{struct} is a keyword that allows you to pair multiple types together into a new structure. Structs are contiguous regions of memory that one can access specific elements of each memory as if they were separate variables.
 
-\begin{code}[language=C]
+\begin{lstlisting}[language=C]
 struct hostname {
   const char *port;
   const char *name;
@@ -425,33 +426,33 @@ facebook.resource = "/";
 
 // You can use static initialization in later versions of c
 struct hostname google = {"80", "www.google.com", "/"};
-\end{code}
+\end{lstlisting}
 
 
 \item \keyword{switch case default} Switches are essentially glorified jump statements. Meaning that you take either a byte or an integer and the control flow of the program jumps to that location.
 \\
-\begin{code}[language=C]
+\begin{lstlisting}[language=C]
 switch(/* char or int */) {
   case INT1: puts("1");
   case INT2: puts("2");
   case INT3: puts("3");
 }
-\end{code}
+\end{lstlisting}
 
 If we give a value of 2 then
 \\
-\begin{code}[language=C]
+\begin{lstlisting}[language=C]
 switch(2) {
   case 1: puts("1"); /* Doesn't run this */
   case 2: puts("2"); /* Runs this */
   case 3: puts("3"); /* Also runs this */
 }
-\end{code}
+\end{lstlisting}
 
 The break statement
 \item \keyword{typedef} declares an alias for a type. Often used with structs to reduce the visual clutter of having to write `struct' as part of the type.
 
-\begin{code}[language=C]
+\begin{lstlisting}[language=C]
 typedef float real; 
 real gravity = 10;
 // Also typedef gives us an abstraction over the underlying type used. 
@@ -460,23 +461,23 @@ real gravity = 10;
 
 typedef struct link link_t; 
 //With structs, include the keyword 'struct' as part of the original types
-\end{code}
+\end{lstlisting}
 
 In this class, we regularly typedef functions. A typedef for a function can be this for example
 
-\begin{code}[language=C]
+\begin{lstlisting}[language=C]
 typedef int (*comparator)(void*,void*);
 
 int greater_than(void* a, void* b){
     return a > b;
 }
 comparator gt = greater_than;
-\end{code}
+\end{lstlisting}
 
 This declares a function type comparator that accepts two \keyword{void*} params and returns an integer.
 
 \item \keyword{union} is a new type specifier. A union is one piece of memory that a bunch of variables occupy. It is used to maintain consistency while having the flexibility to switch between types without mainting functions to keep track of the bits. Consider an example where we have different pixel values.
-\begin{code}[language=C]
+\begin{lstlisting}[language=C]
 union pixel {
   struct values {
     char red;
@@ -493,40 +494,40 @@ a.values.blue = 0x0;
 
 // When writing to a file
 fprintf(picture, "%d", a.encoded);
-\end{code}
+\end{lstlisting}
 
 \item \keyword{unsigned} is a type modifier that forces \keyword{unsigned} behavior in the variables they modify. Unsigned can only be on primitive int types (like \keyword{int} and \keyword{long}). There is a lot of behavior associated with unsigned arthmetic and whatnot, just know for the most part unless you need to do bit shifting you probably won't need it.
 
 \item \keyword{void} is a two folded keyword. When used in terms of function or parameter definition then it means that it returns no value or accepts no parameter specifically. The following declares a function that accepts no parameters and returns nothing.
 
-\begin{code}[language=C]
+\begin{lstlisting}[language=C]
 void foo(void);
-\end{code}
+\end{lstlisting}
 
 
 The other use of \keyword{void} is when you are defining. A \keyword{void *} pointer is just a memory address. It is specified as an incomplete type meaning that you cannot dereference it but it can be promoted to any time to any other type. Pointer arithmetic with these pointer is undefined behavior.
 
-\begin{code}[langauge=C]
+\begin{lstlisting}[langauge=C]
 int *array = void_ptr; // No cast needed
-\end{code}
+\end{lstlisting}
 
 \item \keyword{volatile} is a compiler keyword. This means that the compiler should not optimize its value out. Consider the following simple function.
 \\
-\begin{code}[language=C]
+\begin{lstlisting}[language=C]
 int flag = 1;
 pass_flag(&flag);
 while(flag) {
     // Do things unrelated to flag
 }
-\end{code}
+\end{lstlisting}
 \\
 The compiler may, since the internals of the while loop have nothing to do with the flag, optimize it to the following even though a function may alter the data.
 \\
-\begin{code}[language=C]
+\begin{lstlisting}[language=C]
 while(1) {
     // Do things unrelated to flag
 }
-\end{code}
+\end{lstlisting}
 If you put the volatile keyword then it forces the compiler to keep the variable in and perform that check. This is particularly useful for cases where you are doing multi-process or multi-threading programs so that we can
 \item \keyword{while } represents the traditional \keyword{while} loop. There is a condition at the top of the loop. While that condition evaluates to a non-zero value, the loop body will be run.
 \end{enumerate}
@@ -564,14 +565,14 @@ Operators are language constructs in C that are defined as part of the grammar o
 \item If the operand is unsigned, zeros will be introduced on the left either way.
 \end{itemize}
 
-\begin{code}[language=C]
+\begin{lstlisting}[language=C]
 unsigned short uns = -127; // 1111111110000001
 short sig = 1; // 0000000000000001
 uns << 2; // 1111111000000100
 sig << 2; // 0000000000000100
 uns >> 2; // 1111111111100000
 sig >> 2; // 0000000000000000
-\end{code}
+\end{lstlisting}
 \item \keyword{<=/>=} are the greater than equal to/less than equal to operators. They do as the name implies.
 \item \keyword{</>} are the greater than/less than operators. They again do as the name implies.
 \item \keyword{==/\!=} are the equal/not equal to operators. They once again do as the name implies.
@@ -593,28 +594,28 @@ To find more information about any functions, use the man pages. Note the man pa
 
 \keyword{printf} is the function with which most people are familiar. The first parameter is a format string that includes placeholders for the data to be printed. Common format specifiers are \keyword{\%s} treat the argument as a c string pointer, keep printing all characters until the NULL-character is reached; \keyword{\%d} print the argument as an integer; \keyword{\%p} print the argument as a memory address. By default, for performance, \keyword{printf} does not actually write anything out until its buffer is full or a newline is printed.
 
-\begin{code}[language=C]
+\begin{lstlisting}[language=C]
 char *name = ... ; int score = ...;
 printf("Hello %s, your result is %d\n", name, score);
 printf("Debug: The string and int are stored at: %p and %p\n", name, &score );
 // name already is a char pointer and points to the start of the array. 
 // We need "&" to get the address of the int variable
-\end{code}
+\end{lstlisting}
 
 \keyword{printf} calls the system call \keyword{write}. \keyword{printf} includes an internal buffer so, to increase performance \keyword{printf} may not call \keyword{write} everytime you call \keyword{printf}. \keyword{printf} is a C library function. \keyword{write} is a system call and as we know system calls are expensive. On the other hand, \keyword{printf} uses a buffer which suits our needs better at that point
 
 To print strings and single characters use \keyword{puts(\ name\ )} and \keyword{putchar(\ c\ )} where name is a pointer to a C string and c is just a \keyword{char}
 
-\begin{code}[language=C]
+\begin{lstlisting}[language=C]
 puts("Current selection: ");
 putchar('1');
-\end{code}
+\end{lstlisting}
 
 To print to other file streams use \keyword{fprintf(\ \_file\_\ ,\ "Hello\ \%s,\ score:\ \%d",\ name,\ score);} Where \_file\_ is either predefined `stdout' `stderr' or a FILE pointer that was returned by \keyword{fopen} or \keyword{fdopen}. You can also use file descriptors in the printf family of functions! Just use \keyword{dprintf(int\ fd,\ char*\ format\_string,\ ...);} Just remember the stream may be buffered, so you will need to assure that the data is written to the file descriptor.
 
 To print data into a C string, use \keyword{sprintf} or better \keyword{snprintf}. \keyword{snprintf} returns the number of characters written excluding the terminating byte. In the above example, this would be a maximum of 199. We would use \keyword{sprintf} in cases where we know that the size of the string will not be anything more than a certain fixed amount (think about printing an integer, it will never be more than 11 characters with the null byte)
 
-\begin{code}[language=C]
+\begin{lstlisting}[language=C]
 // Fixed
 char int_string[20];
 sprintf(int_string, "%d", integer);
@@ -622,21 +623,21 @@ sprintf(int_string, "%d", integer);
 // Variable length
 char result[200];
 int len = snprintf(result, sizeof(result), "%s:%d", name, score);
-\end{code}
+\end{lstlisting}
 
 If I want to \keyword{printf} to call write without a newline \keyword{fflush(\ FILE*\ inp\ )}. The contents of the file will be written. If I wanted to write ``Hello World'' with no newline, I could write it like this.
 
-\begin{code}[language=C]
+\begin{lstlisting}[language=C]
 int main(){
     fprintf(stdout, "Hello World");
     fflush(stdout);
     return 0;
 }
-\end{code}
+\end{lstlisting}
 
 In addition to the printf family, there is \keyword{gets}. \keyword{gets} is deprecated in C99 standard and has been removed from the latest C standard (C11). Programs should use \keyword{fgets} or \keyword{getline} instead.
 
-\begin{code}[language=C]
+\begin{lstlisting}[language=C]
 char *fgets (char *str, int num, FILE *stream); 
 
 ssize_t getline(char **lineptr, size_t *n, FILE *stream);
@@ -644,11 +645,11 @@ ssize_t getline(char **lineptr, size_t *n, FILE *stream);
 // Example, the following will not read more than 9 chars
 char buffer[10];
 char *result = fgets(buffer, sizeof(buffer), stdin);
-\end{code}
+\end{lstlisting}
 
 The result is NULL if there was an error or the end of the file is reached. Note, unlike \keyword{gets}, \keyword{fgets} copies the newline into the buffer, which you may want to discard. On the other hand, one of the advantages of \keyword{getline} is that will automatically (re-) allocate a buffer on the heap of sufficient size.
 
-\begin{code}[language=C]
+\begin{lstlisting}[language=C]
 // ssize_t getline(char **lineptr, size_t *n, FILE *stream);
 
  /* set buffer and size to 0; they will be changed by getline */
@@ -668,11 +669,11 @@ chars = getline(&buffer, &size, stdin);
 
 // Later... don't forget to free the buffer!
 free(buffer);
-\end{code}
+\end{lstlisting}
 
 In addition to those functions, we have \keyword{perror} that has a two-fold meaning. Let's say that you have a function call that just failed because you checked the man page and it is a failing return code.\keyword{perror(const\ char*\ message)} will print the English version of the error to stderr.
 
-\begin{code}[language=C]
+\begin{lstlisting}[language=C]
 int main(){
     int ret = open("IDoNotExist.txt", O_RDONLY);
     if(ret < 0){
@@ -681,27 +682,27 @@ int main(){
     //...
     return 0;
 }
-\end{code}
+\end{lstlisting}
 
 To have a library function parse input, use \keyword{scanf} (or \keyword{fscanf} or \keyword{sscanf}) to get input from the default input stream, an arbitrary file stream or a C string respectively. It's a good idea to check the return value to see how many items were parsed. \keyword{scanf} functions require valid pointers. It's a common source of error to pass in an incorrect pointer value. For example,
 
-\begin{code}[language=C]
+\begin{lstlisting}[language=C]
 int *data = (int *) malloc(sizeof(int));
 char *line = "v 10";
 char type;
 // Good practice: Check scanf parsed the line and read two values:
 int ok = 2 == sscanf(line, "%c %d", &type, &data); // pointer error
-\end{code}
+\end{lstlisting}
 
 We wanted to write the character value into c and the integer value into the malloc'd memory. However, we passed the address of the data pointer, not what the pointer is pointing to! So \keyword{sscanf} will change the pointer itself. i.e.~the pointer will now point to address 10 so this code will later fail e.g.~when free(data) is called.
 
 Now, scanf will just keep reading characters until the string ends. To stop scanf from causing a buffer
 overflow, use a format specifier. Make sure to pass one less than the size of the buffer.
 
-\begin{code}[language=C]
+\begin{lstlisting}[language=C]
 char buffer[10];
 scanf("%9s", buffer); // reads up to 9 charactes from input (leave room for the 10th byte to be the terminating byte)
-\end{code}
+\end{lstlisting}
 
 \subsection{string.h}
 
@@ -727,7 +728,7 @@ scanf("%9s", buffer); // reads up to 9 charactes from input (leave room for the 
 
  A dangerous but useful function strtok takes a string and tokenizes it. Meaning that it will transform the strings into separate strings. This function has a lot of specs so please read the man pages a contrived example is below.
 
-\begin{code}[language=C]
+\begin{lstlisting}[language=C]
 #include <stdio.h>
 #include <string.h>
 
@@ -739,22 +740,22 @@ int main(){
     }while((start = strtok(NULL, ",")));
     return 0;
 }
-\end{code}
+\end{lstlisting}
 
 \textbf{Output}
 
-\begin{code}[language=console]
+\begin{lstlisting}[language=console]
 strtok
 is
 tricky
 !!
-\end{code}
+\end{lstlisting}
 
 What happens when I change \keyword{upped} like this?
 
-\begin{code}[language=C]
+\begin{lstlisting}[language=C]
 char* upped = strdup("strtok,is,tricky,,,!!");
-\end{code}
+\end{lstlisting}
 
 \item For integer parsing use
 \keyword{long\ int\ strtol(const\ char\ *nptr,\ char\ **endptr,\ int\ base);}
@@ -766,18 +767,18 @@ What these functions do is take the pointer to your string
 hexadecimal etc) and an optional pointer \keyword{endptr} and returns a
 parsed value.
 
-\begin{code}[language=C]
+\begin{lstlisting}[language=C]
 int main(){
     const char *nptr = "1A2436";
     char* endptr;
     long int result = strtol(nptr, &endptr, 16);
     return 0;
 }
-\end{code}
+\end{lstlisting}
 
 Be careful though! Error handling is tricky because the function won't return an error code. If you give it a string that is not a number it will return 0. This means you cant differentiate between a valid ``0'' and an invalid string. See the man page for more details on strol behavior with invalid and out of bounds values. A safer alternative is use to \keyword{sscanf} (and check the return value).
 
-\begin{code}[language=C]
+\begin{lstlisting}[language=C]
 int main(){
     const char *input = "0"; // or "!##@" or ""
     char* endptr;
@@ -788,7 +789,7 @@ int main(){
     }
     return 0;
 }
-\end{code}
+\end{lstlisting}
 
 \item \keyword{void\ *memcpy(void\ *dest,\ const\ void\ *src,\ size\_t\ n)} moves \keyword{n} bytes starting at \keyword{src} to \keyword{dest}. \textbf{Be careful}, there is undefined behavior when the memory regions overlap. This is one of the classic works on my machine examples because many times valgrind won't be able to pick it up because it will look like it works on your machine. When the autograder hits, fail. Consider the safer version below.
 
@@ -810,7 +811,7 @@ int main(){
 
 In low-level terms, a struct is just a piece of contiguous memory, nothing more. Just like an array, a struct has enough space to keep all of its members. But unlike an array, it can store different types. Consider the contact struct declared above
 
-\begin{code}[language=C]
+\begin{lstlisting}[language=C]
 struct contact {
     char firstname[20];
     char lastname[20];
@@ -818,9 +819,9 @@ struct contact {
 };
 
 struct contact bhuvan;
-\end{code}
+\end{lstlisting}
 
-\begin{code}[language=C]
+\begin{lstlisting}[language=C]
 /* a lot of times we will do the following typdef
  so we can just write contact contact1 */
 
@@ -832,20 +833,20 @@ contact bhuvan;
 typedef struct optional_name {
     ...
 } contact;
-\end{code}
+\end{lstlisting}
 
 If you compile the code without any optimizations and reordering, you can expect the addresses of each of the variables to look like this.
 
-\begin{code}[language=C]
+\begin{lstlisting}[language=C]
 &bhuvan           // 0x100
 &bhuvan.firstname // 0x100 = 0x100+0x00
 &bhuvan.lastname  // 0x114 = 0x100+0x14
 &bhuvan.phone     // 0x128 = 0x100+0x28
-\end{code}
+\end{lstlisting}
 
  Because all your compiler does is say `hey reserve this much space, and I will go and calculate the offsets of whatever variables you want to write to'. The offsets are where the variable starts at. The phone variables starts at the \keyword{0x128}th bytes and continues for sizeof(int) bytes, but not always. \textbf{Offsets don't determine where the variable ends though}. Consider the following hack that you see in a lot of kernel code.
 
-\begin{code}[language=C]
+\begin{lstlisting}[language=C]
 
 typedef struct {
     int length;
@@ -886,7 +887,7 @@ Now our string is filled in correctly at the end of the struct
 */
 
 strcmp(bhuvan_name->c_str, "bhuvan") == 0 //The strings are equal!
-\end{code}
+\end{lstlisting}
 
 \begin{aside}
 
@@ -894,7 +895,7 @@ strcmp(bhuvan_name->c_str, "bhuvan") == 0 //The strings are equal!
 
 Structs may require something called \href{http://www.catb.org/esr/structure-packing/}{padding} (tutorial). \textbf{We do not expect you to pack structs in this course, just know that it is there} This is because in the early days (and even now) when you have to an address from memory you have to do it in 32bit or 64bit blocks. This also meant that you could only request addresses that were multiples of that. Meaning that
 
-\begin{code}[language=C]
+\begin{lstlisting}[language=C]
 struct picture{
     int height;
     pixel** data;
@@ -905,11 +906,11 @@ struct picture{
 | h   data    w   encod |
 |___ ___ ___ ___ ___ ___|
 |___|___ ___|___|___ ___|
-\end{code}
+\end{lstlisting}
 
 Would conceptually look like this
 
-\begin{code}[language=C]
+\begin{lstlisting}[language=C]
 struct picture{
     int height;
     char slop1[4];
@@ -922,13 +923,13 @@ struct picture{
 | h   ?   data    w   ?   encod |
 |___ ___ ___ ___ ___ ___ ___ ___|
 |___|___|___ ___|___|___|___ ___|
-\end{code}
+\end{lstlisting}
 
 This is on a 64-bit system. This is not always the case because
 sometimes your processor supports unaligned accesses. What does this
 mean? Well there are two options you can set an attribute
 
-\begin{code}[language=C]
+\begin{lstlisting}[language=C]
 struct __attribute__((packed, aligned(4))) picture{
     int height;
     pixel** data;
@@ -940,13 +941,13 @@ struct __attribute__((packed, aligned(4))) picture{
 |___ ___ ___ ___ ___ ___|
 |___|___ ___|___|___ ___|
 
-\end{code}
+\end{lstlisting}
 
 But now, every time I want to access \keyword{data} or \keyword{encoding},
 I have to do two memory accesses. The other thing you can do is reorder
 the struct, although this is not always possible
 
-\begin{code}[language=C]
+\begin{lstlisting}[language=C]
 struct picture{
     int height;
     int width;
@@ -958,7 +959,7 @@ struct picture{
 |___ ___ ___ ___ ___ ___|
 |___|___|___ ___|___ ___|
 
-\end{code}
+\end{lstlisting}
 
 \end{aside}
 
@@ -981,7 +982,7 @@ Null Byte.
 
 \subsection{Two places for strings}\label{two-places-for-strings}
 
-Whenever you define a constant string (ie one in the form \keyword{char*\ str\ =\ "constant"}) That string is stored in the \emph{data} or \emph{code} segment that is \textbf{read-only} meaning that any attempt to modify the string will cause a segfault.
+Whenever you define a constant string (ie one in the form \keyword{char*\ str\ =\ "constant"}) That string is stored in the \emph{data} or \emph{lstlisting} segment that is \textbf{read-only} meaning that any attempt to modify the string will cause a segfault.
 
 If one, however, \keyword{malloc}'s space, one can change that string to be whatever they want. Forgetting to NULL terminate a string is a big affect on the strings! Bounds checking is important. The heart bleed bug mentioned earlier in the wiki book is partially because of this.
 
@@ -992,80 +993,80 @@ When you write a string literal \keyword{"ABC"} in an expression the string lite
 
 \subsubsection{String constants are constant}
 
-\begin{code}[language=C]
+\begin{lstlisting}[language=C]
 char array[] = "Hi!"; // array contains a mutable copy 
 strcpy(array, "OK");
 
 char *ptr = "Can't change me"; // ptr points to some immutable memory
 strcpy(ptr, "Will not work");
-\end{code}
+\end{lstlisting}
 
 String literals are character arrays stored in the code segment of the program, which is immutable. Two string literals may share the same space in memory. An example follows:
 
-\begin{code}[language=C]
+\begin{lstlisting}[language=C]
 char *str1 = "Brandon Chong is the best TA";
 char *str2 = "Brandon Chong is the best TA";
-\end{code}
+\end{lstlisting}
 
 The strings pointed to by \keyword{str1} and \keyword{str2} may actually reside in the same location in memory.
 
 Char arrays, however, contain the literal value which has been copied from the code segment into either the stack or static memory. These following char arrays do not reside in the same place in memory.
 
-\begin{code}[language=C]
+\begin{lstlisting}[language=C]
 char arr1[] = "Brandon Chong didn't write this";
 char arr2[] = "Brandon Chong didn't write this";
-\end{code}
+\end{lstlisting}
 
-\begin{code}[language=C]
+\begin{lstlisting}[language=C]
 char *ptr = "ABC"
-\end{code}
+\end{lstlisting}
 
 Some common ways to initialize a string include:
 
-\begin{code}[language=C]
+\begin{lstlisting}[language=C]
 char *str = "ABC";
 char str[] = "ABC";
 char str[]={'A','B','C','\0'};
-\end{code}
+\end{lstlisting}
 
-\begin{code}[language=C]
+\begin{lstlisting}[language=C]
 char ary[] = "Hello";
 char *ptr = "Hello";
-\end{code}
+\end{lstlisting}
 
 Example
 
 The array name points to the first byte of the array. Both \keyword{ary}
 and \keyword{ptr} can be printed out:
 
-\begin{code}[language=C]
+\begin{lstlisting}[language=C]
 char ary[] = "Hello";
 char *ptr = "Hello";
 // Print out address and contents
 printf("%p : %s\n", ary, ary);
 printf("%p : %s\n", ptr, ptr);
-\end{code}
+\end{lstlisting}
 
 The array is mutable, so we can change its contents. Be careful not to write bytes beyond the end of the array though. Fortunately, "World" is no longer than "Hello"
 
 In this case, the char pointer \keyword{ptr} points to some read-only memory (where the statically allocated string literal is stored), so we cannot change those contents.
 
-\begin{code}[language=C]
+\begin{lstlisting}[language=C]
 strcpy(ary, "World"); // OK
 strcpy(ptr, "World"); // NOT OK - Segmentation fault (crashes)
-\end{code}
+\end{lstlisting}
 
 We can, however, unlike the array, we change \keyword{ptr} to point to
 another piece of memory,
 
-\begin{code}[language=C]
+\begin{lstlisting}[language=C]
 ptr = "World"; // OK!
 ptr = ary; // OK!
 ary = (..anything..) ; // WONT COMPILE
 // ary is doomed to always refer to the original array.
 printf("%p : %s\n", ptr, ptr);
 strcpy(ptr, "World"); // OK because now ptr is pointing to mutable memory (the array)
-\end{code}
+\end{lstlisting}
 
 What to take away from this is that pointers * can point to any type of memory while C arrays {[}{]} can only point to memory on the stack. In a more common case, pointers will point to heap memory in which case the memory referred to by the pointer CAN be modified.
 
@@ -1080,32 +1081,32 @@ A pointer refers to a memory address. The type of the pointer is useful
 - it tells the compiler how many bytes need to be read/written. You can
 declare a pointer as follows.
 
-\begin{code}[language=C]
+\begin{lstlisting}[language=C]
 int *ptr1;
 char *ptr2;
-\end{code}
+\end{lstlisting}
 
 Due to C's grammar, an \keyword{int*} or any pointer is not actually its
 own type. You have to precede each pointer variable with an asterisk. As
 a common gotcha, the following
 
-\begin{code}[language=C]
+\begin{lstlisting}[language=C]
 int* ptr3, ptr4;
-\end{code}
+\end{lstlisting}
 
 Will only declare \keyword{*ptr3} as a pointer. \keyword{ptr4} will
 actually be a regular int variable. To fix this declaration, keep the
 \keyword{*} preceding to the pointer
 
-\begin{code}[language=C]
+\begin{lstlisting}[language=C]
 int *ptr3, *ptr4;
-\end{code}
+\end{lstlisting}
 
 Keep this in mind for structs as well. If one does not typedef them, then the pointer goes after the type.
 
-\begin{code}[language=C]
+\begin{lstlisting}[language=C]
 struct person *ptr3;
-\end{code}
+\end{lstlisting}
 
 \subsubsection{Reading/Writing with pointers}
 
@@ -1114,9 +1115,9 @@ discussion, let's say that \keyword{ptr} points to memory address
 \keyword{0x1000}. If we want to write to a pointer, we can dereference
 and assign \keyword{*ptr}.
 
-\begin{code}[language=C]
+\begin{lstlisting}[language=C]
 *ptr = 0; // Writes some memory.
-\end{code}
+\end{lstlisting}
 
 What C will do is take the type of the pointer which is an \keyword{int}
 and writes \keyword{sizeof(int)} bytes from the start of the pointer,
@@ -1131,15 +1132,15 @@ You can add an integer to a pointer. However, the pointer type is used
 to determine how much to increment the pointer. For char pointers this
 is trivial because characters are always one byte:
 
-\begin{code}[language=C]
+\begin{lstlisting}[language=C]
 char *ptr = "Hello"; // ptr holds the memory location of 'H'
 ptr += 2; //ptr now points to the first'l'
-\end{code}
+\end{lstlisting}
 
 If an int is 4 bytes then ptr+1 points to 4 bytes after whatever ptr is
 pointing at.
 
-\begin{code}[language=C]
+\begin{lstlisting}[language=C]
 char *ptr = "ABCDEFGH";
 int *bna = (int *) ptr;
 bna +=1; // Would cause iterate by one integer space (i.e 4 bytes on some systems)
@@ -1147,7 +1148,7 @@ ptr = (char *) bna;
 printf("%s", ptr);
 /* Notice how only 'EFGH' is printed. Why is that? Well as mentioned above, when performing 'bna+=1' we are increasing the **integer** pointer by 1, (translates to 4 bytes on most systems) which is equivalent to 4 characters (each character is only 1 byte)*/
 return 0;
-\end{code}
+\end{lstlisting}
 
 Because pointer arithmetic in C is always automatically scaled by the
 size of the type that is pointed to, you can't perform pointer
@@ -1158,18 +1159,18 @@ following
 
 If I want to do
 
-\begin{code}[language=C]
+\begin{lstlisting}[language=C]
 int *ptr1 = ...;
 int *offset = ptr1 + 4;
-\end{code}
+\end{lstlisting}
 
 Think
 
-\begin{code}[language=C]
+\begin{lstlisting}[language=C]
 int *ptr1 = ...;
 char *temp_ptr1 = (char*) ptr1;
 int *offset = (int*)(temp_ptr1 + sizeof(int)*4);
-\end{code}
+\end{lstlisting}
 
 To get the value. \textbf{Every time you do pointer arithmetic, take a
 deep breath and make sure that you are shifting over the number of bytes
@@ -1179,10 +1180,10 @@ you think you are shifting over.}
 
 A pointer without a type (very similar to a void variable). Void pointers are used when either a datatype you're dealing with is unknown or when you're interfacing C code with other programming languages. You can think of this as a raw pointer, or just a memory address. You cannot directly read or write to it because the void type does not have a size. For Example
 
-\begin{code}[language=C]
+\begin{lstlisting}[language=C]
 void *give_me_space = malloc(10);
 char *string = give_me_space;
-\end{code}
+\end{lstlisting}
 
 This does not require a cast because C automatically promotes \keyword{void*} to its appropriate type. \textbf{Note:}
 
@@ -1194,96 +1195,96 @@ Look in the appendix for Life in the Terminal!
 
 \section{Common Bugs}
 
-\begin{code}[language=C]
+\begin{lstlisting}[language=C]
 void mystrcpy(char*dest, char* src) { 
   // void means no return value   
   while( *src ) { dest = src; src ++; dest++; }  
 }
-\end{code}
+\end{lstlisting}
 
 In the above code it simply changes the dest pointer to point to source string. Also the nuls bytes are not copied. Here's a better version -
 
-\begin{code}[language=C]
+\begin{lstlisting}[language=C]
   while( *src ) { *dest = *src; src ++; dest++; } 
   *dest = *src;
-\end{code}
+\end{lstlisting}
 
 Note it's also usual to see the following kind of implementation, which
 does everything inside the expression test, including copying the nul
 byte.
 
-\begin{code}[language=C]
+\begin{lstlisting}[language=C]
   while( (*dest++ = *src++ )) {};
-\end{code}
+\end{lstlisting}
 
 \subsubsection{Double Frees}
 
 A double free error is when you accidentally attempt to free the same allocation twice.
 
-\begin{code}[language=C]
+\begin{lstlisting}[language=C]
 int *p = malloc(sizeof(int));
 free(p);
 
 *p = 123; // Oops! - Dangling pointer! Writing to memory we don't own anymore
 
 free(p); // Oops! - Double free!
-\end{code}
+\end{lstlisting}
 
 The fix is first to write correct programs! Secondly, it's good programming hygiene to reset pointers once the memory has been freed. This ensures the pointer can't be used incorrectly without the program crashing.
 
 Fix:
 
-\begin{code}[language=C]
+\begin{lstlisting}[language=C]
 p = NULL; // Now you can't use this pointer by mistake
-\end{code}
+\end{lstlisting}
 
 \subsection{Returning pointers to automatic variables}
 
-\begin{code}[language=C]
+\begin{lstlisting}[language=C]
 int *f() {
     int result = 42;
     static int imok;
     return &imok; // OK - static variables are not on the stack
     return &result; // Not OK
 }
-\end{code}
+\end{lstlisting}
 
 Automatic variables are bound to stack memory only for the lifetime of
 the function. After the function returns it is an error to continue to
 use the memory. \#\# Insufficient memory allocation
 
-\begin{code}[language=C]
+\begin{lstlisting}[language=C]
 struct User {
    char name[100];
 };
 typedef struct User user_t;
 
 user_t *user = (user_t *) malloc(sizeof(user));
-\end{code}
+\end{lstlisting}
 
 In the above example, we needed to allocate enough bytes for the struct.
 Instead, we allocated enough bytes to hold a pointer. Once we start
 using the user pointer we will corrupt memory. The correct code is shown
 below.
 
-\begin{code}[language=C]
+\begin{lstlisting}[language=C]
 struct User {
    char name[100];
 };
 typedef struct User user_t;
 
 user_t * user = (user_t *) malloc(sizeof(user_t));
-\end{code}
+\end{lstlisting}
 
 \subsection{Buffer overflow/ underflow}\label{buffer-overflow-underflow}
 
 Famous example: Heart Bleed (performed a memcpy into a buffer that was of insufficient size). Simple example: implement a strcpy and forget to add one to strlen, when determining the size of the memory required.
 
-\begin{code}[language=C]
+\begin{lstlisting}[language=C]
 #define N (10)
 int i = N, array[N];
 for( ; i >= 0; i--) array[i] = i;
-\end{code}
+\end{lstlisting}
 
 C does not check that pointers are valid. The above example writes into
 \keyword{array{[}10{]}} which is outside the array bounds. This can cause
@@ -1291,9 +1292,9 @@ memory corruption because that memory location is probably being used
 for something else. In practice, this can be harder to spot because the
 overflow/underflow may occur in a library call e.g.
 
-\begin{code}[language=C]
+\begin{lstlisting}[language=C]
 gets(array); // Let's hope the input is shorter than my array!
-\end{code}
+\end{lstlisting}
 
 
 \paragraph{Strings require strlen(s)+1 bytes}
@@ -1301,7 +1302,7 @@ gets(array); // Let's hope the input is shorter than my array!
 Every string must have a null byte after the last characters. To store
 the string ``Hi'' it takes 3 bytes: {[}H{]} {[}i{]} {[}\0{]}.
 
-\begin{code}[language=C]
+\begin{lstlisting}[language=C]
   char *strdup(const char *input) {  /* return a copy of 'input' */
     char *copy;
     copy = malloc(sizeof(char*));     /* nope! this allocates space for a pointer, not a string */
@@ -1310,17 +1311,17 @@ the string ``Hi'' it takes 3 bytes: {[}H{]} {[}i{]} {[}\0{]}.
     strcpy(copy, input);   /* strcpy will provide the null terminator */
     return copy;
 }
-\end{code}
+\end{lstlisting}
 
 \subsection{Using uninitialized
 variables}\label{using-uninitialized-variables}
 
-\begin{code}[language=C]
+\begin{lstlisting}[language=C]
 int myfunction() {
   int x;
   int y = x + 2;
 ...
-\end{code}
+\end{lstlisting}
 
 Automatic variables hold garbage (whatever bit pattern happened to be in
 memory). It is an error to assume that it will always be initialized to
@@ -1328,11 +1329,11 @@ zero.
 
 \subsection{Assuming Uninitialized memory will be zeroed}\label{assuming-uninitialized-memory-will-be-zeroed}
 
-\begin{code}[language=C]
+\begin{lstlisting}[language=C]
 void myfunct() {
    char array[10];
    char *p = malloc(10);
-\end{code}
+\end{lstlisting}
 
 Automatic (temporary variables) are not automatically initialized to zero. Heap allocations using malloc are not automatically initialized to zero.
 
@@ -1341,17 +1342,17 @@ mistakes}\label{logic-and-program-flow-mistakes}
 
 \subsection{Equal vs.~equality}\label{equal-vs.equality}
 
-\begin{code}[language=C]
+\begin{lstlisting}[language=C]
 int answer = 3; // Will print out the answer.
 if (answer = 42) { printf("I've solved the answer! It's %d", answer);}
-\end{code}
+\end{lstlisting}
 
 \subsection{Undeclared or incorrectly prototyped
 functions}\label{undeclared-or-incorrectly-prototyped-functions}
 
-\begin{code}[language=C]
+\begin{lstlisting}[language=C]
 time_t start = time();
-\end{code}
+\end{lstlisting}
 
 The system function `time' actually takes a parameter (a pointer to some
 memory that can receive the time\_t structure). The compiler did not
@@ -1360,18 +1361,18 @@ prototype by including \keyword{time.h}
 
 \subsection{Extra Semicolons}\label{extra-semicolons}
 
-\begin{code}[language=C]
+\begin{lstlisting}[language=C]
 for(int i = 0; i < 5; i++) ; printf("I'm printed once");
 while(x < 10); x++ ; // X is never incremented
-\end{code}
+\end{lstlisting}
 
 However, the following code is perfectly OK.
 
-\begin{code}[language=C]
+\begin{lstlisting}[language=C]
 for(int i = 0; i < 5; i++){
     printf("%d\n", i);;;;;;;;;;;;;
 }
-\end{code}
+\end{lstlisting}
 
 It is OK to have this kind of code, because the C language uses
 semicolons (;) to separate statements. If there is no statement in
@@ -1434,7 +1435,7 @@ on to the next statement
 \item
   What does the following print out?
 
-\begin{code}[language=C]
+\begin{lstlisting}[language=C]
 int main(){
 fprintf(stderr, "Hello ");
 fprintf(stdout, "It's a small ");
@@ -1442,15 +1443,15 @@ fprintf(stderr, "World\n");
 fprintf(stdout, "place\n");
 return 0;
 }
-\end{code}
+\end{lstlisting}
 \item
   What are the differences between the following two declarations? What
   does \keyword{sizeof} return for one of them?
 
-\begin{code}[language=C]
+\begin{lstlisting}[language=C]
 char str1[] = "bhuvan";
 char *str2 = "another one";
-\end{code}
+\end{lstlisting}
 \item
   What is a string in c?
 \item
@@ -1458,11 +1459,11 @@ char *str2 = "another one";
 \item
   What should the following usually return?
 
-\begin{code}[language=C]
+\begin{lstlisting}[language=C]
 int *ptr;
 sizeof(ptr);
 sizeof(*ptr);
-\end{code}
+\end{lstlisting}
 \item
   What is \keyword{malloc}? How is it different than \keyword{calloc}. Once memory is \keyword{malloc}ed how can I use \keyword{realloc}?
 \item
@@ -1470,11 +1471,11 @@ sizeof(*ptr);
 \item
   Pointer Arithmetic. Assume the following addresses. What are the following shifts?
 
-\begin{code}[language=C]
+\begin{lstlisting}[language=C]
 char** ptr = malloc(10); //0x100
 ptr[0] = malloc(20); //0x200
 ptr[1] = malloc(20); //0x300
-\end{code}
+\end{lstlisting}
 
   \begin{itemize}
   \tightlist
@@ -1498,13 +1499,13 @@ ptr[1] = malloc(20); //0x300
   Is the following code valid? If so, why? Where is \keyword{output}
   located?
 
-\begin{code}[language=C]
+\begin{lstlisting}[language=C]
 char *foo(int var){
 static char output[20];
 snprintf(output, 20, "%d", var);
 return output;
 }
-\end{code}
+\end{lstlisting}
 \item
   Write a function that accepts a string and opens that file prints out the file 40 bytes at a time but every other print reverses the string (try using POSIX API for this).
 \item

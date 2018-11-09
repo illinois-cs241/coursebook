@@ -14,7 +14,7 @@ We will mainly be looking into how the c standard library does memory allocation
 \item \keyword{malloc(size\_t bytes)} is a C library call and is used to reserve a contiguous block of memory. Unlike stack memory, the memory remains allocated until \keyword{free} is called with the same pointer. If \keyword{malloc} fails to reserve any more memory then it returns \keyword{NULL}. Robust programs should check the return value. If your code assumes \keyword{malloc} succeeds and it does not, then your program will likely crash (segfault) when it tries to write to address 0. Also, malloc may not zero out memory because of performance -- check your code to make sure that you are not using unitialized values.
 \item \keyword{realloc(void *space, size\_t bytes)} allows you to resize an existing memory allocation that was previously allocated on the heap (via malloc, calloc, or realloc). The most common use of realloc is to resize memory used to hold an array of values. There are two gotchas with realloc. One, a new pointer may be returned. Two, it can fail. A naive but readable version of realloc is suggested below. 
 
-\begin{code}[language=C]
+\begin{lstlisting}[language=C]
 void * realloc(void * ptr, size_t newsize) {
   // Simple implementation always reserves more memory
   // and has no error checking
@@ -24,9 +24,9 @@ void * realloc(void * ptr, size_t newsize) {
   free(ptr);
   return result;
 }
-\end{code}
+\end{lstlisting}
 
-\begin{code}[language=C]
+\begin{lstlisting}[language=C]
 // 1
 int *array = malloc(sizeof(int) * 2);
 array[0] = 10; array[1] = 20;
@@ -36,11 +36,11 @@ array[2] = 30;
 
 array = realloc(array, 3 * sizeof(int));
 // ...
-\end{code}
+\end{lstlisting}
 
 \item \keyword{calloc(size\_t nmemb, size\_t size)} initializes memory contents to zero and also takes two arguments: the number of items and the size in bytes of each item. An advanced discussion of these limitations is \href{http://locklessinc.com/articles/calloc/}{here}. Programmers often use \keyword{calloc} rather than explicitly calling \keyword{memset} after \keyword{malloc}, to set the memory contents to zero. Note \keyword{calloc(x,y)} is identical to \keyword{calloc(y,x)}, but you should follow the conventions of the manual. A naive implementation of calloc is below.
 
-\begin{code}[language=C]
+\begin{lstlisting}[language=C]
 void *calloc(size_t n, size_t size)
 {
     size_t total = n * size; // Does not check for overflow!
@@ -55,15 +55,15 @@ void *calloc(size_t n, size_t size)
     memset(result, 0, total);
     return result; 
 }
-\end{code}
+\end{lstlisting}
 
 \item \keyword{free} takes a pointer to the start of a piece of memory and makes it available for use in the subsequent calls to the other allocation functions. This is important because we don't want every process in our address space to take an enormous amount of memory. Once we are done using memory, we stop using it with free. A simple usage is below.
 
-\begin{code}[language=C]
+\begin{lstlisting}[language=C]
 int *ptr = malloc(sizeof(*ptr));
 do_something(ptr);
 free(ptr);
-\end{code}
+\end{lstlisting}
 
 \end{itemize}
 
@@ -75,17 +75,17 @@ Truthiness: Modern operating system memory allocators no longer need \keyword{sb
 
 Programs don't need to call brk or sbrk typically (though calling \keyword{sbrk(0)} can be interesting because it tells you where your heap currently ends). Instead programs use \keyword{malloc,calloc,realloc} and \keyword{free} which are part of the C library. The internal implementation of these functions will call \keyword{sbrk} when additional heap memory is required.
 
-\begin{code}[language=C]
+\begin{lstlisting}[language=C]
 void *top_of_heap = sbrk(0);
 malloc(16384);
 void *top_of_heap2 = sbrk(0);
 printf("The top of heap went from %p to %p \n", top_of_heap, top_of_heap2);
 // Example output: The top of heap went from 0x4000 to 0xa000
-\end{code}
+\end{lstlisting}
 
 If the operating system did not zero out contents of physical RAM it might be possible for one process to learn about the memory of another process that had previously used the memory. This would be a security leak. Unfortunately this means that for \keyword{malloc} requests before any memory has been freed and simple programs (which end up using newly reserved memory from the system) the memory is \emph{often} zero. Then programmers mistaken write C programs that assume malloc'd memory will \emph{always} be zero.
 
-\begin{code}[language=C]
+\begin{lstlisting}[language=C]
 char* ptr = malloc(300);
 // contents is probably zero because we get brand new memory
 // so beginner programs appear to work!
@@ -93,11 +93,11 @@ char* ptr = malloc(300);
 free(ptr);
 // later
 char *ptr2 = malloc(308); // Contents might now contain existing data and is probably not zero
-\end{code}
+\end{lstlisting}
 
 \section{Intro to Allocating}
 
-\begin{code}[language=C]
+\begin{lstlisting}[language=C]
 void* malloc(size_t size)
 // Ask the system for more bytes by extending the heap space. 
 // sbrk Returns -1 on failure
@@ -106,7 +106,7 @@ void* malloc(size_t size)
    return p;
 }
 void free() {/* Do nothing */}
-\end{code}
+\end{lstlisting}
 
 Above is the simpliest implementation of malloc, there are a few drawbacks though.
 
@@ -220,11 +220,11 @@ If no suitable block is found, it's time to call \keyword{sbrk()} again to suffi
 
 When a free block is found, it may be larger than the space we need. If so, we will create two entries in our implicit list. The first entry is the allocated block, the second entry is the remaining space. There are two simple ways to note if a block is in use or available. The first is to store it as a byte in the header information along with the size and the second to encode it as the lowest bit in the size! Thus block size information would be limited to only even values:
 
-\begin{code}[language=C]
+\begin{lstlisting}[language=C]
 // Assumes p is a reasonable pointer type, e.g. 'size_t *'.
 isallocated = (*p) & 1;
 realsize = (*p) & ~1;  // mask out the lowest bit
-\end{code}
+\end{lstlisting}
 
 \subsection{Alignment and rounding up considerations}
 
@@ -234,9 +234,9 @@ As \keyword{malloc} does not know how the user will use the allocated memory (ar
 
 From glibc documentation, the glibc \keyword{malloc} uses the following heuristic: " The block that malloc gives you is guaranteed to be aligned so that it can hold any type of data. On GNU systems, the address is always a multiple of eight on most systems, and a multiple of 16 on 64-bit systems." For example, if you need to calculate how many 16 byte units are required, don't forget to round up.
 
-\begin{code}[language=C]
+\begin{lstlisting}[language=C]
 int s = (requested_bytes + tag_overhead_bytes + 15) / 16
-\end{code}
+\end{lstlisting}
 
 The additional constant ensures incomplete units are rounded up. Note, real code is more likely to symbol sizes e.g. \keyword{sizeof(x)\ -\ 1}, rather than coding numerical constant 15.
 
@@ -250,9 +250,9 @@ When \keyword{free} is called we need to re-apply the offset to get back to the 
 
 A naive implementation would simply mark the block as unused. If we are storing the block allocation status in the lowest size bit, then we just need to clear the bit:
 
-\begin{code}[language=C]
+\begin{lstlisting}[language=C]
 *p = (*p) & ~1; // Clear lowest bit 
-\end{code}
+\end{lstlisting}
 
 However, we have a bit more work to do: If the current block and the next block (if it exists) are both free we need to coalesce these blocks into a single block. Similarly, we also need to check the previous block, too. If that exists and represents an unallocated memory, then we need to coalesce the blocks into a single large block.
 
