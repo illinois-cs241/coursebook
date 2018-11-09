@@ -13,7 +13,7 @@ script:
 - git add main.pdf
 - git commit -m "Updating main.pdf at `date`"
 after_success:
-- test $TRAVIS_BRANCH = "master" && _scripts/push_to_wiki.sh
+- test $TRAVIS_BRANCH = "master" && bash _scripts/push_to_wiki.sh
 env:
   global:
     secure: BWkcnAgoDU88kBJCsAPNVAiO9GbxvgrKiLNLpWkhcgPuc0Rlb2ZE6j7uAnYetsIU4xKY/rMXHgq8zy3zo0uqcIE5UnwalPaQhhfm2IaFhB5yhTbuYODswgZCnaXBMZXjvGjSq+ljw+mO90Yp/aJnlQ7xtjYN9d4go/+hTSaiSP8ZN9L6ODcctikePdBfXjMEAuhfGuq+yU0wmvrZczXyJxzpv1S+/hWDZAAYPI5Yhw6pu5V8rIDpwj5LRieppm8icbCnChaCyXC51biJWbSNJYE+Pd0ND3YI6wMwI3/WZ3MEaCaRLQ/U4uX2Q49BmesgX4nMGjP6wTS56j1FdUWrDQXaQgRxB1MFazQelAhjBWdBWz2QW5Fphtfwqn7XX3r2RprHuufZ3yLzy4CD0+aDdd3wqvCFctE7ZV7YKPgClv7Z2LSTQ9ccder/il1T0ckRrHwRluutJCAZQ0CfmpP/UoZ3tCrCOnMzIhSVuAQBx/k9+zhc3hXg0MUuq00ofp1kwRNfSBfha7Nz3/z3CqWgaiqkwwVwaWDxiFGz2nd8EaskWMPY0BNFmuz2nJdL1ZdjNpEQGDEy+Xn9C2HvCxvaUMm4ebIFUyU70IIgX+2PviBVD5EVHOumDg05Qziagb4ptEcy8uVnWKGJLEZvzJO+pKEGA1hgg/ltalot/eEvrnw=
