@@ -7,9 +7,8 @@ branches:
 addons:
   apt:
     packages:
-    - texlive-full
+    - pandoc
 script:
-- make
 - git checkout -b deploy
 - git add main.pdf
 - git commit -m "Updating main.pdf at `date`"
