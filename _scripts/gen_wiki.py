@@ -96,7 +96,7 @@ def main(args):
         print(sed_command)
         os.system(sed_command)
         md_path = files_m.md_path
-        command = 'pandoc --toc -f latex -t markdown_github -s {} -o {}'.format(tex_tmp_path, md_path)
+        command = 'pandoc --toc --self-contained -f latex -t markdown_github -s --filter _scripts/pandoc_wiki_filter.py {} -o {}'.format(tex_tmp_path, md_path)
         print(command)
         os.system(command)
 
