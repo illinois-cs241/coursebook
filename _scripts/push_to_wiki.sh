@@ -1,7 +1,7 @@
 #!/bin/bash
 
 set +e
-
+if [ -z ${1+x} ]; then echo "var is unset"; else echo "var is set to '$var'"; fi
 WIKI_DIR=`mktemp -d`
 
 echo "Cloning"
