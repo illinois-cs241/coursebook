@@ -84,6 +84,7 @@ def main(args):
 
     print("Creating directory")
     files_meta = generate_tex_meta(order, outdir, meta_file_name)
+    prelude_file = 'prelude.tex'
 
     # 1. Convert files in the order
     print("Converting files to markdown")
@@ -91,15 +92,9 @@ def main(args):
         tex_path = files_m.tex_path
         (fd, tex_tmp_path) = tempfile.mkstemp(dir=tmp_dir)
         os.close(fd)
-        os.system('cp {} {}'.format(tex_path, tex_tmp_path))
-        sed_command = ("sed -i '1s/^/"
-                    "\\\\newcommand{{\\\\gls}}[1]{{#1}}\\n"
-                    "\\\\newcommand{{\\\\keyword}}[1]{{\\\\texttt{{#1}}}}/'"
-                    " {}").format(tex_tmp_path)
-        print(sed_command)
-        os.system(sed_command)
+        os.system('cat {} {} > {}'.format(prelude_file, tex_path, tex_tmp_path))
         md_path = files_m.md_path
-        command = 'pandoc --toc --self-contained -f latex -t markdown_github -s --filter _scripts/pandoc_wiki_filter.py {} -o {}'.format(tex_tmp_path, md_path)
+        command = 'pandoc --toc --self-contained -f latex -t markdown_github -s --filter _scripts/pandoc_wiki_filter.py {} -o {} '.format(tex_tmp_path, md_path)
         print(command)
         os.system(command)
 
