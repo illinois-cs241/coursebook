@@ -3,7 +3,7 @@ sudo: false
 language: python
 cache: pip
 python:
-  - "3.5"
+- '3.5'
 branches:
   only:
   - "/.*/"
@@ -12,13 +12,13 @@ addons:
     packages:
     - pandoc
 install:
-  - pandoc -v
-  - pip install -r requirements.txt
+- pandoc -v
+- pip install -r requirements.txt
 script:
-  - git checkout -b deploy
-  - git add main.pdf
+- git checkout -b deploy
+- git add main.pdf
 after_success:
-  - test $TRAVIS_BRANCH = "master" && bash _scripts/push_to_wiki.sh
+- test $TRAVIS_BRANCH = "master" && bash _scripts/push_to_wiki.sh
 env:
   global:
-    secure: BWkcnAgoDU88kBJCsAPNVAiO9GbxvgrKiLNLpWkhcgPuc0Rlb2ZE6j7uAnYetsIU4xKY/rMXHgq8zy3zo0uqcIE5UnwalPaQhhfm2IaFhB5yhTbuYODswgZCnaXBMZXjvGjSq+ljw+mO90Yp/aJnlQ7xtjYN9d4go/+hTSaiSP8ZN9L6ODcctikePdBfXjMEAuhfGuq+yU0wmvrZczXyJxzpv1S+/hWDZAAYPI5Yhw6pu5V8rIDpwj5LRieppm8icbCnChaCyXC51biJWbSNJYE+Pd0ND3YI6wMwI3/WZ3MEaCaRLQ/U4uX2Q49BmesgX4nMGjP6wTS56j1FdUWrDQXaQgRxB1MFazQelAhjBWdBWz2QW5Fphtfwqn7XX3r2RprHuufZ3yLzy4CD0+aDdd3wqvCFctE7ZV7YKPgClv7Z2LSTQ9ccder/il1T0ckRrHwRluutJCAZQ0CfmpP/UoZ3tCrCOnMzIhSVuAQBx/k9+zhc3hXg0MUuq00ofp1kwRNfSBfha7Nz3/z3CqWgaiqkwwVwaWDxiFGz2nd8EaskWMPY0BNFmuz2nJdL1ZdjNpEQGDEy+Xn9C2HvCxvaUMm4ebIFUyU70IIgX+2PviBVD5EVHOumDg05Qziagb4ptEcy8uVnWKGJLEZvzJO+pKEGA1hgg/ltalot/eEvrnw=
+    secure: Ng3lXFSm51lZRxmjXXCT9KjpAbxVGdScx5rbY0/m2djXla/BWgwVWDRV8BADAfpX/CuaU8wbexg0iW9aSI2cNw2krn7p7d4N7/yy7R2e/G8bQH+xfGYroGeNykE9Iq6clh3YPCxCH69CPhAvCFnptLdtRjHQUH1GZtzqEae+vFhvvlMBrsG3VrY/S5fWsMDj0g0Xd6gRaiGzorNUbT3FpZxuJT3e4mh0ZTls+TcaGfz+ELoW4n+Hycm4/a4mHVKm7h0G3CNVTvVxwZpWw/o2drx4l4eemaxhVdrGlFgMyXELV4uWGb3P0HcfnxPNIipeXhgUOtjD0mhCfebHq9tWGCa3CGGZ4GxCTkEeNbOd/RQSxCNtvUnZreAaRzinx5Sy5u/8V1aZLVle4ml21kvBw+rx47Tb1BwrXGhfmuReQwcTRDwcrz1ePjNsSmTOvBU+Fwa3aw/mc6/fngUFn1MJS04Y3qdn/afb9WpTGyi6UJ9HAZvzSdWmUpnTjFLJbeBgk7ejvjn0Y/jXXU0YkGqSY0yfogEtllr73gdFGCM6wZ7PcmpPMx4FdGsAGEt2i2CylRUXlm4hMbfIyEytJPO+djyxIc5LPfCYMM82Gt/OpaStchLfgJxWAucysnF4GTkKXyUXmAqKvfJHhwXeakBpJYG3E8SYIoXAe/LF9sucL9w=
