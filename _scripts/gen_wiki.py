@@ -53,7 +53,7 @@ def aggregate_meta_data(file_name, metadata_file):
 
 def generate_tex_meta(order, outdir, meta_file_name):
     out_tex_names = [path + ".tex" for path in order]
-    print("Generating Metadata")
+    print("Generating Metadata at {}".format(meta_file_name))
 
     for tex_name in out_tex_names:
         print("Adding {}".format(tex_name))
@@ -80,7 +80,7 @@ def main(args):
     order = yaml.load(open(order_file, 'r'))
     (fd, meta_file_name) = tempfile.mkstemp(dir='/tmp')
     os.close(fd)
-
+    meta_file_name = '/tmp/' + meta_file_name
     print("Creating directory")
     os.system('mkdir {}'.format(outdir))
     files_meta = generate_tex_meta(order, outdir, meta_file_name)
