@@ -18,7 +18,7 @@ script:
 - git checkout -b deploy
 - git add main.pdf
 after_success:
-- test $TRAVIS_BRANCH = "master" && bash _scripts/push_to_wiki.sh ${LF9sucL9w}
+- test $TRAVIS_BRANCH = "master" && bash _scripts/push_to_wiki.sh ${GITHUB_TOKEN}
 env:
   global:
     secure: Ng3lXFSm51lZRxmjXXCT9KjpAbxVGdScx5rbY0/m2djXla/BWgwVWDRV8BADAfpX/CuaU8wbexg0iW9aSI2cNw2krn7p7d4N7/yy7R2e/G8bQH+xfGYroGeNykE9Iq6clh3YPCxCH69CPhAvCFnptLdtRjHQUH1GZtzqEae+vFhvvlMBrsG3VrY/S5fWsMDj0g0Xd6gRaiGzorNUbT3FpZxuJT3e4mh0ZTls+TcaGfz+ELoW4n+Hycm4/a4mHVKm7h0G3CNVTvVxwZpWw/o2drx4l4eemaxhVdrGlFgMyXELV4uWGb3P0HcfnxPNIipeXhgUOtjD0mhCfebHq9tWGCa3CGGZ4GxCTkEeNbOd/RQSxCNtvUnZreAaRzinx5Sy5u/8V1aZLVle4ml21kvBw+rx47Tb1BwrXGhfmuReQwcTRDwcrz1ePjNsSmTOvBU+Fwa3aw/mc6/fngUFn1MJS04Y3qdn/afb9WpTGyi6UJ9HAZvzSdWmUpnTjFLJbeBgk7ejvjn0Y/jXXU0YkGqSY0yfogEtllr73gdFGCM6wZ7PcmpPMx4FdGsAGEt2i2CylRUXlm4hMbfIyEytJPO+djyxIc5LPfCYMM82Gt/OpaStchLfgJxWAucysnF4GTkKXyUXmAqKvfJHhwXeakBpJYG3E8SYIoXAe/LF9sucL9w=
