@@ -89,8 +89,14 @@ def main(args):
     print("Converting files to markdown")
     for files_m in files_meta:
         tex_path = files_m.tex_path
+        (fd, tex_tmp_path) = tempfile.mkstemp(dir=tmp_dir)
+        os.close(fd)
+        os.system('cp {} {}'.format(tex_path, tex_tmp_path))
+        sed_command = "sed -i '1s/^/\\\\newcommand{{\\\\gls}}[1]{{#1}}\\n/' {}".format(tex_tmp_path)
+        print(sed_command)
+        os.system(sed_command)
         md_path = files_m.md_path
-        command = 'pandoc -s {} -o {}'.format(tex_path, md_path)
+        command = 'pandoc --toc -f latex -t markdown_github -s {} -o {}'.format(tex_tmp_path, md_path)
         print(command)
         os.system(command)
 
