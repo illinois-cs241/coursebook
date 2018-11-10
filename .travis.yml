@@ -1,6 +1,8 @@
 dist: trusty
 sudo: false
-language: generic
+language: python
+python:
+        - "3.5"
 branches:
   only:
   - "/.*/"
@@ -8,6 +10,8 @@ addons:
   apt:
     packages:
     - pandoc
+install:
+        - pip install -r requirements.txt
 script:
 - git checkout -b deploy
 - git add main.pdf
