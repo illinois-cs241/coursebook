@@ -92,7 +92,10 @@ def main(args):
         (fd, tex_tmp_path) = tempfile.mkstemp(dir=tmp_dir)
         os.close(fd)
         os.system('cp {} {}'.format(tex_path, tex_tmp_path))
-        sed_command = "sed -i '1s/^/\\\\newcommand{{\\\\gls}}[1]{{#1}}\\n/' {}".format(tex_tmp_path)
+        sed_command = ("sed -i '1s/^/"
+                    "\\\\newcommand{{\\\\gls}}[1]{{#1}}\\n"
+                    "\\\\newcommand{{\\\\keyword}}[1]{{\\\\textttt{{#1}}}}/'"
+                    " {}").format(tex_tmp_path)
         print(sed_command)
         os.system(sed_command)
         md_path = files_m.md_path
