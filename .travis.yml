@@ -11,7 +11,6 @@ addons:
 script:
 - git checkout -b deploy
 - git add main.pdf
-- git commit -m "Updating main.pdf at `date`"
 after_success:
 - test $TRAVIS_BRANCH = "master" && bash _scripts/push_to_wiki.sh
 env:
