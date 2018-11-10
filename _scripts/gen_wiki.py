@@ -78,9 +78,9 @@ def main(args):
     out_file = outdir + '/Home.md'
 
     order = yaml.load(open(order_file, 'r'))
-    (fd, meta_file_name) = tempfile.mkstemp(dir='/tmp')
+    (fd, meta_file_name) = tempfile.mkstemp(dir='./tmp')
     os.close(fd)
-    meta_file_name = '/tmp/' + meta_file_name
+
     print("Creating directory")
     os.system('mkdir {}'.format(outdir))
     files_meta = generate_tex_meta(order, outdir, meta_file_name)
@@ -96,6 +96,7 @@ def main(args):
 
     # 3. Generate Home Page
     gen_home_page(files_meta, out_file)
+    os.system("rm -rf ./tmp")
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
