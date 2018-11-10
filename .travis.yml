@@ -3,7 +3,8 @@ sudo: false
 language: python
 cache: pip
 python:
-- '3.6'
+  # Use the default version that they give us because why not
+  - '3.6'
 branches:
   only:
   - "/.*/"
@@ -12,10 +13,9 @@ addons:
     packages:
     - pandoc
 install:
-- pandoc -v
-- pip install -r requirements.txt
+  - pandoc -v
+  - pip install -r requirements.txt
 script:
-- git checkout -b deploy
-- git add main.pdf
-after_success:
-- test $TRAVIS_BRANCH = "master" && bash _scripts/push_to_wiki.sh ${GITHUB_TOKEN}
+  - git checkout -b deploy
+  - echo 1 #test $TRAVIS_BRANCH = "deploy" && bash _scripts/rebuild_branch.sh
+  - test $TRAVIS_BRANCH = "master" && bash _scripts/push_to_wiki.sh ${GITHUB_TOKEN}

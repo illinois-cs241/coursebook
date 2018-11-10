@@ -1,24 +1,20 @@
 #!/usr/bin/env python3
 
 """
-Pandoc filter to grab the different header levels as yaml to stderr
+Pandoc filter to change each relative URL to absolute
 """
 
 from panflute import run_filter, Str, Header, Image
-import sys
 
 base_raw_url = 'https://raw.githubusercontent.com/illinois-cs241/wikibook-project/master/'
 
-extra_css = "max-width: 60%; display: block; margin: 0 auto;"
-
-def output_yaml(elem, doc):
+def change_base_url(elem, doc):
     if type(elem) == Image:
         elem.url = base_raw_url + elem.url
-        elem.attributes['style'] = extra_css
         return elem
 
 def main(doc=None):
-    return run_filter(output_yaml, doc=doc)
+    return run_filter(change_base_url, doc=doc)
 
 if __name__ == "__main__":
     main()

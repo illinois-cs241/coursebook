@@ -795,128 +795,83 @@ Failure is the common case. Google reports 2-10\% of disks fail per year Now mul
 
 Solutions Simple redundancy (2 or 3 copies of each file) e.g., Google GFS (2001) More efficient redundancy (analogous to RAID 3++) e.g., \href{http://goo.gl/LwFIy}{Google Colossus filesystem} (\textasciitilde{}2010): customizable replication including Reed-Solomon codes with 1.5x redundancy
 
-\section{Under construction - Simple Filesystem Model}
+\section{Simple Filesystem Model}
 
-We'll build a virtual disk and then write some C code to access its contents. Our filesystem will divide the bytes available into space for inodes and a much larger space for disk blocks. Each disk block will be 4096 bytes.
+Okay so software developers need to implement filesystems all the time.
+Don't believe me? Take a look at Hadoop, GlusterFS, Qumulo, etc.
+Filesystems are hot areas of research now because people have realized that the software models that we devised don't take full advantage of our current hardware.
+As such, you may be doing a lot of filesystem writing.
+Here we will go over one of our fake filesystems that we talke about in class and ``walk through'' some of the code and
 
-\begin{lstlisting}[language=C]
-// Disk size:
-#define MAX_INODE (1024)
-#define MAX_BLOCK (1024*1024)
+So what does our hypothetical filesystem look like?
+We will base it off of the Minixfs, the first filesystem that Linux ran on.
+We'll do this and try to make the filesystem as easy as possible.
+Laid out sequentually, we have our superblock.
+The superblock stores important metadata about the filesystem.
+After the superblock, we'll keep a map of which inodes are being used.
+The n'th bit is set if the n'th inode -- from the inode root -- is set with the exact same convention for data blocks.
+Let's consider a single file that spans all of its direct blocks and some indirect blocks with some omitted.
+In our pretend filesystem, for simplicity let's assume that we are not going to delete any directory entries and every file is compact.
+This means that each file uses up any partial used  data block before allocating a new data block.
+A sample image is below.
 
-// Each block is 4096 bytes:
-typedef char[4096] block_t;
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=.8\textwidth]{filesystems/images/sample_file.png}
+\end{figure}
 
-// A disk is an array of inodes and an array of disk blocks:
-struct inode[MAX_INODE] inodes;
-block[MAX_BLOCK] blocks;
-\end{lstlisting}
+We will assume that a data block is 4 KB.
 
-Note for clarity we will not use `unsigned' in this code example. Our fixed-sized inodes will contain the file's size in bytes, permission, user, group information, time meta-data. What is most relevant to the problem-at hand is that it will also include ten pointers to disk blocks that we will use to refer to the actual file's contents!
+\subsection{Performing Reads}
 
-\begin{lstlisting}[language=C]
-struct inode {
- int[10] directblocks; // indices for the block array i.e. where to the find the file's content
- long size;
- // ... standard inode meta-data e.g.
- int mode, userid,groupid;
- time_t ctime,atime,mtime;
-}
-\end{lstlisting}
+Performing reads tend to be pretty easy in our filesystem because our files our compact
+Let's say that we want to read the entirety of this particular file.
+What we'd start by doing is go to the inode's direct struct and find the first direct inode number. In our case it is \#7.
+Then we find the 7th data block from the \textit{start} of all data blocks.
+Then we read all of those bytes.
+We do the same thing for all of the direct nodes.
+What do we do after? We go to the indirect block and read the indirect block.
+We know that every 4 bytes of the indirect block are either a sentinel node (-1) or the number of \textit{another} data block.
+In our particular example, the first four bytes evaluate to the integer 5, meaning that our data continues on the 5th datablock from the beginning.
+We do the same for data block \#4 and we stop after because we exceed the size of the inode
 
-Now we can work out how to read a byte at offset \keyword{position} of our file:
+Now, let's think about the edge cases.
+How would you start the read starting at an arbitrary offset of $n$ bytes given that block sizes are $4 KBs$.
+How many indirect blocks should there be if the filesystem is correct (hint: \textit{think about using the size of the inode})
 
-\begin{lstlisting}[language=C]
-char readbyte(inode*inode,long position) {
-  if(position <0 || position >= inode->size) return -1; // invalid offset
+\subsection{Performing Writes}
 
-  int  block_count = position / 4096,offset = position % 4096;
+Performing writes fall into two categories, writes to files and writes to directories.
+First we'll focus on files and assume that we are writing a byte to the $6$th KB of our file.
+To perform a write on a file at a particular offset, first you must go to the data block would start at that offset.
+For this particular example we would have to go to the 2nd or indexed number 1 inode to perform our write.
+We would once again fetch this number from the inode, go to the root of the data blocks, go to the $5$th data block and perform our write at the $2$KB offset from this block because we skipped the first four kilobytes of the file in block 7.
+We perform our write and go on our merry way
 
-  // block count better be 0..9 !
-  int physical_idx = lookup_physical_block_index(inode, block_count );
+Some questions for you. How would you consider performing a write that would go across data block boundaries? How would you consider performing a write whose write after adding the offset would extend the length of the file?  How would you consider performing a write where the offset is greater than the length of the original file?
 
-  // sanity check that the disk block index is reasonable...
-  assert(physical_idx >=0 && physical_idx < MAX_BLOCK);
+Performing a write to a directory meaning that an inode needs to be added to a directory.
+If we pretend that the example above is a directory.
+We know that we will be adding at most one directory entry at a time.
+Meaning that we have to have enough space for one directory entry in our datablocks.
+Luckily the last data block that we have has enough free space.
+This means we just need to find the number of the last data block as we did above, go to where the data ends, and write one directory entry.
+Don't forget to update the size of the directory so that the next creation doesn't overwrite your file!
 
+Some more questions. How would you consider performing a write when the last data block is already full? How about when all the direct blocks have just been filled up and the inode doesn't have an indirect block? What about when the first indirect entry (\#4) is full?
+These are all edge cases you have to think about for a filesystem that really get you
 
-  // read the disk block from our virtual disk 'blocks' and return the specific byte
-  return blocks[physical_idx][offset];
-}
-\end{lstlisting}
+\subsection{Adding Deletes}
 
-Our initial version of lookup\_physical\_block is simple - we can use our table of 10 direct blocks!
+Although this isn't part of the lab originally.
+If you were to ask what happens when a file gets deleted, it's actually pretty simple.
+If the inode is a file, then remove the directory entry in the parent directory by marking it as invalid (maybe making it point to inode -1) and skip it in your reads.
+You need to make sure to decrease the hard link count of the inode and if the count reaches zero, free the inode in the inode map and free all associated data blocks so they are reclaimed by the filesystem.
 
-\begin{lstlisting}[language=C]
-int lookup_physical_block_index(inode*inode, int block_count) {
-  assert(block_count>=0 && block_count < 10);
-
-  return inode->directblocks[ block_count ]; // returns an index value between [0,MAX_BLOCK)
-}
-\end{lstlisting}
-
-This simple representation is reasonable provided we can represent all possible files with just ten blocks i.e.~up to 40KB. What about larger files? We need the inode struct to always be the same size so just increasing the existing direct block array to 20 would roughly double the size of our inodes. If most of our files require less than 10 blocks, then our inode storage is now wasteful. To solve this problem we will use a disk block called the \emph{indirect block} to extend the array of pointers at our disposal. We will only need this for files \textgreater{} 40KB
-
-\begin{lstlisting}[language=C]
-struct inode {
- int[10] directblocks; // if size<4KB then only the first one is valid
- int indirectblock; // valid value when size >= 40KB
- int size;
- ...
-}
-\end{lstlisting}
-
-The indirect block is just a regular disk block of 4096 bytes, but we will use it to hold pointers to disk blocks. Our pointers in this case are just integers, so we need to cast the pointer to an integer pointer:
-
-\begin{lstlisting}[language=C]
-int lookup_physical_block_index(inode*inode, int block_count) {
-  assert(sizeof(int)==4); // Warning this code assumes an index is 4 bytes!
-  assert(block_count>=0 && block_count < 1024 + 10); // 0 <= block_count< 1034
-
-  if( block_count < 10)
-     return inode->directblocks[ block_count ];
-
-  // read the indirect block from disk:
-  block_t* oneblock = & blocks[ inode->indirectblock ];
-
-  // Treat the 4KB as an array of 1024 pointers to other disk blocks
-  int* table = (int*) oneblock;
-
- // Look up the correct entry in the table
- // Offset by 10 because the first 10 blocks of data are already
- // accounted for
-  return table[ block_count - 10 ];
-}
-\end{lstlisting}
-
-For a typical filesystem, our index values are 32 bits i.e.~4bytes. Thus in 4096 bytes we can store 4096 / 4 = 1024 entries. This means our indirect block can refer to 1024 * 4KB = 4MB of data. With the first ten direct blocks, we can therefore accommodate files up to 40KB + 1024 * 4KB= 4136KB . Some of the later table entries can be invalid for files that are smaller than this.
-
-For even larger files, we could use two indirect blocks. However there's a better alternative, that will allow us to efficiently scale up to huge files. We will include a double-indirect pointer and if that's not enough a triple indirect pointer. The double indirect pointer means we have a table of 1024 entries to disk blocks that are used as 1024 entries. This means we can refer to 1024*1024 disk blocks of data. \href{http://uw714doc.sco.com/en/FS\_admin/graphics/s5chain.gif}{Here is a link}
-
-\begin{lstlisting}[language=C]
-int lookup_physical_block_index(inode*inode, int block_count) {
-  if( block_count < 10)
-     return inode->directblocks[ block_count ];
-
-  // Use indirect block for the next 1024 blocks:
-  // Assumes 1024 ints can fit inside each block!
-  if( block_count < 1024 + 10) {
-      int* table = (int*) & blocks[ inode->indirectblock ];
-      return table[ block_count - 10 ];
-  }
-  // For huge files we will use a table of tables
-  int i = (block_count - 1034) / 1024 , j = (block_count - 1034) % 1024;
-  assert(i<1024); // triple-indirect is not implemented here!
-
-  int* table1 = (int*) & blocks[ inode->doubleindirectblock ];
-   // The first table tells us where to read the second table ...
-  int* table2 = (int*) & blocks[   table1[i]   ];
-  return table2[j];
-
-   // For gigantic files we will need to implement triple-indirect (table of tables of tables)
-}
-\end{lstlisting}
-
-Notice that reading a byte using double indirect requires 3 disk block reads (two tables and the actual data block).
+If the inode is a directory, first you have to recursively remove every directory entry inside
+After, you have to mark the directory's inode as free and set the associated datablocks to free as well.
+Why don't we have to check hardlink counts for directories?
+Because you can't hard link directories! Meaning, we can just easily delete it.
 
 \section{Topics}\label{topics}
 
