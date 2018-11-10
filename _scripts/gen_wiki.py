@@ -79,7 +79,7 @@ def main(args):
     out_file = outdir + '/Home.md'
 
     order = yaml.load(open(order_file, 'r'))
-    tmp_dir = 'tmp'
+    tmp_dir = '/tmp'
     (fd, meta_file_name) = tempfile.mkstemp(dir=tmp_dir)
     os.close(fd)
 

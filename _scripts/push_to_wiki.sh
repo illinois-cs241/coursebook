@@ -13,7 +13,6 @@ git config credential.helper "store --file=.git/credentials"
 echo "https://${GITHUB_TOKEN}:@github.com" > .git/credentials 2>/dev/null
 git config --global user.email "bhuvan.venkatesh21@gmail.com"
 git config --global user.name "Bhuvan Venkatesh"
-bash retry.sh
 
 git add -A
 git commit -m "Updating wiki"
