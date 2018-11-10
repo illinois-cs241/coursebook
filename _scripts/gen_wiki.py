@@ -59,6 +59,7 @@ def generate_tex_meta(order, outdir, meta_file_name):
         print("Adding {}".format(tex_name))
         os.system('pandoc --filter=_scripts/pandoc_header_filter.py -s {} > /dev/null 2>>{}'.format(tex_name, meta_file_name))
 
+    os.system('cat {}'.format(meta_file_name))
     metadata = yaml.load(open(meta_file_name, 'r'))
 
     ret = []
@@ -79,7 +80,6 @@ def main(args):
 
     order = yaml.load(open(order_file, 'r'))
     tmp_dir = './tmp'
-    os.system('mkdir {}'.format(tmp_dir))
     (fd, meta_file_name) = tempfile.mkstemp(dir=tmp_dir)
     os.close(fd)
 
