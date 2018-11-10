@@ -94,7 +94,7 @@ def main(args):
         os.system('cp {} {}'.format(tex_path, tex_tmp_path))
         sed_command = ("sed -i '1s/^/"
                     "\\\\newcommand{{\\\\gls}}[1]{{#1}}\\n"
-                    "\\\\newcommand{{\\\\keyword}}[1]{{\\\\textttt{{#1}}}}/'"
+                    "\\\\newcommand{{\\\\keyword}}[1]{{\\\\texttt{{#1}}}}/'"
                     " {}").format(tex_tmp_path)
         print(sed_command)
         os.system(sed_command)
