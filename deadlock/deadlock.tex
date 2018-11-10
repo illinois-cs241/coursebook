@@ -155,7 +155,7 @@ Is it possible to design an efficient solution such that all philosophers get to
 
 \subsection{Failed Solutions}
 
-\begin{code}[language=C]
+\begin{lstlisting}[language=C]
 void* philosopher(void* forks){
      info phil_info = forks;
      pthread_mutex_t* left_fork = phil_info->left_fork;
@@ -168,11 +168,11 @@ void* philosopher(void* forks){
           pthread_mutex_unlock(right_fork);
      }
 }
-\end{code}
+\end{lstlisting}
 
 This looks good but. What if everyone picks up their left fork and is waiting on their right fork? We have deadlocked the program. It is important to note that deadlock doesn't happen all the time and the probability that this solution deadlocks goes down as the number of philosophers goes up. What is really important to note is that eventually that this solution will deadlock, letting threads starve which is bad. So now you are thinking about breaking one of the coffman conditions. Let's break Hold and Wait!
 
-\begin{code}[language=C]
+\begin{lstlisting}[language=C]
 void* philosopher(void* forks){
      info phil_info = forks;
      pthread_mutex_t* left_fork = phil_info->left_fork;
@@ -185,7 +185,7 @@ void* philosopher(void* forks){
           pthread_mutex_unlock(right_fork);
      }
 }
-\end{code}
+\end{lstlisting}
 
 Now our philosopher picks up the left fork and tries to grab the right. If it's available, they eat. If it's not available, they put the left fork down and try again. No deadlock! But, there is a problem. What if all the philosophers pick up their left at the same time, try to grab their right, put their left down, pick up their left, try to grab their right\ldots{}. We have now livelocked our solution! Our poor philosopher are still starving, so let's give them some proper solutions.
 
@@ -253,17 +253,17 @@ There are many more advanced solutions.
 \item
   Be able to identify when Dining Philosophers code causes a deadlock (or not). For example, if you saw the following code snippet which Coffman condition is not satisfied?
 
-\begin{code}[language=C]
+\begin{lstlisting}[language=C]
 // Get both locks or none
 pthread_mutex_lock(a);
 if(pthread_mutex_trylock( b )) { /* failure */
   pthread_mutex_unlock( a );
 }
-\end{code}
+\end{lstlisting}
 \item
   The following calls are made
 
-\begin{code}[language=c]
+\begin{lstlisting}[language=c]
 // Thread 1
 pthread_mutex_lock(m1) // success
 pthread_mutex_lock(m2) // blocks
@@ -271,7 +271,7 @@ pthread_mutex_lock(m2) // blocks
 // Thread 2
 pthread_mutex_lock(m2) // success
 pthread_mutex_lock(m1) // blocks
-\end{code}
+\end{lstlisting}
 
   What happens and why? What happens if a third thread calls
   \texttt{pthread\_mutex\_lock(m1)} ?

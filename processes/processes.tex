@@ -62,11 +62,11 @@ When your operating system starts on a linux machine, there is a process called 
 
 Processes are very powerful but they are isolated! That means that by default, no process can communicate with another process. This is very important because if you have a large system (let's say EWS) then you want some processes to have higher privileges (monitoring, admin) than your average user, and one certainly doesn't want the average user to be able to bring down the entire system either on purpose or accidentally by modifying a process.
 
-\begin{code}[language=C]
+\begin{lstlisting}[language=C]
 int secrets;
 secrets++;
 printf("%d\n", secrets);
-\end{code}
+\end{lstlisting}
 
 On two different terminals, as you would guess they would both print out 1 not 2. Even if we changed the code to do something really hacky, there would be no way to change another process' state (okay maybe \href{https://en.wikipedia.org/wiki/Dirty_COW}{dirty cow} or meltdown but that is getting a little too in depth).
 
@@ -106,17 +106,17 @@ TL;DR: Fork can be \textbf{extremely} dangerous if you aren't prepared for it. \
 
 The \keyword{fork} system call clones the current process to create a new process. It creates a new process (the child process) by duplicating the state of the existing process with a few minor differences. The child process does not start from main. Instead it executes the next line after the \keyword{fork()} just as the parent process does. Just as a side remark, in older UNIX systems, the entire address space of the parent process was directly copied (regardless of whether the resource was modified or not). These days, kernel performs \href{https://en.wikipedia.org/wiki/Copy-on-write}{copy-on-write}, which saves a lot of resources, while being very time efficient. Here's a very simple example\ldots{}
 
-\begin{code}[language=C]
+\begin{lstlisting}[language=C]
 printf("I'm printed once!\n");
 fork();
 // Now there are two processes running
 // and each process will print out the next line.
 printf("You see this line twice!\n");
-\end{code}
+\end{lstlisting}
 
 The following program may print out 42 twice - but the \keyword{fork()} is after the \keyword{printf}!? Why?
 
-\begin{code}[language=C]
+\begin{lstlisting}[language=C]
 #include <unistd.h> /*fork declared here*/
 #include <stdio.h> /* printf declared here*/
 int main() {
@@ -125,7 +125,7 @@ int main() {
    fork();
    return 0;
 }
-\end{code}
+\end{lstlisting}
 
 The \keyword{printf} line \emph{is} executed only once however notice that the printed contents is not flushed to standard out. There's no newline printed, we didn't call \keyword{fflush}, or change the buffering mode. The output text is therefore still in process memory waiting to be sent. When \keyword{fork()} is executed the entire process memory is duplicated including the buffer. Thus the child process starts with a non-empty output buffer which will be flushed when the program exits.
 
@@ -133,7 +133,7 @@ To write code that is different for the parent and child process, check the retu
 
 One way to remember which is which is that the child process can find its parent - the original process that was duplicated - by calling \keyword{getppid()} - so does not need any additional return information from \keyword{fork()}. The parent process however can only find out the id of the new child process from the return value of \keyword{fork}:
 
-\begin{code}[language=C]
+\begin{lstlisting}[language=C]
 pid_t id = fork();
 if (id == -1) exit(1); // fork failed 
 if (id > 0)
@@ -144,11 +144,11 @@ if (id > 0)
 } else { // returned zero
 // I must be the newly made child process
 }
-\end{code}
+\end{lstlisting}
 
 A slightly silly example is shown below. What will it print? Try it with multiple arguments to your program.
 
-\begin{code}[language=C]
+\begin{lstlisting}[language=C]
 #include <unistd.h>
 #include <stdio.h>
 int main(int argc, char **argv) {
@@ -160,11 +160,11 @@ int main(int argc, char **argv) {
   printf("%d:%s\n", argc, argv[argc]);
   return 0;
 }
-\end{code}
+\end{lstlisting}
 
 The amazing parallel apparent-O(N) \emph{sleepsort} is today's silly winner. First published on \href{https://dis.4chan.org/read/prog/1295544154}{4chan in 2011}. A version of this awful but amusing sorting algorithm is shown below.
 
-\begin{code}[language=C]
+\begin{lstlisting}[language=C]
 int main(int c, char **v)
 {
         while (--c > 1 && !fork());
@@ -173,7 +173,7 @@ int main(int c, char **v)
         printf("%d\n", val);
         return 0;
 }
-\end{code}
+\end{lstlisting}
 
 Note: The algorithm isn't actually O(N) because of how the system scheduler works. Though there are parallel algorithms that run in O(log(N)) per process, this is sadly not one of them.
 
@@ -181,13 +181,13 @@ Note: The algorithm isn't actually O(N) because of how the system scheduler work
 
 A `fork bomb' is when you attempt to create an infinite number of processes. This will often bring a system to a near-standstill as it attempts to allocate CPU time and memory to a very large number of processes that are ready to run. Comment: System administrators don't like fork-bombs and may set upper limits on the number of processes each user can have or may revoke login rights because it creates a disturbance in the force for other users' programs. You can also limit the number of child processes created by using \keyword{setrlimit()}. fork bombs are not necessarily malicious - they occasionally occur due to student coding errors. Angrave suggests that the Matrix trilogy, where the machine and man finally work together to defeat the multiplying Agent-Smith, was a cinematic plot based on an AI-driven fork-bomb.
 
-\begin{code}[language=C]
+\begin{lstlisting}[language=C]
 while (1) fork();
-\end{code}
+\end{lstlisting}
 
 There may even be subtle forkbombs that occur when you are being careless while coding.
 
-\begin{code}[language=C]
+\begin{lstlisting}[language=C]
 #include <unistd.h>
 #define HELLO_NUMBER 10
 
@@ -213,7 +213,7 @@ int main(){
     }
     return 0;
 }
-\end{code}
+\end{lstlisting}
 
 We misspelled \keyword{ehco}, so we can't \keyword{exec} it. What does this mean? Instead of creating 10 processes we just created 2\textbf{10 processes, fork bombing our machine. How could we prevent this? Put an exit right after exec so in case exec fails we won't end up fork bombing our machine.}
 
@@ -221,7 +221,7 @@ We misspelled \keyword{ehco}, so we can't \keyword{exec} it. What does this mean
 
 If the parent process waits for the child to finish, \keyword{waitpid} (or \keyword{wait}).
 
-\begin{code}[language=C]
+\begin{lstlisting}[language=C]
 pid_t child_id = fork();
 if (child_id == -1) { perror("fork"); exit(EXIT_FAILURE);}
 if (child_id > 0) { 
@@ -233,7 +233,7 @@ if (child_id > 0) {
   // start calculation
   exit(123);
 }
-\end{code}
+\end{lstlisting}
 
 \subsection{Zombies and Orphans}
 
@@ -243,9 +243,9 @@ If a parent dies without waiting on its children, a process can orphan its child
 
 But if the parent is a long running process, the child becomes a zombie. When a child finishes (or terminates) it still takes up a slot in the kernel process table. Furthermore, they still contain information about the process that got terminated, such as process id, exit status, etc. (i.e.~a skeleton of the original process still remains). Only when the child has been `waited on' will the slot be available and the remaining information can be accessed by the parent. A long running program could create many zombies by continually creating processes and never \keyword{wait}-ing for them. If you never wait eventually there would be insufficient space in the kernel process table to create a new processes. Thus \keyword{fork()} would fail and could make the system difficult / impossible to use - for example just logging in requires a new process! To prevent zombies, Wait on your child!
 
-\begin{code}[language=C]
+\begin{lstlisting}[language=C]
 waitpid(child, &status, 0); // Clean up and wait for my child process to finish.
-\end{code}
+\end{lstlisting}
 
 Note we assume that the only reason to get a SIGCHLD event is that a child has finished (this is not quite true - see man page for more details). A robust implementation would also check for interrupted status and include the above in a loop. Read on for a discussion of a more robust implementation.
 
@@ -255,7 +255,7 @@ Note we assume that the only reason to get a SIGCHLD event is that a child has f
 
 Warning: This section uses signals which we have not yet fully introduced. The parent gets the signal SIGCHLD when a child completes, so the signal handler can wait on the process. A slightly simplified version is shown below.
 
-\begin{code}[language=C]
+\begin{lstlisting}[language=C]
 pid_t child;
 
 void cleanup(int signal) {
@@ -277,25 +277,25 @@ int main() {
    }
    return 0;
 } 
-\end{code}
+\end{lstlisting}
 
 The above example however misses a couple of subtle points: * More than one child may have finished but the parent will only get one SIGCHLD signal (signals are not queued) * SIGCHLD signals can be sent for other reasons (e.g.~a child process is temporarily stopped)
 
 A more robust code to reap zombies is shown below.
 
-\begin{code}[language=C]
+\begin{lstlisting}[language=C]
 void cleanup(int signal) {
   int status;
   while (waitpid((pid_t) (-1), 0, WNOHANG) > 0) {}
 }
-\end{code}
+\end{lstlisting}
 \end{aside}
 
 \subsection{Exit statuses}
 
 To find the return value of \keyword{main()} or value included in \keyword{exit()}), Use the \texttt{Wait macros} - typically you will use \keyword{WIFEXITED} and \keyword{WEXITSTATUS} . See \keyword{wait}/\keyword{waitpid} man page for more information.
 
-\begin{code}[language=C][language=C]
+\begin{lstlisting}[language=C][language=C]
 int status;
 pid_t child = fork();
 if (child == -1) return 1; //Failed
@@ -309,11 +309,11 @@ if (child > 0) { /* I am the parent - wait for the child to finish */
  // do something interesting
   execl("/bin/ls", "/bin/ls", ".", (char *) NULL); // "ls ."
 }
-\end{code}
+\end{lstlisting}
 
 A process can only have 256 return values, the rest of the bits are informational, this is done by bit shifting. But, The kernel has an internal way of keeping track of signaled, exited, or stopped. That API is abstracted so that that the kernel developers are free to change at will. Remember that these macros only make sense if the precondition is met. Meaning that a process' exit status won't be defined if the process isn't signaled. The macros will not do the checking for you, so it's up to the programmer to make sure the logic checks out. As an example above, you should use the \keyword{WIFSTOPPED} to check if a process was stopped and then the \keyword{WSTOPSIG} to find the signal that stopped it. As such there is no need to memorize the following, this is just a high level overview of how information is stored inside the status variables. From \keyword{sys/wait.h} of an old Berkeley kernel\cite{sys/wait.h}:
 
-\begin{code}[language=C][language=C]
+\begin{lstlisting}[language=C][language=C]
 /* If WIFEXITED(STATUS), the low-order 8 bits of the status. */
 #define _WSTATUS(x) (_W_INT(x) & 0177)
 #define _WSTOPPED 0177    /* _WSTATUS if process is stopped */
@@ -322,7 +322,7 @@ A process can only have 256 return values, the rest of the bits are informationa
 #define WIFSIGNALED(x)  (_WSTATUS(x) != _WSTOPPED && _WSTATUS(x) != 0)
 #define WTERMSIG(x) (_WSTATUS(x))
 #define WIFEXITED(x)  (_WSTATUS(x) == 0)
-\end{code}
+\end{lstlisting}
 
 There is an untold convention about exit codes. If the process exited normally and everything was successful, then a zero should be returned. Beyond that, there isn't too many conventions except the ones that you place on yourself. If you know how the program you spawn is going to interact, you may be able to make more sense of the 256 error codes. You could in fact write your program to return \texttt{1} if the program went to stage 1 (like writing to a file) \texttt{2} if it did something else etc... But none of the unix programs are designed to follow that for simplicity sake.
 
@@ -340,7 +340,7 @@ p -- Uses the PATH environment variable to find the file named in the file argum
 v -- Command-line arguments are passed to the function as an array (vector) of pointers.
 \end{quote}
 
-\begin{code}[language=C]
+\begin{lstlisting}[language=C]
 #include <unistd.h>
 #include <sys/types.h> 
 #include <sys/wait.h>
@@ -366,9 +366,9 @@ int main(int argc, char**argv) {
     perror("exec failed!");
   }
 }
-\end{code}
+\end{lstlisting}
 
-\begin{code}[language=C]
+\begin{lstlisting}[language=C]
 #include <unistd.h>
 #include <fcntl.h> // O_CREAT, O_APPEND etc. defined here
 
@@ -383,13 +383,13 @@ int main() {
    perror("exec failed");
    return 0; // Not expected
 }
-\end{code}
+\end{lstlisting}
 
 There's no error checking in the above code (we assume close,open,chdir etc works as expected). * open: will use the lowest available file descriptor (i.e.~1) ; so standard out now goes to the log file. * chdir : Change the current directory to /usr/include * execl : Replace the program image with /bin/ls and call its main() method * perror : We don't expect to get here - if we did then exec failed.
 
 \keyword{system} pre-packs the above code. Here is how to use it:
 
-\begin{code}[language=C]
+\begin{lstlisting}[language=C]
 
 #include <unistd.h>
 #include <stdlib.h>
@@ -398,7 +398,7 @@ int main(int argc, char**argv) {
   system("ls"); // execl("/bin/sh", "/bin/sh", "-c", "\\"ls\\"")
   return 0;
 }
-\end{code}
+\end{lstlisting}
 
 The \keyword{system} call will fork, execute the command passed by parameter and the original parent process will wait for this to finish. This also means that \keyword{system} is a blocking call: The parent process can't continue until the process started by \keyword{system} exits. This may or may not be useful. Also, \keyword{system} actually creates a shell which is then given the string, which is more overhead than just using \keyword{exec} directly. The standard shell will use the \keyword{PATH} environment variable to search for a filename that matches the command. Using system will usually be sufficient for many simple run-this-command problems but can quickly become limiting for more complex or subtle problems, and it hides the mechanics of the fork-exec-wait pattern so we encourage you to learn and use \keyword{fork} \keyword{exec} and \keyword{waitpid} instead.
 
@@ -428,7 +428,7 @@ Key smiliraties include:
 
 A common programming pattern is to call \keyword{fork} followed by \keyword{exec} and \keyword{wait}. The original process calls fork, which creates a child process. The child process then uses exec to start execution of a new program. Meanwhile the parent uses \keyword{wait} (or \keyword{waitpid}) to wait for the child process to finish. 
 
-\begin{code}[language=C][language=C]
+\begin{lstlisting}[language=C][language=C]
 #include <unistd.h>
 
 int main() {
@@ -443,25 +443,25 @@ int main() {
     exit(1);
   }
 }
-\end{code}
+\end{lstlisting}
 
 \subsection{So what are environment variables?}\label{so-what-are-environment-variables}
 
 Environment variables are variables that the system keeps for all processes to use. Your system has these set up right now! In Bash, you can check some of these
 
-\begin{code}[language=C]
+\begin{lstlisting}[language=C]
 $ echo $HOME
 /home/bhuvy
 $ echo $PATH
 /usr/local/sbin:/usr/bin:...
-\end{code}
+\end{lstlisting}
 
 How would you get these in C/C++? You can use the \keyword{getenv} and \keyword{setenv} function
 
-\begin{code}[language=C]
+\begin{lstlisting}[language=C]
 char* home = getenv("HOME"); // Will return /home/bhuvy
 setenv("HOME", "/home/bhuvan", 1 /*set overwrite to true*/ );
-\end{code}
+\end{lstlisting}
 
 \section{Further Reading}\label{how-can-i-find-out-more}
 

@@ -122,12 +122,10 @@ rulecolor=\color{shadecolor},}
 \newcommand{\keyword}[1]{\texttt{#1}}
 \newcommand{\todo}[1]{}
 \renewcommand{\todo}[1]{{\color{red} TODO: {#1}}}
-\lstnewenvironment{code}[1][]%
+\lstnewenvironment{lstlisting}[1][]%
   {\noindent\minipage{\linewidth}\medskip 
    \lstset{basicstyle=\ttfamily\footnotesize,frame=single,#1}}
   {\endminipage}
-
-\newenvironment{code}{\begin{lstlisting}}{\end{lstlisting}}
 
 % For pictures
 \newenvironment{proof}{\begin{shaded*}\paragraph{Proof:}}{\hfill$\square$\end{shaded*}}

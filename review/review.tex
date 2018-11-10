@@ -77,7 +77,7 @@ write/read with errno, EINTR and partial data
 
 In the example below, which variables are guaranteed to print the value of zero?
 
-\begin{code}[language=C]
+\begin{lstlisting}[language=C]
 int a;
 static int b;
 
@@ -86,13 +86,13 @@ void func() {
    int d;
    printf("%d %d %d %d\n",a,b,c,d);
 }
-\end{code}
+\end{lstlisting}
 
 \subsection{Q 1.2}\label{q-1.2}
 
 In the example below, which variables are guaranteed to print the value of zero?
 
-\begin{code}[language=C]
+\begin{lstlisting}[language=C]
 void func() {
    int* ptr1 = malloc( sizeof(int) );
    int* ptr2 = realloc(NULL, sizeof(int) );
@@ -101,61 +101,61 @@ void func() {
    
    printf("%d %d %d %d\n",*ptr1,*ptr2,*ptr3,*ptr4);
 }
-\end{code}
+\end{lstlisting}
 
 \subsection{Q 1.3}\label{q-1.3}
 
 Explain the error in the following attempt to copy a string.
 
-\begin{code}[language=C]
+\begin{lstlisting}[language=C]
 char* copy(char*src) {
  char*result = malloc( strlen(src) ); 
  strcpy(result, src); 
  return result;
 }
-\end{code}
+\end{lstlisting}
 
 \subsection{Q 1.4}\label{q-1.4}
 
 Why does the following attempt to copy a string sometimes work and sometimes fail?
 
-\begin{code}[language=C]
+\begin{lstlisting}[language=C]
 char* copy(char*src) {
  char*result = malloc( strlen(src) +1 ); 
  strcat(result, src); 
  return result;
 }
-\end{code}
+\end{lstlisting}
 
 \subsection{Q 1.4}\label{q-1.4-1}
 
 Explain the two errors in the following code that attempts to copy a string.
 
-\begin{code}[language=C]
+\begin{lstlisting}[language=C]
 char* copy(char*src) {
  char result[sizeof(src)]; 
  strcpy(result, src); 
  return result;
 }
-\end{code}
+\end{lstlisting}
 
 \subsection{Q 1.5}\label{q-1.5}
 
 Which of the following is legal?
 
-\begin{code}[language=C]
+\begin{lstlisting}[language=C]
 char a[] = "Hello"; strcpy(a, "World");
 char b[] = "Hello"; strcpy(b, "World12345", b);
 char* c = "Hello"; strcpy(c, "World");
-\end{code}
+\end{lstlisting}
 
 \subsection{Q 1.6}\label{q-1.6}
 
 Complete the function pointer typedef to declare a pointer to a function that takes a void* argument and returns a void*. Name your type `pthread\_callback'
 
-\begin{code}[language=C]
+\begin{lstlisting}[language=C]
 typedef ______________________;
-\end{code}
+\end{lstlisting}
 
 \subsection{Q 1.7}\label{q-1.7}
 
@@ -165,35 +165,35 @@ In addition to the function arguments what else is stored on a thread's stack?
 
 Implement a version of \texttt{char*\ strcat(char*dest,\ const\ char*src)} using only \texttt{strcpy} \texttt{strlen} and pointer arithmetic
 
-\begin{code}[language=C]
+\begin{lstlisting}[language=C]
 char* mystrcat(char*dest, const char*src) {
 
   ? Use strcpy strlen here
 
   return dest;
 }
-\end{code}
+\end{lstlisting}
 
 \subsection{Q 1.9}\label{q-1.9}
 
 Implement version of size\_t strlen(const char*) using a loop and no function calls.
 
-\begin{code}[language=C]
+\begin{lstlisting}[language=C]
 size_t mystrlen(const char*s) {
 
 }
-\end{code}
+\end{lstlisting}
 
 \subsection{Q 1.10}\label{q-1.10}
 
 Identify the three bugs in the following implementation of \texttt{strcpy}.
 
-\begin{code}[language=C]
+\begin{lstlisting}[language=C]
 char* strcpy(const char* dest, const char* src) {
   while(*src) { *dest++ = *src++; }
   return dest;
 }
-\end{code}
+\end{lstlisting}
 
 \subsection{Printing}\label{printing}
 
@@ -201,9 +201,9 @@ char* strcpy(const char* dest, const char* src) {
 
 Spot the two errors!
 
-\begin{code}[language=C]
+\begin{lstlisting}[language=C]
 fprintf("You scored 100%");
-\end{code}
+\end{lstlisting}
 
 \subsection{Formatting and Printing to a file}\label{formatting-and-printing-to-a-file}
 
@@ -211,7 +211,7 @@ fprintf("You scored 100%");
 
 Complete the following code to print to a file. Print the name, a comma and the score to the file `result.txt'
 
-\begin{code}[language=C]
+\begin{lstlisting}[language=C]
 char* name = .....;
 int score = ......
 FILE *f = fopen("result.txt",_____);
@@ -219,7 +219,7 @@ if(f) {
     _____
 }
 fclose(f);
-\end{code}
+\end{lstlisting}
 
 \subsection{Printing to a string}\label{printing-to-a-string}
 
@@ -227,13 +227,13 @@ fclose(f);
 
 How would you print the values of variables a,mesg,val and ptr to a string? Print a as an integer, mesg as C string, val as a double val and ptr as a hexadecimal pointer. You may assume the mesg points to a short C string(\textless{}50 characters). Bonus: How would you make this code more robust or able to cope with?
 
-\begin{code}[language=C]
+\begin{lstlisting}[language=C]
 char* toString(int a, char*mesg, double val, void* ptr) {
    char* result = malloc( strlen(mesg) + 50);
     _____
    return result;
 }
-\end{code}
+\end{lstlisting}
 
 \subsection{Input parsing}\label{input-parsing}
 
@@ -251,7 +251,7 @@ When would you use calloc not malloc? When would realloc be useful?
 
 (Todo - move this question to another page) What mistake did the programmer make in the following code? Is it possible to fix it i) using heap memory? ii) using global (static) memory?
 
-\begin{code}[language=C]
+\begin{lstlisting}[language=C]
 static int id;
 
 char* next_ticket() {
@@ -260,7 +260,7 @@ char* next_ticket() {
   sprintf(result,"%d",id);
   return result;
 }
-\end{code}
+\end{lstlisting}
 
 \section{Threading}
 
@@ -268,7 +268,7 @@ char* next_ticket() {
 
 Is the following code thread-safe? Redesign the following code to be thread-safe. Hint: A mutex is unnecessary if the message memory is unique to each call.
 
-\begin{code}[language=C]
+\begin{lstlisting}[language=C]
 static char message[20];
 pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 
@@ -278,7 +278,7 @@ void *format(int v) {
   pthread_mutex_unlock(&mutex);
   return message;
 }
-\end{code}
+\end{lstlisting}
 
 \subsection{Q2}\label{q2}
 
@@ -288,7 +288,7 @@ Which one of the following does not cause a process to exit? * Returning from th
 
 Write a mathematical expression for the number of ``W'' characters that will be printed by the following program. Assume a,b,c,d are small positive integers. Your answer may use a `min' function that returns its lowest valued argument.
 
-\begin{code}[language=C]
+\begin{lstlisting}[language=C]
 unsigned int a=...,b=...,c=...,d=...;
 
 void* func(void* ptr) {
@@ -307,13 +307,13 @@ int main(int argv, char** argc) {
   pthread_exit(NULL); 
   /*Process will finish when all threads have exited */
 }
-\end{code}
+\end{lstlisting}
 
 \subsection{Q4}\label{q4}
 
 Complete the following code. The following code is supposed to print alternating \texttt{A} and \texttt{B}. It represents two threads that take turns to execute. Add condition variable calls to \texttt{func} so that the waiting thread does not need to continually check the \texttt{turn} variable. Q: Is pthread\_cond\_broadcast necessary or is pthread\_cond\_signal sufficient?
 
-\begin{code}[language=C]
+\begin{lstlisting}[language=C]
 pthread_cond_t cv = PTHREAD_COND_INITIALIZER;
 pthread_mutex_t m = PTHREAD_MUTEX_INITIALIZER;
 
@@ -341,13 +341,13 @@ int main(int argc, char** argv){
   func("B"); // no need to create another thread - just use the main thread
   return 0;
 }
-\end{code}
+\end{lstlisting}
 
 \subsection{Q5}\label{q5}
 
 Identify the critical sections in the given code. Add mutex locking to make the code thread safe. Add condition variable calls so that \texttt{total} never becomes negative or above 1000. Instead the call should block until it is safe to proceed. Explain why \texttt{pthread\_cond\_broadcast} is necessary.
 
-\begin{code}[language=C]
+\begin{lstlisting}[language=C]
 int total;
 void add(int value) {
  if(value < 1) return;
@@ -357,13 +357,13 @@ void sub(int value) {
  if(value < 1) return;
  total -= value;
 }
-\end{code}
+\end{lstlisting}
 
 \subsection{Q6}\label{q6}
 
 A non-threadsafe data structure has \texttt{size()} \texttt{enq} and \texttt{deq} methods. Use condition variable and mutex lock to complete the thread-safe, blocking versions.
 
-\begin{code}[language=C]
+\begin{lstlisting}[language=C]
 void enqueue(void* data) {
   // should block if the size() would become greater than 256
   enq(data);
@@ -372,13 +372,13 @@ void* dequeue() {
   // should block if size() is 0
   return deq();
 }
-\end{code}
+\end{lstlisting}
 
 \subsection{Q7}\label{q7}
 
 Your startup offers path planning using latest traffic information. Your overpaid intern has created a non-threadsafe data structure with two functions: \texttt{shortest} (which uses but does not modify the graph) and \texttt{set\_edge} (which modifies the graph).
 
-\begin{code}[language=C]
+\begin{lstlisting}[language=C]
 graph_t* create_graph(char* filename); // called once
 
 // returns a new heap object that is the shortest path from vertex i to j
@@ -387,13 +387,13 @@ path_t* shortest(graph_t* graph, int i, int j);
 // updates edge from vertex i to j
 void set_edge(graph_t* graph, int i, int j, double time); 
   
-\end{code}
+\end{lstlisting}
 
 For performance, multiple threads must be able to call \texttt{shortest} at the same time but the graph can only be modified by one thread when no threads other are executing inside \texttt{shortest} or \texttt{set\_edge}.
 
 Use mutex lock and condition variables to implement a reader-writer solution. An incomplete attempt is shown below. Though this attempt is threadsafe (thus sufficient for demo day!), it does not allow multiple threads to calculate \texttt{shortest} path at the same time and will not have sufficient throughput.
 
-\begin{code}[language=C]
+\begin{lstlisting}[language=C]
 path_t* shortest_safe(graph_t* graph, int i, int j) {
   pthread_mutex_lock(&m);
   path_t* path = shortest(graph, i, j);
@@ -405,7 +405,7 @@ void set_edge_safe(graph_t* graph, int i, int j, double dist) {
   set_edge(graph, i, j, dist);
   pthread_mutex_unlock(&m);
 }
-\end{code}
+\end{lstlisting}
 
 \begin{quote}
 Note thread-programming synchronization problems are on a separate wiki page. This page focuses on conceptual topics. Question numbers subject to change
@@ -425,14 +425,14 @@ Give a real life example of breaking each Coffman condition in turn. A situation
 
 Identify when Dining Philosophers code causes a deadlock (or not). For example, if you saw the following code snippet which Coffman condition is not satisfied?
 
-\begin{code}[language=C]
+\begin{lstlisting}[language=C]
 // Get both locks or none.
 pthread_mutex_lock( a );
 if( pthread_mutex_trylock( b ) ) { /*failed*/
    pthread_mutex_unlock( a );
    ...
 }
-\end{code}
+\end{lstlisting}
 
 \subsection{Q4}\label{q4-1}
 
@@ -506,7 +506,7 @@ Question numbers subject to change
 
 Fill in the blanks to make the following program print 123456789. If \texttt{cat} is given no arguments it simply prints its input until EOF. Bonus: Explain why the \texttt{close} call below is necessary.
 
-\begin{code}[language=C]
+\begin{lstlisting}[language=C]
 int main() {
   int i = 0;
   while(++i < 10) {
@@ -526,7 +526,7 @@ int main() {
   }
   return 0;
 }
-\end{code}
+\end{lstlisting}
 
 \subsection{Q2}\label{q2-3}
 
@@ -542,14 +542,14 @@ This advanced challenge uses pipes to get an ``AI player'' to play itself until 
 
 Write a function that uses fseek and ftell to replace the middle character of a file with an `X'
 
-\begin{code}[language=C]
+\begin{lstlisting}[language=C]
 void xout(char* filename) {
   FILE *f = fopen(filename, ____ );
   
 
 
 }
-\end{code}
+\end{lstlisting}
 
 \subsection{Q2}\label{q2-4}
 
@@ -567,9 +567,9 @@ In an \texttt{ext2} filesystem with 32 bit addresses and 4KB disk blocks, an ino
 
 Fix the shell command \texttt{chmod} below to set the permission of a file \texttt{secret.txt} so that the owner can read,write,and execute permissions the group can read and everyone else has no access.
 
-\begin{code}[language=C]
+\begin{lstlisting}[language=C]
 chmod 000 secret.txt
-\end{code}
+\end{lstlisting}
 
 \begin{itemize}
 \tightlist
@@ -705,14 +705,14 @@ What are some of the differences between HTTP 1.0 and HTTP 1.1? How many ms will
 
 Writing to a network socket may not send all of the bytes and may be interrupted due to a signal. Check the return value of \texttt{write} to implement \texttt{write\_all} that will repeatedly call \texttt{write} with any remaining data. If \texttt{write} returns -1 then immediately return -1 unless the \texttt{errno} is \texttt{EINTR} - in which case repeat the last \texttt{write} attempt. You will need to use pointer arithmetic.
 
-\begin{code}[language=C]
+\begin{lstlisting}[language=C]
 // Returns -1 if write fails (unless EINTR in which case it recalls write
 // Repeated calls write until all of the buffer is written.
 ssize_t write_all(int fd, const char *buf, size_t nbyte) {
   ssize_t nb = write(fd, buf, nbyte);
   return nb;
 }
-\end{code}
+\end{lstlisting}
 
 \subsection{Q 2.2}\label{q-2.2}
 
