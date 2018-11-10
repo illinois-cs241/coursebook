@@ -12,7 +12,7 @@ python3 _scripts/gen_wiki.py order.yaml ${WIKI_DIR}
 
 cd ${WIKI_DIR}
 git config credential.helper "store --file=.git/credentials"
-echo "https://${GITHUB_TOKEN}:@github.com" > .git/credentials 2>/dev/null
+echo "https://bhuvy2:${GITHUB_TOKEN}@github.com" > .git/credentials 2>/dev/null
 git config --global user.email "bhuvan.venkatesh21@gmail.com"
 git config --global user.name "Bhuvan Venkatesh"
 
