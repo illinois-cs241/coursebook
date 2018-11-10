@@ -84,7 +84,6 @@ def main(args):
     os.close(fd)
 
     print("Creating directory")
-    os.system('mkdir {}'.format(outdir))
     files_meta = generate_tex_meta(order, outdir, meta_file_name)
 
     # 1. Convert files in the order
