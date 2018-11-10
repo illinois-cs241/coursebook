@@ -85,14 +85,16 @@ def main(args):
     print("Creating directory")
     files_meta = generate_tex_meta(order, outdir, meta_file_name)
     prelude_file = 'prelude.tex'
-
+    github_shim = 'github_redefinitions.tex'
     # 1. Convert files in the order
     print("Converting files to markdown")
     for files_m in files_meta:
         tex_path = files_m.tex_path
         (fd, tex_tmp_path) = tempfile.mkstemp(dir=tmp_dir)
         os.close(fd)
-        os.system('cat {} {} > {}'.format(prelude_file, tex_path, tex_tmp_path))
+        os.system('cat {} {} {} > {}'.format(prelude_file,
+                                             github_shim,
+                                             tex_path, tex_tmp_path))
         md_path = files_m.md_path
         command = 'pandoc --toc --self-contained -f latex -t markdown_github -s --filter _scripts/pandoc_wiki_filter.py {} -o {} '.format(tex_tmp_path, md_path)
         print(command)
