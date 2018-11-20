@@ -20,7 +20,7 @@ def main(args):
         print(render)
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(help=help_text)
+    parser = argparse.ArgumentParser(description=help_text)
     parser.add_argument('name', help="Name of the order file", type=str)
     args = parser.parse_args()
     main(args)

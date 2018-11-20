@@ -1101,8 +1101,7 @@ Common layer 7 protocols are the following
     This protocol helps keep your computer's clock synced with the outside world
 \end{enumerate}
 
-\subsection{How is a website converted into an IP address?}
-
+Remember when we were talking before about converting a website to an IP address?
 A system called ``DNS'' (Domain Name Service) is used.
 If a machine does not hold the answer locally then it sends a UDP packet to a local DNS server.
 This server in turn may query other upstream DNS servers.
@@ -1112,6 +1111,15 @@ DNS requests are not encrypted and susceptible to `man-in-the-middle' attacks.
 For example, a coffee shop internet connection could easily subvert your DNS requests and send back different IP addresses for a particular domain.
 The way this is usually subverted is that after the IP address is obtained then a connection is usually made over HTTPS.
 HTTPS uses what is called the TLS (formerly known as SSL) to secure transmissions and verify the IP address is who they say they are.
+
+DNS works like this in a nutshell
+\begin{enumerate}
+  \tightlist
+\item Send a UDP packet to your DNS server
+\item If that DNS server has the packet cached return the result
+\item If not ask higher level DNS servers for the answer. Cache and send the result
+  \item If either packet is not answered from within a guessed timeout, resend the request.
+\end{enumerate}
 
 \section{Nonblocking IO}
 
@@ -1151,9 +1159,7 @@ In nonblocking mode, \keyword{write(fd, buf, 40000)} would return the number of 
 If you called \keyword{write()} right away again, it would return -1 and set errno to EAGAIN or EWOULDBLOCK.
 That's the system's way of telling you it's still busy sending the last chunk of data, and isn't ready to send more yet.
 
-\subsubsection{How do I check when the I/O has finished?}
-
-There are a few ways.
+There are a few ways to check that your IO has finished.
 Let's see how to do it using \emph{select} and \emph{epoll}.
 
 \begin{lstlisting}[language=C]
@@ -1213,7 +1219,7 @@ if (num_ready < 0) {
 
 \href{http://pubs.opengroup.org/onlinepubs/9699919799/functions/select.html}{For more information on select()}
 
-\section{epoll}
+\subsection{epoll}
 
 \emph{epoll} is not part of POSIX, but it is supported by Linux.
 It is a more efficient way to wait for many file descriptors.
