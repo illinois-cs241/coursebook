@@ -1,5 +1,4 @@
 dist: xenial
-sudo: false
 language: python
 cache: pip
 python:
@@ -21,5 +20,8 @@ before_deploy:
 - chmod 600 /tmp/deploy_rsa
 - ssh-add /tmp/deploy_rsa
 deploy:
-- echo 1 #git checkout -b deploy
-- test $TRAVIS_BRANCH = "master" && bash _scripts/push_to_wiki.sh ${GITHUB_TOKEN}
+  provider: script
+  script: bash _scripts/push_to_wiki.sh 
+  skip_cleanup: true
+  on:
+    branch: master
