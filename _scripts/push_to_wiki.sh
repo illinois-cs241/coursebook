@@ -8,7 +8,7 @@ DOCS_SHA=$(git rev-parse --short HEAD)
 # Create a temp directory, so we don't get raced by the filesystem
 WIKI_DIR=`mktemp -d`
 
-CLONE_URL="git@github.com:illinois-cs241/${TRAVIS_REPO_SLUG}.git"
+CLONE_URL="git@github.com:${TRAVIS_REPO_SLUG}.wiki.git"
 echo "Cloning $CLONE_URL into $WIKI_DIR"
 git clone $CLONE_URL $WIKI_DIR
 
