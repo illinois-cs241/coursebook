@@ -22,7 +22,7 @@ python3 _scripts/gen_wiki.py order.yaml ${WIKI_DIR}
 cd ${WIKI_DIR}
 
 git add -A
-git commit -m "Updating wiki to ${DOCS_SHA}"
+git commit -m "Updating wiki to ${DOCS_SHA}" || true
 git push origin
 
 cd ${TRAVIS_BUILD_DIR}
