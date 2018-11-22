@@ -9,4 +9,7 @@ export DOCS_SHA=$(git rev-parse --short HEAD)
 cd ..
 git add _docs
 git commit -m "Updating docs to ${DOCS_SHA}"
+git config core.sshCommand "ssh -i /tmp/deploy_site -F /dev/null"
 git push origin develop
+
+cd ${TRAVIS_BUILD_DIR}
