@@ -10,8 +10,8 @@ cd _wikibook_project/
 git pull origin master
 export DOCS_SHA=$(git rev-parse --short HEAD)
 cd ..
-git add _docs
-git commit -m "Updating docs to ${DOCS_SHA}"
+git add _wikibook_project/
+git commit -m "Updating docs to ${DOCS_SHA}" || true
 git push origin develop
 
 cd ${TRAVIS_BUILD_DIR}
