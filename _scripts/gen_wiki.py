@@ -33,7 +33,7 @@ This book is an introduction to programming in C, and system programming (proces
 
 {% for chapter in chapters %}
 ## {{loop.index}}. [{{chapter.meta['name']}}](./{{chapter.bare_title}}){% for section_name in (chapter.meta['subsections'] or []) %}
-* [{{section_name}}](./{{chapter.bare_title}}#{{section_name.lower().replace(' ', '-')}}){% endfor %}
+{{loop.index}}. [{{section_name}}](./{{chapter.bare_title}}#{{section_name.lower().replace(' ', '-')}}){% endfor %}
 {% endfor %}
 """
 

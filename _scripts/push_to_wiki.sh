@@ -25,3 +25,7 @@ git commit -m "Updating wiki to ${DOCS_SHA}"
 git push origin
 
 cd ${TRAVIS_BUILD_DIR}
+
+
+# Part 2, Update the site
+bash _scripts/site_deploy.sh

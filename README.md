@@ -1,5 +1,8 @@
 # The Wikibook Project
 
+[![Build Status](https://travis-ci.com/illinois-cs241/wikibook-project.svg?branch=master)](https://travis-ci.com/illinois-cs241/wikibook-project)
+
+
 The Wikibook Project is an aim to standardize and build upon Angrave's [original wikibook experiment](https://github.com/angrave/SystemProgramming/wiki).
 
 The most recent version of the wikibook as a single pdf is here: [main.pdf](https://github.com/illinois-cs241/wikibook-project/raw/master/main.pdf).
