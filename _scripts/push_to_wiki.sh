@@ -22,6 +22,7 @@ cd ${WIKI_DIR}
 
 git add -A
 git commit -m "Updating wiki to ${DOCS_SHA}"
+git config core.sshCommand "ssh -i /tmp/deploy_wiki -F /dev/null"
 git push origin
 
 cd ${TRAVIS_BUILD_DIR}
