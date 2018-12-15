@@ -2,7 +2,6 @@
 
 \epigraph{Who needs process isolation?}{Intel Marketing on Meltdown and Spectre}
 
-\begin{aside}
 In the beginning, there is a kernel. The operating system kernel is a special piece of software. This is the piece of software that is loaded up before all of your other programs even consider getting booted up. What the kernel does is the following, abbreviated
 
 \begin{enumerate}
@@ -21,7 +20,6 @@ In the beginning, there is a kernel. The operating system kernel is a special pi
 \item
   The kernel executes userland scripts, and you get to use your computer!
 \end{enumerate}
-\end{aside}
 
 You don't need to know the specifics of the booting process, but there it is. When you are executing in user space the kernel provides some important operations that programs don't have to worry about. 
 
@@ -249,9 +247,7 @@ waitpid(child, &status, 0); // Clean up and wait for my child process to finish.
 
 Note we assume that the only reason to get a SIGCHLD event is that a child has finished (this is not quite true - see man page for more details). A robust implementation would also check for interrupted status and include the above in a loop. Read on for a discussion of a more robust implementation.
 
-\begin{aside}
-
-\subsection{How can I asynchronously wait for my child using SIGCHLD?}
+\subsection{Extra: How can I asynchronously wait for my child using SIGCHLD?}
 
 Warning: This section uses signals which we have not yet fully introduced. The parent gets the signal SIGCHLD when a child completes, so the signal handler can wait on the process. A slightly simplified version is shown below.
 
@@ -289,7 +285,6 @@ void cleanup(int signal) {
   while (waitpid((pid_t) (-1), 0, WNOHANG) > 0) {}
 }
 \end{lstlisting}
-\end{aside}
 
 \subsection{Exit statuses}
 

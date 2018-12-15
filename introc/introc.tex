@@ -889,9 +889,7 @@ Now our string is filled in correctly at the end of the struct
 strcmp(bhuvan_name->c_str, "bhuvan") == 0 //The strings are equal!
 \end{lstlisting}
 
-\begin{aside}
-
-\subsubsection{Struct packing}
+\subsubsection{Extra: Struct packing}
 
 Structs may require something called \href{http://www.catb.org/esr/structure-packing/}{padding} (tutorial). \textbf{We do not expect you to pack structs in this course, just know that it is there} This is because in the early days (and even now) when you have to an address from memory you have to do it in 32bit or 64bit blocks. This also meant that you could only request addresses that were multiples of that. Meaning that
 
@@ -960,8 +958,6 @@ struct picture{
 |___|___|___ ___|___ ___|
 
 \end{lstlisting}
-
-\end{aside}
 
 \subsection{Strings in C}
 

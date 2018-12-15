@@ -70,9 +70,7 @@ Suppose the CPU is currently assigned to a CPU intensive task and there is a set
 
 This effect is usually discussed in the context of FCFS scheduler, however a round robin scheduler can also exhibit the Convoy effect for long time-quanta.
 
-\begin{aside}
-
-\subsection{Linux Scheduling}
+\subsection{Extra: Linux Scheduling}
 
 As of February 2016, Linux by default uses the \emph{Completely Fair Scheduler} for CPU scheduling and the Budget Fair Scheduling ``BFQ'' for I/O scheduling. Appropriate scheduling can have a significant impact on throughput and latency. Latency is particularly important for interactive and soft-real time applications such as audio and video streaming. See the discussion and comparative benchmarks \href{https://lkml.org/lkml/2014/5/27/314}{here} for more information.
 
@@ -101,8 +99,6 @@ Although it is called the Fair Scheduler there are a fair bit of problems.
 \item
   To read more on the problems of the Fair Scheduler, read \href{https://blog.acolyer.org/2016/04/26/the-linux-scheduler-a-decade-of-wasted-cores}{here}.
 \end{itemize}
-
-\end{aside}
 
 \section{Scheduling Algorithms}
 

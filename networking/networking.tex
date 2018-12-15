@@ -76,8 +76,7 @@ Packets sent to 127.0.0.1 will never leave the machine; the address is specified
 There are a lot of others that are denoted by certain octets being zeros or 255, the maximum value. You won't need to know all the terminology, just keep in mind that the actual number of IP addresses that a machine can have globally over the internet is smaller than the number of ``raw'' addresses.
 For the purposes of the class, you need to know at this layer that IP deals with routing, fragmenting, and reassembling upper level protocols. A more in-depth aside follows.
 
-\begin{aside}
-\subsection{In-depth IPv4 Specification}
+\subsection{Extra: In-depth IPv4 Specification}
 
 The internet protocol deals with routing, fragmentation, and reassembly of fragments.
 Datagrams are formatted as such
@@ -194,8 +193,6 @@ That means that all header options are processed in circuits as they come in.
 The problem is that as the IPv4 spec grew to include a copious amount of headers, the hardware had to become more and more advanced to support those headers.
 IPv6 reorders the headers so that packets can be dropped and routed with less hardware cycles.
 In the case of the internet, every cycle matters when trying to route the world's traffic.
-
-\end{aside}
 
 \subsection{What's My Address?}
 
@@ -468,11 +465,9 @@ connect(sockfd, p->ai_addr, p->ai_addrlen)
 \item (Optional) To clean up code call \keyword{freeaddrinfo(struct addrinfo *ai)} on the first level \keyword{addrinfo} struct.
 \end{enumerate}
 
-\begin{aside}
 There is an old function \keyword{gethostbyname} is deprecated; it's the old way convert a host name into an IP address.
 The port address still needs to be manually set using \keyword{htons} function.
 It's much easier to write code to support IPv4 AND IPv6 using the newer \keyword{getaddrinfo}
-\end{aside}
 
 This is all that is needed to create a \textit{simple} TCP client - however network communications offers many different levels of abstraction and several attributes and options that can be set at each level of abstraction.
 For example we haven't talked about \keyword{setsockopt} which can manipulate options for the socket.

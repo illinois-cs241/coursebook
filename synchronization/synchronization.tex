@@ -247,9 +247,8 @@ Version 1 uses `busy-waiting' (unnecessarily wasting CPU resources) however ther
 
 We might attempt to reduce the CPU overhead a little by calling \keyword{pthread\_yield()} inside the loop - pthread\_yield suggests to the operating system that the thread does not use the CPU for a short while, so the CPU may be assigned to threads that are waiting to run. But does not fix the race-condition. We need a better implementation - can you work how to prevent the race-condition?
 
-\begin{aside}
 
-\subsection{Implementing a Mutex with hardware}
+\subsection{Extra: Implementing a Mutex with hardware}
 
 We can use C11 Atomics to do that perfectly! A complete solution is detailed here. This is a spinlock mutex, \href{https://locklessinc.com/articles/mutex_cv_futex/}{futex} implementations can be found online.
 
@@ -338,11 +337,7 @@ int mutex_unlock(mutex* mtx){
 
 To satisfy the api, you can't unlock the mutex unless you are the one who owns it. Then we unassign the mutex owner, because critical section is over after the atomic. We want a strong exchange because we don't want to block (pthread\_mutex\_unlock doesn't block). We expect the mutex to be locked, and we swap it to unlock. If the swap was successful, we unlocked the mutex. If the swap wasn't, that means that the mutex was UNLOCKED and we tried to switch it from UNLOCKED to UNLOCKED, preserving the non blocking of unlock.
 
-\end{aside}
-
-\section{Semaphores}
-
-A counting semaphore is another type of synchronization primitive. It contains a value and supports two operations ``wait'' and ``post''. Post increments the semaphore and immediately returns. ``wait'' will wait if the count is zero. If the count is non-zero, the semaphore decrements the count and immediately returns. An analogy is a count of the cookies in a cookie jar. Before taking a cookie, call `wait'. If there are no cookies left then \keyword{wait} will not return: It will \keyword{wait} until another thread increments the semaphore by calling post. In short, \keyword{post} increments and immediately returns whereas \keyword{wait} will wait if the count is zero. Before returning, it will decrement count.
+\subsection{Semaphore}
 
 Using a semaphore is as easy as creating a mutex. First decide if the initial value should be zero or some other value (e.g.~the number of remaining spaces in an array). Unlike pthread mutex there are not shortcuts to creating a semaphore - use \keyword{sem\_init}
 
@@ -420,9 +415,8 @@ Occasionally a waiting thread may appear to wake up for no reason (this is calle
 Why do spurious wakeups happen? For performance. On multi-CPU systems it is possible that a race-condition could cause a wake-up (signal) request to be unnoticed. The kernel may not detect this lost wake-up call but can detect when it might occur. To avoid the potential lost signal the thread is woken up so that the program code can test the condition again.
 
 \begin{comment}
-\begin{aside}
 
-\subsection{Why do Condition Variables also need a mutex?}
+\subsection{Extra: Why do Condition Variables also need a mutex?}
 
 Condition variables need a mutex for three reasons. The simplest to understand is that it prevents an early wakeup message (\keyword{signal} or \keyword{broadcast} functions) from being `lost.' Imagine the following sequence of events (time runs down the page) where the condition is satisfied \emph{just before} \keyword{pthread\_cond\_wait} is called. In this example the wake-up signal is lost!
 
@@ -434,7 +428,6 @@ A second common reason is that updating the program state (\keyword{answer} vari
 
 A third and subtle reason is to satisfy real-time scheduling concerns which we only outline here: In a time-critical application, the waiting thread with the \emph{highest priority} should be allowed to continue first. To satisfy this requirement the mutex must also be locked before calling \keyword{pthread\_cond\_signal} or \keyword{pthread\_cond\_broadcast} . For the curious, a longer and historical discussion is \href{https://groups.google.com/forum/?hl=ky\#!msg/comp.programming.threads/wEUgPq541v8/ZByyyS8acqMJ}{here}.
 
-\end{aside}
 \end{comment}
 
 \subsection{Example}\label{example}
@@ -929,8 +922,7 @@ lower my flag
 
 Notice how the process's flag is always raised during the critical section no matter if the loop is iterated zero, once or more times. Further the flag can be interpreted as an immediate intent to enter the critical section. Only if the other process has also raised the flag will one process defer, lower their intent flag and wait.
 
-\begin{aside}
-\subsection{Can I just implement Peterson's (or Dekkers) algorithm in C or assembler?}\label{can-i-just-implement-petersons-or-dekkers-algorithm-in-c-or-assembler}
+\subsection{Extra: Can I just implement Peterson's (or Dekkers) algorithm in C or assembler?}
 
 Yes - and with a bit searching it is possible even today to find it in production for specific simple mobile processors: Peterson's algorithm is used to implement low-level Linux Kernel locks for the Tegra mobile processor (a system-on-chip ARM process and GPU core by Nvidia) \href{Link to Lock Source}{https://android.googlesource.com/kernel/tegra.git/+/android-tegra-3.10/arch/arm/mach-tegra/sleep.S\#58}
 
@@ -957,8 +949,6 @@ Further reading: we suggest the following web post that discusses implementing P
 \item \href{Memory Fences}{http://bartoszmilewski.com/2008/11/05/who-ordered-memory-fences-on-an-x86/}
 \item \href{Memory Barriers}{http://lxr.free-electrons.com/source/Documentation/memory-barriers.txt}
 \end{enumerate}
-
-\end{aside}
 
 
 \section{Implementing Counting Semaphore}\label{implementing-counting-semaphore}
@@ -1530,8 +1520,7 @@ void *dequeue(){
 \end{itemize}
 
 
-\begin{aside}
-\section{Process Synchronization}\label{process-synchronization}
+\section{Extra: Process Synchronization}\label{process-synchronization}
 
 You thought that you were using different processes, so you don't have to synchronize? Think again! You may not have race conditions within a process but what if your process needs to interact with the system around it? Let's consider a motivating example
 
@@ -1626,9 +1615,6 @@ Most programs try to avoid this problem entirely by writing to separate files, b
 \item
   When you have a lot of threads, creating a process might ease the system load
 \end{itemize}
-
-\end{aside}
-
 
 \section{External Resources}
 

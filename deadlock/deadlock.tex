@@ -117,7 +117,8 @@ We have found the number of steps in the set $E$ and since our set has the prope
 
 Deadlock prevention is making sure that deadlock cannot happen, meaning that you break a Coffman condition. This works the best inside a single program and the software engineer making the choice to break a certain coffman condition. Consider the \href{https://en.wikipedia.org/wiki/Banker's_algorithm}{Banker's Algorithm} \cite{Dijkstra:1965:CSP:1102034}. It is another algorithm for deadlock avoidance. The whole implementation is outside the scope of this class, just know that there are more generalized algorithms for operating systems.
 
-\begin{aside}
+\subsection{Extra: Banker's Algorithm}
+
 The banker algorithm is actually not too complicated. We can start out with the single resource solution. Let's say that I'm a banker. As a banker I have a finite amount of money. As having a finite amount of money, I want to make loans and eventually get my money back. Let's say that we have a set of $n$ people where each of them have a set amount or a limit $a_i$ ($i$ being the $i$th process) that they need to obtain before they can do any work. I keep track in my book how much I've given to each person $l_i$, and I have some amount of principle $p$ at any given time. For people to request money, they do the following. Consider the state of the system $(A=\{a_1, a_2, ...\}, L=\{l_1, l_2, ...\}, p)$. An assumption of this system is that we have $p > \inf a_i$, or we have enough money to satisfy one person. Also, each person will work for a finite period of time and give back our money.
 
 \begin{itemize}
@@ -138,7 +139,6 @@ Why does this work? Well at the start we are in a safe state -- defined by we ha
 \item We know in most systems that resources are generally not homogenous. Of course there are things like pipes and sockets but for the most part there is only 1 of a particular file. This could mean that the runtime of the algorithm could be slow for systems with millions of resources.
 \item Also, this can't keep track of resources that come and go. A process may delete a resource as a side effect or create a resource. The algorithm assumes a static allocation and that each process performs a non-destructive operation.
 \end{itemize}
-\end{aside}
 
 \section{Dining Philosophers}
 
@@ -218,9 +218,7 @@ The problems to this is that an entity either needs to know the finite set of re
 
 \todo{Prove dijkstra's doesn't deadlock}
 
-\begin{aside}
-
-\subsection{Advanced Solutions: Clean/Dirty Forks (Chandra/Misra Solution)}
+\subsection{Extra: Clean/Dirty Forks (Chandra/Misra Solution)}
 
 There are many more advanced solutions.
 
@@ -228,7 +226,6 @@ There are many more advanced solutions.
 
 \subsection{Advanced Solutions: Actor Model (other Message passing models)}
 \todo{Detail the Actor Model, and cite}
-\end{aside}
 
 \section{Topics}
 
