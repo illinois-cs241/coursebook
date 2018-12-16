@@ -213,6 +213,7 @@ int main() {
     int fd[2];
     pipe(fd);
     //You must read from fd[0] and write from fd[1]
+    //One way to remember this: water(data stream) in a pipe always flows from a higher place(1) to a lower place(0)
     printf("Reading from %d, writing to %d\n", fd[0], fd[1]);
 
     pid_t p = fork();
