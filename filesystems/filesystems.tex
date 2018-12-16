@@ -215,7 +215,7 @@ if (0 == stat(newpath,&s) && S_ISDIR(s.st_mode)) dirlist(newpath)
 closedir(dirp);
 \end{lstlisting}
 
-One final note of caution: \keyword{readdir} is not thread-safe! For multi-threaded searches use \keyword{readdir\_r} which requires the caller to pass in the address of an existing dirent struct.
+One final note of caution: \keyword{readdir} is not thread-safe! Additionally \keyword{readdir\_r} is deprecated, so multi-threaded searches use \keyword{readdir} with external synchronization.
 
 See the man page of readdir for more details.
 

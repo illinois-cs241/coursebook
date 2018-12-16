@@ -973,9 +973,9 @@ int main(int argc, char **argv) {
   int port = strtoll(argv[2], NULL, 10);
   struct sock_addr_in ipaddr;
 
-  port = connectToUDP(port, hostname, &ipaddr, 0) 
+  int port_fd = connectToUDP(port, hostname, &ipaddr, 0) 
   char *to_send = "Hello!"
-  int send_ret = sendto(port, to_send, packet_size, 0, 
+  int send_ret = sendto(port_fd, to_send, packet_size, 0, 
 			(struct sockaddr *)&ipaddr, 
 			sizeof(ipaddr));
   return 0;
