@@ -3,15 +3,17 @@
 set -e;
 
 git config --global core.sshCommand "ssh -i /tmp/deploy_site -F /dev/null"
-git clone --recurse-submodules -j8 -b develop --depth 1 git@github.com:illinois-cs241/illinois-cs241.github.io.git ${CLONE_DIR}
-cd ${CLONE_DIR}
+git clone --recurse-submodules -j8 -b develop --depth 50 git@github.com:illinois-cs241/illinois-cs241.github.io.git ${CLONE_DIR}
+git submodule update
+git submodule sync
+pushd ${CLONE_DIR}
 git checkout develop
-cd _wikibook_project/
+pushd _wikibook_project/
 git pull origin master
 export DOCS_SHA=$(git rev-parse --short HEAD)
-cd ..
+popd
 git add _wikibook_project/
 git commit -m "Updating docs to ${DOCS_SHA}" || true
 git push origin develop
 
-cd ${TRAVIS_BUILD_DIR}
+popd
