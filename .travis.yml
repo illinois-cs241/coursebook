@@ -12,14 +12,14 @@ matrix:
     addons:
       apt:
         packages:
-	  - pandoc
+          - pandoc
   - name: "PDF Build"
     python: "3.6"
     env: BUILD_FOCUS=PDF
     addons:
       apt:
         packages:
-	  - texlive-full
+          - texlive-full
 install:
 - pandoc -v
 - pip install -r requirements.txt
