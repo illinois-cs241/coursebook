@@ -29,12 +29,9 @@ before_deploy:
   -in deploy_wiki.enc -out /tmp/deploy_wiki -d
 - openssl aes-256-cbc -K $encrypted_0a73d3c4e754_key -iv $encrypted_0a73d3c4e754_iv
   -in deploy_site.enc -out /tmp/deploy_site -d
-- openssl aes-256-cbc -K $encrypted_0a73d3c4e754_key -iv $encrypted_0a73d3c4e754_iv
-  -in deploy_pdf.enc -out /tmp/deploy_pdf -d
 - eval "$(ssh-agent -s)"
 - chmod 600 /tmp/deploy_wiki
 - chmod 600 /tmp/deploy_site
-- chmod 600 /tmp/deploy_pdf
 deploy:
   provider: script
   script: bash _scripts/deploy.sh

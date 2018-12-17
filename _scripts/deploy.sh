@@ -8,7 +8,7 @@ if test $BUILD_FOCUS = WIKI; then
 else
     TMP_FILE=`mktemp`;
     cp main.pdf $TMP_FILE;
-    git config --global core.sshCommand "ssh -i /tmp/deploy_pdf -F /dev/null";
+    git config --global core.sshCommand "ssh -i /tmp/deploy_wiki -F /dev/null";
     git checkout -b pdf_deploy;
     cp $TMP_FILE coursebook.pdf;
     git add coursebook.pdf;
