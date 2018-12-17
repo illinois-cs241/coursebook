@@ -1,7 +1,7 @@
 if test $BUILD_FOCUS = WIKI; then
-    export NUM_RETRIES=3
-    export BUILD_TIME=10
-    export CLONE_DIR=`mktemp -d`
+    export NUM_RETRIES=3;
+    export BUILD_TIME=10;
+    export CLONE_DIR=`mktemp -d`;
     bash _scripts/push_to_wiki.sh;
 else
     TMP_FILE=`mktemp`;
@@ -12,4 +12,4 @@ else
     git add coursebook.pdf;
     git commit -m "Adding coursebook";
     git push origin pdf_deploy;
-fi;
+fi
