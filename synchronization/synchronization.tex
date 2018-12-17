@@ -1616,6 +1616,37 @@ Most programs try to avoid this problem entirely by writing to separate files, b
   When you have a lot of threads, creating a process might ease the system load
 \end{itemize}
 
+\section{Extra: Higher Order Models of Synchronization}
+
+When using atomics, you need to specify the right model of synchronization in order to make sure you have the correct behavior for your program.
+
+\subsection{Sequentially Consistent}
+
+Sequentially consistent is the simplest, least error prone and most expensive model. This model says that any change that happens, all changes before it will be synchronized between all threads.
+
+\begin{verbatim}
+    -Thread 1-              -Thread 2-
+    y = 1                   if (atomic_load(x) == 2)
+    atomic_store(x, 2);         y != 1 && *NULL = 1;
+\end{verbatim}
+
+Will never segfault. This is because either the store happens before the if statement in thread 2 and y == 1 or the store happens after and x does not equal 2.
+
+\subsection{Relaxed}
+
+\todo{Relaxed}
+
+\subsection{Acquire/Relaxed}
+
+\todo{Acquire/Relaxed}
+
+\subsection{Consume}
+
+\todo{Consume}
+
+Examples were adapted from
+\link{https://gcc.gnu.org/wiki/Atomic/GCCMM/AtomicSync}
+
 \section{External Resources}
 
 \begin{itemize}

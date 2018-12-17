@@ -14,7 +14,7 @@ install:
 - pandoc -v
 - pip install -r requirements.txt
 script:
-- echo "Hello"
+- echo "Script"
 before_deploy:
 - openssl aes-256-cbc -K $encrypted_0a73d3c4e754_key -iv $encrypted_0a73d3c4e754_iv
   -in deploy_wiki.enc -out /tmp/deploy_wiki -d

@@ -1,7 +1,7 @@
 #!/bin/bash
 
 set -e;
-set -x;
+
 git config --global core.sshCommand "ssh -i /tmp/deploy_site -F /dev/null"
 git clone -b develop --depth 1 git@github.com:illinois-cs241/illinois-cs241.github.io.git ${CLONE_DIR}
 cd ${CLONE_DIR}
@@ -11,9 +11,6 @@ git submodule update --recursive --depth 200
 ls _wikibook_project/
 git checkout develop
 cd _wikibook_project/
-echo $(pwd)
-git status
-ls
 git pull origin master
 export DOCS_SHA=$(git rev-parse --short HEAD)
 cd ..
