@@ -10,6 +10,8 @@ cd ${CLONE_DIR}
 git checkout develop
 cd _wikibook_project/
 echo $(pwd)
+git status
+ls
 git pull origin master
 export DOCS_SHA=$(git rev-parse --short HEAD)
 cd ..
