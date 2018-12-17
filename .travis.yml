@@ -23,7 +23,7 @@ matrix:
 install:
 - pip install -r requirements.txt
 script:
-- bas _scripts/script.sh
+- bash _scripts/script.sh
 before_deploy:
 - openssl aes-256-cbc -K $encrypted_0a73d3c4e754_key -iv $encrypted_0a73d3c4e754_iv
   -in deploy_wiki.enc -out /tmp/deploy_wiki -d
@@ -35,12 +35,9 @@ before_deploy:
 - chmod 600 /tmp/deploy_wiki
 - chmod 600 /tmp/deploy_site
 - chmod 600 /tmp/deploy_pdf
-- export NUM_RETRIES=3
-- export BUILD_TIME=10
-- export CLONE_DIR=`mktemp -d`
 deploy:
   provider: script
-  script: test $BUILD_FOCUS = WIKI && bash _scripts/push_to_wiki.sh
+  script: bash _scripts/deploy.sh
   skip_cleanup: true
   on:
     branch: master
