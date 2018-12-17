@@ -1,15 +1,25 @@
 dist: xenial
 language: python
 cache: pip
-python:
-- '3.6'
 branches:
   only:
   - "/.*/"
-addons:
-  apt:
-    packages:
-    - pandoc
+matrix:
+  include:
+  - name: "Wiki Build"
+    python: "3.6"
+    env: BUILD_FOCUS=WIKI
+    addons:
+      apt:
+        packages:
+	  - pandoc
+  - name: "PDF Build"
+    python: "3.6"
+    env: BUILD_FOCUS=PDF
+    addons:
+      apt:
+        packages:
+	  - texlive-full
 install:
 - pandoc -v
 - pip install -r requirements.txt
@@ -28,7 +38,7 @@ before_deploy:
 - export CLONE_DIR=`mktemp -d`
 deploy:
   provider: script
-  script: bash _scripts/push_to_wiki.sh
+  script: test $BUILD_FOCUS = WIKI && bash _scripts/push_to_wiki.sh
   skip_cleanup: true
   on:
     branch: master
