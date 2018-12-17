@@ -1,3 +1,5 @@
+#!/bin/bash
+
 if test $BUILD_FOCUS = WIKI; then
     export NUM_RETRIES=3;
     export BUILD_TIME=10;
