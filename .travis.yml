@@ -6,33 +6,35 @@ branches:
   - "/.*/"
 matrix:
   include:
-  - name: "Wiki Build"
-    python: "3.6"
+  - name: Wiki Build
+    python: '3.6'
     env: BUILD_FOCUS=WIKI
     addons:
       apt:
         packages:
-          - pandoc
-  - name: "PDF Build"
-    python: "3.6"
+        - pandoc
+  - name: PDF Build
+    python: '3.6'
     env: BUILD_FOCUS=PDF
     addons:
       apt:
         packages:
-          - texlive-full
+        - texlive-full
 install:
-- pandoc -v
 - pip install -r requirements.txt
 script:
-- echo "Script"
+- bas _scripts/script.sh
 before_deploy:
 - openssl aes-256-cbc -K $encrypted_0a73d3c4e754_key -iv $encrypted_0a73d3c4e754_iv
   -in deploy_wiki.enc -out /tmp/deploy_wiki -d
 - openssl aes-256-cbc -K $encrypted_0a73d3c4e754_key -iv $encrypted_0a73d3c4e754_iv
   -in deploy_site.enc -out /tmp/deploy_site -d
+- openssl aes-256-cbc -K $encrypted_0a73d3c4e754_key -iv $encrypted_0a73d3c4e754_iv
+  -in deploy_pdf.enc -out /tmp/deploy_pdf -d
 - eval "$(ssh-agent -s)"
 - chmod 600 /tmp/deploy_wiki
 - chmod 600 /tmp/deploy_site
+- chmod 600 /tmp/deploy_pdf
 - export NUM_RETRIES=3
 - export BUILD_TIME=10
 - export CLONE_DIR=`mktemp -d`
