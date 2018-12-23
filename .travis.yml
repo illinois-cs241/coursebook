@@ -3,7 +3,7 @@ language: python
 cache: pip
 branches:
   only:
-  - "/.*/"
+  - master
 matrix:
   include:
   - name: Wiki Build
