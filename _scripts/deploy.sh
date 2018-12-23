@@ -9,9 +9,13 @@ else
     TMP_FILE=`mktemp`;
     cp main.pdf $TMP_FILE;
     git config --global core.sshCommand "ssh -i /tmp/deploy_wiki -F /dev/null";
-    git checkout -b pdf_deploy;
+    git checkout --orphan pdf_deploy;
     cp $TMP_FILE coursebook.pdf;
     git add coursebook.pdf;
     git commit -m "Adding coursebook";
-    git push origin pdf_deploy;
+    OLD_ORIGIN=`git remote get-url origin`;
+    git remote set-url origin git@github.com:${TRAVIS_PULL_REQUEST_SLUG}.git;
+    git push origin --force pdf_deploy;
+    git remote set-url origin ${OLD_ORIGIN};
 fi
+
