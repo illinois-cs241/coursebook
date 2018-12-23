@@ -222,3 +222,6 @@ TSWLatexianTemp*
 
 # Emacs files
 .#*
+
+# Don't commit the wikibook
+main.pdf
