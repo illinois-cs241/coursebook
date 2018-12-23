@@ -14,7 +14,7 @@ else
     git checkout --orphan pdf_deploy;
     rm -rf *;
     cp $TMP_FILE coursebook.pdf;
-    git add coursebook.pdf;
+    git add -A;
     git commit -m "Adding coursebook";
     OLD_ORIGIN=`git remote get-url origin`;
     git remote set-url origin git@github.com:${TRAVIS_REPO_SLUG}.git;
