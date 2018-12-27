@@ -66,7 +66,7 @@ An important application of this is this is how system calls are served!
 There is a well established set of registers that the arguments go in according to the kernel as well as a system call ``number'' again defined by the kernel.
 Then the operating system triggers an interrupt which the kernel catches and serves the system call.
 
-\subsection{Optional: Out of order instructions}
+\subsection{Extra: Out of order instructions}
 
 For those of you who have and haven't taken the systems architecture course, you may not have heard about out of order instruction execution.
 Out of order execution is an amazing development by processors recently.
@@ -89,7 +89,7 @@ Here is an example
   }
   a[0] = 0xCAFE;
   int val;
-  int j = 10; // this will be in a register
+  int j = 10; // This will be in a register
   int i = 10; // This will be in main memory
   for (int i = 10; i != 0; --i, --j) {
     if (i) {
@@ -112,7 +112,7 @@ Naturally that should result in a segfault, but since the address was never logi
 
 Now here is the trick.
 Even though the value of the calculation would've resulted in a segfault, the bug doesn't clear the cache that refers to the physical memory where 0xCAFE is located (this not an exact explanation, but essentially how it works)
-SInce it is still in the cache, if you again trick the processor to read form the cache using \keyword{val} then you will read a memory value that you wouldn't be able to read normally.
+Since it is still in the cache, if you again trick the processor to read form the cache using \keyword{val} then you will read a memory value that you wouldn't be able to read normally.
 This includes important information like passwords, payment info etc etc.
 
 \subsection{Optional: Hyperthreading}
@@ -131,15 +131,134 @@ The actual problem is better explained through an architecture lens.
 But, the actual application was found through systems programmers working on OCaml's mainline.
 \url{http://gallium.inria.fr/blog/intel-skylake-bug/}
 
-\section{The Hitchhiker's Guide to Debugging C Programs}
+\section{Debugging and Environments}
 
-This is going to be a massive guide to helping you debug your C programs.
-There are different levels that you can check errors and we will be going through most of them. Feel free to add anything that you found helpful in debugging C programs including but not limited to, debugger usage, recognizing common error types, gotchas, and effective googling tips.
+I'm going to tell you a secret about this course: it is about working smarter \textit{not} harder. The course can be time consuming but the reason that so many people see it as such (and why so many student's don't see it as such) is the relative familiarity of people with their tools. Let's go through some of the common tools that you'll be working on and need to be familiar with.
 
-\subsection{Clean code}
+\subsection{ssh}
+
+\texttt{ssh} is short for the Secure Shell. It is a network protocol that allows you to spawn a shell on a remote machine.
+Most of the times in this class you will need to ssh into your VM like this
+
+\begin{lstlisting}
+> ssh netid@sem-cs241-VM.cs.illinois.edu
+\end{lstlisting}
+
+If you don't want to type your password out every time, you can generate an ssh key that uniquely identifies your machine. If you already have a key pair, you can skip to the copy id stage.
+
+\begin{lstlisting}
+  > ssh-keygen -t rsa -b 4096
+  # Do whatever keygen tells you
+  # Don't feel like you need a passcode if your login password is secure
+  > ssh-copy-id netid@sem-cs241-VM.cs.illinois.edu
+  # Enter your password for maybe the final time
+  > ssh  netid@sem-cs241-VM.cs.illinois.edu
+\end{lstlisting}
+
+If you still think that that is too much typing, you can always alias hosts. You may need to restart your VM or reload sshd for this to take effect. The config file is available on linux and mac distros. For windows you'll have to use the Windows Linux Subsystem or configure any aliases in PuTTY
+\begin{lstlisting}
+> cat ~/.ssh/config
+Host vm
+  User          netid
+  HostName      sem-cs241-VM.cs.illinois.edu
+> ssh vm
+\end{lstlisting}
+
+\subsection{git}
+
+What is `git`? Git is a version control system. What that means is git stores the entire history of a directory. We refer to the directory as a repository. So what do you need to know is a few things. First, create your repository with the repo creator. If you haven't already signed into enterprise github, make sure to do so otherwise your repository won't be created for you. After that, that means your repository is created on the server. Git is a decentralized version control system, meaning that you'll need to get a repository onto your VM. We can do this with a clone. Whatever you do, \textbf{do not go through the README.md tutorial}. 
+
+\begin{lstlisting}
+$ git clone https://github-dev.cs.illinois.edu/cs241-fa18/<netid>.git
+\end{lstlisting}
+
+This will create a local repsitory. The workflow is you make a change on your local repository, add the changes to a current commit, actually commit, and push the changes to the server.
+
+\begin{lstlisting}
+$ # edit the file, maybe using vim
+$ git add <file>
+$ git commit -m "Committing my file"
+$ git push origin master
+\end{lstlisting}
+
+Now to explain git well, you need to understand that git for our purposes will look like a linked list.
+You will always be at the head of master, and you will do the edit-add-commit-push loop. We have a separate branch on github that we push feedback to under \texttt{_feedback} which you can view on github website. The markdown file will have information on the test cases and results (like standard out).
+
+Every so often git can break. Here are a list of commands you probably won't need to fix your repo
+
+\begin{lstlisting}
+\item git-cherry-pick
+\item git-pack
+\item git-gc
+\item git-clean
+\item git-rebase
+\item git-stash/git-apply/git-pop
+\item git-branch
+\end{lstlisting}
+
+In addition if you are currently on a branch, and you don't see either
+
+\begin{lstlisting}
+$ git status
+On branch master
+Your branch is up-to-date with 'origin/master'.
+nothing to commit, working directory clean
+\end{lstlisting} 
+
+or
+
+\begin{lstlisting}
+$ git status
+On branch master
+Your branch is up-to-date with 'origin/master'.
+Changes not staged for commit:
+  (use "git add <file>..." to update what will be committed)
+  (use "git checkout -- <file>..." to discard changes in working directory)
+
+        modified:   <FILE>
+        ...
+
+no changes added to commit (use "git add" and/or "git commit -a")
+\end{lstlisting}
+
+And something like
+
+\begin{lstlisting}
+$ git status
+HEAD detached at 4bc4426
+nothing to commit, working directory clean
+\end{lstlisting}
+
+Don't panic, but your repository may be in an unworkable state. If you aren't nearing a deadline, come in to office hours or ask your question on Piazza, and we'd be happy to help. In an emergency scenario, delete your repository and re-clone (you'll have to add the \texttt{release} as above). \textbf{This will lose any local uncommitted changes. Make sure to copy any files you were working on outside the directory, remove and copy them back in}
+
+
+\subsection{Editors}
+
+Some people take this as an opportunity to learn a new editor, others not so much. The first part is those of you who want to learn a new editor. In the editor war that spans decades, we have come to the battle of vim vs emacs.
+
+Vim is a text editor and unix-like utilty. You enter vim by typing \texttt{vim <file>}. This takes you into the editor. You start off in normal mode. In this mode you can move around with many keys with the most common ones being \texttt{jklh}. To exit vim from this mode, you need to type \texttt{:q} which quits. If you have any unsaved edits, you must either save them \texttt{:w}, save and quit \texttt{:wq}, or discard changes \texttt{:q!}. To make edits you can either type \texttt{i} to change you into insert mode or \texttt{a} to change to insert mode \textbf{a}fter the cursor. This is the very basics when it comes to vim
+
+Emacs is more of a way of life, and I don't mean that figuratively. A lot people when they switch to the emacs environment realize that it is a powerful operating system lacking a decent text editor. This means emacs can house a terminal, gdb session, ssh session, code and a whole lot more. It would not be fitting any other way to introduce you the gnu-emacs any other way than the gnu-docs \link{https://www.gnu.org/software/emacs/tour/}. Just note that emacs is \textit{insanely} powerful. You can do almost anything with it. There are a fair number of students who like the IDE-aspect of other programming languages, just know you can set up emacs to be an IDE, but you have to learn a bit of lisp \link{http://martinsosic.com/development/emacs/2017/12/09/emacs-cpp-ide.html}.
+
+Then there are those of you who like to use your own editors. That is completely fine.
+For this we require sshfs which has ports on many different machines
+\begin{enumerate}
+\item Windows \link{https://github.com/billziss-gh/sshfs-win}
+\item Mac \link{https://github.com/osxfuse/osxfuse/wiki/SSHFS}
+\item Linux \link{https://help.ubuntu.com/community/SSHFS}
+\end{enumerate}
+At that point the files on your VM are synced with the files on your machine and edits can be made and will be sync'ed
+
+At the time of writing, Bhuvy (That's me!) really likes to use spacemacs \link{http://spacemacs.org/} which marries both vim and emacs and both of their difficulties. I'll give my soapbox for why I like it, but be warned that if you are starting from absolutely no vim or emacs experience the learning curve along with this course may be too much.
+\begin{enumerate}
+\item Extensible. Spacemacs has a clean design written in lisp. There are 100s of packages ready to be installed by editing your spacemacs config and reloading that do everything from syntax checking, automatic static analyzing, etc etc.
+\item Most of the good parts from vim and emacs. Emacs is really good at doing everything buy being a fast editor. Vim is really good at making fast edits and moving around. Spacemacs is the best of both worlds allowing vim keybindings with all the emacs goodness underneath.
+\item Lots of preconfiguration done. As opposed with a fresh emacs install, a lot of the configurations with langauge and projects are done for you like neotree, helm, various language layers. All they you have to do is navigate neotree to the base of your project and emacs will turn into an IDE for that programming language.
+\end{enumerate}
+
+\subsection{clean code}
 
 Make your code modular using helper functions. If there is a repeated task (getting the pointers to contiguous blocks in the malloc MP, for example), make them helper functions. And make sure each function does one thing very well, so that you don't have to debug twice.
-
 Let's say that we are doing selection sort by finding the minimum element each iteration like so,
 
 \begin{lstlisting}[language=C]
@@ -170,9 +289,12 @@ void selection_sort(int *a, long len);
 
 And the error is specifically in one function. In the end, we are not a class about refactoring/debugging your code. In fact, most kernel code is so atrocious that you don't want to read it. But for the sake of debugging, it may benefit you in the long run to adopt some of these practices.
 
-\subsection{Asserts!}\label{asserts}
+\subsection{Asserts}\label{asserts}
 
-Use assertions to make sure your code works up to a certain point -- and importantly, to make sure you don't break it later. For example, if your data structure is a doubly linked list, you can do something like \texttt{assert(node-\textgreater{}size\ ==\ node-\textgreater{}next-\textgreater{}prev-\textgreater{}size)} to assert that the next node has a pointer to the current node. You can also check the pointer is pointing to an expected range of memory address, not null, -\textgreater{}size is reasonable etc. The \texttt{NDEBUG} macro will disable all assertions, so don't forget to set that once you finish debugging. \href{http://www.cplusplus.com/reference/cassert/assert/}{assert link}
+Use assertions to make sure your code works up to a certain point -- and importantly, to make sure you don't break it later.
+For example, if your data structure is a doubly linked list, you can do something like \texttt{assert(node == node->next->prev)} to assert that the next node has a pointer to the current node.
+You can also check the pointer is pointing to an expected range of memory address, not null, -\textgreater{}size is reasonable etc.
+The \texttt{NDEBUG} macro will disable all assertions, so don't forget to set that once you finish debugging. \href{http://www.cplusplus.com/reference/cassert/assert/}{assert link}
 
 Here's a quick example with assert. Let's say that I'm writing code using memcpy
 
@@ -182,10 +304,6 @@ memcpy(dest, src, n);
 \end{lstlisting}
 
 This check can be turned off at compile time, but will save you \textbf{tons} of trouble debugging!
-
-\subsection{printfs}
-
-When all else fails, print like crazy! Each of your functions should have an idea of what it is going to do (ie find\_min better find the minimum element). You want to test that each of your functions is doing what it set out to do and see exactly where your code breaks. In the case with race conditions, tsan may be able to help, but having each thread print out data at certain times could help you identify the race condition.
 
 \section{Valgrind}\label{valgrind}
 
@@ -370,10 +488,68 @@ Here, by using the \texttt{x} command with parameters \texttt{16xb}, we can see 
 
 What do you actually use to run your program? A shell! A shell is a programming language that is running inside your terminal. A terminal is merely a window to input commands. Now, on POSIX we usually have one shell called \keyword{sh} that is linked to a POSIX compliant shell called \keyword{dash}. Most of the time, you use a shell called \keyword{bash} that is not entirely POSIX compliant but has some nifty built in features. If you want to be even more advanced, \keyword{zsh} has some more powerful features like tab complete on programs and fuzzy patterns, but that is neither here nor there. 
 
+\subsection{Undefined Behavior Sanitizer}
 
-\subsection{Failing Fast}
+The undefined behavior sanitizer is a wonderful tool provided by the llvm project. It allows you to compile code witha  runtime checker to make sure that you don't do undefined behavior for various categories. We will try to include it into our projects, but requires support form all the external libraries that we use so we may not get around to all of them.
+\link{https://clang.llvm.org/docs/UndefinedBehaviorSanitizer.html}
 
-\subsection{Searching for Errors}
+\subsubsection{Undefined behavior - why we can't solve it in general}
+
+Also please please read Chris Lattner's 3 Part blog post on undefined behavior. It can shed light on debug builds and the mystery of compiler optimization.
+
+\link{http://blog.llvm.org/2011/05/what-every-c-programmer-should-know.html}
+
+
+\subsection{Clang Static Build Tools}
+
+\subsection{strace and ltrace}
+
+\subsection{printfs}
+
+When all else fails, print! Each of your functions should have an idea of what it is going to do (ie find\_min better find the minimum element).
+You want to test that each of your functions is doing what it set out to do and see exactly where your code breaks.
+In the case with race conditions, tsan may be able to help, but having each thread print out data at certain times could help you identify the race condition.
+
+To make printfs useful, try to have a macro that fills in the context by which the printf was called -- a log statement if you will. A simple useful but untested log statement could be as follows.
+
+\begin{lstlisting}[language=C]
+  #include <execinfo.h>
+  #include <stdio.h>
+  #include <stdlib.h>
+  #include <stdarg.h>
+
+  // bt is print backtrace
+  const int num_stack = 10;
+  int __log(int line, const char *file, int bt, const char *fmt, ...) {
+    if (bt) {
+      void *raw_trace[num_stack];
+      size_t size = backtrace(raw_trace, sizeof(raw_trace) / sizeof(raw_trace[0]));
+      char **syms = backtrace_symbols(raw_trace, size);
+
+      for(ssize_t i = 0; i < size; i++) {
+        printf("%s\n", sysm[i]);
+      }
+      free (syms); 
+    }
+    int ret = fprintf(stderr, "|%s:%d| ", file, line);
+    va_list args;
+    va_start(args, fmt); 
+    ret += vfprintf(stderr, fmt, args);
+    va_end(args);
+    ret += printf(stderr, "\n");
+    return ret;
+  }
+
+  #ifdef DEBUG
+  #define log(fmt, ...) __log(__LINE__, __FILE__, 0, fmt, __VA_ARGS__)
+  #define bt(fmt, ...) __log(__LINE__, __FILE__, 1, fmt, __VA_ARGS__)
+  #else
+  #define log(fmt, ...)
+  #define bt(fmt, ...)
+  #endif
+
+  //Use as log(args like printf) or bt(args like printf) to either log or get backtrace
+\end{lstlisting}
 
 \newpage
 
