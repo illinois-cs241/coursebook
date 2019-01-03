@@ -511,13 +511,15 @@ You want to test that each of your functions is doing what it set out to do and 
 In the case with race conditions, tsan may be able to help, but having each thread print out data at certain times could help you identify the race condition.
 
 To make printfs useful, try to have a macro that fills in the context by which the printf was called -- a log statement if you will. A simple useful but untested log statement could be as follows.
+Try to make a test and figure out something that is going wrong, then log the state of your variables.
 
 \begin{lstlisting}[language=C]
   #include <execinfo.h>
   #include <stdio.h>
   #include <stdlib.h>
   #include <stdarg.h>
-
+  #include <unistd.h>
+  
   // bt is print backtrace
   const int num_stack = 10;
   int __log(int line, const char *file, int bt, const char *fmt, ...) {
@@ -527,29 +529,36 @@ To make printfs useful, try to have a macro that fills in the context by which t
       char **syms = backtrace_symbols(raw_trace, size);
 
       for(ssize_t i = 0; i < size; i++) {
-        printf("%s\n", sysm[i]);
+        fprintf(stderr, "|%s:%d| %s\n", file, line, syms[i]);
       }
-      free (syms); 
+      free(syms); 
     }
     int ret = fprintf(stderr, "|%s:%d| ", file, line);
     va_list args;
     va_start(args, fmt); 
     ret += vfprintf(stderr, fmt, args);
     va_end(args);
-    ret += printf(stderr, "\n");
+    ret += fprintf(stderr, "\n");
     return ret;
   }
 
   #ifdef DEBUG
-  #define log(fmt, ...) __log(__LINE__, __FILE__, 0, fmt, __VA_ARGS__)
-  #define bt(fmt, ...) __log(__LINE__, __FILE__, 1, fmt, __VA_ARGS__)
+  #define log(...) __log(__LINE__, __FILE__, 0, __VA_ARGS__)
+  #define bt(...) __log(__LINE__, __FILE__, 1, __VA_ARGS__)
   #else
-  #define log(fmt, ...)
-  #define bt(fmt, ...)
+  #define log(...)
+  #define bt(...)
   #endif
 
   //Use as log(args like printf) or bt(args like printf) to either log or get backtrace
+
+  int main() {
+    log("Hello Log");
+    bt("Hello Backtrace");
+  }
 \end{lstlisting}
+
+And then use as such.
 
 \newpage
 

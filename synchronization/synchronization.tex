@@ -37,8 +37,8 @@ int main() {
 
 Typical output of the above code is \keyword{ARGGGH sum is <some number less than expected>} because there is a race condition. The code does not stop two threads from reading-writing \keyword{sum} at the same time. For example, both threads copy the current value of sum into CPU that runs each thread (let's pick 123). Both threads increment one to their own copy. Both threads write back the value (124). If the threads had accessed the sum at different times then the count would have been 125. A few of the possible different orderings are below.
 
+Permittable Pattern
 \begin{tabular}{ l | r }
-  \multicolumn{2}{c}{Permittable Pattern}  \\ \hline
   Thread 1 & Thread 2 \\ \hline
   Load Addr, Add 1 (i=1 locally) & ...  \\
   Store (i=1 globally) & ...  \\
@@ -46,16 +46,16 @@ Typical output of the above code is \keyword{ARGGGH sum is <some number less tha
   ... & Store (i=2 globally)  \\
 \end{tabular}
 
+Partial Overlap
 \begin{tabular}{ l | r }
-\multicolumn{2}{c}{Overlap Partial} \\ \hline
 Thread 1 & Thread 2 \\ \hline
 Load Addr, Add 1 (i=1 locally) & ... \\
 Store (i=1 globally) & Load Addr, Add 1 (i=1 locally) \\
 ... & Store (i=1 globally) \\
 \end{tabular}
 
+Full Overlap
 \begin{tabular}{ l | r }
-\multicolumn{2}{c}{Full Overlap} \\ \hline
 Thread 1 & Thread 2 \\ \hline
 Load Addr, Add 1 (i=1 locally) & Load Addr, Add 1 (i=1 locally) \\
 Store (i=1 globally) & Store (i=1 globally) \\
@@ -65,7 +65,7 @@ We would like the first pattern of the code being mutually exclusive. Which lead
 
 \section{Mutex}
 
-To ensure only one thread at a time can access a global variable, use a mutex (short for Mutual Exclusion). If one thread is currently inside a critical section we would like another thread to wait until the first thread is complete.
+To ensure only one thread at a time can access a global variable, use a mutex -- short for Mutual Exclusion. If one thread is currently inside a critical section we would like another thread to wait until the first thread is complete.
 
 \begin{lstlisting}[language=C]
 pthread_mutex_t m = PTHREAD_MUTEX_INITIALIZER; // global variable
@@ -835,55 +835,13 @@ Candidate \#4 fails because a thread does not wait until the other thread lowers
 
 Imagine the first thread runs this code twice (so the the turn flag now points to the second thread). While the first thread is still inside the Critical Section, the second thread arrives. The second thread can immediately continue into the Critical Section!
 
-\begin{longtable}[c]{@{}|l|l|l|l|@{}}
-\toprule
-\begin{minipage}[b]{0.07\columnwidth}\raggedright\strut
-Time
-\strut\end{minipage} & \begin{minipage}[b]{0.09\columnwidth}\raggedright\strut
-Turn
-\strut\end{minipage} & \begin{minipage}[b]{0.15\columnwidth}\raggedright\strut
-Thread \#1
-\strut\end{minipage} & \begin{minipage}[b]{0.14\columnwidth}\raggedright\strut
-Thread \#2
-\strut\end{minipage}\tabularnewline
-\midrule
-\endhead \hline
-\begin{minipage}[t]{0.07\columnwidth}\raggedright\strut
-1
-\strut\end{minipage} & \begin{minipage}[t]{0.09\columnwidth}\raggedright\strut
-2
-\strut\end{minipage} & \begin{minipage}[t]{0.15\columnwidth}\raggedright\strut
-raise my flag
-\strut\end{minipage}\hline \tabularnewline
-\begin{minipage}[t]{0.07\columnwidth}\raggedright\strut
-2
-\strut\end{minipage} & \begin{minipage}[t]{0.09\columnwidth}\raggedright\strut
-2
-\strut\end{minipage} & \begin{minipage}[t]{0.15\columnwidth}\raggedright\strut
-if your flag is raised, wait until my turn
-\strut\end{minipage} & \begin{minipage}[t]{0.14\columnwidth}\raggedright\strut
-raise my flag
-\strut\end{minipage} \hline \tabularnewline
-\begin{minipage}[t]{0.07\columnwidth}\raggedright\strut
-3
-\strut\end{minipage} & \begin{minipage}[t]{0.09\columnwidth}\raggedright\strut
-2
-\strut\end{minipage} & \begin{minipage}[t]{0.15\columnwidth}\raggedright\strut
-// Do Critical Section stuff
-\strut\end{minipage} & \begin{minipage}[t]{0.14\columnwidth}\raggedright\strut
-if your flag is raised, wait until my turn(TRUE!)
-\strut\end{minipage}\hline \tabularnewline
-\begin{minipage}[t]{0.07\columnwidth}\raggedright\strut
-4
-\strut\end{minipage} & \begin{minipage}[t]{0.09\columnwidth}\raggedright\strut
-2
-\strut\end{minipage} & \begin{minipage}[t]{0.15\columnwidth}\raggedright\strut
-// Do Critical Section stuff
-\strut\end{minipage} & \begin{minipage}[t]{0.14\columnwidth}\raggedright\strut
-// Do Critical Section stuff - OOPS
-\strut\end{minipage}\hline \tabularnewline
-\bottomrule
-\end{longtable}
+\begin{tabular}{|l|l|l|l|}
+Time & Turn & Thread \# 1 & Thread \# 2 \\ \hline
+1 & 2 & Raise my flag & \\
+2 & 2 & If your flag is raise, wait until my turn & Raise my flag \\
+3 & 2 & // Do Critical Section Stuff & If your flag is raised, wait until my turn (TRUE!) \\
+4 & 2 & // Do Critical Section Stuff & Do Critical Section Stuff - OOPS \\
+\end{tabular}
 
 \section{Working Solutions}\label{working-solutions}
 
