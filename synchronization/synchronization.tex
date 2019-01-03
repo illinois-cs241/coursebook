@@ -793,9 +793,14 @@ lower my flag
 
 Candidate \#2 satisfies mutual exclusion - it is impossible for two threads to be inside the critical section at the same time. However this code suffers from deadlock! Suppose two threads wish to enter the critical section at the same time:
 
-Time \textbar{} Thread 1 \textbar{} Thread 2 -----\textbar{}----------\textbar{}--------- 1 \textbar{} raise flag 2 \textbar{} \textbar{} raise flag 3 \textbar{} wait \ldots{} \textbar{} wait \ldots{} Ooops both threads / processes are now waiting for the other one to lower their flags. Neither one will enter the critical section as both are now stuck forever!
+\begin{tabular}{|l|c|c|}
+Time & Thread 1 & Thread 2 \\ \hline
+1 & Raise Flag & \\
+2 & & Raise Flag \\
+3 & Wait & Wait \\
+\end{tabular}
 
-This suggests we should use a turn-based variable to try to resolve who should proceed.
+Ooops both threads / processes are now waiting for the other one to lower their flags. Neither one will enter the critical section as both are now stuck forever! This suggests we should use a turn-based variable to try to resolve who should proceed.
 
 \subsection{Turn-based solutions}\label{turn-based-solutions}
 

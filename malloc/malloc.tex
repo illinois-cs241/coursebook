@@ -122,7 +122,7 @@ If this allocator was used in a typical program, the process would quickly exhau
 During program execution, memory is allocated and de-allocated (freed), so there will be gaps (holes) in the heap memory that can be re-used for future memory requests. The memory allocator needs to keep track of which parts of the heap are currently allocated and which are parts are available. Suppose our current heap size is 64K, though not all of it is in use because some earlier malloc'd memory has already been freed by the program:
 \\
 \begin{center}
-\begin{tabular}{\textwidth}{ | c | c | c | c | c | c | c | }
+\begin{tabular}{ | c | c | c | c | c | c | c | }
 \hline
 16KB & 10KB & 1KB & 1KB & 30KB & 4KB & 2KB \\ \hline
 free & allocated & free & allocated & free & allocated & free \\
@@ -133,7 +133,7 @@ free & allocated & free & allocated & free & allocated & free \\
 If a new malloc request for 2KB is executed (\keyword{malloc(2048)}), where should \keyword{malloc} reserve the memory? It could use the last 2KB hole (which happens to be the perfect size!) or it could split one of the other two free holes. These choices represent different placement strategies. Whichever hole is chosen, the allocator will need to split the hole into two: The newly allocated space (which will be returned to the program) and a smaller hole (if there is spare space left over). A perfect-fit strategy finds the smallest hole that is of sufficient size (at least 2KB):
 \\
 \begin{center}
-\begin{tabular}{\textwidth}{ | c | c | c | c | c | c | c | }
+\begin{tabular}{ | c | c | c | c | c | c | c | }
 \hline
 16KB & 10KB & 1KB & 1KB & 30KB & 4KB & 2KB \\ \hline
 free & allocated & free & allocated & free & allocated & \texttt{HERE!} \\
@@ -146,7 +146,7 @@ A worst-fit strategy finds the largest hole that is of sufficient size (so break
 
 \\
 \begin{center}
-\begin{tabular}{\textwidth}{ | c | c | c | c | c | c | c | c | }
+\begin{tabular}{ | c | c | c | c | c | c | c | c | }
 \hline
 16KB & 10KB & 1KB & 1KB & 2KB & 28KB & 4KB & 2KB \\ \hline
 free & allocated & free & allocated & \texttt{HERE!} & free & allocated & free \\
@@ -159,7 +159,7 @@ A first-fit strategy finds the first available hole that is of sufficient size (
 
 \\
 \begin{center}
-\begin{tabular}{\textwidth}{ | c | c | c | c | c | c | c | c | }
+\begin{tabular}{ | c | c | c | c | c | c | c | c | }
 \hline
 2KB & 14KB & 10KB & 1KB & 1KB & 30KB & 4KB & 2KB \\ \hline
 \texttt{HERE!} & free & allocated & free & allocated & free & allocated & free \\
@@ -171,7 +171,7 @@ A first-fit strategy finds the first available hole that is of sufficient size (
 External fragmentation is that even though we have enough memory in the heap, it may be divided up in a way that wear are not able to give the full amount. In the example below, of the 64KB of heap memory, 17KB is allocated, and 47KB is free. However the largest available block is only 30KB because our available unallocated heap memory is fragmented into smaller pieces.
 \\
 \begin{center}
-\begin{tabular}{\textwidth}{ | c | c | c | c | c | c | c | }
+\begin{tabular}{ | c | c | c | c | c | c | c | }
 \hline
 16KB & 10KB & 1KB & 1KB & 30KB & 4KB & 2KB \\ \hline
 free & allocated & free & allocated & free & allocated & free \\
