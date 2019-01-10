@@ -6,7 +6,7 @@ Pandoc filter to change each relative URL to absolute
 
 from panflute import run_filter, Str, Header, Image
 
-base_raw_url = 'https://raw.githubusercontent.com/illinois-cs241/wikibook-project/master/'
+base_raw_url = 'https://raw.githubusercontent.com/illinois-cs241/coursebook/master/'
 
 def change_base_url(elem, doc):
     if type(elem) == Image:
