@@ -1,9 +1,9 @@
 # The Wikibook Project
 
-[![Build Status](https://travis-ci.com/illinois-cs241/wikibook-project.svg?branch=master)](https://travis-ci.com/illinois-cs241/wikibook-project)
-[![Current Pdf Link](https://img.shields.io/badge/current-pdf-blue.svg)](https://github.com/illinois-cs241/wikibook-project/blob/pdf_deploy/coursebook.pdf)
-[![Current Wiki Link](https://img.shields.io/badge/current-wiki-blue.svg)](https://github.com/illinois-cs241/wikibook-project/wiki)
-[![Current HTML Link](https://img.shields.io/badge/current-html-blue.svg)](http://cs241.cs.illinois.edu/wikibook_project/Index.html)
+[![Build Status](https://travis-ci.com/illinois-cs241/coursebook.svg?branch=master)](https://travis-ci.com/illinois-cs241/coursebook)
+[![Current Pdf Link](https://img.shields.io/badge/current-pdf-blue.svg)](https://github.com/illinois-cs241/coursebook/blob/pdf_deploy/coursebook.pdf)
+[![Current Wiki Link](https://img.shields.io/badge/current-wiki-blue.svg)](https://github.com/illinois-cs241/coursebook/wiki)
+[![Current HTML Link](https://img.shields.io/badge/current-html-blue.svg)](http://cs241.cs.illinois.edu/wikibook/Index.html)
 
 
 The Wikibook Project is an aim to standardize and build upon Angrave's [original wikibook experiment](https://github.com/angrave/SystemProgramming/wiki).
