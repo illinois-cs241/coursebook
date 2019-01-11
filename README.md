@@ -82,3 +82,6 @@ latexmk.out
 - `requirements.txt` python requirements if you are building the `wiki` version of the coursebook
 - `_scripts` This folder contains various scripts to do different things like generate the wiki, spellcheck etc.
 
+# Eject Button
+
+Let's say some time in the near future someone decides that it isn't worth to keep up all this infrastructure and man hours. That is entirely fine! There is a built-in eject button that is a one step fix: delete the travis file. Builds will not trigger automatically but you can clone the wiki part of the github repository and turn it back into a good old fashioned coursebook. No maintenance required
