@@ -8,13 +8,13 @@ cd ${CLONE_DIR}
 git submodule update --init --recursive
 git submodule update --recursive --depth 200
 
-ls _wikibook_project/
+ls _coursebook/
 git checkout develop
-cd _wikibook_project/
+cd _coursebook/
 git pull origin master
 export DOCS_SHA=$(git rev-parse --short HEAD)
 cd ..
-git add _wikibook_project/
+git add _coursebook/
 git commit -m "Updating docs to ${DOCS_SHA}" || true
 git push origin develop
 
