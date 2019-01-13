@@ -24,10 +24,9 @@ class ConvertableTexFile(object):
 jinja_templ = """
 # Home
 
-**NOTE: Do _not_ edit this. This is automatically updated from the tex source. If you see a typo please make a change or a github issue in the main repo, thanks!**
+Welcome to System Programming coursebook!
 
-Welcome to Angrave's crowd-sourced System Programming wiki-book!
-This wiki is being built by students and faculty from the University of Illinois and is a crowd-source authoring experiment by Lawrence Angrave from CS @ Illinois.
+This coursebook is being built by students and faculty from the University of Illinois. It is based on a crowd-source authoring wikibook experiment by Lawrence Angrave from CS @ Illinois, but is now its own .tex based project
 
 This book is an introduction to programming in C, and system programming (processes, threads, synchronization, networking and more!). We assume you've already had some programming experience, in an earlier computer science course.
 
