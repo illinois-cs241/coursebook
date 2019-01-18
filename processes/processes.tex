@@ -460,12 +460,12 @@ Any other work you want the child process to do should be done before the \keywo
 The \href{https://en.wikipedia.org/wiki/Exec_(system_call)\#C_language_prototypes}{Wikipedia article} does a great job helping you make sense of the names of the exec family.
 The naming schemes can be shortened mnemonically.
 
-\begin{lstlisting}
+\begin{enumerate}
 \item e -- An array of pointers to environment variables is explicitly passed to the new process image.
 \item l -- Command-line arguments are passed individually (a list) to the function.
 \item p -- Uses the PATH environment variable to find the file named in the file argument to be executed.
 \item v -- Command-line arguments are passed to the function as an array (vector) of pointers.
-\end{quote}
+\end{enumerate}
 
 An example of this code is below. This code executes \keyword{ls}
 
@@ -518,12 +518,12 @@ Try to decode the following example
 
 There's no error checking in the above code (we assume close,open,chdir etc works as expected). 
 
-\begin{lstlisting}
+\begin{enumerate}
 \item \keyword{open} -- will use the lowest available file descriptor (i.e.~1) ; so standard out now goes to the log file. 
 \item \keyword{chdir} -- Change the current directory to /usr/include 
 \item \keyword{execl} -- Replace the program image with /bin/ls and call its main() method 
 \item \keyword{perror} -- We don't expect to get here - if we did then exec failed.
-\end{lstlsting}
+\end{enumerate}
 
 \subsection{Deeper Semantics}
 
