@@ -710,19 +710,19 @@ scanf("%9s", buffer); // reads up to 9 charactes from input (leave room for the 
 
 \begin{itemize}
 
-	\item \keyword{int\ strlen(const\ char\ *s)} returns the length of the string not including the null byte
+	\item \keyword{int strlen(const char *s)} returns the length of the string not including the null byte
 
-	\item \keyword{int\ strcmp(const\ char\ *s1,\ const\ char\ *s2)} returns an integer determining the lexicographic order of the strings. If s1 where to come before s2 in a dictionary, then a -1 is returned. If the two strings are equal, then 0. Else, 1.
+	\item \keyword{int strcmp(const char *s1, const char *s2)} returns an integer determining the lexicographic order of the strings. If s1 where to come before s2 in a dictionary, then a -1 is returned. If the two strings are equal, then 0. Else, 1.
 
-	\item \keyword{char\ *strcpy(char\ *dest,\ const\ char\ *src)} Copies the string at \keyword{src} to \keyword{dest}. \textbf{assumes dest has enough space for src}
+	\item \keyword{char *strcpy(char *dest, const char *src)} Copies the string at \keyword{src} to \keyword{dest}. \textbf{assumes dest has enough space for src}
 
-	\item \keyword{char\ *strcat(char\ *dest,\ const\ char\ *src)} Concatenates the string at \keyword{src} to the end of destination. \textbf{This function assumes that there is enough space for \keyword{src} at the end of destination including the NULL byte}
+	\item \keyword{char *strcat(char *dest, const char *src)} Concatenates the string at \keyword{src} to the end of destination. \textbf{This function assumes that there is enough space for \keyword{src} at the end of destination including the NULL byte}
 
-	\item \keyword{char\ *strdup(const\ char\ *dest)} Returns a \keyword{malloc}'ed copy of the string.
+	\item \keyword{char *strdup(const char *dest)} Returns a \keyword{malloc}'ed copy of the string.
 
-	\item \keyword{char\ *strchr(const\ char\ *haystack,\ int\ needle)} Returns a pointer to the first occurrence of \keyword{needle} in the \keyword{haystack}. If none found, \keyword{NULL} is returned.
+	\item \keyword{char *strchr(const char *haystack, int needle)} Returns a pointer to the first occurrence of \keyword{needle} in the \keyword{haystack}. If none found, \keyword{NULL} is returned.
 
-	\item \keyword{char\ *strstr(const\ char\ *haystack,\ const\ char\ *needle)} Same as above but this time a string!
+	\item \keyword{char *strstr(const char *haystack, const char *needle)} Same as above but this time a string!
 
 	\item \keyword{char *strtock(const char *str, const char *delims)}
 
@@ -758,9 +758,9 @@ char* upped = strdup("strtok,is,tricky,,,!!");
 \end{lstlisting}
 
 	\item For integer parsing use
-	      \keyword{long\ int\ strtol(const\ char\ *nptr,\ char\ **endptr,\ int\ base);}
+	      \keyword{long int strtol(const char *nptr, char **endptr, int base);}
 	      or
-	      \keyword{long\ long\ int\ strtoll(const\ char\ *nptr,\ char\ **endptr,\ int\ base);}.
+	      \keyword{long long int strtoll(const char *nptr, char **endptr, int base);}.
 
 	      What these functions do is take the pointer to your string
 	      \keyword{*nptr} and a \keyword{base} (ie binary, octal, decimal,
@@ -791,9 +791,9 @@ int main(){
 }
 \end{lstlisting}
 
-	\item \keyword{void\ *memcpy(void\ *dest,\ const\ void\ *src,\ size\_t\ n)} moves \keyword{n} bytes starting at \keyword{src} to \keyword{dest}. \textbf{Be careful}, there is undefined behavior when the memory regions overlap. This is one of the classic works on my machine examples because many times valgrind won't be able to pick it up because it will look like it works on your machine. When the autograder hits, fail. Consider the safer version below.
+	\item \keyword{void *memcpy(void *dest, const void *src, size\_t n)} moves \keyword{n} bytes starting at \keyword{src} to \keyword{dest}. \textbf{Be careful}, there is undefined behavior when the memory regions overlap. This is one of the classic works on my machine examples because many times valgrind won't be able to pick it up because it will look like it works on your machine. When the autograder hits, fail. Consider the safer version below.
 
-	\item \keyword{void\ *memmove(void\ *dest,\ const\ void\ *src,\ size\_t\ n)} does the same thing as above, but if the memory regions overlap then it is guaranteed that all the bytes will get copied over correctly. \keyword{memcpy} and \keyword{memmove} both in \keyword{\textless{}string.h\textgreater{}}? Because strings are essentially raw memory with a null byte at the end of them!
+	\item \keyword{void *memmove(void *dest, const void *src, size\_t n)} does the same thing as above, but if the memory regions overlap then it is guaranteed that all the bytes will get copied over correctly. \keyword{memcpy} and \keyword{memmove} both in \keyword{\textless{}string.h\textgreater{}}? Because strings are essentially raw memory with a null byte at the end of them!
 
 \end{itemize}
 
