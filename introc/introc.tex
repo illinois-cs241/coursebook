@@ -1,6 +1,6 @@
 \chapter{C Programming Language}
 
-\epigraph{If you want to teach systems, don't drum up the programmers, sort the issues, and make PRs. Instead, teach them to yearn for the vast and endless C.}{Antoine de Saint-Exup\'{e}ry (Kinda)}
+\epigraph{If you want to teach systems, don't drum up the programmers, sort the issues, and make PRs. Instead, teach them to yearn for the vast and endless C.}{Antoine de Saint-Exup\'{e}ry (With edits from Bhuvy)}
 
 \gls{C} is the de-facto programming language to do serious system serious programming. Why? Most kernels are written in largely in C. The \gls{linux kernel} \cite{Love} and the XNU kernel \citet{xnukernel} of which Mac OS X is based off. The Windows Kernel uses C++, but doing system programming on that is much harder on windows that UNIX for beginner system programmers. Most of you have some experience with C++, but C is a different beast entirely. You don't have nice abstractions like classes and RAII to clean up memory. You are going to have to do that yourself. C gives you much more of an opportunity to shoot yourself in the foot but lets you do thinks at a much finer grain level.
 
@@ -74,12 +74,16 @@ if(min(x++, 5)) printf("%d is six", x);
 Macros are simple text substitution so the above example expands to \keyword{x++\ \textless{}\ 100\ ?\ x++\ :\ 100} (parenthesis omitted for clarity). Now for this case, it is opaque what gets printed out but it will be 6. Also consider the edge case when operator precedence comes into play.
 
 \begin{lstlisting}[language=C]
-#define min(a,b) a<b ? a : b
+#define min(a,b) a < b ? a : b
 int x = 99;
 int r = 10 + min(99, 100); // r is 100!
+// This is what it is expanded to
+int r = 10 + 99 < 100 ? 99 : 100
+// Which means
+int r = (10 + 99) < 100 ? 99 : 100
 \end{lstlisting}
 
-Macros are simple text substitution so the above example expands to \keyword{10\ +\ 99\ \textless{}\ 100\ ?\ 99\ :\ 100}. You can have logical problems with the flexibility of certain parameters. One common source of confusion is with static arrays and the \keyword{sizeof} operator.
+You can also have logical problems with the flexibility of certain parameters. One common source of confusion is with static arrays and the \keyword{sizeof} operator.
 
 \begin{lstlisting}[language=C]
 #define ARRAY_LENGTH(A) (sizeof((A)) / sizeof((A)[0]))
@@ -88,6 +92,62 @@ int* dynamic_array = malloc(10); // ARRAY_LENGTH(dynamic_array) = 2 or 1
 \end{lstlisting}
 
 What is wrong with the macro? Well, it works if we have a static array like the first array because \keyword{sizeof} a static array returns the number of bytes that array takes up, and dividing it by the \keyword{sizeof(an\_element)} would give you the number of entries. But if we use a pointer to a piece of memory, taking the sizeof the pointer and dividing it by the size of the first entry won't always give us the size of the array.
+
+\subsection{Extra: Includes and conditionals}
+
+The other preprocessor include is the \keyword{\#include} directive and conditionals. The include directive is explained by example.
+
+\begin{lstlisting}[language=C]
+// foo.h
+int bar();
+\end{lstlisting}
+
+\begin{lstlisting}[language=C]
+// foo.c unpreprocessed
+#include "foo.h"
+int bar() {
+}
+\end{lstlisting}
+
+After preprocessing, the compiler sees this
+
+\begin{lstlisting}[language=C]
+// foo.c unpreprocessed
+int bar();
+
+int bar() {
+
+}
+\end{lstlisting}
+
+The other thing we have is conditionals. If a macro is defined or equal to zeros, that branch is not taken
+
+\begin{lstlisting}[language=C]
+int main() {
+#ifdef __GNUC__
+    return 1;
+#else
+    return 0;
+#endif
+}
+\end{lstlisting}
+
+Using \keyword{gcc} your compiler would see this
+
+\begin{lstlisting}[language=C]
+int main() {
+    return 1;
+}
+\end{lstlisting}
+
+
+Using \keyword{clang} your compiler would see this
+
+\begin{lstlisting}[language=C]
+int main() {
+    return 0;
+}
+\end{lstlisting}
 
 \section{Language Facilities}
 
@@ -449,7 +509,6 @@ switch(2) {
 }
 \end{lstlisting}
 
-	      The break statement
 	\item \keyword{typedef} declares an alias for a type. Often used with structs to reduce the visual clutter of having to write `struct' as part of the type.
 
 	      \begin{lstlisting}[language=C]
