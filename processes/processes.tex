@@ -434,11 +434,11 @@ Warning: This section uses signals which we have not yet fully introduced. The p
 \end{lstlisting}
 
 The above example however misses a couple of subtle points.
-\begin{lstlisting}
+\begin{enumerate}
 \item More than one child may have finished but the parent will only get one SIGCHLD signal (signals are not queued)
 \item SIGCHLD signals can be sent for other reasons (e.g.~a child process is temporarily stopped)
 \item It uses the depricated \keyword{signal} code
-\end{lstlisting}
+\end{enumerate}
 
 A more robust code to reap zombies is shown below.
 
@@ -530,11 +530,11 @@ There's no error checking in the above code (we assume close,open,chdir etc work
 \href{https://pubs.opengroup.org/onlinepubs/009695399/functions/exec.html}{Here is the full POSIX standard for Exec}
 What you need to know is the following bullet points (in addition to above).
 
-\begin{lstlisting}
+\begin{enumerate}
 \item File descriptors are preserved after an exec. That means if you open a file, and you forget to close it, it remains open in the child.
 This is a problem because usually the child doesn't know about those file descriptors and they take up a slot in the file descriptor table and could possible prevent other processes from accessing the file. The one exception to this is if the file descriptor has the Close Exec flag set (more on how to set that later).
-\item Various Signal semantics (don't need to worry about this yet). If you are coming back to do a re-read, exec'ed processes preserve the signal mask and the pending signal set.
-\end{lstlisting}
+\item Various signal semantics (don't need to worry about this yet). If you are coming back to do a re-read, exec'ed processes preserve the signal mask and the pending signal set.
+\end{enumerate}
 
 \subsection{Shortcuts}
 
