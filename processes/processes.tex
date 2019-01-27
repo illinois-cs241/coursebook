@@ -275,7 +275,7 @@ There may even be subtle forkbombs that occur when you are being careless while 
   }
 \end{lstlisting}
 
-We misspelled \keyword{ehco}, so we can't \keyword{exec} it. What does this mean? Instead of creating 10 processes we just created 2\textbf{10 processes, fork bombing our machine. How could we prevent this? Put an exit right after exec so in case exec fails we won't end up fork bombing our machine.}
+We misspelled \keyword{ehco}, so we can't \keyword{exec} it. What does this mean? Instead of creating 10 processes we just created \textbf{1024 processes, fork bombing our machine. How could we prevent this? Put an exit right after exec so in case exec fails we won't end up fork bombing our machine.}
 
 \subsection{POSIX Fork Detailings}
 
