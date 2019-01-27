@@ -281,7 +281,7 @@ We misspelled \keyword{ehco}, so we can't \keyword{exec} it. What does this mean
 
 POSIX determines what the standards of fork are. The commonly expected standards are detailed \href{https://pubs.opengroup.org/onlinepubs/009695399/functions/fork.html}{in the posix fork page} Here are a summary of what gets inherirted
 
-\begin{lstlisting}
+\begin{enumerate}
 \item Fork will return a non-negative integer on success
 \item A child will inherit any open file descriptors of the parent. That means if a parent reads a bit of the file and forks, the child will start at that offset. Any other flags are also carried over.
 \item Pending signals are not inherited. This means that if a parent has a pending signal and creates a child, the child will not receive that signal unless another process signals the child.
@@ -291,7 +291,7 @@ POSIX determines what the standards of fork are. The commonly expected standards
 \item Signal handlers are inherited but can be changed
 \item Current working directory is inherited but can be changed
 \item Environment variables are inherited but can be changed
-\end{lstlisting}
+\end{enumerate}
 
 Key differences include: 
 \begin{itemize}
@@ -327,13 +327,13 @@ First, you \textit{can} wait on a specific process, or you can pass in special v
 The last parameter to waitpid is an option parameter. The options are listed below
 
 
-\begin{lstlisting}
+\begin{enunmerate}
 \item WNOHANG - Return whether or not the searched process is exited
 \item WNOWAIT - Wait, but leave the child waitable by another wait call
 \item WEXITED - Wait for exited children
 \item WSTOPPED - Wait for stopped children
 \item WCONTINUED - Wait for continued children
-\end{lstlisting}
+\end{enunmerate}
 
 It is generally poor programming practice to use signals in program logic.
 Signals have no timeframe of delivery and no assurance that they will be deliverd.
