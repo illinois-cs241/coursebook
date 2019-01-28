@@ -35,8 +35,8 @@ A filesystem must provide callback functions to a variety of actions. Some of th
 
 \begin{itemize}
   \item \keyword{open} Opens a file for IO
-  \item \keyword{read} Read contents of a file 
-  \item \keyword{write} Write to a file 
+  \item \keyword{read} Read contents of a file
+  \item \keyword{write} Write to a file
   \item \keyword{close} Close a file and free associated resources
   \item \keyword{chmod} Modify permissions of a file
   \item \keyword{ioctl} Interact with device parameters of character devices such as terminals
@@ -513,7 +513,7 @@ To set the sticky bit, use \keyword{chmod +t}.
 
 \begin{lstlisting}
 aneesh$ mkdir sticky
-aneesh$ chmod +t sticky 
+aneesh$ chmod +t sticky
 aneesh$ ls -l
 drwxr-xr-x  7 aneesh aneesh    4096 Nov  1 14:19 .
 drwxr-xr-x 53 aneesh aneesh    4096 Nov  1 14:19 ..
@@ -550,7 +550,7 @@ $ ls . >/dev/null
 
 \subsection{Managing files and filesystems}
 
-Given the multitude of operations that are availible to you from the filesystem, let's explore some tools and techniques that can be used to manage files and filesystems. 
+Given the multitude of operations that are availible to you from the filesystem, let's explore some tools and techniques that can be used to manage files and filesystems.
 
 One example is creating a secure directory. Suppose you created your own directory in /tmp and then set the permissions so that only you can use the directory (see below). Is this secure?
 
@@ -797,24 +797,27 @@ Solutions Simple redundancy (2 or 3 copies of each file) e.g., Google GFS (2001)
 
 \section{Simple Filesystem Model}
 
-Okay so software developers need to implement filesystems all the time.
-Don't believe me? Take a look at Hadoop, GlusterFS, Qumulo, etc.
-Filesystems are hot areas of research now because people have realized that the software models that we devised don't take full advantage of our current hardware.
-As such, you may be doing a lot of filesystem writing.
-Here we will go over one of our fake filesystems that we talke about in class and ``walk through'' some of the code and
+Software developers need to implement filesystems all the time. Don't believe me? Take a look at Hadoop, GlusterFS,
+Qumulo, etc. Filesystems are hot areas of research now because people have realized that the software models that we
+devised don't take full advantage of our current hardware. Addtionally, the hardware that we use for storing information
+is getting better and better all the time. As such, you may end up designing a filesystem yourself someday. In this
+section we will go over one of our fake filesystems that we talk about in class and ``walk through'' some examples of
+how things work.
 
-So what does our hypothetical filesystem look like?
-We will base it off of the Minixfs, the first filesystem that Linux ran on.
-We'll do this and try to make the filesystem as easy as possible.
-Laid out sequentually, we have our superblock.
-The superblock stores important metadata about the filesystem.
-After the superblock, we'll keep a map of which inodes are being used.
-The n'th bit is set if the n'th inode -- from the inode root -- is set with the exact same convention for data blocks.
-Let's consider a single file that spans all of its direct blocks and some indirect blocks with some omitted.
-In our pretend filesystem, for simplicity let's assume that we are not going to delete any directory entries and every file is compact.
-This means that each file uses up any partial used  data block before allocating a new data block.
-A sample image is below.
+So what does our hypothetical filesystem look like? We will base it off of the \textt{minixfs}, a very simple filesystem
+that happens to be the first filesystem that Linux ran on. Laid out sequentually on disk, we first have our superblock.
+The superblock stores important metadata about the entire filesystem. Since we want to be able to read this block before
+we know anything else about the data on disk, this needs to be in a well-known location so the very start of the disk is
+a good choice. After the superblock, we'll keep a map of which inodes are being used. The n'th bit is set if the n'th
+inode -- $0$ being the inode root -- is being used. Similarly, we store a map recording which datablocks are used.
+Finally, we have an array of inodes followed by the rest of the disk - implicitly partitioned into datablocks. It's
+important to note that there may not be any real distinction from one datablock to the next from the perspective of the
+hardware components of the disk. Thinking about the disk as an array of datablocks is simply something we do so that we
+have a way to describe where files live on disk.
 
+Below, we have an example of how an inode that describes a file may look. Note that for the sake of simplicity, we have
+drawn arrows mapping datablock numbers in the inode to their locations on disk, these aren't pointers so much as
+indicies into an array.
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=.8\textwidth]{filesystems/images/sample_file.png}
@@ -822,18 +825,43 @@ A sample image is below.
 
 We will assume that a data block is 4 KB.
 
+Note that a file will fill up each of it's data blocks completely before requesting an additional data block. We will
+refer to this property as as the file being \textit{compact}. The file presented above is interesting since it uses all
+of it's direct blocks, one of the entries for it's indirect block and partially uses another indirect block.
+
+The following subsections will all refer to the file presented above.
+
+\subsection{How big is our file?}
+The size of a file is not something that we can compute by staring at it. We need additional information that is
+typically stored in the inode. This is because the filesystem isn't aware of the actual contents of what is in a file.
+That data is considered the user's. However, we can compute an upper bound by looking at how many blocks the file uses.
+
+There are two full direct blocks, which together store $2*sizeof(data\_block)=2*4KB=8KB$.
+
+There are two used blocks referenced by the indirect block, which can store up to $8KB$ as calculated above.
+
+We can now add these values to get an upper bound on the file size of $16KB$.
+
+What about a lower bound? We know that we must use the two direct blocks, one block referenced by the indirect block and at least 1 byte of a
+second block referenced by the indirect block. With this information, we can work out the lower bound to be $2*4KB+4KB+1=12KB+1B$.
+
+Note that our calculations so far have been to determine how much data the user is storing on disk. We have not
+considered the \textit{overhead} of storing this data incurred while using this filesystem. You'll notice that we use an
+indirect block to store the disk block numbers of blocks used beyond the two direct blocks. While doing our above
+calculations, we did not take this block into account while computing the filesize. This would instead be counted as the
+overhead of the file, and thus the total overhead of storing this file on disk is $sizeof(indirect\_block)=4KB)$.
+
 \subsection{Performing Reads}
 
-Performing reads tend to be pretty easy in our filesystem because our files our compact
-Let's say that we want to read the entirety of this particular file.
-What we'd start by doing is go to the inode's direct struct and find the first direct inode number. In our case it is \#7.
-Then we find the 7th data block from the \textit{start} of all data blocks.
+Performing reads tend to be pretty easy in our filesystem because our files are compact. Let's say that we want to read
+the entirety of this particular file. What we'd start by doing is go to the inode's direct struct and find the first
+direct inode number. In our case it is \#7. Then we find the 7th data block from the \textit{start} of all data blocks.
 Then we read all of those bytes.
-We do the same thing for all of the direct nodes.
-What do we do after? We go to the indirect block and read the indirect block.
-We know that every 4 bytes of the indirect block are either a sentinel node (-1) or the number of \textit{another} data block.
-In our particular example, the first four bytes evaluate to the integer 5, meaning that our data continues on the 5th datablock from the beginning.
-We do the same for data block \#4 and we stop after because we exceed the size of the inode
+We do the same thing for all of the direct nodes. What do we do after? We go to the indirect block and read the
+indirect block. We know that every 4 bytes of the indirect block are either a sentinel node (-1) or the number of
+\textit{another} data block. In our particular example, the first four bytes evaluate to the integer 5, meaning that
+our data continues on the 5th datablock from the beginning. We do the same for data block \#4 and we stop after because
+we exceed the size of the inode
 
 Now, let's think about the edge cases.
 How would you start the read starting at an arbitrary offset of $n$ bytes given that block sizes are $4 KBs$.
