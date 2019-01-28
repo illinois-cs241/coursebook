@@ -275,13 +275,13 @@ There may even be subtle forkbombs that occur when you are being careless while 
   }
 \end{lstlisting}
 
-We misspelled \keyword{ehco}, so we can't \keyword{exec} it. What does this mean? Instead of creating 10 processes we just created 2\textbf{10 processes, fork bombing our machine. How could we prevent this? Put an exit right after exec so in case exec fails we won't end up fork bombing our machine.}
+We misspelled \keyword{ehco}, so we can't \keyword{exec} it. What does this mean? Instead of creating 10 processes we just created \textbf{1024 processes, fork bombing our machine. How could we prevent this? Put an exit right after exec so in case exec fails we won't end up fork bombing our machine.}
 
 \subsection{POSIX Fork Detailings}
 
 POSIX determines what the standards of fork are. The commonly expected standards are detailed \href{https://pubs.opengroup.org/onlinepubs/009695399/functions/fork.html}{in the posix fork page} Here are a summary of what gets inherirted
 
-\begin{lstlisting}
+\begin{enumerate}
 \item Fork will return a non-negative integer on success
 \item A child will inherit any open file descriptors of the parent. That means if a parent reads a bit of the file and forks, the child will start at that offset. Any other flags are also carried over.
 \item Pending signals are not inherited. This means that if a parent has a pending signal and creates a child, the child will not receive that signal unless another process signals the child.
@@ -291,7 +291,7 @@ POSIX determines what the standards of fork are. The commonly expected standards
 \item Signal handlers are inherited but can be changed
 \item Current working directory is inherited but can be changed
 \item Environment variables are inherited but can be changed
-\end{lstlisting}
+\end{enumerate}
 
 Key differences include: 
 \begin{itemize}
@@ -327,13 +327,13 @@ First, you \textit{can} wait on a specific process, or you can pass in special v
 The last parameter to waitpid is an option parameter. The options are listed below
 
 
-\begin{lstlisting}
+\begin{enunmerate}
 \item WNOHANG - Return whether or not the searched process is exited
 \item WNOWAIT - Wait, but leave the child waitable by another wait call
 \item WEXITED - Wait for exited children
 \item WSTOPPED - Wait for stopped children
 \item WCONTINUED - Wait for continued children
-\end{lstlisting}
+\end{enunmerate}
 
 It is generally poor programming practice to use signals in program logic.
 Signals have no timeframe of delivery and no assurance that they will be deliverd.
@@ -434,11 +434,11 @@ Warning: This section uses signals which we have not yet fully introduced. The p
 \end{lstlisting}
 
 The above example however misses a couple of subtle points.
-\begin{lstlisting}
+\begin{enumerate}
 \item More than one child may have finished but the parent will only get one SIGCHLD signal (signals are not queued)
 \item SIGCHLD signals can be sent for other reasons (e.g.~a child process is temporarily stopped)
 \item It uses the depricated \keyword{signal} code
-\end{lstlisting}
+\end{enumerate}
 
 A more robust code to reap zombies is shown below.
 
@@ -530,11 +530,11 @@ There's no error checking in the above code (we assume close,open,chdir etc work
 \href{https://pubs.opengroup.org/onlinepubs/009695399/functions/exec.html}{Here is the full POSIX standard for Exec}
 What you need to know is the following bullet points (in addition to above).
 
-\begin{lstlisting}
+\begin{enumerate}
 \item File descriptors are preserved after an exec. That means if you open a file, and you forget to close it, it remains open in the child.
 This is a problem because usually the child doesn't know about those file descriptors and they take up a slot in the file descriptor table and could possible prevent other processes from accessing the file. The one exception to this is if the file descriptor has the Close Exec flag set (more on how to set that later).
-\item Various Signal semantics (don't need to worry about this yet). If you are coming back to do a re-read, exec'ed processes preserve the signal mask and the pending signal set.
-\end{lstlisting}
+\item Various signal semantics (don't need to worry about this yet). If you are coming back to do a re-read, exec'ed processes preserve the signal mask and the pending signal set.
+\end{enumerate}
 
 \subsection{Shortcuts}
 
