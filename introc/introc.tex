@@ -1502,5 +1502,41 @@ return output;
 	      What are some differences between the POSIX filedescriptor model and C's \keyword{FILE*} (ie what function calls are used and which is buffered)? Does POSIX use C's \keyword{FILE*} internally or vice versa?
 \end{itemize}
 
+\section{Rapid Fire: Pointer Arithmetic}
+
+Pointer arithmetic is really important! You need to know how many bytes each pointer is moved by with each addition. The following is a rapid fire section. We'll use the following definitions
+
+\begin{lstlisting}[language=C]
+int *int_; // sizeof(int) == 4;
+long *long_; // sizeof(long) == 8;
+char *char_;
+int *short_; //sizeof(short) == 2;
+int **int_ptr; // sizeof(int*) == 8;
+\end{lstlisting}
+
+How many bytes are moved over from the following additions?
+
+\begin{enumerate}
+\item \keyword{int_ + 1}
+\item \keyword{long_ + 7}
+\item \keyword{short_ - 6}
+\item \keyword{short_ - sizeof(long)}
+\item \keyword{long_ - sizeof(long) + sizeof(int_)}
+\item \keyword{long_ - sizeof(long) / sizeof(int)}
+\item \keyword{(char*)(int_ptr + sizeof(long)) + sizeof(int_)}
+\end{enumerate}
+
+\subsection{Rapid Fire Solutions}
+
+\begin{enumerate}
+\item 4
+\item 56
+\item -12
+\item -16
+\item 0
+\item -16
+\item 72
+\end{enumerate}
+
 \bibliographystyle{plainnat}
 \bibliography{introc/introc}
