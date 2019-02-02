@@ -85,3 +85,7 @@ latexmk.out
 # Eject Button
 
 Let's say some time in the near future someone decides that it isn't worth to keep up all this infrastructure and man hours. That is entirely fine! There is a built-in eject button that is a one step fix: delete the travis file. Builds will not trigger automatically but you can clone the wiki part of the github repository and turn it back into a good old fashioned coursebook. No maintenance required
+
+# Versioning
+
+To version the repo you should use <term><year>-num . The term-year combo are simple way of denoting that this is the version of the book for the current semester. `num` is simply an incrementer for bug fixes, or material that was already covered in lecture and just needs to be added to the book. No `num` release will introduce no material that was not introduced in lecture or is not extra.
