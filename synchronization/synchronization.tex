@@ -1223,11 +1223,41 @@ An incorrect attempt is shown below (``lock'' is a shorthand for \keyword{pthrea
 
 \subsection{Attempt \#1}\label{attempt-1}
 
+\begin{lstlisting}[language=C]
+void read() {
+  lock(&m)
+  // do read stuff
+  unlock(&m)
+}
+
+void write() {
+  lock(&m)
+  // do write stuff
+  unlock(&m)
+}
+\end{lstlisting}
+
 At least our first attempt does not suffer from data corruption (readers must wait while a writer is writing and vice versa)! However readers must also wait for other readers. So let's try another implementation..
 
 \subsection{Attempt \#2:}\label{attempt-2}
 
-Our second attempt suffers from a race condition - imagine if two threads both called \keyword{read} and \keyword{write} (or both called write) at the same time. Both threads would be able to proceed! Secondly, we can have multiple readers and multiple writers, so lets keep track of the total number of readers or writers. Which brings us to attempt \#3,
+\begin{lstlisting}[language=C]
+void read() {
+  while(writing) {/*spin*/}
+  reading = 1
+  // do read stuff
+  reading = 0
+}
+
+void write() {
+  while(reading || writing) {/*spin*/}
+  writing = 1
+  // do write stuff
+  writing = 0
+}
+\end{lstlisting}
+
+Our second attempt suffers from a race condition - imagine if two threads both called \keyword{read} and \keyword{write} (or both called write) at the same time. Both threads would be able to proceed! Secondly, we can have multiple readers and multiple writers, so lets keep track of the total number of readers or writers. Which brings us to attempt \#3.
 
 \subsection{Attempt \#3}\label{attempt-3}
 
