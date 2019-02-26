@@ -1175,7 +1175,7 @@ int remain = N;
 
 // After calc #1 code:
 remain--; // We finished
-if (remain ==0) {/*I'm last!  -  Time for everyone to wake up! */ }
+if (remain == 0) {/*I'm last!  -  Time for everyone to wake up! */ }
 else {
   while (remain != 0) { /* spin spin spin*/ }
 }
@@ -1202,7 +1202,7 @@ We will use the mutex to ensure that only one thread modifies \keyword{remain} a
 \begin{lstlisting}[language=C]
 pthread_mutex_lock(&m);
 remain--; 
-if (remain ==0) { pthread_cond_broadcast(&cv); }
+if (remain == 0) { pthread_cond_broadcast(&cv); }
 else {
   while(remain != 0) { pthread_cond_wait(&cv, &m); }
 }
