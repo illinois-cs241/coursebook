@@ -26,30 +26,28 @@ One such way is modeling the system with a resource allocation graph (\gls{RAG})
 
 \begin{lstlisting}[language=C]
 typedef struct {
-	int node_id; 
-	Graph **nodes; // List of nodes that can be reached from this node
-	int size_nodes; // Size of the List
+	int node_id; // Node in this particular graph 
+	Graph **reachable_nodes; // List of nodes that can be reached from this node
+	int size_reachable_nodes; // Size of the List
 } Graph;
 
-// isCycle traverses a graph using DFS and detects whether it has a cycle
+// isCyclic() traverses a graph using DFS and detects whether it has a cycle
+// isCyclic() uses a recursive approach
 // G points to a node in a graph, can be either a resource or a process
-// is_visited is an array indexed with node_id and initialized with zeroes to record whether a particular node has been visited
-int isCycle(Graph *G, int* is_visited) {
-	if (is_visited[G->node_id]) {
-		return 1;
-	} else {
-		is_visited[G->node_id] = 1;
-		int result = 0;
-		for (int i = 0; i < G->size_nodes; i++) {
-			result = isCycle(G->nodes[i], is_visited);
-			if (result) {
-				return 1;
-			}
-		}
+// is_visited is an array indexed with node_id and initialized with zeroes(false) to record whether a particular node has been visited
+int isCyclic(Graph *G, int* is_visited) {
+	if (this graph has been visited) { 
+		// Oh! the cycle is found
+		return true;
+	} else { 
+		1. Mark this node as visited
+		2. Traverse through all nodes in the reachable_nodes
+		3. Call isCyclic() for each nodes
+		4. Evaluate the return value of isCyclic()
 	}
-	return 0;
-}
-\end{lstlisting}
+	// Nope, this graph does not have any cicle
+	return false;
+}\end{lstlisting}
 
 \begin{center}
 \includegraphics[width=.25\textwidth]{deadlock/images/colorful.png}
