@@ -6,7 +6,8 @@
 \\But if you try sometime you find
 \\You get what you need}{The philosphers Jagger \& Richards}
 
-\gls{Deadlock} is defined as when a system cannot make and forward progress. We define a system for the rest of the chapter as a set of rules by which a set of processes can move from one state to another, where a state is either working or waiting for a particular resource. Forward progress is defined as if there is at least one process wokring or we can award a process waiting for a resource that resource. In a lot of systems, Deadlock is just avoided by ignore the entire concept \cite[P.237]{silberschatz2006operating}. Have you heard about turn it on and off again? For products where the stakes are low (User Operating Systems, Phones), it may be more efficient not prevent deadlock. But in the cases where "failure is not an option" - Apollo 13, you need a system that tracks deadlock and breaks it or better yet prevents it entirely. Apollo 13 may have not failed because of deadlock, but probably wouldn't be good to restart the system on liftoff.
+\gls{Deadlock} is defined as when a system cannot make and forward progress. We define a system for the rest of the chapter as a set of rules by which a set of processes can move from one state to another, where a state is either working or waiting for a particular resource. Forward progress is defined as if there is at least one process working or we can award a process waiting for a resource that resource. In a lot of systems, Deadlock is just avoided by ignore the entire concept \cite[P.237]{silberschatz2006operating}. Have you heard about turn it on and off again? For products where the stakes are low (User Operating Systems, Phones), it may be more efficient not prevent deadlock. But in the cases where "failure is not an option" - Apollo 13, you need a system that tracks deadlock and breaks it or better yet prevents it entirely. Apollo 13 may have not failed because of deadlock, but probably wouldn't be good to restart the system on liftoff.
+
 
 Mission critical operating systems need this guarentee formally because playing the odds with people's lives isn't a good idea. Okay so how do we do this? We model the problem. Even though it is a common statistical phrase that all models are wrong, the more accurate the model is to the system the better chance that it'll work better.
 
@@ -20,18 +21,42 @@ Mission critical operating systems need this guarentee formally because playing 
   \label{ragfigure}
 \end{wrapfigure}
 
-One such way is modeling the system with a resource allocation graph (\gls{RAG}). A resource allocation graph tracks which resource is held by which process and which process is waiting for a resource of a particular type. It is very powerful and simple tool to illustrate how interacting processes can deadlock. If a process is \emph{using} a resource, an arrow is drawn from the resource node to the process node. If a process is \emph{requesting} a resource, an arrow is drawn from the process node to the resource node. If there is a cycle in the Resource Allocation Graph and each resource in the cycle provides only one instance, then the processes will deadlock. For example, if process 1 holds resource A, process 2 holds resource B and process 1 is waiting for B and process 2 is waiting for A, then process 1 and 2 process will be deadlocked \ref{ragfigure}.
 
-\begin{wrapfigure}[12]{r}{.35\textwidth}
-  \begin{center}
+One such way is modeling the system with a resource allocation graph (\gls{RAG}). A resource allocation graph tracks which resource is held by which process and which process is waiting for a resource of a particular type. It is very powerful and simple tool to illustrate how interacting processes can deadlock. If a process is \emph{using} a resource, an arrow is drawn from the resource node to the process node. If a process is \emph{requesting} a resource, an arrow is drawn from the process node to the resource node. If there is a cycle in the Resource Allocation Graph and each resource in the cycle provides only one instance, then the processes will deadlock. For example, if process 1 holds resource A, process 2 holds resource B and process 1 is waiting for B and process 2 is waiting for A, then process 1 and 2 process will be deadlocked \ref{ragfigure}. We can detect a deadlock by traversing the graph and searching for a cycle using graph traversal algorithm, such as the Depth First Search (DFS). This graph is considered as a directed graph and we can treat both the processes and resources as nodes.  
+
+\begin{lstlisting}[language=C]
+typedef struct {
+	int node_id; // Node in this particular graph 
+	Graph **reachable_nodes; // List of nodes that can be reached from this node
+	int size_reachable_nodes; // Size of the List
+} Graph;
+
+// isCyclic() traverses a graph using DFS and detects whether it has a cycle
+// isCyclic() uses a recursive approach
+// G points to a node in a graph, can be either a resource or a process
+// is_visited is an array indexed with node_id and initialized with zeroes(false) to record whether a particular node has been visited
+int isCyclic(Graph *G, int* is_visited) {
+	if (this graph has been visited) { 
+		// Oh! the cycle is found
+		return true;
+	} else { 
+		1. Mark this node as visited
+		2. Traverse through all nodes in the reachable_nodes
+		3. Call isCyclic() for each nodes
+		4. Evaluate the return value of isCyclic()
+	}
+	// Nope, this graph does not have any cicle
+	return false;
+}\end{lstlisting}
+
+\begin{center}
 \includegraphics[width=.25\textwidth]{deadlock/images/colorful.png}
-\end{center}
   \caption{Graph based Deadlock}
-\end{wrapfigure}
-
-Assume that the processes ask for exclusive access to the file. If you have a bunch of processes running and they request resources and the operating system ends up in this state, you deadlock! You may not see this because the operating system may \textbf{preempt} some processes breaking the cycle but there is still a change that your three lonely processes could deadlock. You can also make these kind of graphs with \texttt{make} and rule dependencies with our parmake MP for example.
+\end{center}
 
 \section{Coffman conditions}
+
+Assume that the processes ask for exclusive access to the file. If you have a bunch of processes running and they request resources and the operating system ends up in this state, you deadlock! You may not see this because the operating system may \textbf{preempt} some processes breaking the cycle but there is still a change that your three lonely processes could deadlock. You can also make these kind of graphs with \texttt{make} and rule dependencies with our parmake MP for example.
 
 There are four \emph{necessary} and \emph{sufficient} conditions for deadlock -- meaning if these conditions hold then there is a non-zero probability that the system will deadlock at any given iteration. These are known as the \gls{Coffman Conditions} \cite{coffman1971system}.
 
