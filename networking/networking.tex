@@ -1277,6 +1277,84 @@ There are definitely reasons to use epoll over select but due to to interface, t
 
 \href{https://idea.popcount.org/2017-01-06-select-is-fundamentally-broken/}{Blogpost about select being broken}
 
+\subsection{Epoll Code Exploration}
+
+Below is the example code in the man pages of epoll. We'll walk through step by step to show you what the code does.
+
+\begin{lstlisting}[language=C]
+#define MAX_EVENTS 10
+
+// Epoll event structs are the way to deliver information to an epoll device
+struct epoll_event ev, events[MAX_EVENTS];
+
+// Listen sock is the incoming conn, conn_sock is the outgoing connection, nfds is number of file des
+// epollfd points to the epoll object
+int listen_sock, conn_sock, nfds, epollfd;
+
+/* Code to set up listening socket, 'listen_sock',
+  (socket(), bind(), listen()) omitted */
+// This part of the code is wrong, the size must be greater than 0
+epollfd = epoll_create1(0);
+if (epollfd == -1) {
+    perror("epoll_create1");
+    exit(EXIT_FAILURE);
+}
+
+// This file object will be `read` from (connect is technically a read operation)
+ev.events = EPOLLIN;
+ev.data.fd = listen_sock;
+
+// Add the socket in with all the other fds. Everything is a file descriptor
+if (epoll_ctl(epollfd, EPOLL_CTL_ADD, listen_sock, &ev) == -1) {
+    perror("epoll_ctl: listen_sock");
+    exit(EXIT_FAILURE);
+}
+
+for (;;) {
+    // Forever check if there is an event
+    nfds = epoll_wait(epollfd, events, MAX_EVENTS, -1);
+    if (nfds == -1) {
+        perror("epoll_wait");
+        exit(EXIT_FAILURE);
+    }
+
+    // For the number of file descriptors returned from wait
+    for (n = 0; n < nfds; ++n) {
+        // If we got our listen socket back, we have a new connection
+        if (events[n].data.fd == listen_sock) {
+            // Accept
+            conn_sock = accept(listen_sock,
+                              (struct sockaddr *) &addr, &addrlen);
+            if (conn_sock == -1) {
+                perror("accept");
+                exit(EXIT_FAILURE);
+            }
+            // Must set to non-blocking
+            setnonblocking(conn_sock);
+
+            // We will read from this file, and we only want to return once
+            // we have something to read from. We don't want to keep getting
+            // reminded if there is still data left (edge triggered)
+            ev.events = EPOLLIN | EPOLLET;
+            ev.data.fd = conn_sock;
+            if (epoll_ctl(epollfd, EPOLL_CTL_ADD, conn_sock,
+                        &ev) == -1) {
+                perror("epoll_ctl: conn_sock");
+                exit(EXIT_FAILURE);
+            }
+        } else {
+          // To make this function correct, it would have to `read` all the data
+          // from the file descriptor or epoll would never trigger
+            do_use_fd(events[n].data.fd);
+        }
+    }
+}
+
+\end{lstlisting}
+
+Please read through most of \texttt{man 7 epoll} before starting to program. There are many gotchas with epoll. Some of the more common ones will be detailed below.
+
+
 \section{Remote Procedure Calls}
 
 Remote Procedure Call.
