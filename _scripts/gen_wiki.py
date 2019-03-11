@@ -5,6 +5,7 @@ import glob
 import os
 import yaml
 import argparse
+import subprocess
 from jinja2 import Template
 import tempfile
 
@@ -87,6 +88,7 @@ def main(args):
     github_shim = 'github_redefinitions.tex'
     # 1. Convert files in the order
     print("Converting files to markdown")
+    sed_regex = r'0,/\\\[1\\\]\\\[\\\]/{//d;}'
     for files_m in files_meta:
         tex_path = files_m.tex_path
         (fd, tex_tmp_path) = tempfile.mkstemp(dir=tmp_dir)
@@ -98,6 +100,7 @@ def main(args):
         command = 'pandoc --toc --self-contained -f latex -t markdown_github -s --filter _scripts/pandoc_wiki_filter.py {} -o {} '.format(tex_tmp_path, md_path)
         print(command)
         os.system(command)
+        subprocess.check_call(['sed', '-i', sed_regex, md_path])
 
     # 3. Generate Home Page
     gen_home_page(files_meta, out_file)
