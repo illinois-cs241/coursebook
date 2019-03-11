@@ -89,13 +89,13 @@ VirtualAddress = 11110000111111110000000010101010 (binary)
  Thus the total memory overhead for our multi-level page table has shrunk from 4MB (for the single level implementation) to 3 frames of memory (12KB) ! Here's why: We need at least one frame for the high level directory and two frames for just two sub-tables. One sub-table is necessary for the low addresses (program code, constants and possibly a tiny heap), the other sub-table is for higher addresses used by the environment and stack. In practice, real programs will likely need more sub-table entries, as each subtable can only reference 1024*4KB = 4MB of address space but the main point still stands - we have significantly reduced the memory overhead required to perform page table look ups.
 
 \subsection{Page Table Disadvantages}
- Yes - Significantly ! (But thanks to clever hardware, usually no\ldots{}) Compared to reading or writing memory directly. For a single page table, our machine is now twice as slow! (Two memory accesses are required) For a two-level page table, memory access is now three times as slow. (Three memory accesses are required)
+There are lots of problems with page tables -- one of the big problems is that they are slow. For a single page table, our machine is now twice as slow! Two memory accesses are required. For a two-level page table, memory access is now three times as slow -- three memory accesses are required.
 
- To overcome this overhead, the MMU includes an associative cache of recently-used virtual-page-to-frame lookups. This cache is called the TLB (``translation lookaside buffer''). Everytime a virtual address needs to be translated into a physical memory location, the TLB is queried in parallel to the page table. For most memory accesses of most programs, there is a significant chance that the TLB has cached the results. However if a program does not have good cache coherence (for example is reading from random memory locations of many different pages) then the TLB will not have the result cache and now the MMU must use the much slower page table to determine the physical frame.
+To overcome this overhead, the MMU includes an associative cache of recently-used virtual-page-to-frame lookups. This cache is called the TLB (``translation lookaside buffer''). Everytime a virtual address needs to be translated into a physical memory location, the TLB is queried in parallel to the page table. For most memory accesses of most programs, there is a significant chance that the TLB has cached the results. However if a program does not have good cache coherence (for example is reading from random memory locations of many different pages) then the TLB will not have the result cache and now the MMU must use the much slower page table to determine the physical frame.
 
-\begin{wrapfig}
-% \includegraphics{ipc/images/440px-X86_Paging_4K.png}
-\end{wrapfig}
+\begin{center}
+\includegraphics[width=\textwidth]{ipc/images/440px-X86_Paging_4K.png}
+\end{center}
 
 This may be how one splits up a multi level page table.
 
@@ -127,6 +127,16 @@ The execution bit defines whether bytes in a page can be executed as CPU instruc
  \item \textbf{Invalid} When you try to write to a non-writable memory address or read to a non-readable memory address. The MMU generates an invalid fault and the OS will usually generate a \keyword{SIGSEGV} meaning segmentation violation meaning that you wrote outside the segment that you could write to.
 \end{enumerate}
 
+\subsection{What does this have to do with IPC?}
+
+What does this have to do with IPC?
+Well internally before this point in your programming career you knew that processes had isolation.
+But, you one didn't really know how that isolation mapped.
+Two, you may've not know how you can break this isolation.
+To break any memory level isolation you have two avenues.
+One is to ask the kernel to provide some kind of interface.
+The other is to ask the kernel to map two pages of memory to the same virtual memory area, and handle all the synchronization yourself.
+
 \section{Pipes}
 
 Inter process communication is any way for one process to talk to another process. You've already seen one form of this virtual memory! A piece of virtual memory can be shared between parent and child, leading to communication. You may want to wrap that memory in \keyword{pthread\_mutexattr\_setpshared(\&attrmutex,\ PTHREAD\_PROCESS\_SHARED);} mutex (or a process wide mutex) to prevent race conditions. There are more standard ways of IPC, like pipes! Consider if you type the following into your terminal.
@@ -156,7 +166,9 @@ if (child > 0) { /* I must be the parent */
 }
 \end{lstlisting}
 
-One can use pipes inside of the same process, but there tends to be no added benefit. Here's an example program that sends a message to itself:
+There are two file descriptors that pipe creates. \texttt{filedes[0]} contains the read end. \texttt{filedes[1]} contains the write end. How your friendly neighborhood TA Bhuvan remembered it is you have to \textit{read before you can write, or reading comes before writing}. You can groan all you want at it, but it is helpful to remember what is the read end and what is the write end.
+
+One can use pipes inside of the same process, but there tends to be no added benefit. Here's an example program that sends a message to itself.
 
 \begin{lstlisting}[language=C]
 #include <unistd.h>
@@ -182,7 +194,7 @@ int main() {
 }
 \end{lstlisting}
 
-The problem with using a pipe in this fashion is that writing to a pipe can block meaning the pipe only has a limited buffering capacity. If the pipe is full the writing process will block! The maximum size of the buffer is system dependent; typical values from 4KB upto 128KB.
+The problem with using a pipe in this fashion is that writing to a pipe can block meaning the pipe only has a limited buffering capacity. If the pipe is full, the writing process will block! The maximum size of the buffer is system dependent; typical values from 4KB upto 128KB.
 
 \begin{lstlisting}[language=C]
 int main() {
@@ -297,8 +309,83 @@ int main() {
 The mistake in above code is that there is still a reader for the pipe! The child still has the pipe's first file descriptor open and remember the specification? All readers must be closed 
 
 When forking, \emph{It is common practice} to close the unnecessary (unused) end of each pipe in the child and parent process. For example the parent might close the reading end and the child might close the writing end (and vice versa if you have two pipes)
+\subsection{Other pipe facts}
 
-\subsection{Why is my pipe hanging?}\label{why-is-my-pipe-hanging}
+A pipe gets filled up when the writer writes too much to the pipe without the reader reading any of it. When the pipes become full, all writes fail until a read occurs. Even then, a write may partial fail if the pipe has a little bit of space left but not enough for the entire message. To avoid this, usually two things are done. Either increase the size of the pipe. Or more commonly, fix your program design so that the pipe is constantly being read from.
+
+As hinted at before, Pipe write are atomic up to the size of the pipe. Meaning that if two processes try to write to the same pipe, the kernel has internal mutexes with the pipe that it will lock, do the write, and return. The only gotcha is when the pipe is about to become full. If two processes are trying to write and the pipe can only satisfy a partial write, that pipe write is not atomic -- be careful about that!
+
+Unnamed pipes live in memory and are a simple and efficient form of inter-process communication (IPC) that is useful for streaming data and simple messages. Once all processes have closed, the pipe resources are freed.
+
+It is also common design for a pipe to be one way -- meaning one process should do the writing and one process do the reading. Otherwise the child would attempt to read its own data intended for the parent (and vice versa)!
+
+\subsection{Pipe Conveniences}
+
+POSIX file descriptors are simple integers 0,1,2,3\ldots{} At the C library level, C wraps these with a buffer and useful functions like printf and scanf, so we that we can easily print or parse integers, strings etc. If you already have a file descriptor then you can `wrap' it yourself into a FILE pointer using \keyword{fdopen} :
+
+\begin{lstlisting}[language=C]
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+
+int main() {
+    char *name="Fred";
+    int score = 123;
+    int filedes = open("mydata.txt", "w", O_CREAT, S_IWUSR | S_IRUSR);
+
+    FILE *f = fdopen(filedes, "w");
+    fprintf(f, "Name:%s Score:%d\n", name, score);
+    fclose(f);
+\end{lstlisting}
+
+For writing to files this is unnecessary - just use \keyword{fopen} which does the same as \keyword{open} and \keyword{fdopen} However for pipes, we already have a file descriptor - so this is great time to use \keyword{fdopen} 
+
+Here's a complete example using pipes that almost works! Can you spot the error? Hint: The parent never prints anything!
+
+\begin{lstlisting}[language=C]
+#include <unistd.h>
+#include <stdlib.h>
+#include <stdio.h>
+
+int main() {
+    int fh[2];
+    pipe(fh);
+    FILE *reader = fdopen(fh[0], "r");
+    FILE *writer = fdopen(fh[1], "w");
+    pid_t p = fork();
+    if (p > 0) {
+        int score;
+        fscanf(reader, "Score %d", &score);
+        printf("The child says the score is %d\n", score);
+    } else {
+        fprintf(writer, "Score %d", 10 + 10);
+        fflush(writer);
+    }
+    return 0;
+}
+\end{lstlisting}
+
+Note the unnamed pipe resource will disappear once both the child and parent have exited. In the above example the child will send the bytes and the parent will receive the bytes from the pipe. However, no end-of-line character is ever sent, so \keyword{fscanf} will continue to ask for bytes because it is waiting for the end of the line i.e.~it will wait forever! The fix is to ensure we send a newline character, so that \keyword{fscanf} will return.
+
+\begin{lstlisting}[language=C]
+change:   fprintf(writer, "Score %d", 10 + 10);
+to:       fprintf(writer, "Score %d\n", 10 + 10);
+\end{lstlisting}
+
+If you want your bytes to be sent to the pipe immediately, you'll need to fflush! At the beginning of this course we assumed that file streams are always \emph{line buffered} i.e.~the C library will flush its buffer everytime you send a newline character. Actually this is only true for terminal streams - for other filestreams the C library attempts to improve performance by only flushing when it's internal buffer is full or the file is closed.
+
+
+\section{Named Pipes}\label{named-pipes}
+
+\subsection{How do I create named pipes?}\label{how-do-i-create-named-pipes}
+
+An alternative to \emph{unamed} pipes is \emph{named} pipes created using \keyword{mkfifo}. From the command line: \keyword{mkfifo} From C: \keyword{int\ mkfifo(const\ char\ *pathname,\ mode\_t\ mode);}
+
+You give it the path name and the operation mode, it will be ready to go! Named pipes take up no space on the disk. What the operating system is essentially telling you when you have a named pipe is that it will create an unnamed pipe that refers to the named pipe, and that's it! There is no additional magic. This is just for programming convenience if processes are started without forking (meaning that there would be no way to get the file descriptor to the child process for an unnamed pipe)
+
+\subsection{Why is my pipe hanging?}
+
+A named pipe \texttt{mkfifo} is simply a pipe that you call \texttt{open(2)} on with read and/or write permissions. This is useful if you want to have a pipe between two processes without one processing having to fork the other process. There are some gotchas with named pipes. There is more down below, but we'll introduce it here for a simple example.
 
 Reads and writes hang on Named Pipes until there is at least one reader and one writer, take this
 
@@ -352,94 +439,11 @@ This may never print hello because of a race condition. Since you opened the pip
 \item Process 2: open(O\_RDONLY) (Blocks indefinitely) 
 \end{enumerate}
 
-\subsection{What is filling up the pipe? What happens when the pipe
-becomes
-full?}\label{what-is-filling-up-the-pipe-what-happens-when-the-pipe-becomes-full}
- A pipe gets filled up when the writer writes too much to the pipe without the reader reading any of it. When the pipes become full, all writes fail until a read occurs. Even then, a write may partial fail if the pipe has a little bit of space left but not enough for the entire message 
-
- To avoid this, usually two things are done. Either increase the size of the pipe. Or more commonly, fix your program design so that the pipe is constantly being read from.
-
-\subsection{Are pipes process safe?}\label{are-pipes-process-safe}
-
- Yes! Pipe write are atomic up to the size of the pipe. Meaning that if two processes try to write to the same pipe, the kernel has internal mutexes with the pipe that it will lock, do the write, and return. The only gotcha is when the pipe is about to become full. If two processes are trying to write and the pipe can only satisfy a partial write, that pipe write is not atomic -- be careful about that!
-
-\subsection{The lifetime of pipes}\label{the-lifetime-of-pipes}
- Unnamed pipes (the kind we've seen up to this point) live in memory (do not take up any disk space) and are a simple and efficient form of inter-process communication (IPC) that is useful for streaming data and simple messages. Once all processes have closed, the pipe resources are freed.
 
 
-\subsection{Want to use pipes with printf and scanf? Use fdopen!}
+\section{Files}
 
- POSIX file descriptors are simple integers 0,1,2,3\ldots{} At the C library level, C wraps these with a buffer and useful functions like printf and scanf, so we that we can easily print or parse integers, strings etc. If you already have a file descriptor then you can `wrap' it yourself into a FILE pointer using \keyword{fdopen} :
-
-\begin{lstlisting}[language=C]
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <fcntl.h>
-
-int main() {
-    char *name="Fred";
-    int score = 123;
-    int filedes = open("mydata.txt", "w", O_CREAT, S_IWUSR | S_IRUSR);
-
-    FILE *f = fdopen(filedes, "w");
-    fprintf(f, "Name:%s Score:%d\n", name, score);
-    fclose(f);
-\end{lstlisting}
-
-For writing to files this is unnecessary - just use \keyword{fopen} which does the same as \keyword{open} and \keyword{fdopen} However for pipes, we already have a file descriptor - so this is great time to use \keyword{fdopen} 
-
-Here's a complete example using pipes that almost works! Can you spot the error? Hint: The parent never prints anything!
-
-\begin{lstlisting}[language=C]
-#include <unistd.h>
-#include <stdlib.h>
-#include <stdio.h>
-
-int main() {
-    int fh[2];
-    pipe(fh);
-    FILE *reader = fdopen(fh[0], "r");
-    FILE *writer = fdopen(fh[1], "w");
-    pid_t p = fork();
-    if (p > 0) {
-        int score;
-        fscanf(reader, "Score %d", &score);
-        printf("The child says the score is %d\n", score);
-    } else {
-        fprintf(writer, "Score %d", 10 + 10);
-        fflush(writer);
-    }
-    return 0;
-}
-\end{lstlisting}
-
-Note the unnamed pipe resource will disappear once both the child and parent have exited. In the above example the child will send the bytes and the parent will receive the bytes from the pipe. However, no end-of-line character is ever sent, so \keyword{fscanf} will continue to ask for bytes because it is waiting for the end of the line i.e.~it will wait forever! The fix is to ensure we send a newline character, so that \keyword{fscanf} will return.
-
-\begin{lstlisting}[language=C]
-change:   fprintf(writer, "Score %d", 10 + 10);
-to:       fprintf(writer, "Score %d\n", 10 + 10);
-\end{lstlisting}
-
-If you want your bytes to be sent to the pipe immediately, you'll need to fflush! At the beginning of this course we assumed that file streams are always \emph{line buffered} i.e.~the C library will flush its buffer everytime you send a newline character. Actually this is only true for terminal streams - for other filestreams the C library attempts to improve performance by only flushing when it's internal buffer is full or the file is closed.
-
-\subsection{When do I need two pipes?}
-
-If you need to send data to and from a child asynchronously, then two pipes are required (one for each direction). Otherwise the child would attempt to read its own data intended for the parent (and vice versa)!
-
-\section{Named Pipes}\label{named-pipes}
-
-\subsection{How do I create named pipes?}\label{how-do-i-create-named-pipes}
-
-An alternative to \emph{unamed} pipes is \emph{named} pipes created using \keyword{mkfifo}.
-
-From the command line: \keyword{mkfifo} From C: \keyword{int\ mkfifo(const\ char\ *pathname,\ mode\_t\ mode);}
-
-You give it the path name and the operation mode, it will be ready to go! Named pipes take up no space on the disk. What the operating system is essentially telling you when you have a named pipe is that it will create an unnamed pipe that refers to the named pipe, and that's it! There is no additional magic. This is just for programming convenience if processes are started without forking (meaning that there would be no way to get the file descriptor to the child process for an unnamed pipe)
-
-
-\subsection{Two types of files}
-
- On linux, there are two abstractions with files. The first is the linux \keyword{fd} level abstraction.
+On linux, there are two abstractions with files. The first is the linux \keyword{fd} level abstraction.
 
  \begin{itemize}
 \item \keyword{open} takes a path to a file and creates a file descriptor entry in the process table. If the file is not available to you, it errors out.
@@ -451,29 +455,27 @@ You give it the path name and the operation mode, it will be ready to go! Named 
 \item \ldots{}
  \end{itemize}
 
- And so on. The linux interface is very powerful and expressive, but sometimes we need portability (for example if we are writing for a mac or windows). This is where C's abstraction comes into play. On different operating systems, C uses the low level functions to create a wrapper around files you can use everywhere, meaning that C on linux uses the above calls.
+And so on. The linux interface is very powerful and expressive, but sometimes we need portability (for example if we are writing for a mac or windows). This is where C's abstraction comes into play. On different operating systems, C uses the low level functions to create a wrapper around files you can use everywhere, meaning that C on linux uses the above calls.
 
 \begin{itemize}
 \item \keyword{fopen} opens a file and returns an object. \keyword{null} is returned if you don't have permission for the file.
 \item \keyword{fread} reads a certain number of bytes from a file. An error is returned if already at the end of file when which you must call \keyword{feof()} in order to check.
-\item \keyword{fgetc/fgets}
-\item \keyword{fscanf} 
-\item \keyword{fwrite} 
-\item \keyword{fprintf} 
-\item \keyword{fclose} 
-\item \keyword{fflush}
+\item \keyword{fgetc/fgets} Get a char or a string from a file
+\item \keyword{fscanf} Read a format string from the file
+\item \keyword{fwrite} Write some objects to a file
+\item \keyword{fprintf} Write a formatted string to a file
+\item \keyword{fclose} Close a file handle
+\item \keyword{fflush} Take any buffered changes and flush them to a file
 \end{itemize}
 
- But you don't get the expressiveness that linux gives you with system calls you can convert back and forth between them with \keyword{int\ fileno(FILE*\ stream)} and \keyword{FILE*\ fdopen(int\ fd...)} 
+But you don't get the expressiveness that linux gives you with system calls you can convert back and forth between them with \keyword{int\ fileno(FILE*\ stream)} and \keyword{FILE*\ fdopen(int\ fd...)} Another important aspect to note is the C files are \textbf{buffered} meaning that their contents may not be written right away by default. You can can change that with C options.
 
- Another important aspect to note is the C files are \textbf{buffered} meaning that their contents may not be written right away by default. You can can change that with C options.
+\textbf{Danger} With portability you lose something important, the ability to tell an error. Take for example the advice that we gave you above. You can \texttt{fopen} a file descriptor and get a \texttt{FILE*} object but \textbf{it won't be the same as a file} meaning that certain calls will fail or act weirdly. The C API reduces this weirdness, but for example you cannot \keyword{fseek} to a part of the file, or perform any operations with its buffering. The problem is the API won't give a lot of warning because C needs to maintain compatability with other operating systems. To keep things simple for you, use the C API of files when you are dealing with a file on disk, which will work fine. Otherwise, be in for a rough ride for portability sake.
 
-\subsection{How do I tell how large a file is?}\label{how-do-i-tell-how-large-a-file-is}
+\subsection{How do I tell how large a file is?}
 
 For files less than the size of a long, using fseek and ftell is a
-simple way to accomplish this:
-
-Move to the end of the file and find out the current position.
+simple way to accomplish this. Move to the end of the file and find out the current position.
 
 \begin{lstlisting}[language=C]
 fseek(f, 0, SEEK_END);
@@ -498,7 +500,7 @@ See the man pages for fseek and ftell for more information.
 
 \subsection{But try not to do this}
 
-\textbf{Note: This is not recommended in the usual case because of a quirk with the C language}. That quirk is that longs only need to be \textbf{4 Bytes big} meaning that the maximum size that \keyword{ftell} can return is a little under 2 Gigabytes (which we know nowadays our files could be hundreds of gigabytes or even terabytes on a distributed file system). What should we do instead? Use \keyword{stat}! We will cover stat in a later part but here is some code that will tell you the size of the file
+\textbf{Note: This is not recommended in the usual case because of a quirk with the C language}. That quirk is that longs only need to be \textbf{4 Bytes big} meaning that the maximum size that \keyword{ftell} can return is a little under 2 Gigabytes which we know nowadays our files could be hundreds of gigabytes or even terabytes on a distributed file system. What should we do instead? Use \keyword{stat}! We will cover stat in a later part but here is some code that will tell you the size of the file
 
 \begin{lstlisting}[language=C]
 struct stat buf;
@@ -510,11 +512,11 @@ return (ssize_t)buf.st_size;
 
 \keyword{buf.st\_size} is of type \keyword{off\_t} which is big enough for large files.
 
-\subsection{What happens if a child process closes a filestream using fclose or close?}
+\subsection{Gotchas with files}
 
-Closing a file stream is unique to each process. Other processes can continue to use their own file-handle. Remember, everything is copied over when a child is created, even the relative positions of the files.
+What happens when file streams are closed by two different processes? Closing a file stream is unique to each process. Other processes can continue to use their own file-handle. Remember, everything is copied over when a child is created, even the relative positions of the files. As you might have observed with using \texttt{fork}, there is a quirk of the implementation of files and their caches on Ubuntu that will rewind a file descriptor once a file has closed. As such, make sure to close before forking or at least don't trigger a cache inconsistency which is much harder.
 
-\subsection{How about mmap for files?}\label{how-about-mmap-for-files}
+\section{mmap}
 
 One of the general uses for mmap is to map a file to memory. This does not mean that the file is malloc'ed to memory right away. Take the following code for example.
 
@@ -524,11 +526,168 @@ char* addr = mmap(..fd..);
 addr[0] = 'l';
 \end{lstlisting}
 
- The kernel may say, ``okay I see that you want to mmap the file into memory, so I'll reserve some space in your address space that is the length of the file''. That means when you write to addr{[}0{]} that you are actually writing to the first byte of the file. The kernel can actually do some optimizations too. Instead of loading the file into memory, it may only load pages at a time because if the file is 1024 pages; you may only access 3 or 4 pages making loading the entire file a waste of time. That is why page faults are so powerful! They let the operating system take control of how much you use your files.
+The kernel may say, ``okay I see that you want to mmap the file into memory, so I'll reserve some space in your address space that is the length of the file''. That means when you write to addr{[}0{]} that you are actually writing to the first byte of the file. The kernel can actually do some optimizations too. Instead of loading the file into memory, it may only load pages at a time because if the file is 1024 pages; you may only access 3 or 4 pages making loading the entire file a waste of time. That is why page faults are so powerful! They let the operating system take control of how much you use your files.
 
-\subsection{For every mmap}
+\subsection{mmap gotchas}
 
  Remember that once you are done \keyword{mmap}ping that you \keyword{munmap} to tell the operating system that you are no longer using the pages allocated, so the OS can write it back to disk and give you the addresses back in case you need to malloc later.
+
+ \subsection{Annotated Walk Through}
+
+ Below is an annotated walk through of the example code in the man pages
+
+ \begin{lstlisting}[language=C]
+#include <sys/mman.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+
+#define handle_error(msg) \
+    do { perror(msg); exit(EXIT_FAILURE); } while (0)
+
+int
+main(int argc, char *argv[])
+{
+    // Various variables that we'll talk about as the code goes through
+    char *addr;
+    int fd;
+    struct stat sb;
+    off_t offset, pa_offset;
+    size_t length;
+    ssize_t s;
+
+    if (argc < 3 || argc > 4) {
+        fprintf(stderr, "%s file offset [length]\n", argv[0]);
+        exit(EXIT_FAILURE);
+    }
+
+    // Open the file and get the size of the file
+    fd = open(argv[1], O_RDONLY);
+    if (fd == -1)
+        handle_error("open");
+
+    if (fstat(fd, &sb) == -1)           /* To obtain file size */
+        handle_error("fstat");
+
+    // Grab where the user wants to start the file from
+    offset = atoi(argv[2]);
+
+    // Zeros off the bottom N bits of a page (usually 12)
+    // mmap works based off of pages so we want to get
+    // The first page the user wants
+    pa_offset = offset & ~(sysconf(_SC_PAGE_SIZE) - 1);
+        /* offset for mmap() must be page aligned */
+
+    if (offset >= sb.st_size) {
+        fprintf(stderr, "offset is past end of file\n");
+        exit(EXIT_FAILURE);
+    }
+
+    if (argc == 4) {
+        length = atoi(argv[3]);
+        if (offset + length > sb.st_size)
+            length = sb.st_size - offset;
+                /* Can't display bytes past end of file */
+
+    } else {    /* No length arg ==> display to end of file */
+        length = sb.st_size - offset;
+    }
+
+    /*
+    Here are the arguments for MMAP
+    1. NULL, this tells mmap we don't need any particular address to start from
+    2. length + offset - pa_offset, mmaps the ``rest'' of the file into memory (starting form offset)
+    3. PROT_READ, we want to read the file
+    4. MAP_PRIVATE, tell the OS, we don't want to share our mapping
+    5. fd, object descriptor that we refer to
+    6. pa_offset, the page aligned offset to start from
+    */
+    addr = mmap(NULL, length + offset - pa_offset, PROT_READ,
+                MAP_PRIVATE, fd, pa_offset);
+    if (addr == MAP_FAILED)
+        handle_error("mmap");
+
+    // Write the file as if a normal buffer
+    s = write(STDOUT_FILENO, addr + offset - pa_offset, length);
+    if (s != length) {
+        if (s == -1)
+            handle_error("write");
+
+        fprintf(stderr, "partial write");
+        exit(EXIT_FAILURE);
+    }
+
+    // This is important! You must mmap the memory out
+    munmap(addr, length + offset - pa_offset);
+
+    // This is also important, tells the OS that any fd level changes need to be addressed
+    close(fd);
+
+    exit(EXIT_SUCCESS);
+}
+ \end{lstlisting}
+
+\section{So what now?}
+
+Okay so now you have a list of tools in your toolbox in order to tackle communicating between processes, so what should you use?
+
+There really is no hard answer, though this is the most interesting question. Generally we have retained pipes for legacy reasons. This means that we only really use them to redirect stdin, stdout, and stderr for the collection of logs and similar programs. You may find processes trying to communicate with unnamed or named pipes as well. Most of the time you won't be dealing with this interaction directly though.
+
+Files are used almost all the time as a form of IPC. Hadoop is a great example where processes will write to append only tables and then other processes will read from those tables. We generally use files under a few cases. One case is if we want to save the intermediate results of an operation to a file for future use. Another case is if putting it in memory would cause an out of memory error. On linux, file operations are generally pretty cheap, so most programmers use it as a larger intermediate storage.
+
+mmap is used for two scenarios. One is a \texttt{linear} or \texttt{near-linear} read through of the file. Meaning, you read the file front to back or back to front. The key is that you don't jump around too much. Jumping around too much causes thrashing and loses all the benefits of using mmap. The other case of mmap is a direct memory inter-process communication. This means that you can store structures in a piece of mmap'ed memory and share them between two processes. Python and ruby use this mapping all the time to utilize copy on write semantics.
+
+\section{Topics}
+
+\begin{enumerate}
+  \item Virtual Memory
+  \item Page Table
+  \item MMU/TLB
+  \item Address Translation
+  \item Page Faults
+  \item Frames/Pages
+  \item Single level vs multi level page table
+  \item Calculating offsets for multi-level page table
+  \item Pipes
+  \item Pipe read write ends
+  \item Writing to a zero reader pipe
+  \item Reading from a zero writer pipe
+  \item Named pipe and Unnamed Pipes
+  \item Buffer Size/Atomicity
+  \item Scheduling Algorithms
+  \item Measures of Efficiency
+\end{enumerate}
+
+\section{Questions}
+
+\begin{enumerate}
+\item What is virtual memory?
+\item What are the following and what is their purpose?
+  \begin{enumerate}
+    \item Translation Lookaside Buffer
+    \item Physical Address
+    \item Memory Management Unit. Multilevel page table. Frame number. Page number and page offset.
+    \item The dirty bit
+    \item The NX Bit
+  \end{enumerate}
+\item What is a page table? How about a physical frame? Does a page always need to point to a physical frame?
+\item What is a page fault? What are the types? When does it result in a segfault?
+\item What are the advantages to a single level page table? Disadvantages? How about a multi leveled table?
+\item What does a multi leveled table look like in memory?
+\item How do you determine how many bits are used in the page offset?
+\item Given a 64 bit address space, 4kb pages and frames, and a 3 level page table, how many bits is the Virtual page number 1, VPN2, VPN3 and the offset?
+\item What is a pipe? How do I create a pipe?
+\item When is SIGPIPE delivered to a process?
+\item Under what conditions will calling read() on a pipe block? Under what conditions will read() immediately return 0
+\item What is the difference between a named pipe and an unnamed pipe?
+\item Is a pipe thread safe?
+\item Write a function that uses fseek and ftell to replace the middle character of a file with an 'X'
+\item Write a function that create a pipe and uses write to send 5 bytes, "HELLO" to the pipe. Return the read file descriptor of the pipe.
+\item What happens when you mmap a file?
+\item Why is getting the file size with ftell not recommended? How should you do it instead?
+\end{enumerate}
 
 \bibliographystyle{plainnat}
 \bibliography{ipc/ipc}
