@@ -401,6 +401,12 @@ Otherwise the displayed or specified value may be incorrect.
 This doesn't apply to protocols that negotiate the endianness before-hand.
 If two computers are CPU bound by converting the messages between network orders -- this happens with JSON parsing all the time in high performance systems -- it may be worth it to negotiate if they are on similar endians to send in little endian order.
 
+Why is network order defined to be big endian? The simple answer is that \link{https://tools.ietf.org/html/rfc1700} RFC1700 says so.
+If you want more information, we'll cite the famous article located \link{https://www.ietf.org/rfc/ien/ien137.txt} that argued for a particular version.
+The most important part is that it is standard.
+What happens when we don't have one standard? We have 4 different USB standards that don't interact well with each other.
+Obviously include relevant XKCD here.
+
 \subsection{TCP Client}
 
 There are three basic system calls you need to connect to a remote machine:
