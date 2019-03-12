@@ -58,7 +58,7 @@ These structures all are presented in the diagram below.
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=.8\textwidth]{filesystems/images/disk.gif}
-\caption{}
+\caption{Disk block diagram}
 \end{figure}
 
 It may seem overwhelming, but by the end of this chapter, we will be able to make sense of every part of the filesystem.
@@ -85,7 +85,7 @@ The inode is the most important structure for our filesystem as it represents a 
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=.8\textwidth]{filesystems/images/inode_with_signatures.jpg}
-\caption{}
+\caption{Inode with contents}
 \end{figure}
 
 From \href{http://en.wikipedia.org/wiki/Inode}{Wikipedia}:
@@ -764,7 +764,7 @@ RAID-3 uses parity codes instead of mirroring the data. For each N-bits written 
 \begin{figure}[htbp]
 \centering
 \includegraphics{filesystems/images/raid.gif}
-\caption{}
+\caption{Raid diagram}
 \end{figure}
 
 One disadvantage of RAID-3 is that whenever a disk block is written, the parity block will always be written too. This means that there is effectively a bottleneck in a separate disk. In practice, this is more likely to cause a failure because one disk is being used 100\% of the time and once that disk fails then the other disks are more prone to failure.
@@ -788,7 +788,7 @@ RAID-5 is similar to RAID-3 except that the check block (parity information) is 
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=.8\textwidth]{filesystems/images/raid_5.png}
-\caption{}
+\caption{Raid 5 striping}
 \end{figure}
 
 Failure is the common case. Google reports 2-10\% of disks fail per year Now multiply that by 60,000+ disks in a single warehouse\ldots{} Must survive failure of not just a disk, but a rack of servers or a whole data center
@@ -821,6 +821,7 @@ indicies into an array.
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=.8\textwidth]{filesystems/images/sample_file.png}
+\caption{Sample file filling up}
 \end{figure}
 
 We will assume that a data block is 4 KB.

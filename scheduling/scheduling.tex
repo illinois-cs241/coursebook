@@ -8,12 +8,28 @@ Can't even say "Good-bye", hello\\
 I'm late, I'm late, I'm late\\
 No, no, no, no, no, no, no!}{Alice in Wonderland}
 
-
 CPU Scheduling is the problem of efficiently selecting which process to run on a system's CPU cores. In a busy system, there will be more ready-to-run processes than there are CPU cores, so the system kernel must evaluate which processes should be scheduled to run and which processes should be executed later. The system must also decide whether or not it should take a particular process and pause its execution -- along with any associated threads. The balance comes from stopping processes often enough where you have a responsive computer but infrequently enough where the programs themselves are not spending a lot of cycles context switching. It is a hard balance it get right.
 
 The additional complexity of multi-threaded and multiple CPU cores are considered a distraction to this initial exposition so are ignored here. Another gotcha for non-native speakers is the dual meanings of ``Time'': The word ``Time'' can be used in both clock and elapsed duration context. For example ``The arrival time of the first process was 9:00am.'' and, ``The running time of the algorithm is 3 seconds''.
 
 One clarification that we will make is that our scheduling will mainly deal with short term or cpu scheduling. That means we will assume that the processes are in memory and ready to go. The other types of scheduling are long and medium term. Long term schedulers act as gatekeepers to the processing world. When a process requests another process to be executed, it can either tell tell the process yes, no, or wait. The medium term scheduler deals with the caveats of moving a process from the paused state in memory to the paused state on disk when there are too many processes or some process are known not to be used for a significant amount of CPU cycles (think about a process that only checks something once an hour).
+
+
+\section{High Level Scheduler Overview}
+
+Schedulers are pieces of software programs. In fact, you can implement schedulers yourself! If you are given a list of commands to exec, you can run them with SIGSTOP and SIGCONT. These are called user space schedulers. Hadoop and python's celery may do some sort of user space scheduling or deal with the operating system.
+
+At the operating system you generally have this type of flowchart, described in words first below. Note, please don't memorize all the states.
+
+\begin{enumerate}
+\item New is the initial state. A process has just been requested to schedule. All process requests come from fork or clone. At this point the operating system knows it needs to create a new process.
+\item A process moves from the new state to the ready. This means any structs in the kernel are allocated an there are only a few low latency steps (by comparison) needed to perform a context process switch. From there it can go into ready suspended or running.
+\item Running is the state that we hope most of our processes are in, meaning they are doing useful work. A process could either get pre-empted, blocked, or terminate. Pre-emption brings the process back to the ready state. If a process is blocked, that means it could be waiting on a mutex lock, or it could've called sleep -- either way it willingly gave up control.
+\item On the blocked state the operating system can either turn the process ready or it can go into a deeper state called blocked suspended.
+\item There are so-called deep slumber states called blocked suspended and blocked ready. You don't need to worry about these.
+\end{enumerate}
+
+The reason that we mention this even though you don't need to memorize the transitions is it's important to know that scheduling is much more about the measures below -- in fact the content below is more related to queueing theory than it is to scheduling as a whole. This means that we will try to pick a scheme that decides when a process should move to the running state, and when it should be moved back to the ready state. We won't make much mention of how to factor in voluntary blocked states and when to switch to deep slumber states.
 
 \section{Measurements}
 
@@ -25,9 +41,7 @@ Without preemption processes will run until they are unable to utilize the CPU a
 
 With preemption, the existing processes may be removed immediately if a more preferable process is added to the ready queue. For example, suppose at t=0 with a Shortest Job First scheduler there are two processes (P1 P2) with 10 and 20 ms execution times. P1 is scheduled. P1 immediately creates a new process P3, with execution time of 5 ms, which is added to the ready queue. Without preemption, P3 will run 10ms later (after P1 has completed). With preemption, P1 will be immediately evicted from the CPU and instead placed back in the ready queue, and P3 will be executed instead by the CPU.
 
-\subsection{Which schedulers suffer from starvation?}
-
-Any scheduler that uses a form of prioritization can result in starvation because earlier processes may never be scheduled to run (assigned a CPU). For example with SJF, longer jobs may never be scheduled if the system continues to have many short jobs to schedule. It all depends on the \href{https://en.wikipedia.org/wiki/Scheduling_(computing)\#Types_of_operating_system_schedulers}{type of scheduler}.
+Any scheduler that doesn't use some form of pre-emption can result in starvation because earlier processes may never be scheduled to run (assigned a CPU). For example with SJF, longer jobs may never be scheduled if the system continues to have many short jobs to schedule. It all depends on the \href{https://en.wikipedia.org/wiki/Scheduling_(computing)\#Types_of_operating_system_schedulers}{type of scheduler}.
 
 \subsection{Why might a process (or thread) be placed on the ready queue?}
 
@@ -40,7 +54,6 @@ A process is placed on the ready queue when it is able to use a CPU. Some exampl
 \item A process thread was blocked on a synchronization primitive (condition variable, semaphore, mutex lock) but is now able to continue. 
 \item A process is blocked waiting for a system call to complete but a signal has been delivered and the signal handler needs to run.
 \end{itemize}
-Similar examples can be generated when considering threads.
 
 \section{Measures of Efficiency}
 
@@ -53,7 +66,7 @@ First some definitions
   \item \keyword{arrival\_time} is the time the process enters the scheduler (CPU may not start working on it)
 \end{enumerate} 
 
-Here are measures of efficiency
+Here are measures of efficiency and their mathematical equations
 
 \begin{enumerate}
   \item \keyword{Turnaround Time} is the total time from when you the process arrives to when it ends. \keyword{end\_time - arrival\_time}
@@ -62,7 +75,7 @@ Here are measures of efficiency
 
 \end{enumerate} 
 
-\subsection{What is the Convoy Effect?}
+\subsection{Convoy Effect}
 
 ``The Convoy Effect is where I/O intensive processes are continually backed up, waiting for CPU-intensive processes that hog the CPU. This results in poor I/O performance, even for processes that have tiny CPU needs.''
 
@@ -119,7 +132,7 @@ Process 5: Runtime 5000ms
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=\textwidth]{scheduling/images/sjf.png}
-\caption{}
+\caption{Shortest job first scheduling}
 \end{figure}
 
 \begin{itemize}
@@ -158,7 +171,7 @@ Preemptive shortest job first is like shortest job first but if a new job comes 
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=\textwidth]{scheduling/images/psjf.png}
-\caption{}
+\caption{Preemptive Shortest Job First scheduling}
 \end{figure}
 
 \begin{itemize}
@@ -194,7 +207,7 @@ Here's what our algorithm does. It runs P2 because it is the only thing to run. 
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=\textwidth]{scheduling/images/fcfs.png}
-\caption{}
+\caption{First come first serve scheduling}
 \end{figure}
 
 \begin{itemize}
@@ -235,7 +248,7 @@ Processes are scheduled in order of their arrival in the ready queue. However af
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=\textwidth]{scheduling/images/rr.png}
-\caption{}
+\caption{Round Robin Scheduling}
 \end{figure}
 
 \begin{itemize}
@@ -271,6 +284,11 @@ Here all processes arrive at the same time. P1 is run for 1 quantum and is finis
 \subsection{Priority}
 
 Processes are scheduled in the order of priority value. For example, a navigation process might be more important to execute than a logging process.
+
+
+\section{Scheduling Conceptually}
+
+TODO
 
 \section{Topics}
 

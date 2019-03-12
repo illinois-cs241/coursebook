@@ -93,13 +93,17 @@ def main(args):
         tex_path = files_m.tex_path
         (fd, tex_tmp_path) = tempfile.mkstemp(dir=tmp_dir)
         os.close(fd)
-        os.system('cat {} {} {} > {}'.format(prelude_file,
+        sys_ret = os.system('cat {} {} {} > {}'.format(prelude_file,
                                              github_shim,
                                              tex_path, tex_tmp_path))
+        if sys_ret != 0:
+            raise OSError("Cat command for {} failed".format(files_m))
         md_path = files_m.md_path
         command = 'pandoc --toc --self-contained -f latex -t markdown_github -s --filter _scripts/pandoc_wiki_filter.py {} -o {} '.format(tex_tmp_path, md_path)
         print(command)
-        os.system(command)
+        sys_ret = os.system(command)
+        if sys_ret != 0:
+            raise OSError("{} failed".format(command))
         subprocess.check_call(['sed', '-i', sed_regex, md_path])
 
     # 3. Generate Home Page
