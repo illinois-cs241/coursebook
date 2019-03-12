@@ -237,18 +237,18 @@ Some people take this as an opportunity to learn a new editor, others not so muc
 
 Vim is a text editor and unix-like utilty. You enter vim by typing \texttt{vim <file>}. This takes you into the editor. You start off in normal mode. In this mode you can move around with many keys with the most common ones being \texttt{jklh}. To exit vim from this mode, you need to type \texttt{:q} which quits. If you have any unsaved edits, you must either save them \texttt{:w}, save and quit \texttt{:wq}, or discard changes \texttt{:q!}. To make edits you can either type \texttt{i} to change you into insert mode or \texttt{a} to change to insert mode \textbf{a}fter the cursor. This is the very basics when it comes to vim
 
-Emacs is more of a way of life, and I don't mean that figuratively. A lot people when they switch to the emacs environment realize that it is a powerful operating system lacking a decent text editor. This means emacs can house a terminal, gdb session, ssh session, code and a whole lot more. It would not be fitting any other way to introduce you the gnu-emacs any other way than the gnu-docs \link{https://www.gnu.org/software/emacs/tour/}. Just note that emacs is \textit{insanely} powerful. You can do almost anything with it. There are a fair number of students who like the IDE-aspect of other programming languages, just know you can set up emacs to be an IDE, but you have to learn a bit of lisp \link{http://martinsosic.com/development/emacs/2017/12/09/emacs-cpp-ide.html}.
+Emacs is more of a way of life, and I don't mean that figuratively. A lot people when they switch to the emacs environment realize that it is a powerful operating system lacking a decent text editor. This means emacs can house a terminal, gdb session, ssh session, code and a whole lot more. It would not be fitting any other way to introduce you the gnu-emacs any other way than the gnu-docs \url{https://www.gnu.org/software/emacs/tour/}. Just note that emacs is \textit{insanely} powerful. You can do almost anything with it. There are a fair number of students who like the IDE-aspect of other programming languages, just know you can set up emacs to be an IDE, but you have to learn a bit of lisp \url{http://martinsosic.com/development/emacs/2017/12/09/emacs-cpp-ide.html}.
 
 Then there are those of you who like to use your own editors. That is completely fine.
 For this we require sshfs which has ports on many different machines
 \begin{enumerate}
-\item Windows \link{https://github.com/billziss-gh/sshfs-win}
-\item Mac \link{https://github.com/osxfuse/osxfuse/wiki/SSHFS}
-\item Linux \link{https://help.ubuntu.com/community/SSHFS}
+\item Windows \url{https://github.com/billziss-gh/sshfs-win}
+\item Mac \url{https://github.com/osxfuse/osxfuse/wiki/SSHFS}
+\item Linux \url{https://help.ubuntu.com/community/SSHFS}
 \end{enumerate}
 At that point the files on your VM are synced with the files on your machine and edits can be made and will be sync'ed
 
-At the time of writing, Bhuvy (That's me!) really likes to use spacemacs \link{http://spacemacs.org/} which marries both vim and emacs and both of their difficulties. I'll give my soapbox for why I like it, but be warned that if you are starting from absolutely no vim or emacs experience the learning curve along with this course may be too much.
+At the time of writing, Bhuvy (That's me!) really likes to use spacemacs \url{http://spacemacs.org/} which marries both vim and emacs and both of their difficulties. I'll give my soapbox for why I like it, but be warned that if you are starting from absolutely no vim or emacs experience the learning curve along with this course may be too much.
 \begin{enumerate}
 \item Extensible. Spacemacs has a clean design written in lisp. There are 100s of packages ready to be installed by editing your spacemacs config and reloading that do everything from syntax checking, automatic static analyzing, etc etc.
 \item Most of the good parts from vim and emacs. Emacs is really good at doing everything buy being a fast editor. Vim is really good at making fast edits and moving around. Spacemacs is the best of both worlds allowing vim keybindings with all the emacs goodness underneath.
@@ -490,13 +490,13 @@ What do you actually use to run your program? A shell! A shell is a programming 
 \subsection{Undefined Behavior Sanitizer}
 
 The undefined behavior sanitizer is a wonderful tool provided by the llvm project. It allows you to compile code witha  runtime checker to make sure that you don't do undefined behavior for various categories. We will try to include it into our projects, but requires support form all the external libraries that we use so we may not get around to all of them.
-\link{https://clang.llvm.org/docs/UndefinedBehaviorSanitizer.html}
+\url{https://clang.llvm.org/docs/UndefinedBehaviorSanitizer.html}
 
 \subsubsection{Undefined behavior - why we can't solve it in general}
 
 Also please please read Chris Lattner's 3 Part blog post on undefined behavior. It can shed light on debug builds and the mystery of compiler optimization.
 
-\link{http://blog.llvm.org/2011/05/what-every-c-programmer-should-know.html}
+\url{http://blog.llvm.org/2011/05/what-every-c-programmer-should-know.html}
 
 
 \subsection{Clang Static Build Tools}
