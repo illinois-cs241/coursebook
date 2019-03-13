@@ -640,7 +640,7 @@ sig >> 2; // 0000000000000000
 	\item \keyword{!} is the logical not operator. If the operand is zero, then this will return 1. Otherwise, it will return 0.
 	\item \keyword{\&} If a bit is set in both operands, it is set in the output. Otherwise, it is not.
 	\item \keyword{|} If a bit is set in either operand, it is set in the output. Otherwise, it is not.
-	\item \keyword{\~} If a bit is set in the input, it will not be set in the output and vice versa.
+	\item \keyword{~~} If a bit is set in the input, it will not be set in the output and vice versa.
 	\item \keyword{?:} is the tertinary operator. You put a boolean condition before the \? and if it evaluates to non-zero the element before the colon is returned otherwise the element after is. \keyword{1 ? a : b === a} and \keyword{0 ? a : b === b}.
 	\item \keyword{a, b} is the comma operator. \keyword{a} is evaluated and then \keyword{b} is evaluated and \keyword{b} is returned.
 \end{enumerate}
@@ -1576,13 +1576,13 @@ int **int_ptr; // sizeof(int*) == 8;
 How many bytes are moved over from the following additions?
 
 \begin{enumerate}
-\item \keyword{int_ + 1}
-\item \keyword{long_ + 7}
-\item \keyword{short_ - 6}
-\item \keyword{short_ - sizeof(long)}
-\item \keyword{long_ - sizeof(long) + sizeof(int_)}
-\item \keyword{long_ - sizeof(long) / sizeof(int)}
-\item \keyword{(char*)(int_ptr + sizeof(long)) + sizeof(int_)}
+\item \keyword{int\_ + 1}
+\item \keyword{long\_ + 7}
+\item \keyword{short\_ - 6}
+\item \keyword{short\_ - sizeof(long)}
+\item \keyword{long\_ - sizeof(long) + sizeof(int\_)}
+\item \keyword{long\_ - sizeof(long) / sizeof(int)}
+\item \keyword{(char*)(int\_ptr + sizeof(long)) + sizeof(int\_)}
 \end{enumerate}
 
 \subsection{Rapid Fire Solutions}

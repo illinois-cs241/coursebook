@@ -724,7 +724,7 @@ Each has a specific purpose and should be called in roughly the above order
 
   The \keyword{listen} call specifies the queue size for the number of incoming, unhandled connections i.e.~that have not yet been assigned a network descriptor by \keyword{accept} Typical values for a high performance server are 128 or more.
 
-  \item \keyword{int accept(int sockfd, struct sockaddr *addr, socklen_t *addrlen);}
+  \item \keyword{int accept(int sockfd, struct sockaddr *addr, socklen\_t *addrlen);}
 
   Once the server socket has been initialized the server calls \keyword{accept} to wait for new connections.
   Unlike \keyword{socket} \keyword{bind} and \keyword{listen}, this call will block.

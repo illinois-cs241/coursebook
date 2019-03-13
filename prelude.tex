@@ -24,11 +24,6 @@
 % Chapter by chapter bib
 \usepackage{chapterbib}   
 
-% Set up glossaries
-\usepackage[toc,section=chapter]{glossaries}
-\input{glossary.tex}
-\makeglossaries
-
 % Set up source code highlighting
 \usepackage{listings}
 \lstset{
@@ -78,33 +73,6 @@ rulecolor=\color{shadecolor},}
 
 % Define syntax highlighting style
 \usepackage{listings}
-\lstdefinestyle{cstyle}
-{   
-	language=C,
-	showspaces=false,
-	showtabs=false,
-	breaklines=true,
-	showstringspaces=false,
-	breakatwhitespace=true,
-	tabsize=4,
-	commentstyle=\color{comment}\itshape,
-	stringstyle=\color{red}\bfseries,
-	basicstyle=\ttfamily,
-	keywordstyle=\color{purple}\bfseries,
-	otherkeywords = {;,<<,>>,++,<,>,\#include,\#define},
-	morekeywords = [2]{;,\#include,\#define},
-	keywordstyle = [2]{\color{blue}\bfseries},
-	morekeywords = [3]{<<, >>},
-	keywordstyle = [3]{\color{yellow}},
-	morekeywords = [4]{++},
-	keywordstyle = [4]{\color{teal}},
-	morekeywords = [5]{<,>},
-	keywordstyle = [5]{\color{yellow}},
-	literate={\{}{{\CodeSymbol{ \{}}}1
-	{\}}{{\CodeSymbol{\}}}}1
-}
-\lstset{language=C,style=cstyle}
-
 % set up quotes
 \usepackage{epigraph}
 

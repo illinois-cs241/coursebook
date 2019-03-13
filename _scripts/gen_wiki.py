@@ -45,7 +45,7 @@ def gen_home_page(meta_file_name, out_file):
         f.write(rendered)
 
 def aggregate_meta_data(file_name, metadata_file):
-    command_templ = "pandoc --filter={} -s {} > /dev/null 2>> {}"
+    command_templ = "pandoc --filter={} -s --quiet {} > /dev/null 2>> {}"
     command = command_templ.format(filter_template, file_name, metadata_file)
     ret_value = os.system(command)
     if ret_value != 0:
@@ -57,7 +57,7 @@ def generate_tex_meta(order, outdir, meta_file_name):
 
     for tex_name in out_tex_names:
         print("Adding {}".format(tex_name))
-        os.system('pandoc --filter ./_scripts/pandoc_header_filter.py -s {} > /dev/null 2>>{}'.format(tex_name, meta_file_name))
+        os.system('pandoc --filter ./_scripts/pandoc_header_filter.py -s --quiet {} > /dev/null 2>>{}'.format(tex_name, meta_file_name))
 
     metadata = yaml.load(open(meta_file_name, 'r'))
 
@@ -99,7 +99,7 @@ def main(args):
         if sys_ret != 0:
             raise OSError("Cat command for {} failed".format(files_m))
         md_path = files_m.md_path
-        command = 'pandoc --toc --self-contained -f latex+tex_math_dollars -t markdown_github -s --filter _scripts/pandoc_wiki_filter.py {} -o {} '.format(tex_tmp_path, md_path)
+        command = 'pandoc --toc --self-contained -f latex+tex_math_dollars -t gfm -s --filter _scripts/pandoc_wiki_filter.py {} -o {} '.format(tex_tmp_path, md_path)
         print(command)
         sys_ret = os.system(command)
         if sys_ret != 0:

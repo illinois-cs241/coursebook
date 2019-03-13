@@ -655,19 +655,14 @@ char *ptr = "hello";
 *ptr = 'J';
 \end{lstlisting}
 
-
-\item What is the value of the variable \keyword{str_size}?
-
+\item What is the value of the variable \keyword{str\_size}?
 \begin{lstlisting}[language=C]
 ssize_t str_size = sizeof("Hello\0World")
 \end{lstlisting}
-
-\item What is the value of the variable \keyword{str_len}
-
+\item What is the value of the variable \keyword{str\_len}
 \begin{lstlisting}[language=C]
 ssize_t str_len = strlen("Hello\0World")
 \end{lstlisting}
-
 \item Give an example of X such that \keyword{sizeof(X)} is 3.
 \item Give an example of Y such that \keyword{sizeof(Y)} might be 4 or 8 depending on the machine.
 \end{enumerate}

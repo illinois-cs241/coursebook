@@ -9,10 +9,6 @@ matrix:
   - name: Wiki Build
     python: '3.6'
     env: BUILD_FOCUS=WIKI
-    addons:
-      apt:
-        packages:
-        - pandoc
   - name: PDF Build
     python: '3.6'
     env: BUILD_FOCUS=PDF
@@ -21,7 +17,7 @@ matrix:
         packages:
         - texlive-full
 install:
-- pip install -r requirements.txt
+- bash _scripts/install.sh
 script:
 - bash _scripts/script.sh
 before_deploy:

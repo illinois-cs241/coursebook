@@ -2,6 +2,40 @@
 
 \input{prelude.tex}
 
+% Set up glossaries here so they aren't generated in each
+\usepackage[toc,section=chapter]{glossaries}
+\input{glossary.tex}
+\makeglossaries
+
+% Define and set styles so not injected into the markdown
+\lstdefinestyle{cstyle}
+{   
+	language=C,
+	showspaces=false,
+	showtabs=false,
+	breaklines=true,
+	showstringspaces=false,
+	breakatwhitespace=true,
+	tabsize=4,
+	commentstyle=\color{comment}\itshape,
+	stringstyle=\color{red}\bfseries,
+	basicstyle=\ttfamily,
+	keywordstyle=\color{purple}\bfseries,
+	otherkeywords = {;,<<,>>,++,<,>,\#include,\#define},
+	morekeywords = [2]{;,\#include,\#define},
+	keywordstyle = [2]{\color{blue}\bfseries},
+	morekeywords = [3]{<<, >>},
+	keywordstyle = [3]{\color{yellow}},
+	morekeywords = [4]{++},
+	keywordstyle = [4]{\color{teal}},
+	morekeywords = [5]{<,>},
+	keywordstyle = [5]{\color{yellow}},
+	literate={\{}{{\CodeSymbol{ \{}}}1
+	{\}}{{\CodeSymbol{\}}}}1
+}
+\lstset{language=C,style=cstyle}
+
+
 \begin{document}
 
 \raggedbottom
