@@ -23,7 +23,7 @@ def change_base_url(elem, doc):
 
     if isinstance(elem, Math):
         elem.text = re.sub(r'_([A-Za-z0-9])\b', r'<sub>\g<1></sub>', elem.text)
-        elem.text = re.sub(r'^([A-Za-z0-9])\b', r'<sup>\g<1></sup>', elem.text)
+        elem.text = re.sub(r'\^([A-Za-z0-9])\b', r'<sup>\g<1></sup>', elem.text)
         return elem
 
 
