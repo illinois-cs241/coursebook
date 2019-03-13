@@ -4,7 +4,7 @@
 Pandoc filter to change each relative URL to absolute
 """
 
-from panflute import run_filter, Str, Header, Image
+from panflute import run_filter, Str, Header, Image, Superscript
 import sys
 
 base_raw_url = 'https://raw.githubusercontent.com/illinois-cs241/coursebook/master/'
@@ -19,6 +19,11 @@ def change_base_url(elem, doc):
             raise NoAltTagException(elem.url)
         elem.url = base_raw_url + elem.url
         return elem
+
+    if isinstance(elem, Superscript):
+        text = '<sup>' + pf.stringify(elem) + '</sup>'
+        return pf.RawInline(text)
+
 
 def main(doc=None):
     return run_filter(change_base_url, doc=doc)

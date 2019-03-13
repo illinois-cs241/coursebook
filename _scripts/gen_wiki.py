@@ -99,7 +99,7 @@ def main(args):
         if sys_ret != 0:
             raise OSError("Cat command for {} failed".format(files_m))
         md_path = files_m.md_path
-        command = 'pandoc --toc --self-contained -f latex+tex_math_dollars -t gfm -s --filter _scripts/pandoc_wiki_filter.py {} -o {} '.format(tex_tmp_path, md_path)
+        command = 'pandoc --toc --self-contained -f latex+tex_math_dollars -t gfm+raw_html -s --filter _scripts/pandoc_wiki_filter.py {} -o {} '.format(tex_tmp_path, md_path)
         print(command)
         sys_ret = os.system(command)
         if sys_ret != 0:
