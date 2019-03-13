@@ -10,7 +10,7 @@ import atexit
 import yaml
 
 meta = dict(
-    title="",
+    name="",
     bib_file="",
     subsections=[],
 )
@@ -40,12 +40,12 @@ def output_yaml(elem, doc):
     if type(elem) == Header and elem.level <= max_level:
         # Format what the title is going to look like
         name = ''.join(map(deserialize, elem.content.list))
-
+        name = '"{}"'.format(name)
         if elem.level == max_level:
             meta['subsections'].append(name)
         elif elem.level == 1:
             # If we are displaying a chapter, include a special entry for it
-            meta['title'] = name
+            meta['name'] = name
         else:
             pass
     if isinstance(elem, MetaMap):
