@@ -439,6 +439,61 @@ This may never print hello because of a race condition. Since you opened the pip
 \item Process 2: open(O\_RDONLY) (Blocks indefinitely) 
 \end{enumerate}
 
+\subsection{Pipes and Dup}
+
+A lot of time, you'll want to use \texttt{pipe2} in combination with dup. Take for example the simple program in the command line.
+
+\begin{verbatim}
+ls -1 | cut -f1 -d.
+\end{verbatim}
+
+This command take the output of \texttt{ls -1} which lists the content of the current directory on one line each and pipes it to cut.
+Cut take a delimiter in this case a dot and a field position in our case 1 and outputs per line the n'th field by each delimiter.
+At a high level, this grabs the file names without the extension of our current directory.
+
+Underneath the hood, this is how bash does it internally.
+
+
+\begin{lstlistings}[language=C]
+#define _GNU_SOURCE
+
+#include <stdio.h>
+#include <fcntl.h>
+#include <unistd.h>
+#include <stdlib.h>
+
+int main() {
+
+    int pipe_fds[2];
+    // Call with the O_CLOEXEC flag to prevent any commands from blocking
+    pipe2(pipe_fds, O_CLOEXEC);
+
+    // Remember for pipe_fds, you read then write (reading is 0 and writing is 1)
+
+    if(!fork()) {
+        // I am the child
+
+        // Make the stdout of the process, the write end
+        dup2(pipe_fds[1], 1);
+
+        // Exec! Don't forget the cast
+        execlp("ls", "ls", "-1", (char*)NULL);
+        exit(-1);
+    }
+
+    // Same here, except the stdin of the process is the read end
+    dup2(pipe_fds[0], 0);
+
+    // Same deal here
+    execlp("cut", "cut", "-f1", "-d.", (char*)NULL);
+    exit(-1);
+
+    return 0;
+}
+\end{lstlistings}
+
+The results of the two programs should be the same.
+
 
 
 \section{Files}
