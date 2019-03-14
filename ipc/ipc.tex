@@ -454,7 +454,7 @@ At a high level, this grabs the file names without the extension of our current 
 Underneath the hood, this is how bash does it internally.
 
 
-\begin{lstlistings}[language=C]
+\begin{lstlisting}[language=C]
 #define _GNU_SOURCE
 
 #include <stdio.h>
@@ -490,7 +490,7 @@ int main() {
 
     return 0;
 }
-\end{lstlistings}
+\end{lstlisting}
 
 The results of the two programs should be the same.
 
