@@ -1,6 +1,6 @@
 \chapter{Signals}
 
-\epigraph{What is that? It's ridiculous! [Jerry bobs agreeingly] You don't even know, what hotel she's staying at, you can't call her. That's a signal, Jerry, that's a signal! [snaps his fingers again] Signal!}{George Costanza (Seinfeld)}
+\epigraph{That's a signal, Jerry, that's a signal! [snaps his fingers again] Signal!}{George Costanza (Seinfeld)}
 
 Signals have been a unix construct since the beginning. They are a convenient way to deliver low-priority information and for users to interact with their programs when no other form of interaction is available like using standard input. Signals allow a program to cleanup or perform an action in the case of an event. Some time, a program can choose to ignore events and that is completely fine and even supported by the standard. Crafting a program that uses signals well is tricky due ot all the rules with inheritance. As such, signals are usually kept as cleanup or termination measures.
 
