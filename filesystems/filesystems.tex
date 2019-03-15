@@ -874,7 +874,7 @@ Performing writes fall into two categories, writes to files and writes to direct
 First we'll focus on files and assume that we are writing a byte to the $6$th KiB of our file.
 To perform a write on a file at a particular offset, first you must go to the data block would start at that offset.
 For this particular example we would have to go to the 2nd or indexed number 1 inode to perform our write.
-We would once again fetch this number from the inode, go to the root of the data blocks, go to the $5$th data block and perform our write at the $2$KiB offset from this block because we skipped the first four kilobytes of the file in block 7.
+We would once again fetch this number from the inode, go to the root of the data blocks, go to the $5$th data block and perform our write at the $2$KiB offset from this block because we skipped the first four kibibytes of the file in block 7.
 We perform our write and go on our merry way
 
 Some questions for you. How would you consider performing a write that would go across data block boundaries? How would you consider performing a write whose write after adding the offset would extend the length of the file?  How would you consider performing a write where the offset is greater than the length of the original file?

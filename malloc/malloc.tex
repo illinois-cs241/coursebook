@@ -101,7 +101,7 @@ As the heap and stack (one for each thread) need to grow, we put them at opposit
 So for typical architectures the heap will grow upwards and the stack grows downwards. 
 
 Truthiness: Modern operating system memory allocators no longer need \keyword{sbrk} - instead they can request independent regions of virtual memory and maintain multiple memory regions.
-For example, gigabyte requests may be placed in a different memory region than small allocation requests.
+For example, gibibyte requests may be placed in a different memory region than small allocation requests.
 However this detail is an unwanted complexity.
 The problems of fragmentation and allocating memory efficiently still apply, so we will ignore this implementation nicety here and will write as if the heap is a single region.
 If we write a multi-threaded program (more about that later) we will need multiple stacks (one per thread) but there's only ever one heap.
