@@ -8,7 +8,7 @@ This section is a short review of System Architecture topics that you'll need fo
 
 \subsection{Assembly}
 
-What is assembly? Assumbly is the lowest that you'll get to machine language without writing 1's and 0's.
+What is assembly? Assembly is the lowest that you'll get to machine language without writing 1's and 0's.
 Each computer has an architecture, and that architecture has an associated assembly language.
 Each assembly command has a 1:1 mapping to a set of 1's and 0's that tell the computer exactly what to do.
 For example the following in the widely used x86 Assembly language add one to the memory address 20.
@@ -120,7 +120,7 @@ Hyperthreading is a new technology and is in no way shape or form multithreading
 The operating system can then schedule processes on these virtual cores and one core will execute them.
 Each core interleaves processes.
 While the core is waiting for one memory access to complete, it may perform a few instructions of another process.
-The overal result is more instructions executed in a shorter time.
+The overall result is more instructions executed in a shorter time.
 This is also potentially means that you can divide the number of cores you need to power smaller devices.
 
 There be dragons here though.
@@ -171,7 +171,7 @@ What is `git`? Git is a version control system. What that means is git stores th
 $ git clone https://github-dev.cs.illinois.edu/cs241-fa18/<netid>.git
 \end{lstlisting}
 
-This will create a local repsitory. The workflow is you make a change on your local repository, add the changes to a current commit, actually commit, and push the changes to the server.
+This will create a local repository. The workflow is you make a change on your local repository, add the changes to a current commit, actually commit, and push the changes to the server.
 
 \begin{lstlisting}
 $ # edit the file, maybe using vim
@@ -235,7 +235,7 @@ Don't panic, but your repository may be in an unworkable state. If you aren't ne
 
 Some people take this as an opportunity to learn a new editor, others not so much. The first part is those of you who want to learn a new editor. In the editor war that spans decades, we have come to the battle of vim vs emacs.
 
-Vim is a text editor and unix-like utilty. You enter vim by typing \texttt{vim \<file\>}. This takes you into the editor. You start off in normal mode. In this mode you can move around with many keys with the most common ones being \texttt{jklh}. To exit vim from this mode, you need to type \texttt{:q} which quits. If you have any unsaved edits, you must either save them \texttt{:w}, save and quit \texttt{:wq}, or discard changes \texttt{:q!}. To make edits you can either type \texttt{i} to change you into insert mode or \texttt{a} to change to insert mode \textbf{a}fter the cursor. This is the very basics when it comes to vim
+Vim is a text editor and unix-like utility. You enter vim by typing \texttt{vim \<file\>}. This takes you into the editor. You start off in normal mode. In this mode you can move around with many keys with the most common ones being \texttt{jklh}. To exit vim from this mode, you need to type \texttt{:q} which quits. If you have any unsaved edits, you must either save them \texttt{:w}, save and quit \texttt{:wq}, or discard changes \texttt{:q!}. To make edits you can either type \texttt{i} to change you into insert mode or \texttt{a} to change to insert mode \textbf{a}fter the cursor. This is the very basics when it comes to vim
 
 Emacs is more of a way of life, and I don't mean that figuratively. A lot people when they switch to the emacs environment realize that it is a powerful operating system lacking a decent text editor. This means emacs can house a terminal, gdb session, ssh session, code and a whole lot more. It would not be fitting any other way to introduce you the gnu-emacs any other way than the gnu-docs \url{https://www.gnu.org/software/emacs/tour/}. Just note that emacs is \textit{insanely} powerful. You can do almost anything with it. There are a fair number of students who like the IDE-aspect of other programming languages, just know you can set up emacs to be an IDE, but you have to learn a bit of lisp \url{http://martinsosic.com/development/emacs/2017/12/09/emacs-cpp-ide.html}.
 
@@ -251,8 +251,8 @@ At that point the files on your VM are synced with the files on your machine and
 At the time of writing, Bhuvy (That's me!) really likes to use spacemacs \url{http://spacemacs.org/} which marries both vim and emacs and both of their difficulties. I'll give my soapbox for why I like it, but be warned that if you are starting from absolutely no vim or emacs experience the learning curve along with this course may be too much.
 \begin{enumerate}
 \item Extensible. Spacemacs has a clean design written in lisp. There are 100s of packages ready to be installed by editing your spacemacs config and reloading that do everything from syntax checking, automatic static analyzing, etc etc.
-\item Most of the good parts from vim and emacs. Emacs is really good at doing everything buy being a fast editor. Vim is really good at making fast edits and moving around. Spacemacs is the best of both worlds allowing vim keybindings with all the emacs goodness underneath.
-\item Lots of preconfiguration done. As opposed with a fresh emacs install, a lot of the configurations with langauge and projects are done for you like neotree, helm, various language layers. All they you have to do is navigate neotree to the base of your project and emacs will turn into an IDE for that programming language.
+\item Most of the good parts from vim and emacs. Emacs is really good at doing everything by being a fast editor. Vim is really good at making fast edits and moving around. Spacemacs is the best of both worlds allowing vim keybindings with all the emacs goodness underneath.
+\item Lots of preconfiguration done. As opposed with a fresh emacs install, a lot of the configurations with language and projects are done for you like neotree, helm, various language layers. All they you have to do is navigate neotree to the base of your project and emacs will turn into an IDE for that programming language.
 \end{enumerate}
 
 \subsection{clean code}
@@ -489,7 +489,7 @@ What do you actually use to run your program? A shell! A shell is a programming 
 
 \subsection{Undefined Behavior Sanitizer}
 
-The undefined behavior sanitizer is a wonderful tool provided by the llvm project. It allows you to compile code witha  runtime checker to make sure that you don't do undefined behavior for various categories. We will try to include it into our projects, but requires support form all the external libraries that we use so we may not get around to all of them.
+The undefined behavior sanitizer is a wonderful tool provided by the llvm project. It allows you to compile code with a runtime checker to make sure that you don't do undefined behavior for various categories. We will try to include it into our projects, but requires support form all the external libraries that we use so we may not get around to all of them.
 \url{https://clang.llvm.org/docs/UndefinedBehaviorSanitizer.html}
 
 \subsubsection{Undefined behavior - why we can't solve it in general}
@@ -756,7 +756,7 @@ Explain why this may be insufficient to generate a new build.
 \item Do you have any cool/disastrous system programming bugs you've heard about? Feel free to share with your peers and the course staff on piazza.
 \end{itemize}
 
-\section{UIUC Specific Guidlines}
+\section{UIUC Specific Guidelines}
 
 \subsection{Piazza}
 
