@@ -1,6 +1,6 @@
 \chapter{Post Mortems}
 
-\epigraph{Hindsight is 20-20}{}
+\epigraph{Hindsight is 20-20}{Unknown}
 
 This chapter is meant to serve as a big "why are we learning all of this". In all of your previous classes, you were learning what to do. How to program a data structure, how to code a for loop, how to prove something. This is the first class that is largely focused on what \textit{not} to do. As a result we draw experience from our past in very real ways. Sit back and scroll through this chapter as we tell you about problems of programmers past. Even if you are dealing in something much higher level like web-development, everything relates back to the system.
 
@@ -51,7 +51,7 @@ Required sections: Synchronization and a bit of Scheduling
 
 \href{https://www.microsoft.com/en-us/research/people/mbj/#!just-for-fun}{Pathfinder Link}
 
-The mars pathfinder was a mission that tried to collect climate data on Mars. The finder use a signle bus to communicate with different parts. Since this was 1997, the hardware itself didn't have advanced features like efficient locking so it was up to the operating system developers to regulate that with mutexes. The architecture was pretty simple. There was a thread that controlled data along the information bus, communications thread, and data collection thread in with high, regular, and low priorities with respect to scheduling. The other caveat is that if an interrupt happened at some interval and a task is running and a task is to be scheduled, the task that has the higher priority wins.
+The mars pathfinder was a mission that tried to collect climate data on Mars. The finder uses a single bus to communicate with different parts. Since this was 1997, the hardware itself didn't have advanced features like efficient locking so it was up to the operating system developers to regulate that with mutexes. The architecture was pretty simple. There was a thread that controlled data along the information bus, communications thread, and data collection thread in with high, regular, and low priorities with respect to scheduling. The other caveat is that if an interrupt happened at some interval and a task is running and a task is to be scheduled, the task that has the higher priority wins.
 
 The pattern that caused everything to start failing was the data collection thread starts writing to the bus, the information bus thread is waiting on the data and then out of nowhere the communication thread comes in. The communication thread would preempt the other lower priority thread \textbf{while the lower priority thread still held the mutex}. This means when the regular priority thread tried to lock the bus, you'd get deadlock. After some time the system would reset, but ideally this isn't a good thing to leave to chance.
 
@@ -63,7 +63,7 @@ Required Sections: Malloc
 
 \href{https://www.computerworld.com/article/2574759/data-storage-solutions/out-of-memory-problem-caused-mars-rover-s-glitch.html}{Mars}
 
-The short of it is they ran out of memory. The long of it is they ran out of memory, disk space, and swap space. The moral of the story? Make sure to write code that can handle file failures and can handle files when they close and go out of memory, so the operating system can hotswap file to free up memory. Also clean up files, assume that your tmp directory is roughly a hundreth or a thousandth of the total size and use that.
+The short of it is they ran out of memory. The long of it is they ran out of memory, disk space, and swap space. The moral of the story? Make sure to write code that can handle file failures and can handle files when they close and go out of memory, so the operating system can hotswap file to free up memory. Also clean up files, assume that your tmp directory is roughly a hundredth or a thousandth of the total size and use that.
 
 \section{Year 2038}
 
@@ -106,7 +106,7 @@ Required Sections: Intro to C
 
 Due to a stray goto in Apple's code, a function always returned that an SSL certificate was valid. Naturally hackers were able to get away with some pretty crazy site names.
 
-Lessons Learned: Always bracket if statements, use gotos sparingly. Chances are if you need to use a goto, write another function or a switch statement with fallthroughs (still bad).
+Lessons Learned: Always bracket if statements, use gotos sparingly. Chances are if you need to use a goto, write another function or a switch statement with fall throughs (still bad).
 
 \section{Sony Rootkit Installation}
 
@@ -116,9 +116,9 @@ Required Sections: Intro to C/Processes
 
 Picture this. It's 2005, limewire came a few years prior, the internet was a growing pool of illegal activities -- not to say that is fixed now. In this day, Sony knew that it didn't have the computing power to police all the interwebs or get around the various technologies people were using to get around copyright protections. So what did they do? With 22 million Music CDs, they required users to install a rootkit on their operating system, so Sony can monitor the device for unethical activities.
 
-Privacy concerns aside, and believe me there are a lot fof them, the big problem was that this rootkit is a backdoor for everyone's systems if not programmed correctly. A rootkit is a piece of code usually installed kernel-side that keeps track of almost anything that a user does. What websites visited, what clicks or keys typed etc etc. If a hacker finds out about this and there is a way to access that API from the user space level, that means any program has the ability to find out important information about your device. Needless to say, people where not pleased.
+Privacy concerns aside, and believe me there are a lot of them, the big problem was that this rootkit is a backdoor for everyone's systems if not programmed correctly. A rootkit is a piece of code usually installed kernel-side that keeps track of almost anything that a user does. What websites visited, what clicks or keys typed etc etc. If a hacker finds out about this and there is a way to access that API from the user space level, that means any program has the ability to find out important information about your device. Needless to say, people were not pleased.
 
-Lessons Learned: Get an antivirus and/or apparmor and make sure that an application is only requesting permissions that make sense. If you are really torn, try something like Windows sandbox or keep a Sacrificial VM around to see if installing it makese your compute horrible. Don't trust certificates trust code.
+Lessons Learned: Get an antivirus and/or apparmor and make sure that an application is only requesting permissions that make sense. If you are really torn, try something like Windows sandbox or keep a Sacrificial VM around to see if installing it makes your computer horrible. Don't trust certificates trust code.
 
 \section{Civilization and Ghandi}
 
@@ -128,7 +128,7 @@ Required Sections: Intro to C
 
 This is probably well known to gamers why someone as (in real life) non-violent as Ghandi was uber aggressive in the video game civilization. In the original, the game kept aggressiveness as an unsigned integer. During the course of the game the integer could be decremented and then the problem ensued because Ghandi was already at 0. This caused him to become the most aggressive character in the game.
 
-Lessons Learned: The takeway from this is \textbf{Never} use unsigned numbers unless you have an express written reason for it (reasons include you need to know about the overflow behavior, you are bit shifting, you are bit masking). In ever other case, cast it.
+Lessons Learned: The takeaway from this is \textbf{Never} use unsigned numbers unless you have an express written reason for it (reasons include you need to know about the overflow behavior, you are bit shifting, you are bit masking). In every other case, cast it.
 
 
 \section{The Woes of Shell Scripting}
