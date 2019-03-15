@@ -16,7 +16,7 @@ In the beginning, there is a kernel. The operating system kernel is a special pi
 \item
   Your kernel executes \keyword{init} to \href{https://en.wikipedia.org/wiki/Bootstrapping}{bootstrap} itself from nothing
 \item
-  The kernel executes start up scripts
+  The kernel executes startup scripts
 \item
   The kernel executes userland scripts, and you get to use your computer!
 \end{enumerate}
@@ -76,13 +76,14 @@ That means that by default, no process can communicate with another process.
 This is very important because if you have a large system (let's say the University of Illinois Engineering Workstations) then you want some processes to have higher privileges than your average user, and one certainly doesn't want the average user to be able to bring down the entire system either on purpose or accidentally by modifying a process.
 
 \begin{lstlisting}[language=C]
-  int secrets;
-  secrets++;
-  printf("%d\n", secrets);
+int secrets;
+secrets++;
+printf("%d\n", secrets);
 \end{lstlisting}
 
 On two different terminals, as you would guess they would both print out 1 not 2.
-Even if we changed the code to do something really hacky, there would be no way to change another process' state (Okay, check out the Post-Mortems chapter if you want to break some things).
+Even if we changed the code to do something really hacky, there would be no way to change another process' state.
+Okay, check out the Post-Mortems chapter if you want to break some things).
 
 \section{Process Contents}
 
@@ -108,11 +109,12 @@ One can run out of heap memory if the system is constrained or if you run out of
 \item \textbf{A Data Segment} This contains all of your globals.
 This section starts at the end of the text segment and is static in size because the amount of globals is known at compile time.
 There are two areas to the data usually the \textbf{IBSS} and the \textbf{UBSS} which stand for the initialized basic service set and the uninitialized data segment respectively.
-This section is Writable but not Executable and there isn't anything else too fancy here. 
+This section is writable but not executable. 
+
 \item \textbf{A Text Segment}.
 This is where all your code is stored -- all the 1's and 0's.
 The program counter moves through this segment executing instructions and moving down the next instruction.
-It is important to note that this is the only Executable section of the code created by default.
+It is important to note that this is the only executable section of the code created by default.
 If you try to change the code while it's running, most likely you will segfauls.
 There are ways around it, but we won't be exploring those in this course.
 Why doesn't it start at zero? Because of \href{https://en.wikipedia.org/wiki/Address_space_layout_randomization}{Address Space Layout Randomization}. It is outside the scope of this class but know that it exists.
@@ -125,6 +127,7 @@ Processes also have a \keyword{ppid} which is short for parent process id.
 Every process has a parent, that parent could be \keyword{init.d}.
 
 Processes could also contain 
+
 \begin{itemize}
 \item Running State - Whether a process is getting ready, running, stopped, terminated etc. 
 \item File Descriptors - List of mappings from integers to real devices (files, usb sticks, sockets) 
@@ -279,7 +282,7 @@ We misspelled \keyword{ehco}, so we can't \keyword{exec} it. What does this mean
 
 \subsection{POSIX Fork Detailings}
 
-POSIX determines what the standards of fork are. The commonly expected standards are detailed \href{https://pubs.opengroup.org/onlinepubs/009695399/functions/fork.html}{in the posix fork page} Here are a summary of what gets inherirted
+POSIX determines what the standards of fork are. The commonly expected standards are detailed \href{https://pubs.opengroup.org/onlinepubs/009695399/functions/fork.html}{in the posix fork page} Here are a summary of what gets inherited
 
 \begin{enumerate}
 \item Fork will return a non-negative integer on success
@@ -336,7 +339,7 @@ The last parameter to waitpid is an option parameter. The options are listed bel
 \end{enunmerate}
 
 It is generally poor programming practice to use signals in program logic.
-Signals have no timeframe of delivery and no assurance that they will be deliverd.
+Signals have no timeframe of delivery and no assurance that they will be delivered.
 If you need to communicate between two processes, there are other ways of doing so.
 
 Exit statuses or the value stored in the integer pointer for both of the calls above are explained below.
@@ -437,7 +440,7 @@ The above example however misses a couple of subtle points.
 \begin{enumerate}
 \item More than one child may have finished but the parent will only get one SIGCHLD signal (signals are not queued)
 \item SIGCHLD signals can be sent for other reasons (e.g.~a child process is temporarily stopped)
-\item It uses the depricated \keyword{signal} code
+\item It uses the deprecated \keyword{signal} code
 \end{enumerate}
 
 A more robust code to reap zombies is shown below.
@@ -611,7 +614,7 @@ How would you get these in C/C++? You can use the \keyword{getenv} and \keyword{
 \end{lstlisting}
 
 Environment variables are important because they are inherited between processes and can be used the specify \href{https://pubs.opengroup.org/onlinepubs/9699919799/basedefs/V1_chap08.html}{A standard set of behaviors}
-Another security related concern is that environment variables cannot be read by an outside process wheras argv can be.
+Another security related concern is that environment variables cannot be read by an outside process whereas argv can be.
 
 \section{Further Reading}
 

@@ -16,7 +16,7 @@ The 7 layer model is as follows
 \begin{enumerate}
 \item Layer 1: The physical layer.
   These are the actual waves that carry the bauds across the wire.
-  As an aside, bits don't cross the wire because in most mediums you can alter two characterstics of a wave -- the amplitude and the frequency -- and get more bits per clock cycle.
+  As an aside, bits don't cross the wire because in most mediums you can alter two characteristics of a wave -- the amplitude and the frequency -- and get more bits per clock cycle.
 
 \item Layer 2: The link layer.
   This is how each of the agents react to certain events (error detection, noisy channels, etc).
@@ -50,7 +50,7 @@ The 7 layer model is as follows
 Just to be clear this is not a networking class.
 We won't go over most of these layers in depth.
 We will focus on some aspects of layers 3, 4, and 7 because they are essential to know if you are going to be doing something with the internet, which at some point in your career you will be.
-As for another definition, a protocol is a set of specifications put forward by the \gls{Internet Engineering Task Force} that govern how implementers of protocol have their program or circuit behave under specific circumastnces.
+As for another definition, a protocol is a set of specifications put forward by the \gls{Internet Engineering Task Force} that govern how implementers of protocol have their program or circuit behave under specific circumstances.
 
 
 \section{Layer 3: The Internet Protocol}
@@ -174,7 +174,7 @@ The only time that this applies is when sending UDP packets that are too big, bu
 A little known feature is that using the IP protocol one can send a datagram to all devices connected to a router in what is called a multicast.
 Multicasts can also be configured with groups, so one can efficiently slice up all connected routers and send a piece of information to all of them efficiently.
 To access this in a higher protocol, you need to use UDP and specify a few more options.
-Note that this will cause undo stress on the network, so a series of multicasts could flood the network fast.
+Note that this will cause undue stress on the network, so a series of multicasts could flood the network fast.
 
 \subsection{What's the deal with IPv6?}
 
@@ -225,7 +225,7 @@ The complete code is shown below.
         }
 \end{lstlisting}
 
-To get your IP Address from the command line use \keyword{ifconfig} (or Windows's \keyword{ipconfig}) However this command generates a lot of output for each interface, so we can filter the output using grep
+To get your IP Address from the command line use \keyword{ifconfig} (or Windows' \keyword{ipconfig}) However this command generates a lot of output for each interface, so we can filter the output using grep
 
 \begin{lstlisting}
 ifconfig | grep inet
@@ -342,7 +342,7 @@ TCP has a number of features that set it apart from the other transport protocol
   Flow control is performed on the receiver side.
   This may be done so that a slow receiver doesn't get overwhelmed with packets.
   Servers especially that may handle 10000 or 10 million concurrent connection may need to tell receivers to slow down, but not disconnect due to load.
-  There are also other prorblem of making sure the local network is not overwhelmed
+  There are also other problem of making sure the local network is not overwhelmed
 
 \item Congestion control.
   Congestion control is performed on the sender side.
@@ -351,7 +351,7 @@ TCP has a number of features that set it apart from the other transport protocol
   Meaning that two connections leaving a computer to google and youtube receive the same bandwidth and ping as each other.
   One can easily define a protocol that takes all the bandwidth and leaves other protocols in the dust, but this tends to be malicious because more often than not limiting a computer to a single TCP connection will yield the same result.
 
-\item Connection oriented/lifecycle oriented.
+\item Connection oriented/life cycle oriented.
   You can really imagine a TCP connection as a series of bytes sent through a pipe.
   There is a ``lifecycle'' to a TCP connection though. What this means is that a TCP connection has a series of states and certain packets received can or not received can move it to another state.
   TCP handles setting up the connection through SYN SYN-ACK ACK. This means the client will send a SYNchronization packet that tells TCP what starting sequence to start on. Then the receiver will send a SYN-ACK message acknowledging the synchronization number.
@@ -373,7 +373,7 @@ There are a list of things that TCP doesn't provide though
   Anybody can listen in on plain TCP.
   The packets in transport are in plain text meaning that important things like your passwords could easily be skimmed by servers and regularly are.
 \item Session Reconnection.
-  This is handled by a higher protocols, but if a TCP connection dies then a whole new one hast to be created and the transmission has to be started over again.
+  This is handled by a higher protocols, but if a TCP connection dies then a whole new one must be created and the transmission has to be started over again.
 \item Delimiting Requests.
   TCP is naturally connection oriented.
   Applications that are communicating over TCP need to find a unique way of telling each other that this request or response is over.
@@ -660,7 +660,7 @@ A web page (or other resources) are requested using the following request:
 GET / HTTP/1.0
 \end{lstlisting}
 
-There are four parts the method e.g.~GET,POST,\ldots{}); the resource (e.g. / /index.html /image.png); the proctocol ``HTTP/1.0'' and two new lines (\texttt{\\r\\n\\r\\n})
+There are four parts the method e.g.~GET,POST,\ldots{}); the resource (e.g. / /index.html /image.png); the protocol ``HTTP/1.0'' and two new lines (\texttt{\\r\\n\\r\\n})
 
 The server's first response line describes the HTTP version used and whether the request is successful using a 3 digit response code:
 
@@ -708,7 +708,7 @@ Each has a specific purpose and should be called in roughly the above order
   Instead, the port enters a ``TIMED-WAIT'' state.
   This can lead to significant confusion during development because the timeout can make valid networking code appear to fail.
 
-  To be able to immediately re-use a port, specify \keyword{SO\_REUSEPORT} before binding to the port.
+  To be able to immediately reuse a port, specify \keyword{SO\_REUSEPORT} before binding to the port.
 
   \begin{lstlisting}[language=C]
   int optval = 1;
@@ -774,7 +774,7 @@ Each has a specific purpose and should be called in roughly the above order
 
   Use \keyword{close} when your process no longer needs the socket file descriptor.
 
-  If you \keyword{fork}-ed after creating a socket file descriptor, all processes need to close the socket before the socket resources can be re-used.
+  If you \keyword{fork}-ed after creating a socket file descriptor, all processes need to close the socket before the socket resources can be reused.
   If you shutdown a socket for further read then all process are be affected because you've changed the socket, not just the file descriptor.
 
   Well written code will \keyword{shutdown} a socket before calling \keyword{close} it.
@@ -889,7 +889,7 @@ A streaming video signal may send picture updates using UDP
   There is also less overhead to sending a UDP message because there is no three way handshake.
 \item Manual Flow/Congestion Control
   You have to manually manage the flow and congestion control which is a double edged sword.
-  On one hand you have full control over everything, but on the other hand TCP has \textit{decades} of optimization, meaning your protocol for its use cases needs to be more efficient that that to be more beneficial to use it.
+  On one hand you have full control over everything, but on the other hand TCP has \textit{decades} of optimization, meaning your protocol for its use cases needs to be more efficient that to be more beneficial to use it.
 \item Multicast
   This is one thing that you can only do with UDP.
   This means that you can send a message to every peer connected to a particular router that is part of a particular group.
@@ -992,7 +992,7 @@ int main(int argc, char **argv) {
 
 There are a variety of function calls available to send UDP sockets.
 We will use the newer getaddrinfo to help set up a socket structure.
-Remember that UDP is a simple packet-based (`data-gram') protocol ; there is no connection to set up between the two hosts.
+Remember that UDP is a simple packet-based (`datagram') protocol ; there is no connection to set up between the two hosts.
 First, initialize the hints addrinfo struct to request an IPv6, passive datagram socket.
 
 \begin{lstlisting}[language=C]
@@ -1084,7 +1084,7 @@ Meaning that you can ignore everything below this layer and treat an internet as
 Common layer 7 protocols are the following
 
 \begin{enumerate}
-  \item HTTP(S) - Hyper Text Transfer Protocol.
+  \item HTTP(S) - Hypertext Transfer Protocol.
     Sends arbitrary data and executes remote actions on a web server.
   \item FTP - File Transfer Protocol.
     Transfers a file from one computer to another
@@ -1096,7 +1096,7 @@ Common layer 7 protocols are the following
     Allows one to send plain text emails to an email server
   \item SSH - Secure SHell.
     Allows one computer to connect to another computer and execute commands remotely.
-  \item Bitcoin - Decentralized crypto currency
+  \item Bitcoin - Decentralized cryptocurrency
   \item BitTorrent - Peer to peer file sharing protocol
   \item NTP - Network Time Protocol.
     This protocol helps keep your computer's clock synced with the outside world
@@ -1122,16 +1122,16 @@ DNS works like this in a nutshell
   \item If either packet is not answered from within a guessed timeout, resend the request.
 \end{enumerate}
 
-\section{Nonblocking IO}
+\section{Non Blocking IO}
 
 Normally, when you call \keyword{read()}, if the data is not available yet it will wait until the data is ready before the function returns.
 When you're reading data from a disk, that delay may not be long, but when you're reading from a slow network connection it may take a long time for that data to arrive, if it ever arrives.
 
 POSIX lets you set a flag on a file descriptor such that any call to \keyword{read()} on that file descriptor will return immediately, whether it has finished or not.
 With your file descriptor in this mode, your call to \keyword{read()} will start the read operation, and while it's working you can do other useful work.
-This is called ``nonblocking'' mode, since the call to \keyword{read()} doesn't block.
+This is called ``non-blocking'' mode, since the call to \keyword{read()} doesn't block.
 
-To set a file descriptor to be nonblocking:
+To set a file descriptor to be non-blocking:
 
 \begin{lstlisting}[language=C]
 // fd is my file descriptor
@@ -1139,24 +1139,24 @@ int flags = fcntl(fd, F_GETFL, 0);
 fcntl(fd, F_SETFL, flags | O_NONBLOCK);
 \end{lstlisting}
 
-For a socket, you can create it in nonblocking mode by adding \keyword{SOCK\_NONBLOCK} to the second argument to \keyword{socket()}:
+For a socket, you can create it in non-blocking mode by adding \keyword{SOCK\_NONBLOCK} to the second argument to \keyword{socket()}:
 
 \begin{lstlisting}[language=C]
 fd = socket(AF_INET, SOCK_STREAM | SOCK_NONBLOCK, 0);
 \end{lstlisting}
 
-When a file is in nonblocking mode and you call \keyword{read()}, it will return immediately with whatever bytes are available.
+When a file is in non-blocking mode and you call \keyword{read()}, it will return immediately with whatever bytes are available.
 Say 100 bytes have arrived from the server at the other end of your socket and you call \keyword{read(fd, buf, 150)}.
 Read will return immediately with a value of 100, meaning it read 100 of the 150 bytes you asked for.
 Say you tried to read the remaining data with a call to \keyword{read(fd, buf+100, 50)}, but the last 50 bytes still hadn't arrived yet.
 \keyword{read()} would return -1 and set the global error variable \textbf{errno} to either EAGAIN or EWOULDBLOCK.
 That's the system's way of telling you the data isn't ready yet.
 
-\keyword{write()} also works in nonblocking mode.
+\keyword{write()} also works in non-blocking mode.
 Say you want to send 40,000 bytes to a remote server using a socket.
 The system can only send so many bytes at a time.
 Common systems can send about 23,000 bytes at a time.
-In nonblocking mode, \keyword{write(fd, buf, 40000)} would return the number of bytes it was able to send immediately, or about 23,000.
+In non-blocking mode, \keyword{write(fd, buf, 40000)} would return the number of bytes it was able to send immediately, or about 23,000.
 If you called \keyword{write()} right away again, it would return -1 and set errno to EAGAIN or EWOULDBLOCK.
 That's the system's way of telling you it's still busy sending the last chunk of data, and isn't ready to send more yet.
 
@@ -1277,7 +1277,7 @@ To shut down an epoll instance, close its file descriptor.
 close(epfd);
 \end{lstlisting}
 
-In addition to nonblocking \keyword{read()} and \keyword{write()}, any calls to \keyword{connect()} on a nonblocking socket will also be nonblocking.
+In addition to non-blocking \keyword{read()} and \keyword{write()}, any calls to \keyword{connect()} on a non-blocking socket will also be non-blocking.
 To wait for the connection to complete, use \keyword{select()} or epoll to wait for the socket to be writable.
 There are definitely reasons to use epoll over select but due to to interface, there are fundamental problems with doing so.
 
@@ -1506,15 +1506,15 @@ See the introduction to Protocol Buffers for more information.
   What is TCP? UDP? Give me advantages and disadvantages of both of them.
   When would I use one and not the other?
 \item
-  Which protocol is connection less and which one is connection based?
+  Which protocol is connectionless and which one is connection based?
 \item
   What is DNS? What is the route that DNS takes?
 \item
   What does socket do?
 \item
-  What are the calls to set up a TCP client?
+  What are the calls to setup a TCP client?
 \item
-  What are the calls to set up a TCP server?
+  What are the calls to setup a TCP server?
 \item
   What is the difference between a socket shutdown and closing?
 \item
