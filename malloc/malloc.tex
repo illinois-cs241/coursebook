@@ -172,45 +172,45 @@ Suppose our current heap size is 64K, though not all of it is in use because som
 \begin{center}
 \begin{tabular}{ | c | c | c | c | c | c | c | }
 \hline
-16KB & 10KB & 1KB & 1KB & 30KB & 4KB & 2KB \\ \hline
+16KiB & 10KiB & 1KiB & 1KiB & 30KiB & 4KiB & 2KiB \\ \hline
 free & allocated & free & allocated & free & allocated & free \\
 \hline
 \end{tabular}
 \end{center}
 \\
-If a new malloc request for 2KB is executed (\keyword{malloc(2048)}), where should \keyword{malloc} reserve the memory?
-It could use the last 2KB hole, which happens to be the perfect size!
+If a new malloc request for 2KiB is executed (\keyword{malloc(2048)}), where should \keyword{malloc} reserve the memory?
+It could use the last 2KiB hole, which happens to be the perfect size!
 Or it could split one of the other two free holes.
 These choices represent different placement strategies.
 Whichever hole is chosen, the allocator will need to split the hole into two: The newly allocated space (which will be returned to the program) and a smaller hole (if there is spare space left over).
-A perfect-fit strategy finds the smallest hole that is of sufficient size (at least 2KB):
+A perfect-fit strategy finds the smallest hole that is of sufficient size (at least 2KiB):
 \\
 \begin{center}
 \begin{tabular}{ | c | c | c | c | c | c | c | }
 \hline
-16KB & 10KB & 1KB & 1KB & 30KB & 4KB & 2KB \\ \hline
+16KiB & 10KiB & 1KiB & 1KiB & 30KiB & 4KiB & 2KiB \\ \hline
 free & allocated & free & allocated & free & allocated & \texttt{HERE!} \\
 \hline
 \end{tabular}
 \end{center}
 \\
-A worst-fit strategy finds the largest hole that is of sufficient size (so break the 30KB hole into two):
+A worst-fit strategy finds the largest hole that is of sufficient size (so break the 30KiB hole into two):
 \\
 \begin{center}
 \begin{tabular}{ | c | c | c | c | c | c | c | c | }
 \hline
-16KB & 10KB & 1KB & 1KB & 2KB & 28KB & 4KB & 2KB \\ \hline
+16KiB & 10KiB & 1KiB & 1KiB & 2KiB & 28KiB & 4KiB & 2KiB \\ \hline
 free & allocated & free & allocated & \texttt{HERE!} & free & allocated & free \\
 \hline
 \end{tabular}
 \end{center}
 \\
-A first-fit strategy finds the first available hole that is of sufficient size (break the 16KB hole into two):
+A first-fit strategy finds the first available hole that is of sufficient size (break the 16KiB hole into two):
 \\
 \begin{center}
 \begin{tabular}{ | c | c | c | c | c | c | c | c | }
 \hline
-2KB & 14KB & 10KB & 1KB & 1KB & 30KB & 4KB & 2KB \\ \hline
+2KiB & 14KiB & 10KiB & 1KiB & 1KiB & 30KiB & 4KiB & 2KiB \\ \hline
 \texttt{HERE!} & free & allocated & free & allocated & free & allocated & free \\
 \hline
 \end{tabular}
@@ -218,13 +218,13 @@ A first-fit strategy finds the first available hole that is of sufficient size (
 \\
 
 To introduce another concept, external fragmentation is that even though we have enough memory in the heap, it may be divided up in a way that wear are not able to give the full amount.
-In the example below, of the 64KB of heap memory, 17KB is allocated, and 47KB is free.
-However the largest available block is only 30KB because our available unallocated heap memory is fragmented into smaller pieces.
+In the example below, of the 64KiB of heap memory, 17KiB is allocated, and 47KiB is free.
+However the largest available block is only 30KiB because our available unallocated heap memory is fragmented into smaller pieces.
 \\
 \begin{center}
 \begin{tabular}{ | c | c | c | c | c | c | c | }
 \hline
-16KB & 10KB & 1KB & 1KB & 30KB & 4KB & 2KB \\ \hline
+16KiB & 10KiB & 1KiB & 1KiB & 30KiB & 4KiB & 2KiB \\ \hline
 free & allocated & free & allocated & free & allocated & free \\
 \hline
 \end{tabular}
@@ -261,7 +261,7 @@ This page introduces the implementation and conceptual details of building an al
 Conceptually we are thinking about creating linked lists and lists of blocks!
 We are writing integers and pointers into memory that we already control, so we can later consistently hop from one address to the next.
 This internal information represents some overhead.
-Even if we had requested 1024 KB of contiguous memory from the system, we will not be able to provide all of it to the running program.
+Even if we had requested 1024 KiB of contiguous memory from the system, we will not be able to provide all of it to the running program.
 
 We can think of our heap memory as a list of blocks where each block is either allocated or unallocated.
 Rather than storing an explicit list of pointers we store information about the block's size \emph{as part of the block}.

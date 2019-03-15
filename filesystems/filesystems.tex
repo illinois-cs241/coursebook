@@ -112,7 +112,7 @@ Except the problem of too many layers of indirection.
 
 To solve this problem, we introduce the indirect blocks. An indirect block is a block that store pointers to more data blocks. Similarly a double indirect block stores pointers to indirect blocks and the concept can be generalized to arbitrary levels of indirection. This is a very important concept, since as inodes are stored in the superblock, or some other structure in a well known location with a constant amount of space, indirection allows exponential increases in the amount of space an inode can keep track of.
 
-As a worked example, suppose we divide the disk into 4KB blocks and we want to address up to 2\^{}32 blocks. The maximum disk size is 4KB *2\^{}32 = 16TB (remember 2\^{}10 = 1024). A disk block can store 4KB / 4B (each pointer needs to be 32 bits) = 1024 pointers. Each pointer refers to a 4KB disk block - so you can refer up to 1024*4KB = 4MB of data. For the same disk configuration, a double indirect block stores 1024 pointers to 1024 indirection tables. Thus a double-indirect block can refer up to 1024 * 4MB = 4GB of data. Similarly, a triple indirect block can refer up to 4TB of data. Naturally though, this is three times as slow.
+As a worked example, suppose we divide the disk into 4KiB blocks and we want to address up to 2\^{}32 blocks. The maximum disk size is 4KiB *2\^{}32 = 16TB (remember 2\^{}10 = 1024). A disk block can store 4KiB / 4B (each pointer needs to be 32 bits) = 1024 pointers. Each pointer refers to a 4KiB disk block - so you can refer up to 1024*4KiB = 4MiB of data. For the same disk configuration, a double indirect block stores 1024 pointers to 1024 indirection tables. Thus a double-indirect block can refer up to 1024 * 4MiB = 4GB of data. Similarly, a triple indirect block can refer up to 4TB of data. Naturally though, this is three times as slow.
 
 \subsection{Directory Implementation}
 
@@ -578,7 +578,7 @@ $ mkdir -m 700 /tmp/mystuff
 
 \subsection{Copying Files}
 
-Use the versatile \keyword{dd} command. For example, the following command copies 1 MB of data from the file \keyword{/dev/urandom} to the file \keyword{/dev/null}. The data is copied as 1024 blocks of blocksize 1024 bytes.
+Use the versatile \keyword{dd} command. For example, the following command copies 1 MiB of data from the file \keyword{/dev/urandom} to the file \keyword{/dev/null}. The data is copied as 1024 blocks of blocksize 1024 bytes.
 
 \begin{verbatim}
 $ dd if=/dev/urandom of=/dev/null bs=1k count=1024
@@ -824,7 +824,7 @@ indicies into an array.
 \caption{Sample file filling up}
 \end{figure}
 
-We will assume that a data block is 4 KB.
+We will assume that a data block is 4 KiB.
 
 Note that a file will fill up each of its data blocks completely before requesting an additional data block. We will
 refer to this property as as the file being \textit{compact}. The file presented above is interesting since it uses all
@@ -837,20 +837,20 @@ The size of a file is not something that we can compute by staring at it. We nee
 typically stored in the inode. This is because the filesystem isn't aware of the actual contents of what is in a file.
 That data is considered the user's. However, we can compute an upper bound by looking at how many blocks the file uses.
 
-There are two full direct blocks, which together store $2*sizeof(data\_block)=2*4KB=8KB$.
+There are two full direct blocks, which together store $2*sizeof(data\_block)=2*4KiB=8KiB$.
 
-There are two used blocks referenced by the indirect block, which can store up to $8KB$ as calculated above.
+There are two used blocks referenced by the indirect block, which can store up to $8KiB$ as calculated above.
 
-We can now add these values to get an upper bound on the file size of $16KB$.
+We can now add these values to get an upper bound on the file size of $16KiB$.
 
 What about a lower bound? We know that we must use the two direct blocks, one block referenced by the indirect block and at least 1 byte of a
-second block referenced by the indirect block. With this information, we can work out the lower bound to be $2*4KB+4KB+1=12KB+1B$.
+second block referenced by the indirect block. With this information, we can work out the lower bound to be $2*4KiB+4KiB+1=12KiB+1B$.
 
 Note that our calculations so far have been to determine how much data the user is storing on disk. We have not
 considered the \textit{overhead} of storing this data incurred while using this filesystem. You'll notice that we use an
 indirect block to store the disk block numbers of blocks used beyond the two direct blocks. While doing our above
 calculations, we did not take this block into account while computing the filesize. This would instead be counted as the
-overhead of the file, and thus the total overhead of storing this file on disk is $sizeof(indirect\_block)=4KB)$.
+overhead of the file, and thus the total overhead of storing this file on disk is $sizeof(indirect\_block)=4KiB)$.
 
 \subsection{Performing Reads}
 
@@ -865,16 +865,16 @@ our data continues on the 5th datablock from the beginning. We do the same for d
 we exceed the size of the inode
 
 Now, let's think about the edge cases.
-How would you start the read starting at an arbitrary offset of $n$ bytes given that block sizes are $4 KBs$.
+How would you start the read starting at an arbitrary offset of $n$ bytes given that block sizes are $4 KiBs$.
 How many indirect blocks should there be if the filesystem is correct (hint: \textit{think about using the size of the inode})
 
 \subsection{Performing Writes}
 
 Performing writes fall into two categories, writes to files and writes to directories.
-First we'll focus on files and assume that we are writing a byte to the $6$th KB of our file.
+First we'll focus on files and assume that we are writing a byte to the $6$th KiB of our file.
 To perform a write on a file at a particular offset, first you must go to the data block would start at that offset.
 For this particular example we would have to go to the 2nd or indexed number 1 inode to perform our write.
-We would once again fetch this number from the inode, go to the root of the data blocks, go to the $5$th data block and perform our write at the $2$KB offset from this block because we skipped the first four kilobytes of the file in block 7.
+We would once again fetch this number from the inode, go to the root of the data blocks, go to the $5$th data block and perform our write at the $2$KiB offset from this block because we skipped the first four kilobytes of the file in block 7.
 We perform our write and go on our merry way
 
 Some questions for you. How would you consider performing a write that would go across data block boundaries? How would you consider performing a write whose write after adding the offset would extend the length of the file?  How would you consider performing a write where the offset is greater than the length of the original file?
