@@ -170,7 +170,7 @@ This is equivalent to turning your children into zombies, so keep this in mind f
 Race conditions are whenever the outcome of a program is determined by its sequence of events determined by the processor.
 This means that the execution of the code is non-deterministic.
 Meaning that the same program can run multiple times and depending on how the kernel schedules the threads could produce inaccurate results.
-The following is the cannonical race condition.
+The following is the canonical race condition.
 
 \begin{lstlisting}[language=C]
   void *thread_main(void *data) {
@@ -253,7 +253,7 @@ int main() {
 The above code suffers from a \keyword{race condition} - the value of i is changing.
 A race condition simply put is a sequence of instructions that shouldn't be executed by two threads at once.
 The new threads start later (in the example output the last thread starts after the loop has finished).
-To overcome this race-condition, we will give each thread a pointer to it's own data area. For example, for each thread we may want to store the id, a starting value and an output value. We will instead treat i as a pointer and cast it by value.
+To overcome this race-condition, we will give each thread a pointer to its own data area. For example, for each thread we may want to store the id, a starting value and an output value. We will instead treat i as a pointer and cast it by value.
 
 \begin{lstlisting}[language=C]
 void* myfunc(void* ptr) {
@@ -370,7 +370,7 @@ The other thing that we know is that CPUs don't have infinite cores.
 To get around that, we typically keep a worker pool.
 You won't see the speedup right away because of things like cache coherency and scheduling extra threads.
 
-Another embarrisingly parallel problem is parallel map.
+Another embarrassingly parallel problem is parallel map.
 Say we want to apply a function to an entire array, one element at a time.
 
 \begin{lstlisting}[language=C]

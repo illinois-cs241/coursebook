@@ -48,7 +48,8 @@ Both threads write back the value (124).
 If the threads had accessed the sum at different times then the count would have been 125.
 A few of the possible different orderings are below.
 
-Permittable Pattern
+Permissible Pattern
+
 \begin{tabular}{ l | r }
   Thread 1 & Thread 2 \\ \hline
   Load Addr, Add 1 (i=1 locally) & ...  \\
@@ -254,7 +255,7 @@ Other possible problems with synchronization.
 \item
   Resource leak (not calling \keyword{pthread\_mutex\_destroy})
 \item
-  Using an unitialized mutex or using a mutex that has already been destroyed
+  Using an uninitialized mutex or using a mutex that has already been destroyed
 \item
   Locking a mutex twice on a thread without unlocking first
 \item
@@ -599,7 +600,7 @@ For example, imagine if two threads call pop at the same time then both threads 
 
 To turn this into a thread-safe data structure we need to identify the \emph{critical sections} of our code i.e.~which section(s) of the code must only have one thread at a time.
 In the above example the \keyword{push},\keyword{pop} and \keyword{is\_empty} functions access the same variables (i.e.~memory) and all critical sections for the stack.
-While \keyword{push} (and \keyword{pop}) is executing, the datastructure is an inconsistent state (for example the count may not have been written to, so may still contain the original value).
+While \keyword{push} (and \keyword{pop}) is executing, the data structure is an inconsistent state (for example the count may not have been written to, so may still contain the original value).
 By wrapping these methods with a mutex we can ensure that only one thread at a time can update (or read) the stack. A candidate `solution' is shown below.
 Is it correct? If not, how will it fail?
 
@@ -677,7 +678,7 @@ There are a few things to note.
 
 \begin{itemize}
 \item \keyword{is\_empty} is thread-safe but its result may already be out-of date i.e.~the stack may no longer be empty by the time the thread gets the result!
-  This is usually why in thread safe data structures, functions that return sizes are removed or depricated.
+  This is usually why in thread safe data structures, functions that return sizes are removed or deprecated.
   \item There is no protection against underflow (popping on an empty stack) or overflow (pushing onto an already-full stack)
 \end{itemize}
 
@@ -738,7 +739,7 @@ int main() {
 
 \subsection{Using semaphores}
 
-We can also use a counting semaphore to keep track of how many spaces remain and another semaphore to keep to track the number of items in the stack. We will call these two semaphores `sremain' and `sitems'. Remember \keyword{sem\_wait} will wait if the semaphore's count has been decremented to zero (by another thread calling sem\_post).
+We can also use a counting semaphore to keep track of how many spaces remain and another semaphore to keep to track the number of items in the stack. We will call these two semaphores \texttt{sremain} and \texttt{sitems}. Remember \keyword{sem\_wait} will wait if the semaphore's count has been decremented to zero (by another thread calling sem\_post).
 
 \begin{lstlisting}[language=C]
 // Sketch #1
@@ -988,7 +989,7 @@ Link to Peterson's original article pdf: \href{http://dl.acm.org/citation.cfm?id
 
 \subsection{Was Peterson's solution the first solution?}\label{was-petersons-solution-the-first-solution}
 
-No, Dekkers Algorithm (1962) was the first provably correct solution. A version of the algorithm is below.
+No, Dekker's Algorithm (1962) was the first provably correct solution. A version of the algorithm is below.
 
 \begin{lstlisting}
 raise my flag
@@ -1211,7 +1212,7 @@ pthread_mutex_unlock(&m);
 
 When a thread enters \keyword{pthread\_cond\_wait}, it releases the mutex and sleeps. At some point in the future, it will be awoken. Once we bring a thread back from its sleep, before returning it must wait until it can lock the mutex. Notice that even if a sleeping thread wakes up early, it will check the while loop condition and re-enter wait if necessary.
 
-\textbf{The above barrier is not reusable} Meaning that if we stick it into any old calculation loop there is a good chance that the code will encounter a condition where the barrier either deadlocks or a thread races ahead one iteration faster. Think about how you can make the above barrier reusable, meaning that if mutliple threads call \keyword{barrier\_wait} in a loop then one can guarantee that they are on the same iteration.
+\textbf{The above barrier is not reusable} Meaning that if we stick it into any old calculation loop there is a good chance that the code will encounter a condition where the barrier either deadlocks or a thread races ahead one iteration faster. Think about how you can make the above barrier reusable, meaning that if multiple threads call \keyword{barrier\_wait} in a loop then one can guarantee that they are on the same iteration.
 
 \subsection{What is the Reader Writer Problem?}\label{what-is-the-reader-writer-problem}
 
@@ -1257,7 +1258,7 @@ void write() {
 }
 \end{lstlisting}
 
-Our second attempt suffers from a race condition - imagine if two threads both called \keyword{read} and \keyword{write} (or both called write) at the same time. Both threads would be able to proceed! Secondly, we can have multiple readers and multiple writers, so lets keep track of the total number of readers or writers. Which brings us to attempt \#3.
+Our second attempt suffers from a race condition - imagine if two threads both called \keyword{read} and \keyword{write} (or both called write) at the same time. Both threads would be able to proceed! Secondly, we can have multiple readers and multiple writers, so let's keep track of the total number of readers or writers. Which brings us to attempt \#3.
 
 \subsection{Attempt \#3}\label{attempt-3}
 
@@ -1509,7 +1510,7 @@ Before reading on, see how many mistakes you can find. Then determine what would
 \begin{itemize}
 \tightlist
 \item
-  The enqueue method waits and posts on the same semaphore (s1) and similarly with equeue and (s2) i.e.~we decrement the value and then immediately increment the value, so by the end of the function the semaphore value is unchanged!
+  The enqueue method waits and posts on the same semaphore (s1) and similarly with enqueue and (s2) i.e.~we decrement the value and then immediately increment the value, so by the end of the function the semaphore value is unchanged!
 \item
   The initial value of s1 is 16, so the semaphore will never be reduced to zero - enqueue will not block if the ring buffer is full - so overflow is possible.
 \item
@@ -1915,7 +1916,7 @@ If there is an active reader the number of active writers must be zero
 \item
 A writer must wait until the current active readers have finished
 \item
-  Todo: Analyzing mulithreaded code snippets
+  \todo{Analyzing multithreaded code snippets}
 \end{itemize}
 
 \bibliographystyle{plainnat}
