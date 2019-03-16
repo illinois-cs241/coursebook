@@ -16,7 +16,7 @@ LWP or threads are preferred to forking for a lot of scenarios because there is 
 Creating separate processes is useful when
 \begin{itemize}
 \item When more security is desired. For example, Chrome browser uses different processes for different tabs.
-\item When running an existing and complete program then a new process is required (e.g.~starting `gcc') 
+\item When running an existing and complete program then a new process is required (e.g.~starting `gcc')
 \item When you are running into synchronization primitives and each process is operating on something in the system.
 \item When you have too many threads -- the kernel tries to schedule all the threads near each other which could cause more harm than good.
 \item When you don't want to worry about race conditions
@@ -122,7 +122,7 @@ For example, in the following program, the \keyword{myfunc} threads will probabl
 On the other hand \keyword{exit()} exits the entire process and sets the processes exit value.
 This is equivalent to \keyword{return ();} in the main method.
 All threads inside the process are stopped.
-Note the \keyword{pthread\_exit} version creates thread zombies, however this is not a long-running processes, so we don't care. 
+Note the \keyword{pthread\_exit} version creates thread zombies, however this is not a long-running processes, so we don't care.
 
 \begin{lstlisting}[language=C]
 int main() {
@@ -130,7 +130,7 @@ int main() {
   pthread_create(&tid1, NULL, myfunc, "Jabberwocky");
   pthread_create(&tid2, NULL, myfunc, "Vorpel");
   if (keep_threads_going) {
-    pthread_exit(NULL); 
+    pthread_exit(NULL);
   } else {
     exit(42); //or return 42;
   }
@@ -149,16 +149,16 @@ This is equivalent to turning your children into zombies, so keep this in mind f
 // ...
   void* result;
   pthread_join(tid1, &result);
-  pthread_join(tid2, &result); 
+  pthread_join(tid2, &result);
   return 42;
 // ...
 \end{lstlisting}
 
-\item You've heard about this already, but how can a thread be terminated? 
+\item You've heard about this already, but how can a thread be terminated?
 \begin{itemize}
-\item Returning from the thread function 
-\item Calling \keyword{pthread\_exit} 
-\item Cancelling the thread with \keyword{pthread\_cancel} 
+\item Returning from the thread function
+\item Calling \keyword{pthread\_exit}
+\item Cancelling the thread with \keyword{pthread\_cancel}
 \item Terminating the process (e.g.~SIGTERM); exit(); returning from \keyword{main}
 \item Unplugging your computer
 \end{itemize}
@@ -310,19 +310,19 @@ void *sleepnprint(void *arg) {
 
   printf("%d:%s finishing...\n",getpid(), (char*)arg);
 
-  return NULL;  
+  return NULL;
 }
 int main() {
   pthread_t tid1, tid2;
   pthread_create(&tid1,NULL, sleepnprint, "New Thread One");
   pthread_create(&tid2,NULL, sleepnprint, "New Thread Two");
-  
+
   child = fork();
   printf("%d:%s\n",getpid(), "fork()ing complete");
   sleep(3);
-    
+
   printf("%d:%s\n",getpid(), "Main thread finished");
-  
+
   pthread_exit(NULL);
   return 0; /* Never executes */
 }
@@ -388,7 +388,7 @@ What do you think would be the best way to split up the work between threads.
 
 \subsection{Extra: Scheduling}
 
-There are a few ways to split up the work. 
+There are a few ways to split up the work.
 
 \begin{itemize}
 \item \keyword{static scheduling} break up the problems into fixed size chunks (predetermined) and have each thread work on each of the chunks.
@@ -409,7 +409,7 @@ Openmp is a standard that is an alternative to pthreads.
 For example here is how to parallelize a for loop
 
 \begin{lstlisting}[language=C]
-#pragma omp parallel for 
+#pragma omp parallel for
   for (int i = 0; i < n; i++) {
      // Do stuff
   }
@@ -425,31 +425,31 @@ Runtime is a whole bag of worms.
 
 \subsection{Other Problems}
 
-From \href{https://en.wikipedia.org/wiki/Embarrassingly_parallel}{Wikipedia} 
+From \href{https://en.wikipedia.org/wiki/Embarrassingly_parallel}{Wikipedia}
 \begin{itemize}
 \tightlist
-\item Serving static files on a webserver to multiple users at once. 
-\item The Mandelbrot set, Perlin noise and similar images, where each point is calculated independently. 
-\item Rendering of computer graphics. In computer animation, each frame may be rendered independently (see parallel rendering). 
+\item Serving static files on a webserver to multiple users at once.
+\item The Mandelbrot set, Perlin noise and similar images, where each point is calculated independently.
+\item Rendering of computer graphics. In computer animation, each frame may be rendered independently (see parallel rendering).
 \item Brute-force searches in cryptography.
-\item Notable real-world examples include distributed.net and proof-of-work systems used in cryptocurrency. 
-\item BLAST searches in bioinformatics for multiple queries (but not for individual large queries) 
+\item Notable real-world examples include distributed.net and proof-of-work systems used in cryptocurrency.
+\item BLAST searches in bioinformatics for multiple queries (but not for individual large queries)
 \item Large scale facial recognition systems that compare thousands of arbitrary acquired faces (e.g., a security or surveillance video via closed-circuit television) with similarly large number of previously stored faces (e.g., a rogues gallery or similar watch list).
-\item Computer simulations comparing many independent scenarios, such as climate models. 
-\item Evolutionary computation metaheuristics such as genetic algorithms. 
-\item Ensemble calculations of numerical weather prediction. 
-\item Event simulation and reconstruction in particle physics. 
-\item The marching squares algorithm 
-\item Sieving step of the quadratic sieve and the number field sieve. 
-\item Tree growth step of the random forest machine learning technique. 
+\item Computer simulations comparing many independent scenarios, such as climate models.
+\item Evolutionary computation metaheuristics such as genetic algorithms.
+\item Ensemble calculations of numerical weather prediction.
+\item Event simulation and reconstruction in particle physics.
+\item The marching squares algorithm
+\item Sieving step of the quadratic sieve and the number field sieve.
+\item Tree growth step of the random forest machine learning technique.
 \item Discrete Fourier Transform where each harmonic is independently calculated.
 \end{itemize}
 
 \subsection{Further Reading}
 
 \begin{itemize}
-\item \href{http://man7.org/linux/man-pages/man3/pthread_create.3.html}{man page} 
-\item \href{http://man7.org/linux/man-pages/man7/pthreads.7.html}{pthread reference guide} 
+\item \href{http://man7.org/linux/man-pages/man3/pthread_create.3.html}{man page}
+\item \href{http://man7.org/linux/man-pages/man7/pthreads.7.html}{pthread reference guide}
 \item \href{http://www.thegeekstuff.com/2012/04/terminate-c-thread/}{Concise third party sample code explaining create, join and exit}
 \end{itemize}
 

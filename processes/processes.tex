@@ -22,16 +22,16 @@ In the beginning, there is a kernel. The operating system kernel is a special pi
 \end{enumerate}
 
 You don't need to know the specifics of the booting process, but there it is.
-When you are executing in user space the kernel provides some important operations that programs don't have to worry about. 
+When you are executing in user space the kernel provides some important operations that programs don't have to worry about.
 
 \begin{itemize}
 \item Scheduling Processes and threads
-\item Handling synchronization primitives 
-\item Providing System Calls like \keyword{write} or \keyword{read} 
-\item Manages virtual memory and low level binary devices like \keyword{usb} drivers 
-\item Handles reading and understanding a filesystem 
-\item Handles communicating over networks 
-\item Handles communications with other processes 
+\item Handling synchronization primitives
+\item Providing System Calls like \keyword{write} or \keyword{read}
+\item Manages virtual memory and low level binary devices like \keyword{usb} drivers
+\item Handles reading and understanding a filesystem
+\item Handles communicating over networks
+\item Handles communications with other processes
 \item Dynamically linking libraries
 \end{itemize}
 
@@ -60,8 +60,8 @@ At the start of each program you get one process, but each program can make more
 In fact, your operating system starts up with only one process and all other processes are forked off of that -- all of that is done under the hood when booting up. A program consists of the following.
 
 \begin{itemize}
-\item A binary format: This tells the operating system which set of bits in the binary are what -- which part is executable, which parts are constants, which libraries to include etc. 
-\item A set of machine instructions 
+\item A binary format: This tells the operating system which set of bits in the binary are what -- which part is executable, which parts are constants, which libraries to include etc.
+\item A set of machine instructions
 \item A number denoting which instruction to start from
 \item Constants
 \item Libraries to link and where to fill in the address of those libraries
@@ -96,7 +96,7 @@ The stack is the place where automatic variable and function call return address
 Every time a new variable is declared, the program moves the stack pointer down to reserve space for the variable.
 This segment of the stack is Writable but not executable.
 If the stack grows too far -- meaning that it either grows beyond a preset boundary or intersects the heap -- you will get a stackoverflow most likely resulting in a SEGFAULT.
-\textbf{The stack is statically allocated by default meaning that there is only a certain amount of space to which one can write} 
+\textbf{The stack is statically allocated by default meaning that there is only a certain amount of space to which one can write}
 
 \item \textbf{A Heap}.
 The heap is an expanding region of memory.
@@ -104,12 +104,12 @@ If you want to allocate a large object, it goes here.
 The heap starts at the top of the text segment and grows upward, meaning sometimes when you call \keyword{malloc} that it asks the operating system to push the heap boundary upward.
 More on that in the memory allocation chapter.
 This area is also writable but not executable.
-One can run out of heap memory if the system is constrained or if you run out of addresses. This is more common on a 32bit system. 
+One can run out of heap memory if the system is constrained or if you run out of addresses. This is more common on a 32bit system.
 
 \item \textbf{A Data Segment} This contains all of your globals.
 This section starts at the end of the text segment and is static in size because the amount of globals is known at compile time.
 There are two areas to the data usually the \textbf{IBSS} and the \textbf{UBSS} which stand for the initialized basic service set and the uninitialized data segment respectively.
-This section is writable but not executable. 
+This section is writable but not executable.
 
 \item \textbf{A Text Segment}.
 This is where all your code is stored -- all the 1's and 0's.
@@ -126,12 +126,12 @@ To keep track of all these processes, your operating system gives each process a
 Processes also have a \keyword{ppid} which is short for parent process id.
 Every process has a parent, that parent could be \keyword{init.d}.
 
-Processes could also contain 
+Processes could also contain
 
 \begin{itemize}
-\item Running State - Whether a process is getting ready, running, stopped, terminated etc. 
-\item File Descriptors - List of mappings from integers to real devices (files, usb sticks, sockets) 
-\item Permissions - What \keyword{user} the file is running on and what \keyword{group} the process belongs to. The process can then only do this admissible to the \keyword{user} or \keyword{group} like opening a file that the \keyword{user} has made exclusives. There are tricks to make a program not be the user who started the program i.e. \keyword{sudo} takes a program that a \keyword{user} starts and executes it as \keyword{root}. 
+\item Running State - Whether a process is getting ready, running, stopped, terminated etc.
+\item File Descriptors - List of mappings from integers to real devices (files, usb sticks, sockets)
+\item Permissions - What \keyword{user} the file is running on and what \keyword{group} the process belongs to. The process can then only do this admissible to the \keyword{user} or \keyword{group} like opening a file that the \keyword{user} has made exclusives. There are tricks to make a program not be the user who started the program i.e. \keyword{sudo} takes a program that a \keyword{user} starts and executes it as \keyword{root}.
 \item Arguments - a list of strings that tell your program what parameters to run under
 \item Environment List - a list of strings in the form \keyword{NAME=VALUE} that one can modify.
 \end{itemize}
@@ -195,9 +195,9 @@ The parent process however can only find out the id of the new child process fro
 
 \begin{lstlisting}[language=C]
   pid_t id = fork();
-  if (id == -1) exit(1); // fork failed 
-  if (id > 0) { 
-    // I'm the original parent and 
+  if (id == -1) exit(1); // fork failed
+  if (id > 0) {
+    // I'm the original parent and
     // I just created a child process with id 'id'
     // Use waitpid to wait for the child to finish
   } else { // returned zero
@@ -212,7 +212,7 @@ A slightly silly example is shown below. What will it print? Try it with multipl
   #include <stdio.h>
   int main(int argc, char **argv) {
     pid_t id;
-    int status; 
+    int status;
     while (--argc && (id=fork())) {
       waitpid(id,&status,0); /* Wait for child*/
     }
@@ -296,10 +296,10 @@ POSIX determines what the standards of fork are. The commonly expected standards
 \item Environment variables are inherited but can be changed
 \end{enumerate}
 
-Key differences include: 
+Key differences include:
 \begin{itemize}
-\item The process id returned by \keyword{getpid()}. The parent process id returned by \keyword{getppid()}. 
-\item The parent is notified via a signal, SIGCHLD, when the child process finishes but not vice versa. 
+\item The process id returned by \keyword{getpid()}. The parent process id returned by \keyword{getppid()}.
+\item The parent is notified via a signal, SIGCHLD, when the child process finishes but not vice versa.
 \item The child does not inherit pending signals or timer alarms. For a complete list see the \href{http://man7.org/linux/man-pages/man2/fork.2.html}{fork man page}
 \item The child has its own set of environment variables
 \end{itemize}
@@ -311,9 +311,9 @@ If the parent process wants waits for the child to finish, \keyword{waitpid} (or
 \begin{lstlisting}[language=C]
   pid_t child_id = fork();
   if (child_id == -1) { perror("fork"); exit(EXIT_FAILURE);}
-  if (child_id > 0) { 
+  if (child_id > 0) {
     // We have a child! Get their exit code
-    int status; 
+    int status;
     waitpid( child_id, &status, 0 );
     // code not shown to get exit status from child
   } else { // In child ...
@@ -427,13 +427,13 @@ Warning: This section uses signals which we have not yet fully introduced. The p
     if (child == -1) { exit(EXIT_FAILURE);}
 
     if (child == 0) { /* I am the child!*/
-      // Do background stuff e.g. call exec   
+      // Do background stuff e.g. call exec
     } else { /* I'm the parent! */
       sleep(4); // so we can see the cleanup
       puts("Parent is done");
     }
     return 0;
-  } 
+  }
 \end{lstlisting}
 
 The above example however misses a couple of subtle points.
@@ -474,7 +474,7 @@ An example of this code is below. This code executes \keyword{ls}
 
 \begin{lstlisting}[language=C]
   #include <unistd.h>
-  #include <sys/types.h> 
+  #include <sys/types.h>
   #include <sys/wait.h>
   #include <stdlib.h>
   #include <stdio.h>
@@ -519,12 +519,12 @@ Try to decode the following example
   }
 \end{lstlisting}
 
-There's no error checking in the above code (we assume close,open,chdir etc works as expected). 
+There's no error checking in the above code (we assume close,open,chdir etc works as expected).
 
 \begin{enumerate}
-\item \keyword{open} -- will use the lowest available file descriptor (i.e.~1) ; so standard out now goes to the log file. 
-\item \keyword{chdir} -- Change the current directory to /usr/include 
-\item \keyword{execl} -- Replace the program image with /bin/ls and call its main() method 
+\item \keyword{open} -- will use the lowest available file descriptor (i.e.~1) ; so standard out now goes to the log file.
+\item \keyword{chdir} -- Change the current directory to /usr/include
+\item \keyword{execl} -- Replace the program image with /bin/ls and call its main() method
 \item \keyword{perror} -- We don't expect to get here - if we did then exec failed.
 \end{enumerate}
 
@@ -562,7 +562,7 @@ Not only that, it tends to be a huge security risk. By allowing someone to acces
 
 \begin{lstlisting}[language=C]
   int main(int argc, char**argv) {
-    char *to_exec = asprintf("ls %s", argv[1]); 
+    char *to_exec = asprintf("ls %s", argv[1]);
     system(to_exec);
   }
 \end{lstlisting}
@@ -574,7 +574,7 @@ Passing something along the lines of argv[1] = "; sudo su" could cause all sorts
 A common programming pattern is to call \keyword{fork} followed by \keyword{exec} and \keyword{wait}.
 The original process calls fork, which creates a child process.
 The child process then uses exec to start execution of a new program.
-Meanwhile the parent uses \keyword{wait} (or \keyword{waitpid}) to wait for the child process to finish. 
+Meanwhile the parent uses \keyword{wait} (or \keyword{waitpid}) to wait for the child process to finish.
 
 \begin{lstlisting}[language=C][language=C]
   #include <unistd.h>
@@ -618,10 +618,10 @@ Another security related concern is that environment variables cannot be read by
 
 \section{Further Reading}
 
-Read the man pages! 
+Read the man pages!
 \begin{itemize}
-\item \href{http://man7.org/linux/man-pages/man2/fork.2.html}{fork} 
-\item \href{http://man7.org/linux/man-pages/man3/exec.3.html}{exec} 
+\item \href{http://man7.org/linux/man-pages/man2/fork.2.html}{fork}
+\item \href{http://man7.org/linux/man-pages/man3/exec.3.html}{exec}
 \item \href{http://man7.org/linux/man-pages/man2/wait.2.html}{wait}
 \end{itemize}
 

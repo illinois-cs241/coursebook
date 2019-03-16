@@ -6,7 +6,7 @@
 
 Memory allocation is very important!
 Allocating and de-allocating heap memory is one of the most common operations in any application.
-The heap at the system level is contiguous series of addresses that the program can expand or contract and use as its own accord. 
+The heap at the system level is contiguous series of addresses that the program can expand or contract and use as its own accord.
 In POSIX, this is called the system break.
 We use \keyword{sbrk} to move the system break.
 Most programs don't interact directly with this call, they use a memory allocation system around it to handle chunking up and keeping track of which memory is allocated and which is free'd.
@@ -29,13 +29,13 @@ The most common use of realloc is to resize memory used to hold an array of valu
 There are two gotchas with realloc.
 One, a new pointer may be returned.
 Two, it can fail.
-A naive but readable version of realloc is suggested below with sample usage. 
+A naive but readable version of realloc is suggested below with sample usage.
 
 \begin{lstlisting}[language=C]
 void * realloc(void * ptr, size_t newsize) {
   // Simple implementation always reserves more memory
   // and has no error checking
-  void *result = malloc(newsize); 
+  void *result = malloc(newsize);
   size_t oldsize =  ... //(depends on allocator's internal data structure)
   if (ptr) memcpy(result, ptr, newsize < oldsize ? newsize : oldsize);
   free(ptr);
@@ -48,8 +48,8 @@ int main() {
   array[0] = 10; array[1] = 20;
   // Ooops need a bigger array - so use realloc..
   array = realloc(array, 3 * sizeof(int));
-  array[2] = 30; 
-  
+  array[2] = 30;
+
 }
 \end{lstlisting}
 
@@ -66,10 +66,10 @@ A naive implementation of calloc is below.
 void *calloc(size_t n, size_t size) {
   size_t total = n * size; // Does not check for overflow!
   void *result = malloc(total);
-  
+
   if (!result) return NULL;
-    
-  // If we're using new memory pages 
+
+  // If we're using new memory pages
   // just allocated from the system by calling sbrk
   // then they will be zero so zero-ing out is unnecessary,
 
@@ -98,7 +98,7 @@ The heap is part of the process memory and it does not have a fixed size.
 Heap memory allocation is performed by the C library when you call \keyword{malloc} (\keyword{calloc}, \keyword{realloc}) and \keyword{free}.
 By calling \keyword{sbrk} the C library can increase the size of the heap as your program demands more heap memory.
 As the heap and stack (one for each thread) need to grow, we put them at opposite ends of the address space.
-So for typical architectures the heap will grow upwards and the stack grows downwards. 
+So for typical architectures the heap will grow upwards and the stack grows downwards.
 
 Truthiness: Modern operating system memory allocators no longer need \keyword{sbrk} - instead they can request independent regions of virtual memory and maintain multiple memory regions.
 For example, gibibyte requests may be placed in a different memory region than small allocation requests.
@@ -141,9 +141,9 @@ Here is a first attempt at it -- the naive version.
 
 \begin{lstlisting}[language=C]
 void* malloc(size_t size)
-// Ask the system for more bytes by extending the heap space. 
+// Ask the system for more bytes by extending the heap space.
 // sbrk Returns -1 on failure
-   void *p = sbrk(size); 
+   void *p = sbrk(size);
    if(p == (void *) -1) return NULL; // No space left
    return p;
 }
@@ -153,7 +153,7 @@ void free() {/* Do nothing */}
 Above is the simplest implementation of malloc, there are a few drawbacks though.
 
 \begin{itemize}
-\item System calls are slow (compared to library calls). We should reserve a large amount of memory and only occasionally ask for more from the system. 
+\item System calls are slow (compared to library calls). We should reserve a large amount of memory and only occasionally ask for more from the system.
 \item No reuse of freed memory. Our program never re-uses heap memory - it just keeps asking for a bigger heap.
 \end{itemize}
 
@@ -233,12 +233,12 @@ free & allocated & free & allocated & free & allocated & free \\
 
 \subsection{Placement Strategy pros and cons}
 
-The challenges of writing a heap allocator are 
+The challenges of writing a heap allocator are
 \begin{itemize}
-\item Need to minimize fragmentation (i.e.~maximize memory utilization) 
-\item Need high performance 
+\item Need to minimize fragmentation (i.e.~maximize memory utilization)
+\item Need high performance
 \item Fiddly implementation (lots of pointer manipulation using linked lists and pointer arithmetic)
-\item Both fragmentation and performance depend on the application allocation profile, which can be evaluated but not predicted and in practice, under-specific usage conditions, a special-purpose allocator can often out-perform a general purpose implementation. 
+\item Both fragmentation and performance depend on the application allocation profile, which can be evaluated but not predicted and in practice, under-specific usage conditions, a special-purpose allocator can often out-perform a general purpose implementation.
 \item The allocator doesn't know the program's memory allocation requests in advance. Even if we did, this is the \href{http://en.wikipedia.org/wiki/Knapsack_problem}{Knapsack problem} which is known to be NP hard!
 \end{itemize}
 
@@ -319,7 +319,7 @@ int s = (requested_bytes + tag_overhead_bytes + 15) / 16
 
 The additional constant ensures incomplete units are rounded up. Note, real code is more likely to symbol sizes e.g. \keyword{sizeof(x)\ -\ 1}, rather than coding numerical constant 15.
 
-\href{http://www.ibm.com/developerworks/library/pa-dalign/}{Here's a great article on memory alignment, if you are further interested} 
+\href{http://www.ibm.com/developerworks/library/pa-dalign/}{Here's a great article on memory alignment, if you are further interested}
 
 Another added effect is could be internal fragmentation happens when the block you give them is larger than their allocation size.
 Let's say that we have a free block of size 16B (not including metadata).
@@ -334,7 +334,7 @@ When \keyword{free} is called we need to re-apply the offset to get back to the 
 A naive implementation would simply mark the block as unused. If we are storing the block allocation status in the lowest size bit, then we just need to clear the bit:
 
 \begin{lstlisting}[language=C]
-*p = (*p) & ~1; // Clear lowest bit 
+*p = (*p) & ~1; // Clear lowest bit
 \end{lstlisting}
 
 However, we have a bit more work to do: If the current block and the next block (if it exists) are both free we need to coalesce these blocks into a single block.
@@ -355,7 +355,7 @@ Allocating memory is a worst-case linear time operation -- search linked lists f
 De-allocation is constant time (no more than 3 blocks will need to be coalesced into a single block).
 Using this allocator it is possible to experiment with different placement strategies.
 For example, you could start searching from where you last free'd a block, or where you last allocated from.
-If you do store pointers to blocks, you need to be very careful that they always remain valid 
+If you do store pointers to blocks, you need to be very careful that they always remain valid
 Particularly when you malloc, free, calloc, realloc, coalesce, split, etc.
 
 \subsection{Explicit Free Lists Allocators}

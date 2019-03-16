@@ -49,7 +49,7 @@ A non-comprehensive list of topics is below.
 \item reader/writer
 \item resource allocation graphs
 \item ring buffer
-\item scanf 
+\item scanf
 \item buffering
 \item scheduling
 \item select
@@ -94,7 +94,7 @@ void func() {
    int* ptr2 = realloc(NULL, sizeof(int) );
    int* ptr3 = calloc( 1, sizeof(int) );
    int* ptr4 = calloc( sizeof(int) , 1);
-   
+
    printf("%d %d %d %d\n",*ptr1,*ptr2,*ptr3,*ptr4);
 }
 \end{lstlisting}
@@ -103,8 +103,8 @@ void func() {
 
 \begin{lstlisting}[language=C]
 char* copy(char*src) {
- char*result = malloc( strlen(src) ); 
- strcpy(result, src); 
+ char*result = malloc( strlen(src) );
+ strcpy(result, src);
  return result;
 }
 \end{lstlisting}
@@ -113,8 +113,8 @@ char* copy(char*src) {
 
 \begin{lstlisting}[language=C]
 char* copy(char*src) {
- char*result = malloc( strlen(src) +1 ); 
- strcat(result, src); 
+ char*result = malloc( strlen(src) +1 );
+ strcat(result, src);
  return result;
 }
 \end{lstlisting}
@@ -123,8 +123,8 @@ char* copy(char*src) {
 
 \begin{lstlisting}[language=C]
 char* copy(char*src) {
- char result[sizeof(src)]; 
- strcpy(result, src); 
+ char result[sizeof(src)];
+ strcpy(result, src);
  return result;
 }
 \end{lstlisting}
@@ -218,7 +218,7 @@ char* toString(int a, char*mesg, double val, void* ptr) {
 
 \item When would you use calloc not malloc? When would realloc be useful?
 
-\item What mistake did the programmer make in the following code? Is it possible to fix it 
+\item What mistake did the programmer make in the following code? Is it possible to fix it
 
 i) using heap memory?
 ii) using global (static) memory?
@@ -279,10 +279,10 @@ void* func(void* ptr) {
 
 int main(int argv, char** argc) {
   sem_init(s,0, a);
-  while(b--) pthread_create(&tid, NULL, func, "W"); 
-  while(c--) pthread_create(&tid, NULL, func, "P"); 
-  while(d--) pthread_create(&tid, NULL, func, "W"); 
-  pthread_exit(NULL); 
+  while(b--) pthread_create(&tid, NULL, func, "W");
+  while(c--) pthread_create(&tid, NULL, func, "P");
+  while(d--) pthread_create(&tid, NULL, func, "W");
+  pthread_exit(NULL);
   /*Process will finish when all threads have exited */
 }
 \end{lstlisting}
@@ -299,14 +299,14 @@ void* func(void* mesg) {
   while(1) {
 // Add mutex lock and condition variable calls ...
 
-    while(turn == mesg) { 
-        /* poll again ... Change me - This busy loop burns CPU time! */ 
+    while(turn == mesg) {
+        /* poll again ... Change me - This busy loop burns CPU time! */
     }
 
     /* Do stuff on this thread */
     puts( (char*) mesg);
     turn = mesg;
-    
+
   }
   return 0;
 }
@@ -352,11 +352,11 @@ void* dequeue() {
 graph_t* create_graph(char* filename); // called once
 
 // returns a new heap object that is the shortest path from vertex i to j
-path_t* shortest(graph_t* graph, int i, int j); 
+path_t* shortest(graph_t* graph, int i, int j);
 
 // updates edge from vertex i to j
-void set_edge(graph_t* graph, int i, int j, double time); 
-  
+void set_edge(graph_t* graph, int i, int j, double time);
+
 \end{lstlisting}
 
 For performance, multiple threads must be able to call \texttt{shortest} at the same time but the graph can only be modified by one thread when no threads other are executing inside \texttt{shortest} or \texttt{set\_edge}.
@@ -563,7 +563,7 @@ $ chmod 000 secret.txt
   \item Simple error detection
   \item Encryption
   \end{enumerate}
-  
+
 \item What protocol uses sequence numbers? What is their initial value? And why?
 
 \item What are the minimum network calls are required to build a TCP server? What is their correct order?

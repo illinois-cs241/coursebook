@@ -45,13 +45,13 @@ Any scheduler that doesn't use some form of pre-emption can result in starvation
 
 \subsection{Why might a process (or thread) be placed on the ready queue?}
 
-A process is placed on the ready queue when it is able to use a CPU. Some examples include: 
+A process is placed on the ready queue when it is able to use a CPU. Some examples include:
 
 \begin{itemize}
   \tightlist
-\item A process was blocked waiting for a \keyword{read} from storage or socket to complete and data is now available. 
-\item A new process has been created and is ready to start. 
-\item A process thread was blocked on a synchronization primitive (condition variable, semaphore, mutex lock) but is now able to continue. 
+\item A process was blocked waiting for a \keyword{read} from storage or socket to complete and data is now available.
+\item A new process has been created and is ready to start.
+\item A process thread was blocked on a synchronization primitive (condition variable, semaphore, mutex lock) but is now able to continue.
 \item A process is blocked waiting for a system call to complete but a signal has been delivered and the signal handler needs to run.
 \end{itemize}
 
@@ -64,7 +64,7 @@ First some definitions
   \item \keyword{end\_time} is the end wall-clock of the process (CPU finishes the process)
   \item \keyword{run\_time} is the total amount of CPU time required
   \item \keyword{arrival\_time} is the time the process enters the scheduler (CPU may not start working on it)
-\end{enumerate} 
+\end{enumerate}
 
 Here are measures of efficiency and their mathematical equations
 
@@ -73,7 +73,7 @@ Here are measures of efficiency and their mathematical equations
   \item \keyword{Response Time} is the total latency (time) that it takes from when the process arrives to when the CPU actually starts working on it. \keyword{start\_time - arrival\_time}
   \item \keyword{Wait Time} is the \emph{total} wait time i.e.~the total time that a process is on the ready queue. A common mistake is to believe it is only the initial waiting time in the ready queue. If a CPU intensive process with no I/O takes 7 minutes of CPU time to complete but required 9 minutes of wall-clock time to complete we can conclude that it was placed on the ready-queue for 2 minutes. For those 2 minutes the process was ready to run but had no CPU assigned. It does not matter when the job was waiting, the wait time is 2 minutes. \keyword{end\_time - arrival\_time - run\_time}
 
-\end{enumerate} 
+\end{enumerate}
 
 \subsection{Convoy Effect}
 
@@ -153,13 +153,13 @@ The processes all arrive at the start and the scheduler schedules the job with t
 
 Technical Note: A realistic SJF implementation would not use the total execution time of the process but the burst time (the total CPU time including future computational execution before the process will no longer be ready to run). The expected burst time can be estimated by using an exponentially decaying weighted rolling average based on the previous burst time but for this exposition we will simplify this discussion to use the total running time of the process as a proxy for the burst time.
 
-\textbf{Advantages} 
+\textbf{Advantages}
 
 \begin{enumerate}
   \item Shorter jobs tend to get run first
 \end{enumerate}
 
-\textbf{Disadvantages} 
+\textbf{Disadvantages}
 \begin{enumerate}
   \item Needs algorithm to be omniscient
 \end{enumerate}
@@ -190,13 +190,13 @@ Preemptive shortest job first is like shortest job first but if a new job comes 
 
 Here's what our algorithm does. It runs P2 because it is the only thing to run. Then P1 comes in at 1000ms, P2 runs for 2000ms, so our scheduler preemptively stops P2, and let's P1 run all the way through (this is completely up to the algorithm because the times are equal). Then, P5 Comes in -- since there are no processes running, the scheduler will run process 5. P4 comes in, and since the runtimes are equal P5, the scheduler stops P5 and runs P4. Finally P3 comes in, preempts P4, and runs to completion. Then P4 runs, then P5 runs.
 
-\textbf{Advantages} 
+\textbf{Advantages}
 
 \begin{enumerate}
   \item Ensures shorter jobs get run first
 \end{enumerate}
 
-\textbf{Disadvantages} 
+\textbf{Disadvantages}
 
 \begin{enumerate}
   \item Need to know the runtime again
@@ -226,7 +226,7 @@ Here's what our algorithm does. It runs P2 because it is the only thing to run. 
 
 Processes are scheduled in the order of arrival. One advantage of FCFS is that scheduling algorithm is simple: the ready queue is a just a FIFO (first in first out) queue. FCFS suffers from the Convoy effect. Here P2 Arrives, then P1 arrives, then P5, then P4, then P3. You can see the convoy effect for P5.
 
-\textbf{Advantages} 
+\textbf{Advantages}
 
 \begin{itemize}
 \item Simple algorithm and implementation
@@ -234,7 +234,7 @@ Processes are scheduled in the order of arrival. One advantage of FCFS is that s
 \item No starvation if all processes are guaranteed to terminate
 \end{itemize}
 
-\textbf{Disadvantages} 
+\textbf{Disadvantages}
 \begin{itemize}
 \item Simple algorithm and implementation
 \item Context switches infrequent when there are long running processes
@@ -269,13 +269,13 @@ Quantum = 1000ms
 
 Here all processes arrive at the same time. P1 is run for 1 quantum and is finished. P2 for one quantum; then, it is stopped for P3. After all other processes run for a quantum we cycle back to P2 until all the processes are finished.
 
-\textbf{Advantages} 
+\textbf{Advantages}
 
 \begin{enumerate}
   \item Ensures some notion of fairness
 \end{enumerate}
 
-\textbf{Disadvantages} 
+\textbf{Disadvantages}
 
 \begin{enumerate}
   \item Large number of processes = Lots of switching

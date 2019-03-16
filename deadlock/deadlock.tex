@@ -42,7 +42,7 @@ This graph is considered as a directed graph and we can treat both the processes
 
 \begin{lstlisting}[language=C]
 typedef struct {
-	int node_id; // Node in this particular graph 
+	int node_id; // Node in this particular graph
 	Graph **reachable_nodes; // List of nodes that can be reached from this node
 	int size_reachable_nodes; // Size of the List
 } Graph;
@@ -52,10 +52,10 @@ typedef struct {
 // G points to a node in a graph, can be either a resource or a process
 // is_visited is an array indexed with node_id and initialized with zeroes(false) to record whether a particular node has been visited
 int isCyclic(Graph *G, int* is_visited) {
-	if (this graph has been visited) { 
+	if (this graph has been visited) {
 		// Oh! the cycle is found
 		return true;
-	} else { 
+	} else {
 		1. Mark this node as visited
 		2. Traverse through all nodes in the reachable_nodes
 		3. Call isCyclic() for each nodes
@@ -123,7 +123,7 @@ The evolution of the system is at each step at every time.
 If all processes have been surveyed and none updates the system, consider it deadlocked.
 More formally, this system is deadlocked means  if $\exists t_0, \forall t \geq t_0, \forall p \in P, w_t(p) \neq \text{satisfied} \text{ and } \exists q, q \neq p \rightarrow h_t(w_t(p)) = q$ (which is what we need to prove).
 
-\begin{proof} These conditions imply deadlock. 
+\begin{proof} These conditions imply deadlock.
   Deadlock for a system is defined as no work can be done now or later.
   Work can be done if a process is satisfied, or we can release a resource to a process.
   No process is satisfied by definition.
@@ -183,7 +183,7 @@ The following proof \textbf{is not required for our 241 related purposes but is 
 
 
 \begin{comment}
-\begin{proof} 
+\begin{proof}
   That livelock terminates with high probability.
   This meaning that for any probability level $l$ we can produce a number of iterations $n$ that the probability that the system is not livelocked after that state is at least $l$.
 
@@ -193,7 +193,7 @@ The following proof \textbf{is not required for our 241 related purposes but is 
 \[
 P(n) = 1 - \prod\limits_{i = 1}^{n}p_i
 \]
-Consider the new set $E = \{s_1, s_2, s_3, ...\}$ obtained by selecting all non-one elements. The set must be infinite by our sets property. It is easy to show that 
+Consider the new set $E = \{s_1, s_2, s_3, ...\}$ obtained by selecting all non-one elements. The set must be infinite by our sets property. It is easy to show that
 \[
 \prod\limits_{i = 1}^{n}p_i = \prod\limits_{i = 1}^{n}s_i
 \]
@@ -254,8 +254,8 @@ This analogy expands to higher orders of magnitude but requires that either a pr
 There are a fair bit of downsides to this though
 
 \begin{itemize}
-\item The program first needs to know how much of each resource a process needs. A lot of times that is impossible or the process requests the wrong amount because the programmer didn't foresee it. 
-\item The system could livelock. 
+\item The program first needs to know how much of each resource a process needs. A lot of times that is impossible or the process requests the wrong amount because the programmer didn't foresee it.
+\item The system could livelock.
 \item We know in most systems that resources are generally not homogenous. Of course there are things like pipes and sockets but for the most part there is only 1 of a particular file. This could mean that the runtime of the algorithm could be slow for systems with millions of resources.
 \item Also, this can't keep track of resources that come and go. A process may delete a resource as a side effect or create a resource. The algorithm assumes a static allocation and that each process performs a non-destructive operation.
 \end{itemize}
@@ -442,8 +442,8 @@ If you want to read further on the model, feel free to glance over the wikipedia
   \item Coffman Conditions
   \item Resource Allocation Graphs
   \item Dining Philosophers
-  \item Failed DP Solutions 
-  \item Livelocking DP Solutions 
+  \item Failed DP Solutions
+  \item Livelocking DP Solutions
   \item Working DP Solutions: Benefits/Drawbacks
   \item \href{http://adit.io/posts/2013-05-11-The-Dining-Philosophers-Problem-With-Ron-Swanson.html}{Ron Swanson Deadlock}
 \end{itemize}

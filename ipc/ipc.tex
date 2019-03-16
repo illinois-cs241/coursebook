@@ -13,7 +13,7 @@ The modern process of translating memory is as follows.
 \begin{enumerate}
 \item A process makes a memory request
 \item The circuit first checks the Translation Lookaside Buffer (TLB) if the address page is cached into memory. It skips to the reading from/writing to phase if found otherwise the request goes to the MMU.
-\item The Memory Management Unit (MMU) performs the address translation. If the translation succeeds, the page get pulled from RAM -- conceptually the entire page isn't loaded up. The result is cached in the TLB. 
+\item The Memory Management Unit (MMU) performs the address translation. If the translation succeeds, the page get pulled from RAM -- conceptually the entire page isn't loaded up. The result is cached in the TLB.
 \item The CPU performs the operation by either reading from the physical address or writing to the address.
 \end{enumerate}
 
@@ -33,7 +33,7 @@ The Memory Management Unit is part of the CPU, and it converts a virtual memory 
 		that is not marked as read only.
 		\begin{enumerate}
 		\item If so then provide the address, cache the results in the TLB
-		\item Otherwise trigger a hardware interrupt. The kernel 
+		\item Otherwise trigger a hardware interrupt. The kernel
 			will most likely send a SIGSEGV or a Segmentation Violation.
 		\end{enumerate}
 	\item If the page doesn't exist in memory, generate an Interrupt.
@@ -372,7 +372,7 @@ One of the big utilities is UNIX, now POSIX, pipes. A pipe simply takes in a str
 One of the big starting points of pipes was way back in the PDP-10 days. In those days, a write to the disk or even your terminal was very slow as it may have to be printed out.
 The Unix programmers still wanted to create small, portable programs that did one thing very well and could be composed.
 As such, pipes were invented to take the output of one program
-and feed it to the input of another program though they have other uses today -- you can read more \href{https://en.wikipedia.org/wiki/Pipeline\_\%28Unix\%29}{At the wikipedia page} 
+and feed it to the input of another program though they have other uses today -- you can read more \href{https://en.wikipedia.org/wiki/Pipeline\_\%28Unix\%29}{At the wikipedia page}
 Consider if you type the following into your terminal.
 
 \begin{verbatim}
@@ -403,7 +403,7 @@ pid_t child = fork();
 if (child > 0) { /* I must be the parent */
     char buffer[80];
     int bytesread = read(filedes[0], buffer, sizeof(buffer));
-    // do something with the bytes read    
+    // do something with the bytes read
 } else {
 	write(filedes[1], "done", 4);
 }
@@ -432,12 +432,12 @@ int main() {
     printf("Writing...\n");
     fprintf(writer,"%d %d %d\n", 10, 20, 30);
     fflush(writer);
-    
+
     printf("Reading...\n");
     int results[3];
     int ok = fscanf(reader,"%d %d %d", results, results + 1, results + 2);
     printf("%d values parsed: %d %d %d\n", ok, results[0], results[1], results[2]);
-    
+
     return 0;
 }
 \end{lstlisting}
@@ -518,7 +518,7 @@ Why happens when a process tries to write when there are no readers left?
 
 \begin{lstlisting}[language=C]
 If all file descriptors referring to the read end of a pipe have been closed,
-then a write(2) will cause a SIGPIPE signal to be generated for the calling process. 
+then a write(2) will cause a SIGPIPE signal to be generated for the calling process.
 \end{lstlisting}
 
 Tip: Notice only the writer (not a reader) can use this signal. To
@@ -541,10 +541,10 @@ void no_one_listening(int signal) {
 int main() {
     signal(SIGPIPE, no_one_listening);
     int filedes[2];
-    
+
     pipe(filedes);
     pid_t child = fork();
-    if (child > 0) { 
+    if (child > 0) {
         /* I must be the parent. Close the listening end of the pipe */
         /* I'm not listening anymore!*/
         close(filedes[0]);
@@ -659,7 +659,7 @@ int main() {
     fclose(f);
 \end{lstlisting}
 
-For writing to files this is unnecessary - just use \keyword{fopen} which does the same as \keyword{open} and \keyword{fdopen} However for pipes, we already have a file descriptor - so this is great time to use \keyword{fdopen} 
+For writing to files this is unnecessary - just use \keyword{fopen} which does the same as \keyword{open} and \keyword{fdopen} However for pipes, we already have a file descriptor - so this is great time to use \keyword{fdopen}
 
 Here's a complete example using pipes that almost works! Can you spot the error? Hint: The parent never prints anything!
 
@@ -701,7 +701,7 @@ Actually this is only true for terminal streams - for other filestreams the C li
 
 \textbf{Even though we have a section on it, it is highly not recommended to fdopen() anything that doesn't point to an underlying file descriptor}. The reason being is that while we get conveniences we also get annoyances like the buffering example we mentioned, caching, etc etc.
 The basic UNIX motto is that anything that you can \texttt{fseek} or move to an arbitrary position in, you should be able to \texttt{fdopen}. Files satisfiy this behavior, shared memory also, terminals, etc.
-When it comes to pipes, sockets, epoll objects, etc, don't do it. 
+When it comes to pipes, sockets, epoll objects, etc, don't do it.
 
 \section{Named Pipes}
 
@@ -830,7 +830,7 @@ length of the file!
 \keyword{fseek} can also be used to set the absolute position.
 
 \begin{lstlisting}[language=C]
-fseek(f, 0, SEEK_SET); // Move to the start of the file 
+fseek(f, 0, SEEK_SET); // Move to the start of the file
 fseek(f, posn, SEEK_SET);  // Move to 'posn' in the file.
 \end{lstlisting}
 

@@ -41,7 +41,7 @@ You can temporarily pause a running process by sending it a SIGSTOP signal. If i
 int main() {
   printf("My pid is %d\n", getpid() );
   int i = 60;
-  while(--i) { 
+  while(--i) {
     write(1, ".",1);
     sleep(1);
   }
@@ -129,8 +129,8 @@ void handle_sigint(int signal) {
 int main() {
   signal(SIGINT, handle_sigint);
   pleaseStop = 0;
-  while ( ! pleaseStop) { 
-     /* application logic here */ 
+  while ( ! pleaseStop) {
+     /* application logic here */
    }
   /* cleanup code here */
 }
@@ -164,7 +164,7 @@ struct sigaction {
                void     (*sa_sigaction)(int, siginfo_t *, void *);
                sigset_t   sa_mask;
                int        sa_flags;
-}; 
+};
 \end{lstlisting}
 
 Suppose you installed a signal handler for the alarm signal,
@@ -176,10 +176,10 @@ signal(SIGALRM, myhandler);
 The equivalent \keyword{sigaction} code is:
 
 \begin{lstlisting}[language=C]
-struct sigaction sa; 
+struct sigaction sa;
 sa.sa_handler = myhandler;
 sigemptyset(&sa.sa_mask);
-sa.sa_flags = 0; 
+sa.sa_flags = 0;
 sigaction(SIGALRM, &sa, NULL)
 \end{lstlisting}
 
@@ -187,7 +187,7 @@ However, we typically may also set the mask and the flags field. The mask is a t
 
 \begin{lstlisting}[language=C]
 sigfillset(&sa.sa_mask);
-sa.sa_flags = SA_RESTART; /* Restart functions if  interrupted by handler */     
+sa.sa_flags = SA_RESTART; /* Restart functions if  interrupted by handler */
 \end{lstlisting}
 
 \subsection{Sigwait}
@@ -258,9 +258,9 @@ int sigprocmask(int how, const sigset_t *set, sigset_t *oldset);`
 From the Linux man page of sigprocmask,
 
 \begin{verbatim}
-SIG_BLOCK: The set of blocked signals is the union of the current set and the 
+SIG_BLOCK: The set of blocked signals is the union of the current set and the
   set argument.
-SIG_UNBLOCK: The signals in set are removed from the current set of blocked 
+SIG_UNBLOCK: The signals in set are removed from the current set of blocked
   signals. It is permissible to attempt to unblock a signal which is not blocked.
 SIG_SETMASK: The set of blocked signals is set to the argument set.
 \end{verbatim}
@@ -280,7 +280,7 @@ sigfillset(&set); // all signals
 sigprocmask(SIG_SETMASK, &set, NULL); // Block all the signals!
 // (Actually SIGKILL or SIGSTOP cannot be blocked...)
 
-sigemptyset(&set); // no signals 
+sigemptyset(&set); // no signals
 sigprocmask(SIG_SETMASK, &set, NULL); // set the mask to be empty again
 \end{lstlisting}
 
@@ -294,7 +294,7 @@ pthread_sigmask( ... ); // set my mask to block delivery of some signals
 pthread_create( ... ); // new thread will start with a copy of the same mask
 \end{lstlisting}
 
-Blocking signals is similar in multi-threaded programs to single-threaded programs: 
+Blocking signals is similar in multi-threaded programs to single-threaded programs:
 * Use \keyword{pthread\_sigmask} instead of \keyword{sigprocmask}
 * Block a signal in all threads to prevent its asynchronous delivery
 

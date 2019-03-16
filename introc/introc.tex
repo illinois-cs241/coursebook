@@ -27,9 +27,9 @@ The only way to start learning C is by starting with hello world. As per the ori
 
 \begin{lstlisting}[language=C]
 #include <stdio.h>
-int main(void) { 
+int main(void) {
     printf("Hello World\n");
-    return 0; 
+    return 0;
 }
 \end{lstlisting}
 
@@ -236,13 +236,13 @@ void process_day(enum day foo) {
 	      It is completely possible to assign enum values to either be different or the same. Just don't rely on the compiler for consistent numbering. If you are going to use this abstraction, try not to break it.
 
 	      \begin{lstlisting}[language=C]
-enum day{ 
-  monday = 0, 
-  tuesday = 0, 
+enum day{
+  monday = 0,
+  tuesday = 0,
   wednesday = 0,
-  thursday = 1, 
-  friday = 10, 
-  saturday = 10, 
+  thursday = 1,
+  friday = 10,
+  saturday = 10,
   sunday = 0};
 
 void process_day(enum day foo) {
@@ -291,7 +291,7 @@ for (i = 0; i < 10; i++) {
 
 	      \begin{lstlisting}[language=C]
 for(int i = 0; i < 10; ++i) {
-  
+
 }
 \end{lstlisting}
 
@@ -315,11 +315,11 @@ void setup(void) {
 
   if (!setupdoe(deer)) {
     goto finish;
-  } 
+  }
 
   if (!setupray(drop)) {
     goto cleanupdoe;
-  } 
+  }
 
   if (!setupmi(myself)) {
     goto cleanupray;
@@ -333,7 +333,7 @@ cleanupdoe:
   cleanup(deer);
 finish:
   return;
-} 
+}
 \end{lstlisting}
 	\item \keyword{if else else-if} are control flow keywords. There are a few ways to use these (1) A bare if (2) An if with an else (3) an if with an else-if (4) an if with an else if and else. The statements are always executed from the if to the else. If any of the intermediate conditions are true, the if block performs that action and goes to the end of that block.
 
@@ -512,13 +512,13 @@ switch(2) {
 	\item \keyword{typedef} declares an alias for a type. Often used with structs to reduce the visual clutter of having to write `struct' as part of the type.
 
 	      \begin{lstlisting}[language=C]
-typedef float real; 
+typedef float real;
 real gravity = 10;
-// Also typedef gives us an abstraction over the underlying type used. 
+// Also typedef gives us an abstraction over the underlying type used.
 // In the future, we only need to change this typedef if we
 // wanted our physics library to use doubles instead of floats.
 
-typedef struct link link_t; 
+typedef struct link link_t;
 //With structs, include the keyword 'struct' as part of the original types
 \end{lstlisting}
 
@@ -657,7 +657,7 @@ To find more information about any functions, use the man pages. Note the man pa
 char *name = ... ; int score = ...;
 printf("Hello %s, your result is %d\n", name, score);
 printf("Debug: The string and int are stored at: %p and %p\n", name, &score );
-// name already is a char pointer and points to the start of the array. 
+// name already is a char pointer and points to the start of the array.
 // We need "&" to get the address of the int variable
 \end{lstlisting}
 
@@ -697,7 +697,7 @@ int main(){
 In addition to the printf family, there is \keyword{gets}. \keyword{gets} is deprecated in C99 standard and has been removed from the latest C standard (C11). Programs should use \keyword{fgets} or \keyword{getline} instead.
 
 \begin{lstlisting}[language=C]
-char *fgets (char *str, int num, FILE *stream); 
+char *fgets (char *str, int num, FILE *stream);
 
 ssize_t getline(char **lineptr, size_t *n, FILE *stream);
 
@@ -718,7 +718,7 @@ size_t size = 0;
 ssize_t chars = getline(&buffer, &size, stdin);
 
 // Discard newline character if it is present,
-if (chars > 0 && buffer[chars-1] == '\n') 
+if (chars > 0 && buffer[chars-1] == '\n')
     buffer[chars-1] = '\0';
 
 // Read another line.
@@ -922,7 +922,7 @@ bhuvan_name = malloc(sizeof(string) + length+1);
 Currently, our memory looks like this with junk in those black spaces
                 ___ ___ ___ ___ ___ ___ ___ ___ ___ ___ ___
  bhuvan_name = |___|___|___|___|___|___|___|___|___|___|___|
-                                                           
+
 */
 
 
@@ -932,7 +932,7 @@ This writes the following values to the first four bytes
 The rest is still garbage
                 ___ ___ ___ ___ ___ ___ ___ ___ ___ ___ ___
  bhuvan_name = | 0 | 0 | 0 | 6 |___|___|___|___|___|___|___|
-                                                           
+
 */
 
 
@@ -1043,7 +1043,7 @@ When you write a string literal \keyword{"ABC"} in an expression the string lite
 \subsubsection{String constants are constant}
 
 \begin{lstlisting}[language=C]
-char array[] = "Hi!"; // array contains a mutable copy 
+char array[] = "Hi!"; // array contains a mutable copy
 strcpy(array, "OK");
 
 char *ptr = "Can't change me"; // ptr points to some immutable memory
@@ -1245,16 +1245,16 @@ Look in the appendix for Life in the Terminal!
 \section{Common Bugs}
 
 \begin{lstlisting}[language=C]
-void mystrcpy(char*dest, char* src) { 
-  // void means no return value   
-  while( *src ) { dest = src; src ++; dest++; }  
+void mystrcpy(char*dest, char* src) {
+  // void means no return value
+  while( *src ) { dest = src; src ++; dest++; }
 }
 \end{lstlisting}
 
 In the above code it simply changes the dest pointer to point to source string. Also the nuls bytes are not copied. Here's a better version -
 
 \begin{lstlisting}[language=C]
-  while( *src ) { *dest = *src; src ++; dest++; } 
+  while( *src ) { *dest = *src; src ++; dest++; }
   *dest = *src;
 \end{lstlisting}
 

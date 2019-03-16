@@ -231,10 +231,10 @@ To get your IP Address from the command line use \keyword{ifconfig} (or Windows'
 ifconfig | grep inet
 
 Example output:
-    inet6 fe80::1%lo0 prefixlen 64 scopeid 0x1 
-    inet 127.0.0.1 netmask 0xff000000 
-    inet6 ::1 prefixlen 128 
-    inet6 fe80::7256:81ff:fe9a:9141%en1 prefixlen 64 scopeid 0x5 
+    inet6 fe80::1%lo0 prefixlen 64 scopeid 0x1
+    inet 127.0.0.1 netmask 0xff000000
+    inet6 ::1 prefixlen 128
+    inet6 fe80::7256:81ff:fe9a:9141%en1 prefixlen 64 scopeid 0x5
     inet 192.168.1.100 netmask 0xffffff00 broadcast 192.168.1.255
 \end{lstlisting}
 
@@ -433,8 +433,8 @@ Error handling with \keyword{getaddrinfo} is a little different: The return valu
 
 \begin{lstlisting}[language=C]
 int result = getaddrinfo(...);
-if(result) { 
-   const char *mesg = gai_strerror(result); 
+if(result) {
+   const char *mesg = gai_strerror(result);
    ...
 }
 \end{lstlisting}
@@ -493,8 +493,8 @@ A simple HTTP client that sends a request to compliant URL is below.
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
-#include <sys/types.h> 
-#include <sys/socket.h> 
+#include <sys/types.h>
+#include <sys/socket.h>
 #include <netdb.h>
 #include <errno.h>
 #include <sys/types.h>
@@ -561,7 +561,7 @@ host_info *get_info(char *uri) {
 	host_info *info = malloc(sizeof(*info));
 	info->hostname = hostname;
 	info->port = port;
-	info->resource = resource;	
+	info->resource = resource;
 	return info;
 }
 
@@ -574,10 +574,10 @@ void free_info(host_info *info) {
 
 static void send_get_request(FILE *sock_file, host_info *info) {
 	char *buffer;
-	asprintf(&buffer, 
+	asprintf(&buffer,
 		"GET %s HTTP/1.0\r\n"
 		"Connection: close\r\n"
-		"Accept: */*\r\n\r\n", 
+		"Accept: */*\r\n\r\n",
 		info->resource);
 	int sock_fd = fileno(sock_file);
 	write(sock_fd, buffer, strlen(buffer));
@@ -636,7 +636,7 @@ host_info *send_request(host_info *info) {
 int main(int argc, char *argv[]) {
 	if(argc != 2) {
 		fprintf(stderr, "Usage: %s http://hostname[:port]/path\n", *argv);
-		return 1;	
+		return 1;
 	}
 	char *uri = argv[1];
 	host_info *info = get_info(uri);
@@ -841,7 +841,7 @@ int main(int argc, char **argv)
         perror("listen()");
         exit(1);
     }
-    
+
     struct sockaddr_in *result_addr = (struct sockaddr_in *) result->ai_addr;
     printf("Listening on file descriptor %d, port %d\n", sock_fd, ntohs(result_addr->sin_port));
 
@@ -910,7 +910,7 @@ The example below also uses \keyword{gethostbyname} because some legacy function
   if (!serv) {
     perror("gethostbyname");
     exit(1);
-  }	
+  }
 \end{lstlisting}
 
 The previous code grabs an entry \keyword{hostent} that matches by hostname.
@@ -956,7 +956,7 @@ int connectToUDP(int port, char *hostname, struct sockaddr_in *ipaddr) {
   if (!serv) {
     perror("gethostbyname");
     exit(1);
-  }	
+  }
 
   memcpy(&addr.sin_addr.s_addr, serv->h_addr, serv->h_length);
 
@@ -978,10 +978,10 @@ int main(int argc, char **argv) {
   int port = strtoll(argv[2], NULL, 10);
   struct sock_addr_in ipaddr;
 
-  int port_fd = connectToUDP(port, hostname, &ipaddr, 0) 
+  int port_fd = connectToUDP(port, hostname, &ipaddr, 0)
   char *to_send = "Hello!"
-  int send_ret = sendto(port_fd, to_send, packet_size, 0, 
-			(struct sockaddr *)&ipaddr, 
+  int send_ret = sendto(port_fd, to_send, packet_size, 0,
+			(struct sockaddr *)&ipaddr,
 			sizeof(ipaddr));
   return 0;
 }
@@ -1163,10 +1163,10 @@ There are a few ways to check that your IO has finished.
 Let's see how to do it using \emph{select} and \emph{epoll}.
 
 \begin{lstlisting}[language=C]
-int select(int nfds, 
-           fd_set *readfds, 
+int select(int nfds,
+           fd_set *readfds,
            fd_set *writefds,
-           fd_set *exceptfds, 
+           fd_set *exceptfds,
            struct timeval *timeout);
 \end{lstlisting}
 
@@ -1413,9 +1413,9 @@ To implement RPC you need to decide (and document) which conventions you will us
 Even a simple integer has several common choices:
 
 \begin{enumerate}
-\item Signed or unsigned? 
+\item Signed or unsigned?
 \item ASCII, Unicode Text Format 8, some other encoding?
-\item Fixed number of bytes or variable depending on magnitude 
+\item Fixed number of bytes or variable depending on magnitude
 \item Little or Big endian binary format?
 \end{enumerate}
 

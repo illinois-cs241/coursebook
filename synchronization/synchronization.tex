@@ -30,11 +30,11 @@ int main() {
     pthread_t tid1, tid2;
     pthread_create(&tid1, NULL, countgold, NULL);
     pthread_create(&tid2, NULL, countgold, NULL);
-    
+
     //Wait for both threads to finish:
     pthread_join(tid1, NULL);
     pthread_join(tid2, NULL);
-    
+
     printf("ARRRRG sum is %d\n", sum);
     return 0;
 }
@@ -97,7 +97,7 @@ The init version includes options to trade performance for additional error-chec
 You can also call the init function inside of a program for a mutex located on the heap.
 
 \begin{lstlisting}[language=C]
-pthread_mutex_t *lock = malloc(sizeof(pthread_mutex_t)); 
+pthread_mutex_t *lock = malloc(sizeof(pthread_mutex_t));
 pthread_mutex_init(lock, NULL);
 //later
 pthread_mutex_destroy(lock);
@@ -108,9 +108,9 @@ Once we are finished with the mutex we should also call \keyword{pthread\_mutex\
 Note, you can only destroy an unlocked mutex.
 Things to keep in mind about \keyword{init} and \keyword{destroy}
 
-\begin{enumerate} 
-\item Multiple threads init/destroy has undefined behavior  
-\item Destroying a locked mutex has undefined behavior  
+\begin{enumerate}
+\item Multiple threads init/destroy has undefined behavior
+\item Destroying a locked mutex has undefined behavior
 \item Basically try to keep to the pattern of one thread initializing a mutex and one and only one thread initializing a mutex.
 \item Copying the bytes of the mutex to a new memory location and then using the copy is \emph{not} supported. To reference a mutex, you have to have a pointer to that memory address.
 \end{enumerate}
@@ -168,12 +168,12 @@ int sum = 0;
 
 void *countgold(void *param) {
     int i;
-    
+
     //Same thread that locks the mutex must unlock it
     //Critical section is just 'sum += 1'
     //However locking and unlocking a million times
     //has significant overhead
-    
+
     pthread_mutex_lock(&m);
 
     // Other threads that call lock will have to wait until we call unlock
@@ -241,7 +241,7 @@ while(not_stop){
          continue;
     }
     pthread_mutex_unlock(&m);
-    
+
     process_line(line);
 }
 \end{lstlisting}
@@ -323,8 +323,8 @@ We set the state of the mutex to unlocked and set the owner to locked.
 int mutex_lock(mutex* mtx){
     int_least8_t zero = UNLOCKED;
     while(!atomic_compare_exchange_weak_explicit
-            (&mtx->lock, 
-             &zero, 
+            (&mtx->lock,
+             &zero,
              LOCKED,
              memory_order_relaxed,
              memory_order_relaxed)){
@@ -382,8 +382,8 @@ int mutex_unlock(mutex* mtx){
     //Critical section ends after this atomic
     mtx->owner = UNASSIGNED_OWNER;
     if(!atomic_compare_exchange_strong_explicit(
-                &mtx->lock, 
-                &one, 
+                &mtx->lock,
+                &one,
                 UNLOCKED,
                 memory_order_relaxed,
                 memory_order_relaxed)){
@@ -428,8 +428,8 @@ You do have to be careful to never add more than one to a semaphore or otherwise
 That is usually why a mutex is used to implement a semaphore and vice versa.
 
 \begin{itemize}
-\item Initialize the semaphore with a count of one. 
-\item Replace \keyword{pthread\_mutex\_lock} with \keyword{sem\_wait} 
+\item Initialize the semaphore with a count of one.
+\item Replace \keyword{pthread\_mutex\_lock} with \keyword{sem\_wait}
 \item Replace \keyword{pthread\_mutex\_unlock} with \keyword{sem\_post}
 \end{itemize}
 
@@ -464,7 +464,7 @@ void *singsong(void *param) {
 }
 
 int main() {
-    int ok = sem_init(&s, 0, 0 /* Initial value of zero*/); 
+    int ok = sem_init(&s, 0, 0 /* Initial value of zero*/);
     if (ok == -1) {
        perror("Could not create unnamed semaphore");
        return 1;
@@ -514,11 +514,11 @@ A third and subtle reason is to satisfy real-time scheduling concerns which we o
 
 \subsection{Cond Wait Example}
 
-The call \keyword{pthread\_cond\_wait} performs three actions: 
+The call \keyword{pthread\_cond\_wait} performs three actions:
 
 \begin{enumerate}
 \item Unlock the mutex if given
-\item Sleeps until \keyword{pthread\_cond\_signal} is called on the same condition variable) 
+\item Sleeps until \keyword{pthread\_cond\_signal} is called on the same condition variable)
 \item Before returning, locks the mutex if given
 \end{enumerate}
 
@@ -537,7 +537,7 @@ count = 0;
 
 pthread_mutex_lock(&m);
 while (count < 10) {
-   pthread_cond_wait(&cv, &m); 
+   pthread_cond_wait(&cv, &m);
   /* Remember that cond_wait unlocks the mutex before blocking (waiting)! */
   /* After unlocking, other threads can claim the mutex. */
   /* When this thread is later woken it will */
@@ -545,7 +545,7 @@ while (count < 10) {
 }
 pthread_mutex_unlock(&m);
 
-//later clean up with pthread_cond_destroy(&cv); and mutex_destroy 
+//later clean up with pthread_cond_destroy(&cv); and mutex_destroy
 
 
 // In another thread increment count:
@@ -582,8 +582,8 @@ Take for example the following non thread-safe stack.
 int count;
 double values[STACK_SIZE];
 
-void push(double v) { 
-    values[count++] = v; 
+void push(double v) {
+    values[count++] = v;
 }
 
 double pop() {
@@ -613,7 +613,7 @@ double values[STACK_SIZE];
 pthread_mutex_t m1 = PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t m2 = PTHREAD_MUTEX_INITIALIZER;
 
-void push(double v) { 
+void push(double v) {
     pthread_mutex_lock(&m1);
     values[count++] = v;
     pthread_mutex_unlock(&m1);
@@ -653,8 +653,8 @@ int count;
 double values[count];
 pthread_mutex_t m = PTHREAD_MUTEX_INITIALIZER;
 
-void push(double v) { 
-  pthread_mutex_lock(&m); 
+void push(double v) {
+  pthread_mutex_lock(&m);
   values[count++] = v;
   pthread_mutex_unlock(&m);
 }
@@ -688,7 +688,7 @@ The last point can be fixed using counting semaphores. The implementation assume
 // Support for multiple stacks (each one has a mutex)
 typedef struct stack {
     int count;
-    pthread_mutex_t m; 
+    pthread_mutex_t m;
     double *values;
 } stack_t;
 
@@ -707,22 +707,22 @@ void stack_destroy(stack_t *s) {
 
 // Warning no underflow or overflow checks!
 
-void push(stack_t *s, double v) { 
-    pthread_mutex_lock(&s->m); 
-    s->values[(s->count)++] = v; 
+void push(stack_t *s, double v) {
+    pthread_mutex_lock(&s->m);
+    s->values[(s->count)++] = v;
     pthread_mutex_unlock(&s->m);
 }
 
-double pop(stack_t *s) { 
-    pthread_mutex_lock(&s->m); 
-    double v = s->values[--(s->count)]; 
-    pthread_mutex_unlock(&s->m); 
+double pop(stack_t *s) {
+    pthread_mutex_lock(&s->m);
+    double v = s->values[--(s->count)];
+    pthread_mutex_unlock(&s->m);
     return v;
 }
 
-int is_empty(stack_t *s) { 
-    pthread_mutex_lock(&s->m); 
-    int result = s->count == 0; 
+int is_empty(stack_t *s) {
+    pthread_mutex_lock(&s->m);
+    int result = s->count == 0;
     pthread_mutex_unlock(&s->m);
     return result;
 }
@@ -798,7 +798,7 @@ void push(double v) {
   // Wait until there's at least one space
   sem_wait(&sremain);
   values[count++] = v;
-  sem_post(&sitems); 
+  sem_post(&sitems);
 }
 \end{lstlisting}
 
@@ -811,7 +811,7 @@ However there is no \emph{mutual exclusion}: Two threads can be in the \emph{cri
 
 // PTHREAD_MUTEX_INITIALIZER for statics (use pthread_mutex_init() for stack/heap memory)
 
-pthread_mutex_t m= PTHREAD_MUTEX_INITIALIZER; 
+pthread_mutex_t m= PTHREAD_MUTEX_INITIALIZER;
 int count = 0;
 double values[10];
 sem_t sitems, sremain;
@@ -881,7 +881,7 @@ Is there anything wrong with candidate solution described below?
 wait until your flag is lowered
 raise my flag
 // Do Critical Section stuff
-lower my flag 
+lower my flag
 \end{lstlisting}
 
 Answer: Candidate solution \#1 also suffers a race condition i.e.~it does not satisfy Mutual Exclusion because both threads/processes could read each other's flag value (=lowered) and continue.
@@ -893,7 +893,7 @@ This suggests we should raise the flag \emph{before} checking the other thread's
 raise my flag
 wait until your flag is lowered
 // Do Critical Section stuff
-lower my flag 
+lower my flag
 \end{lstlisting}
 
 Candidate \#2 satisfies mutual exclusion - it is impossible for two threads to be inside the critical section at the same time. However this code suffers from deadlock! Suppose two threads wish to enter the critical section at the same time:
@@ -1044,7 +1044,7 @@ Further reading: we suggest the following web post that discusses implementing P
 
 \begin{lstlisting}[language=C]
 typedef struct sem_t {
-  int count; 
+  int count;
   pthread_mutex_t m;
   pthread_condition_t cv;
 } sem_t;
@@ -1055,8 +1055,8 @@ Implement \keyword{sem\_init} to initialize the mutex and condition variable
 
 \begin{lstlisting}[language=C]
 int sem_init(sem_t *s, int pshared, int value) {
-    if (pshared) { 
-        errno = ENOSYS /* 'Not implemented'*/; 
+    if (pshared) {
+        errno = ENOSYS /* 'Not implemented'*/;
         return -1;
     }
 
@@ -1153,7 +1153,7 @@ Our main thread will create the 16 threads and we will divide each calculation i
 double data[256][8192] ;
 int main() {
     pthread_t ids[N];
-    for(int i = 0; i < N; i++)  
+    for(int i = 0; i < N; i++)
         pthread_create(&ids[i], NULL, calc, (void *) i);
 \end{lstlisting}
 
@@ -1163,14 +1163,14 @@ Note, we will never dereference this pointer value as an actual memory location 
 void *calc(void *ptr) {
 // Thread 0 will work on rows 0..15, thread 1 on rows 16..31
   int x, y, start = N * (int) ptr;
-  int end = start + N; 
+  int end = start + N;
   for(x = start; x < end; x++) for (y = 0; y < 8192; y++) { /* do calc #1 */ }
 \end{lstlisting}
 
 After calculation 1 completes, we need to wait for the slower threads (unless we are the last thread!). So, keep track of the number of threads that have arrived at our barrier aka `checkpoint':
 
 \begin{lstlisting}[language=C]
-// Global: 
+// Global:
 int remain = N;
 
 
@@ -1202,7 +1202,7 @@ We will use the mutex to ensure that only one thread modifies \keyword{remain} a
 
 \begin{lstlisting}[language=C]
 pthread_mutex_lock(&m);
-remain--; 
+remain--;
 if (remain == 0) { pthread_cond_broadcast(&cv); }
 else {
   while(remain != 0) { pthread_cond_wait(&cv, &m); }
@@ -1362,7 +1362,7 @@ read() {
 
     // readers that arrive while there is an active writer
     // will also wait.
-    while (writing) 
+    while (writing)
         cond_wait(&cv,&m)
     reading++
     unlock
@@ -1401,24 +1401,24 @@ reader() {
 }
 
 writer() {
-    lock(&m)  
-    writers++  
-    while (reading || writing)   
-        cond_wait(&turn, &m)  
-    writing++  
-    unlock(&m)  
-    // perform writing here  
-    lock(&m)  
-    writing--  
-    writers--  
-    cond_broadcast(&turn)  
-    unlock(&m)  
+    lock(&m)
+    writers++
+    while (reading || writing)
+        cond_wait(&turn, &m)
+    writing++
+    unlock(&m)
+    // perform writing here
+    lock(&m)
+    writing--
+    writers--
+    cond_broadcast(&turn)
+    unlock(&m)
 }
 \end{lstlisting}
 
 \section{Ring Buffer}
 
-A ring buffer is a simple, usually fixed-sized, storage mechanism where contiguous memory is treated as if it is circular, and two index counters keep track of the current beginning and end of the queue. As array indexing is not circular, the index counters must wrap around to zero when moved past the end of the array. As data is added (enqueued) to the front of the queue or removed (dequeued) from tail of the queue, the current items in the buffer form a train that appears to circle the track 
+A ring buffer is a simple, usually fixed-sized, storage mechanism where contiguous memory is treated as if it is circular, and two index counters keep track of the current beginning and end of the queue. As array indexing is not circular, the index counters must wrap around to zero when moved past the end of the array. As data is added (enqueued) to the front of the queue or removed (dequeued) from tail of the queue, the current items in the buffer form a train that appears to circle the track
 
 \begin{center}
 \includegraphics[width=.5\textwidth]{synchronization/images/ring_buffer.png}
@@ -1475,7 +1475,7 @@ void *b[N]
 int in = 0, out = 0
 p_m_t lock
 sem_t s1,s2
-void init() { 
+void init() {
     p_m_init(&lock, NULL)
     sem_init(&s1, 0, 16)
     sem_init(&s2, 0, 0)
@@ -1485,12 +1485,12 @@ enqueue(void *value) {
     p_m_lock(&lock)
 
     // Hint: Wait while zero. Decrement and return
-    sem_wait( &s1 ) 
- 
+    sem_wait( &s1 )
+
     b[ (in++) & (N-1) ] = value
 
-    // Hint: Increment. Will wake up a waiting thread 
-    sem_post(&s1) 
+    // Hint: Increment. Will wake up a waiting thread
+    sem_post(&s1)
     p_m_unlock(&lock)
 }
 void *dequeue(){
@@ -1699,14 +1699,14 @@ void write_string(const char *data) {
 int main() {
     pthread_mutexattr_init(&attr);
     pthread_mutexattr_setpshared(&attr, PTHREAD_PROCESS_SHARED);
-    pmutex = mmap (NULL, sizeof(pthread_mutex_t), 
+    pmutex = mmap (NULL, sizeof(pthread_mutex_t),
                 PROT_READ|PROT_WRITE, MAP_SHARED|MAP_ANON, -1, 0);
     pthread_mutex_init(pmutex, &attrmutex);
     if(!fork()) {
         write_string("key1: value1");
         wait(NULL);
         pthread_mutex_destroy(pmutex);
-        pthread_mutexattr_destroy(&attrmutex); 
+        pthread_mutexattr_destroy(&attrmutex);
         munmap((void *)pmutex, sizeof(*pmutex));
     } else {
         write_string("key2: value2");
@@ -1763,13 +1763,13 @@ Examples were adapted from
 \section{External Resources}
 
 \begin{itemize}
-\item \href{http://linux.die.net/man/3/pthread_mutex_lock}{pthread\_mutex\_lock man page} 
-\item \href{http://linux.die.net/man/3/pthread_mutex_unlock}{pthread\_mutex\_unlock man page} 
-\item \href{http://linux.die.net/man/3/pthread_mutex_init}{pthread\_mutex\_init man page} 
+\item \href{http://linux.die.net/man/3/pthread_mutex_lock}{pthread\_mutex\_lock man page}
+\item \href{http://linux.die.net/man/3/pthread_mutex_unlock}{pthread\_mutex\_unlock man page}
+\item \href{http://linux.die.net/man/3/pthread_mutex_init}{pthread\_mutex\_init man page}
 \item \href{http://linux.die.net/man/3/pthread_mutex_destroy}{pthread\_mutex\_destroy man page}
-\item \href{http://man7.org/linux/man-pages/man3/sem_init.3.html}{sem\_init} 
-\item \href{http://man7.org/linux/man-pages/man3/sem_wait.3.html}{sem\_wait} 
-\item \href{http://man7.org/linux/man-pages/man3/sem_post.3.html}{sem\_post} 
+\item \href{http://man7.org/linux/man-pages/man3/sem_init.3.html}{sem\_init}
+\item \href{http://man7.org/linux/man-pages/man3/sem_wait.3.html}{sem\_wait}
+\item \href{http://man7.org/linux/man-pages/man3/sem_post.3.html}{sem\_post}
 \item \href{http://man7.org/linux/man-pages/man3/sem_destroy.3.html}{sem\_destroy}
 \end{itemize}
 
@@ -1839,18 +1839,18 @@ struct node;
 void add_linked_list(linked_list *ll, void* elem){
     node* packaged = new_node(elem);
     if(ll->head){
-         ll->head = 
+         ll->head =
     }else{
          packaged->next = ll->head;
          ll->head = packaged;
          ll->size++;
     }
-    
+
 }
 
 void* pop_elem(linked_list *ll, size_t index){
     if(index >= ll->size) return NULL;
-    
+
     node *i, *prev;
     for(i = ll->head; i && index; i = i->next, index--){
         prev = i;
@@ -1865,9 +1865,9 @@ void* pop_elem(linked_list *ll, size_t index){
 }
 \end{lstlisting}
 
-\item How tight can you make the critical section? 
-\item What is a producer consumer problem? How might the above be a producer consumer problem be used in the above section? How is a producer consumer problem related to a reader writer problem? 
-\item What is a condition variable? Why is there an advantage to using one over a \keyword{while} loop? 
+\item How tight can you make the critical section?
+\item What is a producer consumer problem? How might the above be a producer consumer problem be used in the above section? How is a producer consumer problem related to a reader writer problem?
+\item What is a condition variable? Why is there an advantage to using one over a \keyword{while} loop?
 \item Why is this code dangerous?
 
 \begin{lstlisting}[language=C]

@@ -60,7 +60,7 @@ Then the hardware decides if this is something that it should handle (i.e. handl
 The operating system then decides if this is something that it should handle (i.e. paging a memory table from disk) or something the application should handle (i.e. a SEGFAULT).
 The application then decides if it is an error (SEGFAULT) or not (SIGPIPE for example) and reports to the user.
 Applications can also send signals to the kernel and to the hardware as well.
- 
+
 An important application of this is this is how system calls are served!
 There is a well established set of registers that the arguments go in according to the kernel as well as a system call ``number'' again defined by the kernel.
 Then the operating system triggers an interrupt which the kernel catches and serves the system call.
@@ -82,7 +82,7 @@ One of the most prominent bugs with respect to this is Spectre.
 Spectre is a bug where instructions that otherwise wouldn't be executed are due to out of order instruction execution.
 Here is an example
 \begin{lstlisting}[language=C]
-  char *a[10]; 
+  char *a[10];
   for (int i = 10; i != 1; --i) {
     a[i] = calloc(1, 1);
   }
@@ -165,7 +165,7 @@ Host vm
 
 \subsection{git}
 
-What is `git`? Git is a version control system. What that means is git stores the entire history of a directory. We refer to the directory as a repository. So what do you need to know is a few things. First, create your repository with the repo creator. If you haven't already signed into enterprise github, make sure to do so otherwise your repository won't be created for you. After that, that means your repository is created on the server. Git is a decentralized version control system, meaning that you'll need to get a repository onto your VM. We can do this with a clone. Whatever you do, \textbf{do not go through the README.md tutorial}. 
+What is `git`? Git is a version control system. What that means is git stores the entire history of a directory. We refer to the directory as a repository. So what do you need to know is a few things. First, create your repository with the repo creator. If you haven't already signed into enterprise github, make sure to do so otherwise your repository won't be created for you. After that, that means your repository is created on the server. Git is a decentralized version control system, meaning that you'll need to get a repository onto your VM. We can do this with a clone. Whatever you do, \textbf{do not go through the README.md tutorial}.
 
 \begin{lstlisting}
 $ git clone https://github-dev.cs.illinois.edu/cs241-fa18/<netid>.git
@@ -202,7 +202,7 @@ $ git status
 On branch master
 Your branch is up-to-date with 'origin/master'.
 nothing to commit, working directory clean
-\end{lstlisting} 
+\end{lstlisting}
 
 or
 
@@ -335,7 +335,7 @@ This program compiles and run with no errors. Let's see what Valgrind will outpu
 ==29515== Copyright (C) 2002-2015, and GNU GPL'd, by Julian Seward et al.
 ==29515== Using Valgrind-3.11.0 and LibVEX; rerun with -h for copyright info
 ==29515== Command: ./a
-==29515== 
+==29515==
 ==29515== Invalid write of size 4
 ==29515==    at 0x400544: dummy_function (in /home/rafi/projects/exocpp/a)
 ==29515==    by 0x40055A: main (in /home/rafi/projects/exocpp/a)
@@ -343,12 +343,12 @@ This program compiles and run with no errors. Let's see what Valgrind will outpu
 ==29515==    at 0x4C2DB8F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
 ==29515==    by 0x400537: dummy_function (in /home/rafi/projects/exocpp/a)
 ==29515==    by 0x40055A: main (in /home/rafi/projects/exocpp/a)
-==29515== 
-==29515== 
+==29515==
+==29515==
 ==29515== HEAP SUMMARY:
 ==29515==     in use at exit: 40 bytes in 1 blocks
 ==29515==   total heap usage: 1 allocs, 0 frees, 40 bytes allocated
-==29515== 
+==29515==
 ==29515== LEAK SUMMARY:
 ==29515==    definitely lost: 40 bytes in 1 blocks
 ==29515==    indirectly lost: 0 bytes in 0 blocks
@@ -356,7 +356,7 @@ This program compiles and run with no errors. Let's see what Valgrind will outpu
 ==29515==    still reachable: 0 bytes in 0 blocks
 ==29515==         suppressed: 0 bytes in 0 blocks
 ==29515== Rerun with --leak-check=full to see details of leaked memory
-==29515== 
+==29515==
 ==29515== For counts of detected and suppressed errors, rerun with: -v
 ==29515== ERROR SUMMARY: 1 errors from 1 contexts (suppressed: 0 from 0)
 \end{lstlisting}
@@ -485,7 +485,7 @@ Breakpoint 1, main () at main.c:4
 
 Here, by using the \texttt{x} command with parameters \texttt{16xb}, we can see that starting at memory address \texttt{0x7fff5fbff9c} (value of \texttt{bad\_string}), \texttt{printf} would actually see the following sequence of bytes as a string because we provided a malformed string without a null terminator.
 
-What do you actually use to run your program? A shell! A shell is a programming language that is running inside your terminal. A terminal is merely a window to input commands. Now, on POSIX we usually have one shell called \keyword{sh} that is linked to a POSIX compliant shell called \keyword{dash}. Most of the time, you use a shell called \keyword{bash} that is not entirely POSIX compliant but has some nifty built in features. If you want to be even more advanced, \keyword{zsh} has some more powerful features like tab complete on programs and fuzzy patterns, but that is neither here nor there. 
+What do you actually use to run your program? A shell! A shell is a programming language that is running inside your terminal. A terminal is merely a window to input commands. Now, on POSIX we usually have one shell called \keyword{sh} that is linked to a POSIX compliant shell called \keyword{dash}. Most of the time, you use a shell called \keyword{bash} that is not entirely POSIX compliant but has some nifty built in features. If you want to be even more advanced, \keyword{zsh} has some more powerful features like tab complete on programs and fuzzy patterns, but that is neither here nor there.
 
 \subsection{Undefined Behavior Sanitizer}
 
@@ -518,7 +518,7 @@ Try to make a test and figure out something that is going wrong, then log the st
   #include <stdlib.h>
   #include <stdarg.h>
   #include <unistd.h>
-  
+
   // bt is print backtrace
   const int num_stack = 10;
   int __log(int line, const char *file, int bt, const char *fmt, ...) {
@@ -530,11 +530,11 @@ Try to make a test and figure out something that is going wrong, then log the st
       for(ssize_t i = 0; i < size; i++) {
         fprintf(stderr, "|%s:%d| %s\n", file, line, syms[i]);
       }
-      free(syms); 
+      free(syms);
     }
     int ret = fprintf(stderr, "|%s:%d| ", file, line);
     va_list args;
-    va_start(args, fmt); 
+    va_start(args, fmt);
     ret += vfprintf(stderr, fmt, args);
     va_end(args);
     ret += fprintf(stderr, "\n");
@@ -561,7 +561,7 @@ And then use as such.
 
 \newpage
 
-\section{Homework 0} 
+\section{Homework 0}
 
 \begin{lstlisting}[language=C]
 // First, can you guess which lyrics have been transformed into this C-like system code?
@@ -587,7 +587,7 @@ int main(int argc, char** argv) {
 	puts(" be an active learner and learn how to solve problems and debug code.");
 	puts("Bring your near-completed answers the problems below");
 	puts(" to the first lab to show that you've been working on this.");
-	printf("A few \"don't knows\" or \"unsure\" is fine for lab 1.\n"); 
+	printf("A few \"don't knows\" or \"unsure\" is fine for lab 1.\n");
 	puts("Warning: you and your peers will work hard in this class.");
 	puts("This is not CS225; you will be pushed much harder to");
 	puts(" work things out on your own.");
@@ -705,7 +705,7 @@ free(ptr);
 free(ptr);
 printf("%s\n", ptr);
 \end{lstlisting}
-\item How can one avoid the previous two mistakes? 
+\item How can one avoid the previous two mistakes?
 \item Create a \keyword{struct} that represents a \keyword{Person}.
   Then make a \keyword{typedef}, so that \keyword{struct Person} can be replaced with a single word.
   A person should contain the following information: their name (a string), their age (an integer), and a list of their friends (stored as a pointer to an array of pointers to \keyword{Person}s).
