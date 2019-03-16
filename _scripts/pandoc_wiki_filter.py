@@ -4,7 +4,7 @@
 Pandoc filter to change each relative URL to absolute
 """
 
-from panflute import run_filter, Str, Header, Image, Math
+from panflute import run_filter, Str, Header, Image, Math, Link
 import sys
 import re
 
@@ -23,8 +23,16 @@ def change_base_url(elem, doc):
 
     if isinstance(elem, Math):
         elem.text = re.sub(r'_([A-Za-z0-9])\b', r'<sub>\g<1></sub>', elem.text)
-        elem.text = re.sub(r'\^([A-Za-z0-9])\b', r'<sup>\g<1></sup>', elem.text)
+        elem.text = re.sub(r'_\{([A-Za-z0-9]+)\}\b', r'<sub>\g<1></sub>', elem.text)
+        elem.text = re.sub(r'\^([-_A-Za-z0-9])', r'<sup>\g<1></sup>', elem.text)
+        elem.text = re.sub(r'\^{([-_A-Za-z0-9]+)}', r'<sup>\g<1></sup>', elem.text)
         return elem
+    if isinstance(elem, Link):
+        if str(elem.title) == "":
+             print(elem, file=sys.stderr)
+             ret = Link(Str(u"\u00A0" + elem.url), url=elem.url)
+             return ret
+
 
 
 def main(doc=None):

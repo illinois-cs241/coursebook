@@ -105,7 +105,7 @@ def main(args):
         bib_sub = ""
         if bib_file != "":
             bib_sub = " --bibliography {} ".format(bib_file)
-        command = 'pandoc --toc --self-contained -f latex -t gfm+raw_html -s --filter _scripts/pandoc_wiki_filter.py {} {} -o {} '.format(bib_sub, tex_tmp_path, md_path)
+        command = 'pandoc --toc --self-contained -f latex -t gfm+raw_html+autolink_bare_uris -s --filter pandoc-citeproc --filter _scripts/pandoc_wiki_filter.py -M link-citations=true {} {} -o {} '.format(bib_sub, tex_tmp_path, md_path)
         print(command)
         sys_ret = os.system(command)
         if sys_ret != 0:
