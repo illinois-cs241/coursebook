@@ -288,7 +288,7 @@ void selection_sort(int *a, long len);
 
 And the error is specifically in one function. In the end, we are not a class about refactoring/debugging your code. In fact, most kernel code is so atrocious that you don't want to read it. But for the sake of debugging, it may benefit you in the long run to adopt some of these practices.
 
-\subsection{Asserts}\label{asserts}
+\subsection{Asserts}
 
 Use assertions to make sure your code works up to a certain point -- and importantly, to make sure you don't break it later.
 For example, if your data structure is a doubly linked list, you can do something like \texttt{assert(node == node->next->prev)} to assert that the next node has a pointer to the current node.
@@ -304,7 +304,7 @@ memcpy(dest, src, n);
 
 This check can be turned off at compile time, but will save you \textbf{tons} of trouble debugging!
 
-\section{Valgrind}\label{valgrind}
+\section{Valgrind}
 
 Valgrind is a suite of tools designed to provide debugging and profiling tools to make your programs more correct and detect some runtime issues. The most used of these tools is Memcheck, which can detect many memory-related errors that are common in C and C++ programs and that can lead to crashes and unpredictable behaviour (for example, unfreed memory buffers). To run Valgrind on your program:
 
@@ -417,7 +417,7 @@ ThreadSanitizer: reported 1 warnings
 
 If we compiled with the debug flag, then it would give us the variable name as well.
 
-\section{GDB}\label{gdb}
+\section{GDB}
 
 \href{http://www.cs.cmu.edu/~gilpin/tutorial/}{Introduction to gdb}
 
@@ -445,7 +445,7 @@ main () at main.c:6
 $1 = 42
 \end{lstlisting}
 
-\paragraph{Checking memory content}\label{checking-memory-content}
+\paragraph{Checking memory content}
 
 \href{http://www.delorie.com/gnu/docs/gdb/gdb\_56.html}{Memory Content}
 

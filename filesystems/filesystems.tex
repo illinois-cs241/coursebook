@@ -588,7 +588,7 @@ Both the input and output files in the example above are virtual - they don't ex
 
 \keyword{dd} is also commonly used to make a copy of a disk or an entire filesystem to create images that can either be burned on to other disks or to distribute data to other users.
 
-\subsection{Updating Modification Time}\label{what-happens-when-i-touch-a-file}
+\subsection{Updating Modification Time}
 
 The \keyword{touch} executable creates file if it does not exist and also updates the file's last modified time to be the current time. For example, we can make a new private file with the current time:
 
@@ -639,7 +639,7 @@ proc on /proc type proc (rw)
 none on /proc/sys/fs/binfmt_misc type binfmt_misc (rw)
 \end{verbatim}
 
-\subsubsection{Filesystem Mounting}\label{how-do-i-mount-a-disk-image}
+\subsubsection{Filesystem Mounting}
 
 Suppose you had downloaded a bootable linux disk image from the \href{http://cosmos.cites.illinois.edu/pub/archlinux/iso/2015.04.01/archlinux-2015.04.01-dual.iso}{URL}
 
@@ -749,7 +749,7 @@ If your operating system fails in the middle of an operation, most modern file s
 
 Even though it is unlikely for your computer, programming for data centers means that disks fail every few seconds. Disk failures are measured using ``Mean-Time-Failure''. For large arrays, the mean failure time can be surprisingly short. For example if the MTTF(single disk) = 30,000 hours, then the MTTF(1000 disks)= 30000/1000=30 hours or about a day and a half!
 
-\subsection{RAID}\label{redundancy}
+\subsection{RAID}
 
 One way to protect against this is to store the data twice! This is the main principle of a ``RAID-1'' disk array. RAID is short for redundant array of inexpensive disks. By duplicating the writes to a disk with writes to another backup disk, there are exactly two copies of the data. If one disk fails, the other disk serves as the only copy until it can be re-cloned. Reading data is faster since data can be requested from either disk, but writes are potentially twice as slow because now two write commands need to be issued for every disk block write. Compared to using a single disk, the cost of storage per byte has doubled.
 
@@ -902,7 +902,7 @@ After, you have to mark the directory's inode as free and set the associated dat
 Why don't we have to check hardlink counts for directories?
 Because you can't hard link directories! Meaning, we can just easily delete it.
 
-\section{Topics}\label{topics}
+\section{Topics}
 
 \begin{itemize}
 \tightlist
@@ -932,7 +932,7 @@ Because you can't hard link directories! Meaning, we can just easily delete it.
   RAID
 \end{itemize}
 
-\section{Questions}\label{questions}
+\section{Questions}
 
 \begin{itemize}
 \tightlist

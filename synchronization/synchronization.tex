@@ -846,7 +846,7 @@ void push(double v) {
 // Note a robust solution will need to check sem_wait's result for EINTR (more about this later)
 \end{lstlisting}
 
-\section{Candidate Solutions to the Critical Section}\label{candidate-solutions}
+\section{Candidate Solutions to the Critical Section}
 
 As already discussed, there are critical parts of our code that can only be executed by one thread at a time.
 We describe this requirement as `mutual exclusion'; only one thread (or process) may have access to the shared resource.
@@ -907,7 +907,7 @@ Time & Thread 1 & Thread 2 \\ \hline
 
 Ooops both threads / processes are now waiting for the other one to lower their flags. Neither one will enter the critical section as both are now stuck forever! This suggests we should use a turn-based variable to try to resolve who should proceed.
 
-\subsection{Turn-based solutions}\label{turn-based-solutions}
+\subsection{Turn-based solutions}
 
 The following candidate solution \#3 uses a turn-based variable to politely allow one thread and then the other to continue
 
@@ -966,9 +966,9 @@ Time & Turn & Thread \# 1 & Thread \# 2 \\ \hline
 4 & 2 & // Do Critical Section Stuff & Do Critical Section Stuff - OOPS \\
 \end{tabular}
 
-\section{Working Solutions}\label{working-solutions}
+\section{Working Solutions}
 
-\subsection{What is Peterson's solution?}\label{what-is-petersons-solution}
+\subsection{What is Peterson's solution?}
 
 Peterson published his novel and surprisingly simple solution in a 2 page paper in 1981. A version of his algorithm is shown below that uses a shared variable \keyword{turn}:
 
@@ -987,7 +987,7 @@ Thread \#1 arrives, \emph{sets the turn back to 1} and now waits until thread 2 
 
 Link to Peterson's original article pdf: \href{http://dl.acm.org/citation.cfm?id=945527}{G. L. Peterson: ``Myths About the Mutual Exclusion Problem'', Information Processing Letters 12(3) 1981, 115--116}
 
-\subsection{Was Peterson's solution the first solution?}\label{was-petersons-solution-the-first-solution}
+\subsection{Was Peterson's solution the first solution?}
 
 No, Dekker's Algorithm (1962) was the first provably correct solution. A version of the algorithm is below.
 
@@ -1034,7 +1034,7 @@ Further reading: we suggest the following web post that discusses implementing P
 \end{enumerate}
 
 
-\section{Implementing Counting Semaphore}\label{implementing-counting-semaphore}
+\section{Implementing Counting Semaphore}
 
 \begin{itemize}
 \item
@@ -1103,7 +1103,7 @@ sem_wait(sem_t *s) {
      pthread_cond_signal(&s->cv);
 \end{lstlisting}
 
-\subsection{Other semaphore considerations}\label{other-semaphore-considerations}
+\subsection{Other semaphore considerations}
 
 \begin{itemize}
 \tightlist
@@ -1113,7 +1113,7 @@ sem_wait(sem_t *s) {
   Also, an advanced use of \keyword{sem\_init} allows semaphores to be shared across processes. Our implementation only works for threads inside the same process.
 \end{itemize}
 
-\subsection{How do I wait for N threads to reach a certain point before continuing onto the next step?}\label{how-do-i-wait-for-n-threads-to-reach-a-certain-point-before-continuing-onto-the-next-step}
+\subsection{How do I wait for N threads to reach a certain point before continuing onto the next step?}
 
 Suppose we wanted to perform a multi-threaded calculation that has two stages, but we don't want to advance to the second stage until the first stage is completed.
 
@@ -1214,7 +1214,7 @@ When a thread enters \keyword{pthread\_cond\_wait}, it releases the mutex and sl
 
 \textbf{The above barrier is not reusable} Meaning that if we stick it into any old calculation loop there is a good chance that the code will encounter a condition where the barrier either deadlocks or a thread races ahead one iteration faster. Think about how you can make the above barrier reusable, meaning that if multiple threads call \keyword{barrier\_wait} in a loop then one can guarantee that they are on the same iteration.
 
-\subsection{What is the Reader Writer Problem?}\label{what-is-the-reader-writer-problem}
+\subsection{What is the Reader Writer Problem?}
 
 Imagine you had a key-value map data structure which is used by many threads. Multiple threads should be able to look up (read) values at the same time provided the data structure is not being written to. The writers are not so gregarious - to avoid data corruption, only one thread at a time may modify (\keyword{write}) the data structure (and no readers may be reading at that time).
 
@@ -1222,7 +1222,7 @@ This is an example of the \emph{Reader Writer Problem}. Namely how can we effici
 
 An incorrect attempt is shown below (``lock'' is a shorthand for \keyword{pthread\_mutex\_lock}):
 
-\subsection{Attempt \#1}\label{attempt-1}
+\subsection{Attempt \#1}
 
 \begin{lstlisting}[language=C]
 void read() {
@@ -1240,7 +1240,7 @@ void write() {
 
 At least our first attempt does not suffer from data corruption (readers must wait while a writer is writing and vice versa)! However readers must also wait for other readers. So let's try another implementation..
 
-\subsection{Attempt \#2:}\label{attempt-2}
+\subsection{Attempt \#2:}
 
 \begin{lstlisting}[language=C]
 void read() {
@@ -1260,7 +1260,7 @@ void write() {
 
 Our second attempt suffers from a race condition - imagine if two threads both called \keyword{read} and \keyword{write} (or both called write) at the same time. Both threads would be able to proceed! Secondly, we can have multiple readers and multiple writers, so let's keep track of the total number of readers or writers. Which brings us to attempt \#3.
 
-\subsection{Attempt \#3}\label{attempt-3}
+\subsection{Attempt \#3}
 
 Remember that \keyword{pthread\_cond\_wait} performs \emph{Three} actions. Firstly it atomically unlocks the mutex and then sleeps (until it is woken by \keyword{pthread\_cond\_signal} or \keyword{pthread\_cond\_broadcast}). Thirdly the awoken thread must re-acquire the mutex lock before returning. Thus only one thread can actually be running inside the critical section defined by the lock and unlock() methods.
 
@@ -1333,7 +1333,7 @@ write() {
 
 Candidate \#3 above also uses \keyword{pthread\_cond\_signal} ; this will only wake up one thread. For example, if many readers are waiting for the writer to complete then only one sleeping reader will be awoken from their slumber. The reader and writer should use \keyword{cond\_broadcast} so that all threads should wake up and check their while-loop condition.
 
-\subsection{Starving writers}\label{starving-writers}
+\subsection{Starving writers}
 
 Candidate \#3 above suffers from starvation. If readers are constantly arriving then a writer will never be able to proceed (the `reading' count never reduces to zero). This is known as \emph{starvation} and would be discovered under heavy loads. Our fix is to implement a bounded-wait for the writer. If a writer arrives they will still need to wait for existing readers however future readers must be placed in a ``holding pen'' and wait for the writer to finish. The ``holding pen'' can be implemented using a variable and a condition variable (so that we can wake up the threads once the writer has finished).
 
@@ -1370,7 +1370,7 @@ read() {
 }
 \end{lstlisting}
 
-\subsection{Attempt \#4}\label{attempt-4}
+\subsection{Attempt \#4}
 
 Below is our first working solution to the Reader-Writer problem. Note if you continue to read about the ``Reader Writer problem'' then you will discover that we solved the ``Second Reader Writer problem'' by giving writers preferential access to the lock. This solution is not optimal. However it satisfies our original problem (N active readers, single active writer, avoids starvation of the writer if there is a constant stream of readers).
 
@@ -1416,7 +1416,7 @@ writer() {
 }
 \end{lstlisting}
 
-\section{Ring Buffer}\label{Ring Buffer}
+\section{Ring Buffer}
 
 A ring buffer is a simple, usually fixed-sized, storage mechanism where contiguous memory is treated as if it is circular, and two index counters keep track of the current beginning and end of the queue. As array indexing is not circular, the index counters must wrap around to zero when moved past the end of the array. As data is added (enqueued) to the front of the queue or removed (dequeued) from tail of the queue, the current items in the buffer form a train that appears to circle the track 
 
@@ -1444,7 +1444,7 @@ void *dequeue() { /* Remove one item to the end of the queue.*/
 }
 \end{lstlisting}
 
-\subsection{What are gotchas of implementing a Ring Buffer?}\label{what-are-gotchas-of-implementing-a-ring-buffer}
+\subsection{What are gotchas of implementing a Ring Buffer?}
 
 It's very tempting to write the enqueue or dequeue method in the following compact form (N is the capacity of the buffer e.g.~16):
 
@@ -1465,7 +1465,7 @@ b[ (in++) & (N-1) ] = value;
 This buffer does not yet prevent buffer underflow or overflow. For that, we'll turn to our multi-threaded attempt that will block a thread until there is space or there is at least one item to remove.
 
 
-\subsection{Multithreaded Correctness}\label{checking-a-multi-threaded-implementation-for-correctness-example-1}
+\subsection{Multithreaded Correctness}
 
 The following code is an incorrect implementation. What will happen? Will \keyword{enqueue} and/or \keyword{dequeue} block? Is mutual exclusion satisfied? Can the buffer underflow? Can the buffer overflow? For clarity \keyword{pthread\_mutex} is shortened to \keyword{p\_m} and we assume sem\_wait cannot be interrupted.
 
@@ -1503,7 +1503,7 @@ void *dequeue(){
 }
 \end{lstlisting}
 
-\subsection{Analysis}\label{analysis}
+\subsection{Analysis}
 
 Before reading on, see how many mistakes you can find. Then determine what would happen if threads called the enqueue and dequeue methods.
 
@@ -1553,7 +1553,7 @@ void *dequeue(){
 }
 \end{lstlisting}
 
-\subsubsection{Analysis}\label{analysis-1}
+\subsubsection{Analysis}
 
 \begin{itemize}
 \tightlist
@@ -1565,7 +1565,7 @@ void *dequeue(){
   The code does not satisfy Mutual Exclusion; two threads can modify \keyword{in} or \keyword{out} at the same time! The code appears to use mutex lock. Unfortunately the lock was never initialized with \keyword{pthread\_mutex\_init()} or \keyword{PTHREAD\_MUTEX\_INITIALIZER} - so the lock may not work (\keyword{pthread\_mutex\_lock} may simply do nothing)
 \end{itemize}
 
-\subsection{Correct implementation of a ring buffer}\label{correct-implementation-of-a-ring-buffer}
+\subsection{Correct implementation of a ring buffer}
 
 The pseudo-code (\keyword{pthread\_mutex} shortened to \keyword{p\_m} etc) is shown below.
 
@@ -1622,7 +1622,7 @@ void *dequeue(){
 }
 \end{lstlisting}
 
-\subsection{Food for thought}\label{food-for-thought}
+\subsection{Food for thought}
 
 \begin{itemize}
 \tightlist
@@ -1633,7 +1633,7 @@ void *dequeue(){
 \end{itemize}
 
 
-\section{Extra: Process Synchronization}\label{process-synchronization}
+\section{Extra: Process Synchronization}
 
 You thought that you were using different processes, so you don't have to synchronize? Think again! You may not have race conditions within a process but what if your process needs to interact with the system around it? Let's consider a motivating example
 
@@ -1669,7 +1669,7 @@ key2: value2
 key1: value1
 \end{lstlisting}
 
-\subsection{Interruption}\label{interruption}
+\subsection{Interruption}
 
 But, there is a hidden nuance. Most system calls can be \keyword{interrupted} meaning that the operating system can stop an ongoing system call because it needs to stop the process. So barring \keyword{fork} \keyword{wait} \keyword{open} and \keyword{close} from failing -- they typically go to completion -- what happens if \keyword{write} fails? If write fails and no bytes are written, we can get something like \keyword{key1: value1} or \keyword{key2: value2}. This is data loss which is incorrect but won't corrupt the file. What happens if write gets interrupted after a partial write? We get all sorts of madness. For example,
 
@@ -1677,7 +1677,7 @@ But, there is a hidden nuance. Most system calls can be \keyword{interrupted} me
 key2: key1: value1
 \end{lstlisting}
 
-\subsection{Solution}\label{solution}
+\subsection{Solution}
 
 So what should we do? We should use a shared mutex! Consider the following code.
 
@@ -1774,7 +1774,7 @@ Examples were adapted from
 \end{itemize}
 
 
-\section{Topics}\label{topics}
+\section{Topics}
 
 \begin{itemize}
 \tightlist
@@ -1800,7 +1800,7 @@ Examples were adapted from
   Analyzing multi-threaded coded
 \end{itemize}
 
-\section{Questions}\label{questions}
+\section{Questions}
 
 \begin{itemize}
 \tightlist

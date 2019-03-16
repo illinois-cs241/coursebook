@@ -1029,7 +1029,7 @@ everyday programming is that you need to remember the null character! A
 string in C is defined as a bunch of bytes until you reach `\0' or the
 Null Byte.
 
-\subsection{Two places for strings}\label{two-places-for-strings}
+\subsection{Two places for strings}
 
 Whenever you define a constant string (ie one in the form \keyword{char*\ str\ =\ "constant"}) That string is stored in the \emph{data} or \emph{lstlisting} segment that is \textbf{read-only} meaning that any attempt to modify the string will cause a segfault.
 
@@ -1325,7 +1325,7 @@ typedef struct User user_t;
 user_t * user = (user_t *) malloc(sizeof(user_t));
 \end{lstlisting}
 
-\subsection{Buffer overflow/ underflow}\label{buffer-overflow-underflow}
+\subsection{Buffer overflow/ underflow}
 
 Famous example: Heart Bleed (performed a memcpy into a buffer that was of insufficient size). Simple example: implement a strcpy and forget to add one to strlen, when determining the size of the memory required.
 
@@ -1363,7 +1363,7 @@ the string ``Hi'' it takes 3 bytes: {[}H{]} {[}i{]} {[}\0{]}.
 \end{lstlisting}
 
 \subsection{Using uninitialized
-	variables}\label{using-uninitialized-variables}
+	variables}
 
 \begin{lstlisting}[language=C]
 int myfunction() {
@@ -1376,7 +1376,7 @@ Automatic variables hold garbage (whatever bit pattern happened to be in
 memory). It is an error to assume that it will always be initialized to
 zero.
 
-\subsection{Assuming Uninitialized memory will be zeroed}\label{assuming-uninitialized-memory-will-be-zeroed}
+\subsection{Assuming Uninitialized memory will be zeroed}
 
 \begin{lstlisting}[language=C]
 void myfunct() {
@@ -1387,9 +1387,9 @@ void myfunct() {
 Automatic (temporary variables) are not automatically initialized to zero. Heap allocations using malloc are not automatically initialized to zero.
 
 \section{Logic and Program flow
-  mistakes}\label{logic-and-program-flow-mistakes}
+  mistakes}
 
-\subsection{Equal vs.~equality}\label{equal-vs.equality}
+\subsection{Equal vs.~equality}
 
 \begin{lstlisting}[language=C]
 int answer = 3; // Will print out the answer.
@@ -1397,7 +1397,7 @@ if (answer = 42) { printf("I've solved the answer! It's %d", answer);}
 \end{lstlisting}
 
 \subsection{Undeclared or incorrectly prototyped
-	functions}\label{undeclared-or-incorrectly-prototyped-functions}
+	functions}
 
 \begin{lstlisting}[language=C]
 time_t start = time();
@@ -1408,7 +1408,7 @@ memory that can receive the time\_t structure). The compiler did not
 catch this error because the programmer did not provide a valid function
 prototype by including \keyword{time.h}
 
-\subsection{Extra Semicolons}\label{extra-semicolons}
+\subsection{Extra Semicolons}
 
 \begin{lstlisting}[language=C]
 for(int i = 0; i < 5; i++) ; printf("I'm printed once");

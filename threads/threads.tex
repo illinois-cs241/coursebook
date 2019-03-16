@@ -53,7 +53,7 @@ You can have more than one thread running inside a process. You get the first th
 
 The threads you create all live inside the same virtual memory because they are part of the same process. Thus they can all see the heap, the global variables and the program code etc. Thus you can have two (or more) CPUs working on your program at the same time and inside the same process. It's up to the operating system to assign the threads to CPUs. If you have more active threads than CPUs then the kernel will assign the thread to a CPU for a short duration (or until it runs out of things to do) and then will automatically switch the CPU to work on another thread. For example, one CPU might be processing the game AI while another thread is computing the graphics output.
 
-\section{Simple Usage}\label{simple-usage}
+\section{Simple Usage}
 
 To use pthreads you will need to include \keyword{pthread.h} and compile with \keyword{-pthread} (or \keyword{-lpthread}) compiler option. This option tells the compiler that your program requires threading support. To create a thread use the function \keyword{pthread\_create}. This function takes four arguments:
 
@@ -97,7 +97,7 @@ int main() {
 In the above example, \keyword{result} will be \keyword{null} because the busy function returned \keyword{null}.
 We need to pass the address-of result because \keyword{pthread\_join} will be writing into the contents of our pointer.
 
-\section{Pthread Functions}\label{more-pthread-functions}
+\section{Pthread Functions}
 
 \begin{itemize}
 \item \keyword{pthread\_create}.
@@ -386,7 +386,7 @@ int *map(int (*func)(int), int *arr, size_t len){
 Since none of the elements depend on any other element, how would you go about parallelizing this?
 What do you think would be the best way to split up the work between threads.
 
-\subsection{Extra: Scheduling}\label{scheduling}
+\subsection{Extra: Scheduling}
 
 There are a few ways to split up the work. 
 
@@ -423,7 +423,7 @@ Dynamic scheduling will give a job once the loop is over
 Guided scheduling is Dynamic with chunks
 Runtime is a whole bag of worms.
 
-\subsection{Other Problems}\label{other-problems}
+\subsection{Other Problems}
 
 From \href{https://en.wikipedia.org/wiki/Embarrassingly_parallel}{Wikipedia} 
 \begin{itemize}
@@ -453,7 +453,7 @@ From \href{https://en.wikipedia.org/wiki/Embarrassingly_parallel}{Wikipedia}
 \item \href{http://www.thegeekstuff.com/2012/04/terminate-c-thread/}{Concise third party sample code explaining create, join and exit}
 \end{itemize}
 
-\section{Topics}\label{topics}
+\section{Topics}
 
 \begin{itemize}
 \tightlist
@@ -473,7 +473,7 @@ Using \keyword{pthread\_exit}
 Under what conditions will a process exit
 \end{itemize}
 
-\section{Questions}\label{questions}
+\section{Questions}
 
 \begin{itemize}
 \tightlist

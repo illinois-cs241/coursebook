@@ -121,7 +121,7 @@ So our page table is too large.
 In 64 bit architectures memory addresses are sparse, so we need a mechanism to reduce the page table size, given that most of the entries will never be used.
 We'll take about this below. There is one last piece of terminology that needs to be covered.
 
-\subsection{Multi-level page tables}\label{multi-level-page-tables}
+\subsection{Multi-level page tables}
 Multi-level pages are one solution to the page table size issue for 64 bit architectures. We'll look at the simplest implementation - a two level page table. Each table is a list of pointers that point to the next level of tables, not all sub-tables need to exist. An example, two level page table for a 32 bit architecture is shown below-
 
 \begin{verbatim}
@@ -460,7 +460,7 @@ int main() {
 }
 \end{lstlisting}
 
-\subsection{Pipe Gotchas}\label{pipe-gotchas}
+\subsection{Pipe Gotchas}
 
 Here's a complete example that doesn't work! The child reads one byte at a time from the pipe and prints it out - but we never see the message! Can you see why?
 
