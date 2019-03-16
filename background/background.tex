@@ -139,46 +139,46 @@ I'm going to tell you a secret about this course: it is about working smarter \t
 \texttt{ssh} is short for the Secure Shell. It is a network protocol that allows you to spawn a shell on a remote machine.
 Most of the times in this class you will need to ssh into your VM like this
 
-\begin{lstlisting}
+\begin{verbatim}
 > ssh netid@sem-cs241-VM.cs.illinois.edu
-\end{lstlisting}
+\end{verbatim}
 
 If you don't want to type your password out every time, you can generate an ssh key that uniquely identifies your machine. If you already have a key pair, you can skip to the copy id stage.
 
-\begin{lstlisting}
+\begin{verbatim}
   > ssh-keygen -t rsa -b 4096
   # Do whatever keygen tells you
   # Don't feel like you need a passcode if your login password is secure
   > ssh-copy-id netid@sem-cs241-VM.cs.illinois.edu
   # Enter your password for maybe the final time
   > ssh  netid@sem-cs241-VM.cs.illinois.edu
-\end{lstlisting}
+\end{verbatim}
 
 If you still think that that is too much typing, you can always alias hosts. You may need to restart your VM or reload sshd for this to take effect. The config file is available on linux and mac distros. For windows you'll have to use the Windows Linux Subsystem or configure any aliases in PuTTY
-\begin{lstlisting}
+\begin{verbatim}
 > cat ~/.ssh/config
 Host vm
   User          netid
   HostName      sem-cs241-VM.cs.illinois.edu
 > ssh vm
-\end{lstlisting}
+\end{verbatim}
 
 \subsection{git}
 
 What is `git`? Git is a version control system. What that means is git stores the entire history of a directory. We refer to the directory as a repository. So what do you need to know is a few things. First, create your repository with the repo creator. If you haven't already signed into enterprise github, make sure to do so otherwise your repository won't be created for you. After that, that means your repository is created on the server. Git is a decentralized version control system, meaning that you'll need to get a repository onto your VM. We can do this with a clone. Whatever you do, \textbf{do not go through the README.md tutorial}.
 
-\begin{lstlisting}
+\begin{verbatim}
 $ git clone https://github-dev.cs.illinois.edu/cs241-fa18/<netid>.git
-\end{lstlisting}
+\end{verbatim}
 
 This will create a local repository. The workflow is you make a change on your local repository, add the changes to a current commit, actually commit, and push the changes to the server.
 
-\begin{lstlisting}
+\begin{verbatim}
 $ # edit the file, maybe using vim
 $ git add <file>
 $ git commit -m "Committing my file"
 $ git push origin master
-\end{lstlisting}
+\end{verbatim}
 
 Now to explain git well, you need to understand that git for our purposes will look like a linked list.
 You will always be at the head of master, and you will do the edit-add-commit-push loop. We have a separate branch on github that we push feedback to under a specific branch which you can view on github website. The markdown file will have information on the test cases and results (like standard out).
@@ -197,16 +197,16 @@ Every so often git can break. Here are a list of commands you probably won't nee
 
 In addition if you are currently on a branch, and you don't see either
 
-\begin{lstlisting}
+\begin{verbatim}
 $ git status
 On branch master
 Your branch is up-to-date with 'origin/master'.
 nothing to commit, working directory clean
-\end{lstlisting}
+\end{verbatim}
 
 or
 
-\begin{lstlisting}
+\begin{verbatim}
 $ git status
 On branch master
 Your branch is up-to-date with 'origin/master'.
@@ -218,15 +218,15 @@ Changes not staged for commit:
         ...
 
 no changes added to commit (use "git add" and/or "git commit -a")
-\end{lstlisting}
+\end{verbatim}
 
 And something like
 
-\begin{lstlisting}
+\begin{verbatim}
 $ git status
 HEAD detached at 4bc4426
 nothing to commit, working directory clean
-\end{lstlisting}
+\end{verbatim}
 
 Don't panic, but your repository may be in an unworkable state. If you aren't nearing a deadline, come in to office hours or ask your question on Piazza, and we'd be happy to help. In an emergency scenario, delete your repository and re-clone (you'll have to add the \texttt{release} as above). \textbf{This will lose any local uncommitted changes. Make sure to copy any files you were working on outside the directory, remove and copy them back in}
 
@@ -235,7 +235,7 @@ Don't panic, but your repository may be in an unworkable state. If you aren't ne
 
 Some people take this as an opportunity to learn a new editor, others not so much. The first part is those of you who want to learn a new editor. In the editor war that spans decades, we have come to the battle of vim vs emacs.
 
-Vim is a text editor and unix-like utility. You enter vim by typing \texttt{vim \<file\>}. This takes you into the editor. You start off in normal mode. In this mode you can move around with many keys with the most common ones being \texttt{jklh}. To exit vim from this mode, you need to type \texttt{:q} which quits. If you have any unsaved edits, you must either save them \texttt{:w}, save and quit \texttt{:wq}, or discard changes \texttt{:q!}. To make edits you can either type \texttt{i} to change you into insert mode or \texttt{a} to change to insert mode \textbf{a}fter the cursor. This is the very basics when it comes to vim
+Vim is a text editor and unix-like utility. You enter vim by typing \texttt{vim [file]}. This takes you into the editor. You start off in normal mode. In this mode you can move around with many keys with the most common ones being \texttt{jklh}. To exit vim from this mode, you need to type \texttt{:q} which quits. If you have any unsaved edits, you must either save them \texttt{:w}, save and quit \texttt{:wq}, or discard changes \texttt{:q!}. To make edits you can either type \texttt{i} to change you into insert mode or \texttt{a} to change to insert mode \textbf{a}fter the cursor. This is the very basics when it comes to vim
 
 Emacs is more of a way of life, and I don't mean that figuratively. A lot people when they switch to the emacs environment realize that it is a powerful operating system lacking a decent text editor. This means emacs can house a terminal, gdb session, ssh session, code and a whole lot more. It would not be fitting any other way to introduce you the gnu-emacs any other way than the gnu-docs \url{https://www.gnu.org/software/emacs/tour/}. Just note that emacs is \textit{insanely} powerful. You can do almost anything with it. There are a fair number of students who like the IDE-aspect of other programming languages, just know you can set up emacs to be an IDE, but you have to learn a bit of lisp \url{http://martinsosic.com/development/emacs/2017/12/09/emacs-cpp-ide.html}.
 
