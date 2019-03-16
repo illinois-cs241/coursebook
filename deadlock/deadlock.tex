@@ -8,7 +8,6 @@
 
 \gls{Deadlock} is defined as when a system cannot make and forward progress. We define a system for the rest of the chapter as a set of rules by which a set of processes can move from one state to another, where a state is either working or waiting for a particular resource. Forward progress is defined as if there is at least one process working or we can award a process waiting for a resource that resource. In a lot of systems, Deadlock is just avoided by ignore the entire concept \cite[P.237]{silberschatz2006operating}. Have you heard about turn it on and off again? For products where the stakes are low (User Operating Systems, Phones), it may be more efficient not prevent deadlock. But in the cases where "failure is not an option" - Apollo 13, you need a system that tracks deadlock and breaks it or better yet prevents it entirely. Apollo 13 may have not failed because of deadlock, but probably wouldn't be good to restart the system on liftoff.
 
-
 Mission critical operating systems need this guarantee formally because playing the odds with people's lives isn't a good idea. Okay so how do we do this? We model the problem. Even though it is a common statistical phrase that all models are wrong, the more accurate the model is to the system the better chance that it'll work better.
 
 \section{Resource Allocation Graphs}
@@ -212,21 +211,56 @@ void* philosopher(void* forks){
 }
 \end{lstlisting}
 
-Now our philosopher picks up the left fork and tries to grab the right. If it's available, they eat. If it's not available, they put the left fork down and try again. No deadlock! But, there is a problem. What if all the philosophers pick up their left at the same time, try to grab their right, put their left down, pick up their left, try to grab their right\ldots{}. We have now livelocked our solution! Our poor philosopher are still starving, so let's give them some proper solutions.
+Now our philosopher picks up the left fork and tries to grab the right.
+If it's available, they eat.
+If it's not available, they put the left fork down and try again.
+No deadlock! But, there is a problem.
+What if all the philosophers pick up their left at the same time, try to grab their right, put their left down, pick up their left, try to grab their right\ldots{}.
+We have now livelocked our solution! Our poor philosopher are still starving, so let's give them some proper solutions.
 
 \section{Viable Solutions}
 
-The naive arbitrator solution is have one arbitrator (a mutex for example). Have each of the philosopher ask the arbitrator for permission to eat (i.e. trylock the mutex). This solution allows one philosopher to eat at a time. When they are done, another philosopher can ask for permission to eat. This prevents deadlock because there is no circular wait! No philosopher has to wait on any other philosopher. The advanced arbitrator solution is to implement a class that determines if the philosopher's forks are in the arbitrator's possession. If they are, they give them to the philosopher, let him eat, and take the forks back. This has the added bonus of being able to have multiple philosopher eat at the same time.
+The naive arbitrator solution is have one arbitrator a mutex for example.
+Have each of the philosopher ask the arbitrator for permission to eat or trylock an arbitrator mutex.
+This solution allows one philosopher to eat at a time.
+When they are done, another philosopher can ask for permission to eat.
+This prevents deadlock because there is no circular wait! No philosopher has to wait on any other philosopher.
+The advanced arbitrator solution is to implement a class that determines if the philosopher's forks are in the arbitrator's possession.
+If they are, they give them to the philosopher, let him eat, and take the forks back.
+This has the added bonus of being able to have multiple philosopher eat at the same time.
 
-There are a lot of problems with these solutions. One is that they are slow and have a single point of failure or the arbitrator. Assuming that all the philosophers are good-willed, the arbitrator needs to be fair and be able to determine if a transaction would cause deadlock in the multi-arbitrator case. Furthermore in practical systems, the arbitrator tends to give forks to the same processes because of scheduling or pseudorandomness. Another important thing to note is that this prevents deadlock for the entire system. But in our model of dining philosophers, the philosopher has to release the lock themselves. Then you can consider the case of the malicious philosopher (let's say Descartes because of his Evil Demons) could hold on to the arbitrator forever. He would make forward progress and the system would make forward progress but there is no way of ensuring that each process makes forward progress without assuming something about the processes or having true preemption -- meaning that a higher authority (let's say Steve Jobs) tells them to stop eating forcibly.
+There are a lot of problems with these solutions.
+One is that they are slow and have a single point of failure or the arbitrator.
+Assuming that all the philosophers are good-willed, the arbitrator needs to be fair and be able to determine if a transaction would cause deadlock in the multi-arbitrator case.
+Furthermore in practical systems, the arbitrator tends to give forks to the same processes because of scheduling or pseudorandomness.
+Another important thing to note is that this prevents deadlock for the entire system.
+But in our model of dining philosophers, the philosopher has to release the lock themselves.
+Then you can consider the case of the malicious philosopher (let's say Descartes because of his Evil Demons) could hold on to the arbitrator forever.
+He would make forward progress and the system would make forward progress but there is no way of ensuring that each process makes forward progress without assuming something about the processes or having true preemption -- meaning that a higher authority (let's say Steve Jobs) tells them to stop eating forcibly.
 
-\todo{Prove arbitrator's doesn't deadlock}
+
+\begin{proof} Arbitrator doesn't deadlock
+
+The proof is about as simple as it gets. For number of philosophers $n >= 2$ only one philosopher can request resources at a time. There is no way to make a cycle in the resource allocation graph with only one philsopher acting in pickup the left then the right fork which is what we needed to show.
+
+\end{proof}
 
 \subsection{Leaving the Table (Stallings' Solution)}
 
-Why does the first solution deadlock? Well there are $n$ philosophers and $n$ chopsticks. What if there is only 1 philosopher at the table? Can we deadlock? No. How about 2 philosophers? 3? \ldots{} You can see where this is going. Stallings' \cite[P. 280]{stalling} solutions says to remove philosophers from the table until deadlock is not possible -- think about what the magic number of philosophers at the table. The way to do this in actual system is through semaphores and letting a certain number of philosopher through. This has the benefit that multiple philosophers can be eating.
+Why does the first solution deadlock? Well there are $n$ philosophers and $n$ chopsticks.
+What if there is only 1 philosopher at the table? Can we deadlock? No.
+How about 2 philosophers? 3? \ldots{} You can see where this is going.
+Stallings' \cite[P. 280]{stalling} solutions says to remove philosophers from the table until deadlock is not possible -- think about what the magic number of philosophers at the table.
+The way to do this in actual system is through semaphores and letting a certain number of philosopher through.
+This has the benefit that multiple philosophers can be eating.
 
-In the case that the philosophers aren't evil, this solution requires a lot of time-consuming context switching. There is also no reliable way to know the number of resources before hand. In the dining philosophers case, this is solved because everything is known but trying to specify and operating system where you don't know which file is going to get opened by what process leads you with a faulty solution. And again since semaphores are system constructs, they obey system timing clocks which means that the same processes tend to get added back into the queue again. Now if a philosopher becomes evil, then the problem becomes that there is no preemption. A philosopher can eat for as long as they want and the system will continue to function but that means the fairness of this solution can be low in the worst case. This works best with timeouts (or forced context switches) in order to ensure bounded wait times.
+In the case that the philosophers aren't evil, this solution requires a lot of time-consuming context switching.
+There is also no reliable way to know the number of resources before hand.
+In the dining philosophers case, this is solved because everything is known but trying to specify and operating system where you don't know which file is going to get opened by what process leads you with a faulty solution.
+And again since semaphores are system constructs, they obey system timing clocks which means that the same processes tend to get added back into the queue again.
+Now if a philosopher becomes evil, then the problem becomes that there is no preemption.
+A philosopher can eat for as long as they want and the system will continue to function but that means the fairness of this solution can be low in the worst case.
+This works best with timeouts or forced context switches in order to ensure bounded wait times.
 
 \begin{proof} Stallings' Solution Doesn't Deadlock.
 
@@ -237,20 +271,61 @@ Let's number the philosophers $\{p_0, p_1, .., p_{n-1}\}$ and the resources $\{r
 
 \subsection{Partial Ordering (Dijkstra's Solution)}
 
-This is Dijkstra's solution \cite[P. 20]{EWD:EWD310}. He was the one to propose this problem on an exam. Why does the first solution deadlock? Dijkstra thought that the last philosopher who picks up his left fork (causing the solution to deadlock) should pick up his right. He accomplishes it by number the forks $1..n$, and tells each of the philosopher to pick up his lower number fork. Let's run through the deadlock condition again. Everyone tries to pick up their lower number fork first. Philosopher $1$ gets fork $1$, Philosopher $2$ gets fork $2$, and so on until we get to Philosopher $n$. They have to choose between fork $1$ and $n$. fork $1$ is already held up by philosopher $1$, so they can't pick up that fork, meaning he won't pick up fork $n$. We have broken circular wait! Meaning deadlock isn't possible.
+This is Dijkstra's solution \cite[P. 20]{EWD:EWD310}. He was the one to propose this problem on an exam.
+Why does the first solution deadlock? Dijkstra thought that the last philosopher who picks up his left fork (causing the solution to deadlock) should pick up his right.
+He accomplishes it by number the forks $1..n$, and tells each of the philosopher to pick up his lower number fork.
+Let's run through the deadlock condition again.
+Everyone tries to pick up their lower number fork first.
+Philosopher $1$ gets fork $1$, Philosopher $2$ gets fork $2$, and so on until we get to Philosopher $n$.
+They have to choose between fork $1$ and $n$.
+fork $1$ is already held up by philosopher $1$, so they can't pick up that fork, meaning he won't pick up fork $n$.
+We have broken circular wait! Meaning deadlock isn't possible.
 
-The problems to this is that an entity either needs to know the finite set of resources or be able to produce a consistent partial order suck that circular wait cannot happen. This also implies that there needs to be some entity, either the operating system or another process, deciding on the number and all of the philosophers need to agree on the number as new resources come in. As we have also see with previous solutions, this relies on context switching so this prioritizes philosophers that have already eaten but can be made more fair by introducing random sleeps and waits.
+The problems to this is that an entity either needs to know the finite set of resources or be able to produce a consistent partial order suck that circular wait cannot happen.
+This also implies that there needs to be some entity, either the operating system or another process, deciding on the number and all of the philosophers need to agree on the number as new resources come in.
+As we have also see with previous solutions, this relies on context switching so this prioritizes philosophers that have already eaten but can be made more fair by introducing random sleeps and waits.
 
-\todo{Prove dijkstra's doesn't deadlock}
+\begin{proof} Dijkstra's Solution Doesn't Deadlock
 
-\subsection{Extra: Clean/Dirty Forks (Chandra/Misra Solution)}
+The proof is very similar to the previous proof.
+Let's number the philosophers $\{p_0, p_1, .., p_{n-1}\}$ and the resources $\{r_0, r_1, .., r_{n-1}\}$.
+A philosopher $p_i$ needs resource $r_{i-1 \mod n}$ and $r_{i + 1 \mod n}$.
+Each philosopher will grab $r_{i-1 \mod n}$ then $r_{i + 1 \mod n}$ but the last philosopher will grab in the reverse order.
+Even if hold and wait, no preemption, and mutual exclusion or present.
+Since the last philosopher will grab $r_{n-1}$ then $r_0$ there are two cases either the philosopher has the first lock or the philosopher doesn't.
 
-There are many more advanced solutions.
+If the last philosopher $p_{n-1}$ holds the first lock that means that the previous philosopher $p_{n-2}$ is waiting on $r_{n-1}$ meaning $r_{n-2}$ is available.
+Since no other blockers, the philosopher previous $p_{n-3}$ will grab her first lock.
+This is now a reduction to the previous proof of stalling because we now have $n$ resources but only $n-1$ philosophers, meaning this cannot deadlock.
 
-\todo{Detail the Clean/Dirty Solution, and cite}
+If the philosopher doesn't obtain that first lock, then we have a reduction to stalling's proof above because now have $n-1$ philosophers vying for $n$ resources.
+Since we can't reach deadlock in either case, this solution cannot deadlock which is what we needed to show.
+
+\end{proof}
+
+\subsection{Extra: Clean/Dirty Forks (Chandy/Misra Solution)}
+
+There are many more advanced solutions. One such solution is by Chandy and Misra \cite{Chandy:1984:DPP:1780.1804}. This is not a true solution to the dining philosophers problem because it has the requirement the philosophers can speak to each other. Basically though, it is a solution that ensures fairness. It in essence defines a series of rounds that a philosopher must eat in a given round before going to the next one.
+
+We won't detain the proof here because it is a little more involved, but feel free to read at the citation.
 
 \subsection{Advanced Solutions: Actor Model (other Message passing models)}
-\todo{Detail the Actor Model, and cite}
+
+The actor model is another form of synchronization that doesn't have to do anything with negotiating locks or waiting. The idea is very simple. Each actor can either perform work, create more actors, send messages, or respond to messages. Any time an actor needs something from another actor, it sends a message. Most importantly, an actor is only responsible for one things.
+If we were implementing a real world application, we may have an actor that handles the database, one that handles the incoming connections, one that services the connections, etc etc.
+These actors would pass messages to each other like ``there is a new connection'' from the incoming connection actor to the servicing actor.
+The servicing actor may send a data request message the database actor and a data response message comes back.
+
+While this seems like the perfect solution there are drawbacks.
+The first is the actual library of communication needs to be synchronized.
+If you don't have a framework that does this already -- like the Message Passing Interface or MPI for High Performance Computing -- then the framework will have to be built and would most likely be as much work to build efficiently compared to direct synchronization.
+In addition the messages now encounter additional overhead for serializing and deserializing or at the very least ordering.
+And a final drawback is that an actore could take an arbitrary long time to respond to a message, spurring the need for shadow actors who service the same job.
+
+As mentioned, there are frameworks like \href{https://en.wikipedia.org/wiki/Message\_Passing\_Interface}{Message passing interface} that is somewhat based on the actor model and allows distributed systems in high performance computing to work effectively, but your mileage my vary
+You don't need to know \textit{any} of the specifics of the model, just the high level description given above.
+If you want to read further on the model, feel free to glance over the wikipedia page listed below.
+\href{https://en.wikipedia.org/wiki/Actor\_model}{Further reading on the actor model}
 
 \section{Topics}
 
@@ -261,6 +336,7 @@ There are many more advanced solutions.
   \item Failed DP Solutions 
   \item Livelocking DP Solutions 
   \item Working DP Solutions: Benefits/Drawbacks
+  \item \href{http://adit.io/posts/2013-05-11-The-Dining-Philosophers-Problem-With-Ron-Swanson.html}{Ron Swanson Deadlock}
 \end{itemize}
 
 \section{Questions}
@@ -325,7 +401,7 @@ pthread_mutex_lock(m1) // blocks
   \end{itemize}
 \end{itemize}
 
-(Draw out the resource graph!)
+Draw out the resource graph!
 
 \bibliographystyle{plainnat}
 \bibliography{deadlock/deadlock}
