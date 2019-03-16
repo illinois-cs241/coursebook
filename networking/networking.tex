@@ -55,9 +55,9 @@ As for another definition, a protocol is a set of specifications put forward by 
 
 \section{Layer 3: The Internet Protocol}
 
-The following is the 30 second introduction to internet protocol (IP), the primary way to send datagrams of information from one machine to another.
+The following is a short introduction to internet protocol (IP), the primary way to send datagrams of information from one machine to another.
 ``IP4'', or more precisely, \gls{IPv4} is version 4 of the Internet Protocol that describes how to send \gls{packets} of information across a network from one machine to another.
-Roughly 95\% of all packets on the Internet today are IPv4 packets. \todo{Citation Needed}
+Even as of 2018, IPv4 still dominats internet traffic, but google reports that 24 countries now supply 15\% of their traffic through IPv6 \cite{internet_society_2018}.
 A significant limitation of IPv4 is that source and destination addresses are limited to 32 bits.
 IPv4 was designed at a time when the idea of 4 billion devices connected to the same network was unthinkable or at least not worth making the packet size larger.
 \gls{IPv4 address} are written typically in a sequence of four octets delimited by periods "255.255.255.0" for example.
@@ -66,7 +66,7 @@ Each IPv4 \gls{datagram} includes a very small header - typically 20 \gls{octets
 Conceptually the source and destination addresses can be split into two: a network number the upper bits and the lower bits represent a particular host number on that network.
 
 A newer packet protocol \gls{IPv6} solves many of the limitations of IPv4 like making routing tables simpler and 128 bit addresses.
-However, less than 5\% of web traffic is IPv6 based. \todo{Citation Needed}
+However, very little web traffic is IPv6 based by comparison \cite{internet_society_2018}
 We write IPv6 addresses in a sequence of eight, four hexadecimal delimiters like "1F45:0000:0000:0000:0000:0000:0000:0000".
 Since that can get unruly, we can omit the zeros "1F45::". A machine can have an IPv6 address and an IPv4 address.
 
@@ -758,15 +758,15 @@ Each has a specific purpose and should be called in roughly the above order
   \begin{lstlisting}[language=C]
   socklen_t clientaddrsize = sizeof(clientaddr);
   int client_id = accept(sock_id, (struct sockaddr *) &clientaddr, &clientaddrsize);
-  char host[256], port[256];
+  char host[NI_MAXHOST], port[NI_MAXSERV];
   getnameinfo((struct sockaddr *) &clientaddr,
         clientaddrsize, host, sizeof(host), port, sizeof(port),
         NI_NUMERICHOST | NI_NUMERICSERV);
   \end{lstlisting}
 
-  \todo{Discuss NI\_MAXHOST and NI\_MAXSERV, and NI\_NUMERICHOST}
+  One can use the macros \keyword{NI\_MAXHOST} to denote the maximum length of a hostname, and \keywrod{NI\_MAXSERV} to denote the maximum length of  a port. \keyword{NI\_NUMERICHOST} gets the hostname as a numeric IP address and similarly for \keyword{NI\_NUMERICSERV} though the port is usually numeric to begin with. The \href{https://man.openbsd.org/getnameinfo.3#NI\_NUMERICHOST}{Open BSD man pages have more}
 
-  \item (optional but highly recommended) \keyword{int close(int fd)} and \keyword{int shutdown(int fd, int how)}
+  \item \keyword{int close(int fd)} and \keyword{int shutdown(int fd, int how)}
 
   Use the \keyword{shutdown} call when you no longer need to read any more data from the socket, write more data, or have finished doing both.
   When you shutdown a socket for further writing (or reading) that information is also sent to the other end of the connection.
@@ -868,7 +868,6 @@ It's very simple to use: Decide the destination address and port and send your d
 Packets (aka Datagrams) may be dropped if the network is congested.
 Packets may be duplicated or arrive out of order.
 
-Between two distant data-centers it's typical to see 3\% packet loss. \todo{Citation Needed}
 A typical use case for UDP is when receiving up to date data is more important than receiving all of the data.
 For example, a game may send continuous updates of player positions.
 A streaming video signal may send picture updates using UDP
