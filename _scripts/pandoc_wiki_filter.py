@@ -29,8 +29,11 @@ def change_base_url(elem, doc):
         return elem
     if isinstance(elem, Link):
         if str(elem.title) == "":
-             print(elem, file=sys.stderr)
-             ret = Link(Str(u"\u00A0" + elem.url), url=elem.url)
+             # Insert an invisible sep character otherwise if
+             # title == elem.url, we'll get an internal link
+             # Which jekyll and github won't parse correctly
+
+             ret = Link(Str(u"\u2063" + elem.url), url=elem.url)
              return ret
 
 
