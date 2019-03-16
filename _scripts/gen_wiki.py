@@ -29,7 +29,9 @@ Welcome to System Programming coursebook!
 
 This coursebook is being built by students and faculty from the University of Illinois. It is based on a crowd-source authoring wikibook experiment by Lawrence Angrave from CS @ Illinois, but is now its own .tex based project. It's source is located at [the github link](https://github.com/illinois-cs241/coursebook) which you can find a pdf version of the book as well.
 
-This book is an introduction to programming in C, and system programming (processes, threads, synchronization, networking and more!). We assume you've already had some programming experience, in an earlier computer science course.
+This book is an introduction to programming in C, and system programming (processes, threads, synchronization, networking and more!). We assume you've already had some programming experience, in an earlier computer science course. If you have any typos to report or content to request, feel free to file an issue at the link above. Happy Reading!
+
+-- Bhuvy
 
 {% for chapter in chapters %}
 ## {{loop.index}}. [{{chapter.meta['name']}}](./{{chapter.bare_title}}){% for section_name in (chapter.meta['subsections'] or []) %}
