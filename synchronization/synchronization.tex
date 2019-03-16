@@ -868,8 +868,6 @@ pthread_mutex_unlock(p_mutex_t *m)   { m->lock = 0; }
 
 At first glance, the code appears to work; if one thread attempts to locks the mutex, a later thread must wait until the lock is cleared. However this implementation \emph{does not satisfy Mutual Exclusion}. Let's take a close look at this `implementation' from the point of view of two threads running around the same time.
 
-\todo{Thread ascii art or x86}
-
 To simplify the discussion we consider only two threads. Note, these arguments work for threads and processes and the classic CS literature discusses these problem in terms of two processes that need exclusive access (i.e.~mutual exclusion) to a critical section or shared resource. Raising a flag represents a thread/process's intention to enter the critical section.
 
 Remember that the psuedo-code outlined below is part of a larger program; the thread or process will typically need to enter the critical section many times during the lifetime of the process. So imagine each example as wrapped inside a loop where for a random amount of time the thread or process is working on something else.
@@ -1930,8 +1928,6 @@ When there is an active writer the number of active readers must be zero
 If there is an active reader the number of active writers must be zero
 \item
 A writer must wait until the current active readers have finished
-\item
-  \todo{Analyzing multithreaded code snippets}
 \end{itemize}
 
 \bibliographystyle{plainnat}
