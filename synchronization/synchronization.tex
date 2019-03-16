@@ -1732,33 +1732,48 @@ Most programs try to avoid this problem entirely by writing to separate files, b
 \section{Extra: Higher Order Models of Synchronization}
 
 When using atomics, you need to specify the right model of synchronization in order to make sure you have the correct behavior for your program.
+You can read more about them \href{https://gcc.gnu.org/wiki/Atomic/GCCMM/AtomicSync}{On the gcc wiki}
+These examples are adapted from those.
 
 \subsection{Sequentially Consistent}
 
 Sequentially consistent is the simplest, least error prone and most expensive model. This model says that any change that happens, all changes before it will be synchronized between all threads.
 
 \begin{verbatim}
-    -Thread 1-              -Thread 2-
-    y = 1                   if (atomic_load(x) == 2)
-    atomic_store(x, 2);         y != 1 && *NULL = 1;
+    Thread 1                    Thread 2
+    1.0 atomic_store(x, 1)
+    1.1 y = 10                  2.1 if (atomic_load(x) == 0)
+    1.2 atomic_store(x, 0);     2.2    y != 10 && abort();
 \end{verbatim}
 
-Will never segfault. This is because either the store happens before the if statement in thread 2 and y == 1 or the store happens after and x does not equal 2.
+Will never quit.
+This is because either the store happens before the if statement in thread 2 and y == 1 or the store happens after and x does not equal 2.
 
 \subsection{Relaxed}
 
-\todo{Relaxed}
+Relaxed is a simple memory order providing for more optimizations.
+This means that only a particular operation needs to be atomic.
+One can have stale reads and writes, but after reading the new value, it won't become old.
 
-\subsection{Acquire/Relaxed}
+\begin{verbatim}
+    -Thread 1-              -Thread 2-
+    atomic_store(x, 1);     printf("%d\n", x) // 1
+    atomic_store(x, 0);     printf("%d\n", x) // could be 1 or 0
+                            printf("%d\n", x) // could be 1 or 0
+\end{verbatim}
 
-\todo{Acquire/Relaxed}
+But that maeans that previous loads and stores don't need to effect other threads.
+In the previous example, the code can now fail.
+
+\subsection{Acquire/Release}
+
+The simplest way I can explain it is the order of atomic variables don't need to be consistent -- meaning if I assign atomic var y to be 10 then atomic var x to be 0 those don't need to propogate and you could get stale reads.
+Non-atomic variables have to get updated in all threads though.
 
 \subsection{Consume}
 
-\todo{Consume}
-
-Examples were adapted from
-\link{https://gcc.gnu.org/wiki/Atomic/GCCMM/AtomicSync}
+Imagine the same as above except non-atomic variables don't need to get updated in all threads.
+This model was introduced so that there can be an Acquire/Release/Consume model without mixing in Relaxed because Consume is similar to relax.
 
 \section{External Resources}
 
