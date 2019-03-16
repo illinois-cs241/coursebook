@@ -29,15 +29,18 @@ You can always call through the full path. That is always why in past classes if
 \subsection{Shell tricks and tips}
 
 \begin{itemize}
-\tightlist
-\item
-  The up arrow will get you your most recent command
-\item
-  \texttt{ctrl-r} will search commands that you previously ran
-\item
-  \texttt{ctrl-c} will interrupt your shell's process
-\item
-  Add more!
+\item The up arrow will get you your most recent command
+\item \texttt{ctrl-r} will search commands that you previously ran
+\item \texttt{ctrl-c} will interrupt your shell's process
+\item \texttt{!!} will execute the last command
+\item \texttt{!<num>} goes back that many commands and runs that
+\item \texttt{!<prefix>} runs the last command that has that prefix
+\item \texttt{!\$} is the last arg of the previous command
+\item \texttt{!*} is all args of the previous command
+\item \texttt{\^pat\^sub} takes the last command and substitutes the pattern pat for the substitution sub
+\item \texttt{cd -} goes to the previous directory
+\item \texttt{pushd <dir>} pushes the current directory on a stack and cds
+\item \texttt{popd} cds to the directory at the top of the stack
 \end{itemize}
 
 \subsection{Alright then what's a terminal?}
@@ -123,12 +126,6 @@ $ false && echo "Hello!"
 $ true && echo "Hello!"
 $ false || echo "Hello!"
 \end{lstlisting}
-
-\todo{Shell Tricks}
-
-\subsection{Tips and tricks}
-
-\todo{Shell Tricks}
 
 \subsection{What are environment variables?}
 
