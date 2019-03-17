@@ -1,4 +1,9 @@
 #!/usr/bin/env python3
+
+"""
+Converts all the listed tex files to markdown counterparts and generates a directory page
+"""
+
 import argparse
 
 import glob
@@ -8,10 +13,42 @@ import argparse
 import subprocess
 from jinja2 import Template
 import tempfile
+import logging
+import sys
+from multiprocessing import Pool
+import multiprocessing
+
+help_text="""
+Generates a valid github wiki given a chapter ordering and output folder
+"""
+
+logging.basicConfig(
+    format="%(asctime)s %(levelname)s: %(message)s",
+    level=logging.INFO,
+    handlers=[
+        logging.StreamHandler(sys.stdout)
+    ]
+)
+logger = logging.getLogger()
+
+
+# Configuration variables
 
 filter_template = "_scripts/pandoc_header_filter.py"
+# prelude file absolute location
+prelude_file = 'prelude.tex'
+# Compatability with github
+github_shim = 'github_redefinitions.tex'
+# Weird glyph that appears regex
+sed_regex = r'0,/\\\[1\\\]\\\[\\\]/{//d;}'
+# Do all ops in the /tmp directory
+tmp_dir = '/tmp/'
 
 class ConvertableTexFile(object):
+    """
+    Represents all the data needed to convert a tex file into
+    its markdown counterpart
+    """
 
     def __init__(self, bare_name, tex_name, meta, outdir):
         self.tex_path = tex_name
@@ -21,7 +58,7 @@ class ConvertableTexFile(object):
         self.md_name = self.bare_title + '.md'
         self.md_path = outdir + '/' + self.md_name
 
-
+# What will show up on the home page
 jinja_templ = """
 # Home
 
@@ -39,32 +76,57 @@ This book is an introduction to programming in C, and system programming (proces
 {% endfor %}
 """
 
-def gen_home_page(meta_file_name, out_file):
+def gen_home_page(files_meta, out_file):
+    """
+    Generates the home page given metadata and output file
+
+    :param files_meta List[ConvertableTexFiles]: Convertable tex file metadata in order
+    :param out_file str: Output home directory file
+    """
+
     tmpl = Template(jinja_templ)
-    rendered = tmpl.render(chapters=meta_file_name)
-    print("Making Home.md")
+    rendered = tmpl.render(chapters=files_meta)
+    logger.info("Making {}".format(out_file))
     with open(out_file, "w") as f:
         f.write(rendered)
 
-def aggregate_meta_data(file_name, metadata_file):
-    command_templ = "pandoc --filter={} -s --quiet {} > /dev/null 2>> {}"
-    command = command_templ.format(filter_template, file_name, metadata_file)
-    ret_value = os.system(command)
-    if ret_value != 0:
-        raise OSError("'{}' Failed".format(command))
-
 def generate_tex_meta(order, outdir, meta_file_name):
+    """
+    Generates a list of ConvertableTexFile objects given an order file
+    an output directory, and a temporary meta file name
+
+    :param order: List[str] Order of the chapters without the .tex extension
+    :param outdir: str The output directory, must be created
+    :param meta_file_name: str The metadata file, must be able to be written to
+    """
+
+    # Set the environment variables so all the subprocess calls know
+    # Where to output the data
+    os.environ['META_FILE_NAME'] = meta_file_name
+
+    # Order file does not have suffixes
     out_tex_names = [path + ".tex" for path in order]
-    print("Generating Metadata at {}".format(meta_file_name))
+    logger.info("Generating Metadata at {}".format(meta_file_name))
 
     for tex_name in out_tex_names:
-        print("Adding {}".format(tex_name))
-        os.system('pandoc --filter ./_scripts/pandoc_header_filter.py -s --quiet {} > /dev/null 2>>{}'.format(tex_name, meta_file_name))
+        logger.info("Adding {}".format(tex_name))
+        # Performa  walk with pandoc along the tree, outputting meta to a file
+        command = ['pandoc',
+                    '--filter',
+                    filter_template,
+                    '-s',
+                    '--quiet',
+                    tex_name,
+                    '-o',
+                    '/dev/null']
+        subprocess.check_call(command)
 
-    metadata = yaml.load(open(meta_file_name, 'r'))
+    # Load that file back up
+    with open(meta_file_name, 'r') as f:
+        metadata = yaml.load(f)
 
+    # Convert that meta to our datastructures so we aren't referencing magic keys
     ret = []
-
     for i in range(len(order)):
         bare_name = os.path.basename(order[i])
         tex_name = out_tex_names[i]
@@ -73,50 +135,90 @@ def generate_tex_meta(order, outdir, meta_file_name):
         ret.append(to_append)
     return ret
 
+def convert_latex_to_md(files_m):
+    """
+    Converts a particular latex file to markdown
+
+    :param files_m ConvertableTexFiles: Metadata for a current file
+    """
+
+    tex_path = files_m.tex_path
+    # Createa  named temp file to not get raced by the file system
+    with tempfile.NamedTemporaryFile(mode='wb', prefix=tmp_dir) as fp:
+        tex_tmp_path = fp.name
+
+        # Create a standalone document, all the tex chapters are chapters
+        # So they need a prelude, compatibility later put in
+        # pandoc can handle the fact there is no \begin{document}
+        # so long as all the other libs are there
+        cat_command = ['cat', prelude_file, github_shim, tex_path]
+        subprocess.check_call(cat_command, stdout=fp)
+
+        # Time to tdo the actual converting
+        md_path = files_m.md_path
+        command = ['pandoc',
+                    '--toc', #generate Table of Contents
+                    '--self-contained', # Should be a standalone document
+                    '-f', # Input format
+                    'latex',
+                    '-t', # Output format
+                    'gfm+raw_html+autolink_bare_uris', # Github Flavored Markdown + Add raw HTML + link any bare HTTPS;//
+                    '-s', # Create a standalone wiki page not a fragment
+                    '--filter',
+                    'pandoc-citeproc', # Filter with citeproc first. It has to be first!
+                    # Otherwise our filter can't process citations
+                    '--filter',
+                    '_scripts/pandoc_wiki_filter.py', # Give it to our filter
+                    '-M', # Add some metadata
+                    'link-citations=true', # Put in html links for citations
+                    tex_tmp_path, # Convert our standalone document
+                    '-o',
+                    md_path] # Output to this file
+
+        # If there is a bibliography file (not every chapter needs one)
+        # Run pandoc with that to generate citations
+        maybe_bib = files_m.meta['bib_file']
+        if maybe_bib != '':
+            command += ['--bibliography', maybe_bib]
+        logger.info(command)
+        subprocess.check_call(command)
+
+        # Run this sed command to remove a weird glyph that appears
+        # TODO: Figure out why the glyph appears at all
+        subprocess.check_call(['sed', '-i', sed_regex, md_path])
+
 def main(args):
+    """
+    Converts tex files into their markdown versions
+    """
+
     order_file = args.order_file
     outdir = args.outdir
 
-    out_file = outdir + '/Home.md'
+    with open(order_file, 'r') as order_f:
+        order = yaml.load(order_f)
 
-    order = yaml.load(open(order_file, 'r'))
-    tmp_dir = '/tmp'
-    (fd, meta_file_name) = tempfile.mkstemp(dir=tmp_dir)
-    os.close(fd)
+    logger.info("Creating Metadata")
+    with tempfile.NamedTemporaryFile(mode='r', prefix=tmp_dir) as fp:
+        meta_file_name = fp.name
+        files_meta = generate_tex_meta(order, outdir, meta_file_name)
 
-    print("Creating directory")
-    files_meta = generate_tex_meta(order, outdir, meta_file_name)
-    prelude_file = 'prelude.tex'
-    github_shim = 'github_redefinitions.tex'
     # 1. Convert files in the order
-    print("Converting files to markdown")
-    sed_regex = r'0,/\\\[1\\\]\\\[\\\]/{//d;}'
-    for files_m in files_meta:
-        tex_path = files_m.tex_path
-        (fd, tex_tmp_path) = tempfile.mkstemp(dir=tmp_dir)
-        os.close(fd)
-        sys_ret = os.system('cat {} {} {} > {}'.format(prelude_file,
-                                             github_shim,
-                                             tex_path, tex_tmp_path))
-        if sys_ret != 0:
-            raise OSError("Cat command for {} failed".format(files_m))
-        md_path = files_m.md_path
-        bib_file = files_m.meta.get('bib_file', '')
-        bib_sub = ""
-        if bib_file != "":
-            bib_sub = " --bibliography {} ".format(bib_file)
-        command = 'pandoc --toc --self-contained -f latex -t gfm+raw_html+autolink_bare_uris -s --filter pandoc-citeproc --filter _scripts/pandoc_wiki_filter.py -M link-citations=true {} {} -o {} '.format(bib_sub, tex_tmp_path, md_path)
-        print(command)
-        sys_ret = os.system(command)
-        if sys_ret != 0:
-            raise OSError("{} failed".format(command))
-        subprocess.check_call(['sed', '-i', sed_regex, md_path])
+    num_cores_usable = (multiprocessing.cpu_count()-1)
+    logger.info("Converting files to markdown using {} cores".format(num_cores_usable))
+
+    # Use a pool to speed things up somewhat
+    # We are running with tempfiles so we won't
+    # Get raced by the filesystem
+    with Pool(num_cores_usable) as p:
+        p.map(convert_latex_to_md, files_meta)
 
     # 3. Generate Home Page
-    gen_home_page(files_meta, out_file)
+    home_file = outdir + '/Home.md'
+    gen_home_page(files_meta, home_file)
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(help_text)
     parser.add_argument('order_file')
     parser.add_argument('outdir')
     args = parser.parse_args()

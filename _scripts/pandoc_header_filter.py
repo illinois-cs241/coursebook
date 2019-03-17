@@ -8,18 +8,37 @@ from panflute import run_filter, Str, Header, MetaMap
 import sys
 import atexit
 import yaml
+import os
 
+# Metadata gleaned from the file
 meta = dict(
     name="",
     bib_file="",
     subsections=[],
 )
 
-def exit_handler():
-    print(yaml.dump([meta]), file=sys.stderr)
-
-
+# Max header level
 max_level = 2
+
+def exit_handler():
+    """
+    Loads a metadata file in the environment variable
+    Opens and reads the file whether or not it exists.
+    Then it overwrites the file with the extra metadata
+    from the current tex file
+    """
+    meta_file_name = os.environ['META_FILE_NAME']
+    with open(meta_file_name, 'r') as f:
+        new_meta = yaml.load(f)
+    if new_meta is None:
+        new_meta = [meta]
+    else:
+        new_meta += [meta]
+
+    out = yaml.dump(new_meta)
+    with open(meta_file_name, 'w') as f:
+        f.write(out)
+
 def deserialize(x):
     """
     Takes a panflute element x and returns
@@ -45,8 +64,6 @@ def output_yaml(elem, doc):
         elif elem.level == 1:
             # If we are displaying a chapter, include a special entry for it
             meta['name'] = name
-        else:
-            pass
     if isinstance(elem, MetaMap):
         dictionary_map = elem._content
         if 'bibliography' in dictionary_map:

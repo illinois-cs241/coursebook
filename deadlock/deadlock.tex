@@ -216,8 +216,8 @@ We have found the number of steps in the set $E$ and since our set has the prope
 \end{comment}
 
 Deadlock prevention is making sure that deadlock cannot happen, meaning that you break a Coffman condition.
-This works the best inside a single program and the software engineer making the choice to break a certain coffman condition. Consider the \href{https://en.
-  wikipedia.org/wiki/Banker's_algorithm}{Banker's Algorithm} \cite{Dijkstra:1965:CSP:1102034}.
+This works the best inside a single program and the software engineer making the choice to break a certain coffman condition. Consider the 
+\href{https://en.wikipedia.org/wiki/Banker's\_algorithm}{Banker's Algorithm} \cite{Dijkstra:1965:CSP:1102034}.
 It is another algorithm for deadlock avoidance.
 The whole implementation is outside the scope of this class, just know that there are more generalized algorithms for operating systems.
 
@@ -429,7 +429,7 @@ While this seems like the perfect solution there are drawbacks.
 The first is the actual library of communication needs to be synchronized.
 If you don't have a framework that does this already -- like the Message Passing Interface or MPI for High Performance Computing -- then the framework will have to be built and would most likely be as much work to build efficiently compared to direct synchronization.
 In addition the messages now encounter additional overhead for serializing and deserializing or at the very least ordering.
-And a final drawback is that an actore could take an arbitrary long time to respond to a message, spurring the need for shadow actors who service the same job.
+And a final drawback is that an actor could take an arbitrary long time to respond to a message, spurring the need for shadow actors who service the same job.
 
 As mentioned, there are frameworks like \href{https://en.wikipedia.org/wiki/Message\_Passing\_Interface}{Message passing interface} that is somewhat based on the actor model and allows distributed systems in high performance computing to work effectively, but your mileage my vary
 You don't need to know \textit{any} of the specifics of the model, just the high level description given above.
