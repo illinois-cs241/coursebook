@@ -11,13 +11,13 @@ This section is a short review of System Architecture topics that you'll need fo
 What is assembly? Assembly is the lowest that you'll get to machine language without writing 1's and 0's.
 Each computer has an architecture, and that architecture has an associated assembly language.
 Each assembly command has a 1:1 mapping to a set of 1's and 0's that tell the computer exactly what to do.
-For example the following in the widely used x86 Assembly language add one to the memory address 20.
+For example the following in the widely used x86 Assembly language add one to the memory address 20 \cite{wiki:xxx} -- you can also look in \cite{guide2011intel} Section 2A under the add instruction though it is more verbose.
 
 \begin{verbatim}
 add BYTE PTR [0x20], 1
 \end{verbatim}
 
-Why do we mention this? Because it is important that although you are going to be doing most of this class in C
+Why do we mention this? Because it is important that although you are going to be doing most of this class in C.
 That this is what the code is translated into.
 Serious implications arise for race conditions and atomic operations.
 
@@ -25,13 +25,14 @@ Serious implications arise for race conditions and atomic operations.
 
 An operation is atomic if no other processor should interrupt it. Take for example the above assembly code to add one to a register.
 In the architecture, it may actually have a few different steps on the circuit.
-The operation may start by fetching the value of the memory from the stick of ram, then storing it in the cache or a register, and then finally writing back.
+The operation may start by fetching the value of the memory from the stick of ram, then storing it in the cache or a register, and then finally writing back \cite{schweizer2015evaluating} -- under the description for \textit{fetch-and-add} though your microarchitecture may vary.
+Or depending on performance operations, it may keep that value in cache or in a register which is local to that process -- try dumping the \texttt{-O2} optimized assembly of incrementing a variable and printing it out on most modern compilers, which will probably just use a register.
 The problem comes in if two processors try to do it at the same time.
-The two processors could (at the same time) copy the value of the memory address, add one, and store the same result back.
+The two processors could at the same time copy the value of the memory address, add one, and store the same result back.
 Resulting in the value only being incremented once.
 That is why we have a special set of instructions on modern systems called atomic operations.
 If an instruction is atomic, it makes sure that only one processor or thread performs any intermediate step at a time.
-With x86 this is done by the \keyword{lock} prefix.
+With x86 this is done by the \keyword{lock} prefix \cite[p. 1120]{guide2011intel}.
 
 \begin{verbatim}
 lock add BYTE PTR [0x20], 1
@@ -39,46 +40,60 @@ lock add BYTE PTR [0x20], 1
 
 Why don't we do this for everything?
 It makes commands slower! If every time a computer does something it has to make sure that the other cores or processors aren't doing anything, it'll be much slower.
-Most of the time we differentiate these.
+Most of the time we differentiate these with special consideration.
+Meaning, we will tell you when we use something like this.
+Most of the time you can assume the instructions are not locked.
 
 \subsection{Caching}
 
 Ah yes Caching.
 One of computer science's greatest problems.
 Caching that we are referring is processor caching.
-Whenever you do a memory access if the particular address is already in the cache then the processor will perform the operation on the cache (such as adding) and update the actual memory later because updating memory is slow.
-If it isn't, the processor requests a chunk of memory from the the memory chip and stores it in cache, kicking out the least recently used page (roughly).
-This is done because the processor cache is roughly ten times faster to reach than the memory in terms of time.
-Naturally this leads to problems because there are two different copies of the same value.
+Whenever you do a memory access if the particular address is already in the cache then the processor will perform the operation on the cache such as adding and update the actual memory later because updating memory is slow \cite[Section 3.4]{intel2015improving}.
+If it isn't, the processor requests a chunk of memory from the the memory chip and stores it in cache, kicking out the least recently used page -- this depends on caching policy, but intel's does use this.
+This is done because the l3 processor cache is roughly three times faster to reach than the memory in terms of time \cite[p. 22]{levinthal2009performance} though exact speeds will vary based on clock speed and architecture.
+Naturally this leads to problems because there are two different copies of the same value, in the cited paper this refers to an unshared line.
 This isn't a class about caching, just know how this could impact your code.
+A short but non complete list could be
+
+\begin{enumerate}
+\item Race Conditions! If a value is stored in two different processor caches, then that value may not be shared.
+\item Speed. With a cache you program may look slower or faster and you may not know why. Just assume that reads and writes that either happened recently or are next to each other in memory are fast.
+\item Side effects. Every read or write effects the cache state. While most of the time this doesn't help or hurt, it is important to know. Check the intel programmer guide on the lock prefix for more information.
+\end{enumerate}
 
 \subsection{Interrupts}
 
 Interrupts are a very important part of system programming.
-An interrupt is internally an electrical signal that is delivered to the processor when something happens -- this is hardware interrupt.
+An interrupt is internally an electrical signal that is delivered to the processor when something happens -- this is hardware interrupt \cite{redhat_hardware_int}.
 Then the hardware decides if this is something that it should handle (i.e. handling keyboard or mouse input for older keyboard and mouses) or it should pass to the operating system.
 The operating system then decides if this is something that it should handle (i.e. paging a memory table from disk) or something the application should handle (i.e. a SEGFAULT).
+If the operating system decides that this is something that the process or program should take care of, it sends a \textbf{software fault} and that software fault is then propogated.
 The application then decides if it is an error (SEGFAULT) or not (SIGPIPE for example) and reports to the user.
 Applications can also send signals to the kernel and to the hardware as well.
+This is an oversimplification because there are certain hardware faults that can't be ignored or masked away, but this class isn't about teaching you to build an operating system.
 
 An important application of this is this is how system calls are served!
 There is a well established set of registers that the arguments go in according to the kernel as well as a system call ``number'' again defined by the kernel.
-Then the operating system triggers an interrupt which the kernel catches and serves the system call.
+Then the operating system triggers an interrupt which the kernel catches and serves the system call \cite{garg_2006}.
+
+Operating system developers and instruction set developers alike didn't like the overhead of causing an interrupt on a system call. Now, systems use \texttt{SYSENTER} and \texttt{SYSEXIT} which has a cleaner way of transfering control safely to the kernel and safely back.
+What safely means is obvious out of the scope for this class, but it persists.
 
 \subsection{Extra: Out of order instructions}
 
 For those of you who have and haven't taken the systems architecture course, you may not have heard about out of order instruction execution.
 Out of order execution is an amazing development by processors recently.
-Processors now instead of executing a sequence of instructions (let's say assigning a variable and then another variable) execute instructions before the current one is done.
+Processors now instead of executing a sequence of instructions (let's say assigning a variable and then another variable) execute instructions before the current one is done \cite[P. 45]{guide2011intel}.
 This is because modern processors spend a lot of time waiting for memory accesses and other I/O driven applications.
 This means that a processor while it is waiting for an operation to complete will execute the next few operations.
-If any of the operations would possibly alter the previous operation or there is a barrier, the processor will not reorder the instructions.
+If any of the operations would possibly alter the previous operation or there is a barrier, the processor will not reorder the instructions \cite[P. 296]{guide2011intel}.
 
 This naturally has allowed CPUs to become more energy efficient while executing more instructions in real time but naturally comes with security risks and more complex architectures.
-Where system programmers are worried is that (this is discussed in later chapters) operationg with mutex locks among threads are out of order -- meaning that a software implementation of a mutex will not work without copious memory barriers.
+Where system programmers are worried is that, operation with mutex locks among threads are out of order -- meaning that a pure software implementation of a mutex will not work without copious memory barriers.
 Basically, the programmer has to adopt the mental model of updates may not be seen among a series of threads without a barrier on modern processors.
 
-One of the most prominent bugs with respect to this is Spectre.
+One of the most prominent bugs with respect to this is Spectre \cite{kocher2018spectre}.
 Spectre is a bug where instructions that otherwise wouldn't be executed are due to out of order instruction execution.
 Here is an example
 \begin{lstlisting}[language=C]
@@ -110,16 +125,17 @@ Due to out of order instruction execution, while the value of i is being fetched
 Naturally that should result in a segfault, but since the address was never logically reached by the program the result is just discarded.
 
 Now here is the trick.
-Even though the value of the calculation would've resulted in a segfault, the bug doesn't clear the cache that refers to the physical memory where 0xCAFE is located (this not an exact explanation, but essentially how it works)
+Even though the value of the calculation would've resulted in a segfault, the bug doesn't clear the cache that refers to the physical memory where 0xCAFE is located. This not an exact explanation, but essentially how it works.
 Since it is still in the cache, if you again trick the processor to read form the cache using \keyword{val} then you will read a memory value that you wouldn't be able to read normally.
 This includes important information like passwords, payment info etc etc.
 
 \subsection{Optional: Hyperthreading}
 
-Hyperthreading is a new technology and is in no way shape or form multithreading. Hyperthreading is allowing one physical core appear as many virtual cores to the operating system
+Hyperthreading is a new technology and is in no way shape or form multithreading.
+Hyperthreading is allowing one physical core appear as many virtual cores to the operating system \cite[P.51]{guide2011intel}.
 The operating system can then schedule processes on these virtual cores and one core will execute them.
-Each core interleaves processes.
-While the core is waiting for one memory access to complete, it may perform a few instructions of another process.
+Each core interleaves processes or thread.
+While the core is waiting for one memory access to complete, it may perform a few instructions of another process thread.
 The overall result is more instructions executed in a shorter time.
 This is also potentially means that you can divide the number of cores you need to power smaller devices.
 
@@ -127,16 +143,18 @@ There be dragons here though.
 With hyperthreading, you must be wary of optimizations.
 A famous hyperthreading bug that caused programs to crash if at least two processes was scheduled on a physical core, using specific registers, in a tight loop.
 The actual problem is better explained through an architecture lens.
-But, the actual application was found through systems programmers working on OCaml's mainline.
-\url{http://gallium.inria.fr/blog/intel-skylake-bug/}
+But, the actual application was found through systems programmers working on OCaml's mainline \cite{leroy_2017}.
 
 \section{Debugging and Environments}
 
-I'm going to tell you a secret about this course: it is about working smarter \textit{not} harder. The course can be time consuming but the reason that so many people see it as such (and why so many student's don't see it as such) is the relative familiarity of people with their tools. Let's go through some of the common tools that you'll be working on and need to be familiar with.
+I'm going to tell you a secret about this course: it is about working smarter \textit{not} harder.
+The course can be time consuming but the reason that so many people see it as such (and why so many student's don't see it as such) is the relative familiarity of people with their tools.
+Let's go through some of the common tools that you'll be working on and need to be familiar with.
 
 \subsection{ssh}
 
-\texttt{ssh} is short for the Secure Shell. It is a network protocol that allows you to spawn a shell on a remote machine.
+\texttt{ssh} is short for the Secure Shell \cite{openbsd_ssh}.
+It is a network protocol that allows you to spawn a shell on a remote machine.
 Most of the times in this class you will need to ssh into your VM like this
 
 \begin{verbatim}
@@ -154,7 +172,11 @@ If you don't want to type your password out every time, you can generate an ssh 
   > ssh  netid@sem-cs241-VM.cs.illinois.edu
 \end{verbatim}
 
-If you still think that that is too much typing, you can always alias hosts. You may need to restart your VM or reload sshd for this to take effect. The config file is available on linux and mac distros. For windows you'll have to use the Windows Linux Subsystem or configure any aliases in PuTTY
+If you still think that that is too much typing, you can always alias hosts.
+You may need to restart your VM or reload sshd for this to take effect.
+The config file is available on linux and mac distros.
+For windows you'll have to use the Windows Linux Subsystem or configure any aliases in PuTTY
+
 \begin{verbatim}
 > cat ~/.ssh/config
 Host vm
@@ -230,6 +252,14 @@ nothing to commit, working directory clean
 
 Don't panic, but your repository may be in an unworkable state. If you aren't nearing a deadline, come in to office hours or ask your question on Piazza, and we'd be happy to help. In an emergency scenario, delete your repository and re-clone (you'll have to add the \texttt{release} as above). \textbf{This will lose any local uncommitted changes. Make sure to copy any files you were working on outside the directory, remove and copy them back in}
 
+If you want to learn more about git, there are all but an endless number of tutorials and resources online that can help you.
+Here are some links that can help you out
+
+\begin{enumerate}
+\item \url{https://git-scm.com/docs/gittutorial}
+\item \url{https://www.atlassian.com/git/tutorials/what-is-version-control}
+\item \url{https://thenewstack.io/tutorial-git-for-absolutely-everyone/}
+\end{enumerate}
 
 \subsection{Editors}
 
@@ -248,16 +278,20 @@ For this we require sshfs which has ports on many different machines
 \end{enumerate}
 At that point the files on your VM are synced with the files on your machine and edits can be made and will be sync'ed
 
-At the time of writing, Bhuvy (That's me!) really likes to use spacemacs \url{http://spacemacs.org/} which marries both vim and emacs and both of their difficulties. I'll give my soapbox for why I like it, but be warned that if you are starting from absolutely no vim or emacs experience the learning curve along with this course may be too much.
+At the time of writing, Bhuvy (That's me!) really likes to use spacemacs \url{http://spacemacs.org/} which marries both vim and emacs and both of their difficulties.
+I'll give my soapbox for why I like it, but be warned that if you are starting from absolutely no vim or emacs experience the learning curve along with this course may be too much.
 \begin{enumerate}
 \item Extensible. Spacemacs has a clean design written in lisp. There are 100s of packages ready to be installed by editing your spacemacs config and reloading that do everything from syntax checking, automatic static analyzing, etc etc.
 \item Most of the good parts from vim and emacs. Emacs is really good at doing everything by being a fast editor. Vim is really good at making fast edits and moving around. Spacemacs is the best of both worlds allowing vim keybindings with all the emacs goodness underneath.
 \item Lots of preconfiguration done. As opposed with a fresh emacs install, a lot of the configurations with language and projects are done for you like neotree, helm, various language layers. All they you have to do is navigate neotree to the base of your project and emacs will turn into an IDE for that programming language.
 \end{enumerate}
 
-\subsection{clean code}
+But obviously to each his or her own. Many people will argue that editor gurus spend more time editing their editors and actually editing.
 
-Make your code modular using helper functions. If there is a repeated task (getting the pointers to contiguous blocks in the malloc MP, for example), make them helper functions. And make sure each function does one thing very well, so that you don't have to debug twice.
+\subsection{Clean Code}
+
+Make your code modular using helper functions. If there is a repeated task (getting the pointers to contiguous blocks in the malloc MP, for example), make them helper functions.
+And make sure each function does one thing very well, so that you don't have to debug twice.
 Let's say that we are doing selection sort by finding the minimum element each iteration like so,
 
 \begin{lstlisting}[language=C]
@@ -277,8 +311,7 @@ void selection_sort(int *a, long len){
 }
 \end{lstlisting}
 
-Many can see the bug in the code, but it can help to refactor the above
-method into
+Many can see the bug in the code, but it can help to refactor the above method into
 
 \begin{lstlisting}[language=C]
 long max_index(int *a, long start, long end);
@@ -286,16 +319,20 @@ void swap(int *a, long idx1, long idx2);
 void selection_sort(int *a, long len);
 \end{lstlisting}
 
-And the error is specifically in one function. In the end, we are not a class about refactoring/debugging your code. In fact, most kernel code is so atrocious that you don't want to read it. But for the sake of debugging, it may benefit you in the long run to adopt some of these practices.
+And the error is specifically in one function.
+In the end, we are not a class about refactoring/debugging your code.
+In fact, most kernel code is so atrocious that you don't want to read it -- the defense there is that it needs to be.
+But for the sake of debugging, it may benefit you in the long run to adopt some of these practices.
 
 \subsection{Asserts}
 
 Use assertions to make sure your code works up to a certain point -- and importantly, to make sure you don't break it later.
 For example, if your data structure is a doubly linked list, you can do something like \texttt{assert(node == node->next->prev)} to assert that the next node has a pointer to the current node.
 You can also check the pointer is pointing to an expected range of memory address, not null, -\textgreater{}size is reasonable etc.
-The \texttt{NDEBUG} macro will disable all assertions, so don't forget to set that once you finish debugging. \href{http://www.cplusplus.com/reference/cassert/assert/}{assert link}
+The \texttt{NDEBUG} macro will disable all assertions, so don't forget to set that once you finish debugging \cite{cplusplus_assert}.
 
-Here's a quick example with assert. Let's say that I'm writing code using memcpy
+Here's a quick example with assert. Let's say that I'm writing code using memcpy. I'd want to put an assert before that checks whether or not my two memory regions overlap.
+If they do overlap, memcpy runs into undefined behavior, so we want to catch that problem than later.
 
 \begin{lstlisting}[language=C]
 assert(!(src < dest+n && dest < src+n)); //Checks overlap
@@ -306,13 +343,17 @@ This check can be turned off at compile time, but will save you \textbf{tons} of
 
 \section{Valgrind}
 
-Valgrind is a suite of tools designed to provide debugging and profiling tools to make your programs more correct and detect some runtime issues. The most used of these tools is Memcheck, which can detect many memory-related errors that are common in C and C++ programs and that can lead to crashes and unpredictable behaviour (for example, unfreed memory buffers). To run Valgrind on your program:
+Valgrind is a suite of tools designed to provide debugging and profiling tools to make your programs more correct and detect some runtime issues \cite{valgrind}.
+The most used of these tools is Memcheck, which can detect many memory-related errors that are common in C and C++ programs and that can lead to crashes and unpredictable behaviour (for example, unfreed memory buffers).
+To run Valgrind on your program:
 
 \begin{lstlisting}[language=C]
 valgrind --leak-check=full --show-leak-kinds=all myprogram arg1 arg2
 \end{lstlisting}
 
-Arguments are optional and the default tool that will run is Memcheck. The output will be presented in form of number of allocations, number of freed allocations, and the number of errors.Suppose we have a simple program like this:
+Arguments are optional and the default tool that will run is Memcheck.
+The output will be presented in form of number of allocations, number of freed allocations, and the number of errors.
+Suppose we have a simple program like this:
 
 \begin{lstlisting}[language=C]
 #include <stdlib.h>
@@ -367,11 +408,12 @@ This program compiles and run with no errors. Let's see what Valgrind will outpu
 
 Valgrind is a very effective tool to check for errors at runtime. C is very special when it comes to such behavior, so after compiling your program you can use Valgrind to fix errors that your compiler may not catch and that usually happen when your program is running.
 
-For more information, you can refer to the \href{http://valgrind.org/docs/manual/quick-start.html}{valgrind website}.
+For more information, you can refer to the the manual \cite{valgrind}
 
 \subsection{TSAN}
 
-ThreadSanitizer is a tool from Google, built into clang and gcc, to help you detect race conditions in your code. For more information about the tool, see the Github wiki. Note, that running with tsan will slow your code down a bit. Consider the following code.
+ThreadSanitizer is a tool from Google, built into clang and gcc, to help you detect race conditions in your code \cite{threadsanitizercppmanual_2018}.
+Note, that running with tsan will slow your code down a bit. Consider the following code.
 
 \begin{lstlisting}[language=C]
 #include <pthread.h>
@@ -419,10 +461,11 @@ If we compiled with the debug flag, then it would give us the variable name as w
 
 \section{GDB}
 
-\href{http://www.cs.cmu.edu/~gilpin/tutorial/}{Introduction to gdb}
+GDB is short for the GNU Debugger. GDB is a program that helps you track down errors by interactively debugging them \cite{gdb}. It can start and stop your program, look around, and put in ad hoc constraints and checks. Here are a few examples.
 
 \paragraph{Setting breakpoints programmatically}
 
+A breakpoint is a line of code where you want the execution to stop and give control back to the debugger.
 A very useful trick when debugging complex C programs with GDB is setting breakpoints in the source code.
 
 \begin{lstlisting}[language=C]
@@ -434,8 +477,9 @@ int main() {
 }
 \end{lstlisting}
 
-\begin{lstlisting}[language=C]
-$ gcc main.c -g -o main && ./main
+\begin{verbatim}
+$ gcc main.c -g -o main
+$ gdb --args ./main
 (gdb) r
 [...]
 Program received signal SIGTRAP, Trace/breakpoint trap.
@@ -443,12 +487,34 @@ main () at main.c:6
 6     val = 7;
 (gdb) p val
 $1 = 42
-\end{lstlisting}
+\end{verbatim}
+
+You can also set breakpoints programmatically.
+Assume that we have no optimization and the line numbers are as follows
+
+\begin{verbatim}
+1. int main() {
+2.     int val = 1;
+3.     val = 42;
+4.     val = 7;
+5. }
+\end{verbatim}
+
+We can now set the breakpoint before the program starts.
+
+\begin{verbatim}
+$ gcc main.c -g -o main
+$ gdb --args ./main
+(gdb) break main.c:4
+[...]
+(gdb) p val
+$1 = 42
+\end{verbatim}
 
 \paragraph{Checking memory content}
 
-\href{http://www.delorie.com/gnu/docs/gdb/gdb\_56.html}{Memory Content}
 
+We can also use gdb to check the content of different pieces of memory.
 For example,
 
 \begin{lstlisting}[language=C]
@@ -458,12 +524,17 @@ int main() {
 }
 \end{lstlisting}
 
-\begin{lstlisting}
+Compiled we get
+
+\begin{verbatim}
 $ gcc main.c -g -o main && ./main
 $ Cat ZVQ� $
-\end{lstlisting}
+\end{verbatim}
 
-\begin{lstlisting}
+
+We can now use gdb to look at specific bytes of the string and reason about when the program should've stopped running
+
+\begin{verbatim}
 (gdb) l
 1 #include <stdio.h>
 2 int main() {
@@ -479,17 +550,113 @@ Breakpoint 1, main () at main.c:4
 (gdb) x/16xb bad_string
 0x7fff5fbff9cd: 0x63  0x61  0x74  0xe0  0xf9  0xbf  0x5f  0xff
 0x7fff5fbff9d5: 0x7f  0x00  0x00  0xfd  0xb5  0x23  0x89  0xff
-
 (gdb)
-\end{lstlisting}
+\end{verbatim}
 
 Here, by using the \texttt{x} command with parameters \texttt{16xb}, we can see that starting at memory address \texttt{0x7fff5fbff9c} (value of \texttt{bad\_string}), \texttt{printf} would actually see the following sequence of bytes as a string because we provided a malformed string without a null terminator.
+
+\subsection{Involved gdb example}
+
+Here is how one of your TAs would go through and debug a simple program that is going wrong.
+First the source code of the program.
+If you can see the error immediately, please bear with us.
+
+\begin{lstlisting}[language=C]
+#include <stdio.h>
+
+double convert_to_radians(int deg);
+
+int main(){
+	for (int deg = 0; deg > 360; ++deg){
+		double radians = convert_to_radians(deg);
+		printf("%d. %f\n", deg, radians);
+	}
+	return 0;
+}
+
+double convert_to_radians(int deg){
+	return ( 31415 / 1000 ) * deg / 180;
+}
+\end{lstlisting}
+
+How can we use gdb to debug? First we ought to load GDB.
+
+\begin{verbatim}
+$ gdb --args ./main
+(gdb) layout src; #if you want an GUI type
+(gdb) run
+(gdb)
+\end{verbatim}
+
+Want to take a look at the source?
+
+\begin{verbatim}
+(gdb) l
+1	#include <stdio.h>
+2	
+3	double convert_to_radians(int deg);
+4	
+5	int main(){
+6		for (int deg = 0; deg > 360; ++deg){
+7			double radians = convert_to_radians(deg);
+8			printf("%d. %f\n", deg, radians);
+9		}
+10	    return 0;
+(gdb) break 7 # break <file>:line or break <file>:function
+(gdb) run
+(gdb)
+\end{verbatim}
+
+From running the code, the breakpoint didn’t even trigger, meaning the code never got to that point. That’s because of the comparison! Okay flip the sign it should work now right?
+
+\begin{verbatim}
+(gdb) run
+350. 60.000000
+351. 60.000000
+352. 60.000000
+353. 60.000000
+354. 60.000000
+355. 61.000000
+356. 61.000000
+357. 61.000000
+358. 61.000000
+359. 61.000000
+
+\end{verbatim}
+
+\begin{verbatim}
+(gdb) break 14 if deg == 359 # Let's check the last iteration only
+(gdb) run
+...
+(gdb) print/x deg # print the hex value of degree
+$1 = 0x167
+(gdb) print (31415/1000)
+$2 = 0x31
+(gdb) print (31415/1000.0)
+$3 = 201.749
+(gdb) print (31415.0/10000.0)
+$4 = 3.1414999999999999
+
+\end{verbatim}
+
+That was only the bare minimum, though most of you will get by with that.
+There is a whole load more resources on the web, here are a few specific ones that can help you get started.
+
+\begin{enumerate}
+\item \href{http://www.cs.cmu.edu/~gilpin/tutorial/}{Introduction to gdb}
+\item \href{http://www.delorie.com/gnu/docs/gdb/gdb\_56.html}{Memory Content}
+\item \href{https://www.youtube.com/watch?v=PorfLSr3DDI}{CppCon 2015: Greg Law “Give me 15 minutes & I’ll change your view of GDB”}
+\end{enumerate}
+
+\subsection{Shell}
 
 What do you actually use to run your program? A shell! A shell is a programming language that is running inside your terminal. A terminal is merely a window to input commands. Now, on POSIX we usually have one shell called \keyword{sh} that is linked to a POSIX compliant shell called \keyword{dash}. Most of the time, you use a shell called \keyword{bash} that is not entirely POSIX compliant but has some nifty built in features. If you want to be even more advanced, \keyword{zsh} has some more powerful features like tab complete on programs and fuzzy patterns, but that is neither here nor there.
 
 \subsection{Undefined Behavior Sanitizer}
 
-The undefined behavior sanitizer is a wonderful tool provided by the llvm project. It allows you to compile code with a runtime checker to make sure that you don't do undefined behavior for various categories. We will try to include it into our projects, but requires support form all the external libraries that we use so we may not get around to all of them.
+The undefined behavior sanitizer is a wonderful tool provided by the llvm project.
+It allows you to compile code with a runtime checker to make sure that you don't do undefined behavior for various categories.
+We will try to include it into our projects, but requires support form all the external libraries that we use so we may not get around to all of them.
 \url{https://clang.llvm.org/docs/UndefinedBehaviorSanitizer.html}
 
 \subsubsection{Undefined behavior - why we can't solve it in general}
@@ -501,11 +668,91 @@ Also please please read Chris Lattner's 3 Part blog post on undefined behavior. 
 
 \subsection{Clang Static Build Tools}
 
+Clang provides great drop in replacement tools for compiling programs. If you want to see if there is an error that may cause a race condition, casting error, etc, all you need to do is type
+
+\begin{verbatim}
+$ scan-build make
+\end{verbatim}
+
+And in addition to the make output, you will get static build warnings.
+
 \subsection{strace and ltrace}
+
+strace and ltrace are two programs that trace the system calls and library calls respectively of a running program or command.
+These may not be installed on your system already so to install feel free to do so
+
+\begin{verbatim}
+sudo apt install strace ltrace
+\end{verbatim}
+
+Debugging with ltrace can be as simple as figuring out what was the return call of the last library call that failed.
+
+\begin{lstlisting}[language=C]
+int main() {
+    FILE *fp = fopen("I don't exist", "r");
+    fprintf(fp, "a");
+    fclose(fp);
+    return 0;
+}
+\end{lstlisting}
+
+\begin{verbatim}
+> ltrace ./a.out
+ __libc_start_main(0x8048454, 1, 0xbfc19db4, 0x80484c0, 0x8048530 <unfinished ...>
+ fopen("I don't exist", "r")                          = 0x0
+ fwrite("Invalid Write\n", 1, 14, 0x0 <unfinished ...>
+ --- SIGSEGV (Segmentation fault) ---
+ +++ killed by SIGSEGV +++
+
+\end{verbatim}
+
+ltrace output can clue you in to weird things your program is doing live.
+Unfortunately ltrace can’t be used to inject faults, meaning that ltrace can tell you what is happening, but it can't tamper with what is already happening.
+
+strace on the other hand could modify your program.
+Debugging with strace is amazing.
+A basic usage is just run strace with a program, and it’ll get you a complete list of system call parameters.
+
+\begin{verbatim}
+> strace head README.md
+execve("/usr/bin/head", ["head", "README.md"], 0x7ffff28c8fa8 /* 60 vars */) = 0
+brk(NULL)                               = 0x7ffff5719000
+access("/etc/ld.so.nohwcap", F_OK)      = -1 ENOENT (No such file or directory)
+access("/etc/ld.so.preload", R_OK)      = -1 ENOENT (No such file or directory)
+openat(AT_FDCWD, "/etc/ld.so.cache", O_RDONLY|O_CLOEXEC) = 3
+fstat(3, {st_mode=S_IFREG|0644, st_size=32804, ...}) = 0
+...
+\end{verbatim}
+
+If the output is too verbose, you can use trace= with a command delimited list of syscalls to filter all but those calls.
+
+\begin{verbatim}
+> strace -e trace=read,write head README.md
+read(3, "\177ELF\2\1\1\3\0\0\0\0\0\0\0\0\3\0>\0\1\0\0\0\260\34\2\0\0\0\0\0"..., 832) = 832
+read(3, "# Locale name alias data base.\n#"..., 4096) = 2995
+read(3, "", 4096)                       = 0
+read(3, "# C Datastructures\n\n[![Build Sta"..., 8192) = 1250
+write(1, "# C Datastructures\n", 19# C Datastructures
+
+\end{verbatim}
+
+You can also trace files or targets.
+
+\begin{verbatim}
+> strace -e trace=read,write -P README.md head README.md
+strace: Requested path 'README.md' resolved into '/mnt/c/Users/bhuvy/personal/libds/README.md'
+read(3, "# C Datastructures\n\n[![Build Sta"..., 8192) = 1250
+
+\end{verbatim}
+
+Newer versions of strace can actually inject faults into your program.
+This is useful when you want to occasionly make reads and writes fail for example in a networking application, which your program should handle.
+The problem is as of early 2019, that version is not in any ubuntu apt repositories.
+Meaning that you'll ahve to install it from source.
 
 \subsection{printfs}
 
-When all else fails, print! Each of your functions should have an idea of what it is going to do (ie find\_min better find the minimum element).
+When all else fails, print! Each of your functions should have an idea of what it is going to do.
 You want to test that each of your functions is doing what it set out to do and see exactly where your code breaks.
 In the case with race conditions, tsan may be able to help, but having each thread print out data at certain times could help you identify the race condition.
 
@@ -557,7 +804,7 @@ Try to make a test and figure out something that is going wrong, then log the st
   }
 \end{lstlisting}
 
-And then use as such.
+And then use as appropriately.
 
 \newpage
 
@@ -766,15 +1013,32 @@ This is a handy guide that'll help you move away from the latter and towards the
 Oh, and did I mention that this is an easy way to score points with your internship managers? Ask yourself...
 
 \begin{enumerate}
-\item Am I running on EWS?
+\item Am I running on my Virtual Machine?
 \item \textbf{Did I check the man pages?}
 \item Have I searched for similar questions/followups on Piazza?
-\item Have I read the MP/DS specification completely?
+\item Have I read the MP/Lab specification completely?
 \item Have I watched all of the videos?
-\item Did I Google the error message and a few permutations thereof if necessary?
+\item Did I Google the error message and a few permutations thereof if necessary? How about stackoverflow.
 \item Did I try commenting out, printlining, and/or stepping through parts of the code bit by bit to find out precisely where the error occurs?
 \item \textbf{Did I commit my code to git in case the TAs need more context?}
 \item Did I include the console/GDB/Valgrind output **AND** code surrounding the bug in my Piazza post?
 \item Have I fixed other segmentation faults not related to the issue I'm having?
 \item Am I following good programming practice? (i.e. encapsulation, functions to limit repetition, etc)
 \end{enumerate}
+
+The biggest tip that we can give you when asking a question on piazza if you want a swift answer is to \textbf{ask your question like you were trying to answer it}. Like before you ask a question, try to answer it yourself. If you are thinking about posting
+
+\begin{verbatim}
+Hi, My code got a 50% on the autograder. I tried testing it a lot, but couldn't get it to fail. Can you give me some hints as to the test cases
+\end{verbatim}
+
+Sounds good and curteous, but course staff would much much prefer a post resembling the following
+
+\begin{verbatim}
+Hi, I recently failed test X, Y, Z which is about half the tests on this current assignments. I noticed that they all have something to do with networking and epoll, but couldn't really figure out what was linking them together, or I may be completely off track. So to test my idea, I tried spawning 1000 clients with various get and put requests and verifying the files matched their originals. I couldn't really get it to fail while running normally, the debug build, or valgrind or tsan. I have no warnings and none of the pre-syntax checks showed me anything. Could you tell me if my understanding of the failure is correct and what I could do to modify my tests to better reflect X, Y, Z? netid: bvenkat2
+\end{verbatim}
+
+You don't need to be as curteous, though we'd appreciate it, but this will get a faster response time hand over foot. If you were trying to answer this question, you'd have everything you need in the question body.
+
+\bibliographystyle{plainnat}
+\bibliography{background/background}
