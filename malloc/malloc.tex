@@ -313,18 +313,60 @@ A memory allocator needs to keep track of which bytes are currently allocated an
 This section introduces the implementation and conceptual details of building an allocator, or the actual code that implements \keyword{malloc} and \keyword{free}.
 
 Conceptually we are thinking about creating linked lists and lists of blocks!
-We are writing integers and pointers into memory that we already control, so we can later consistently hop from one address to the next.
-This internal information represents some overhead.
-Even if we had requested 1024 KiB of contiguous memory from the system, we will not be able to provide all of it to the running program.
+Please enjoy the following ascii art.
+bt is short for boundary tag.
 
-We can think of our heap memory as a list of blocks where each block is either allocated or unallocated.
-Rather than storing an explicit list of pointers we store information about the block's size \emph{as part of the block}.
+\begin{verbatim}
+| I am one block  | I am another   | Tiny block  |
+|-----------------|----------------|-------------|
+| meta | space |bt| meta | space|bt| meta |spc|bt|
+|-----------------|----------------|-------------|
+\end{verbatim}
+
+We will have implicit pointers in our next block, meaning that we can get from one block to another using addition.
+This is in contrast to an explicit \texttt{metadata *next} field in our meta block.
+
+\begin{verbatim}
+|-----------------|
+p                 |
+|-----------------|----------------|-------------|
+| meta | space |bt| meta | space|bt| meta |spc|bt|
+|-----------------|----------------|-------------|
+
+If p is char pointer to the start of our block, to get to the next block would be
+
+p + sizeof(meta) + p->space + sizeof(boundary_tag)
+\end{verbatim}
+
+The actual spacing may be different.
+The metadata can contain different things.
+A minimal metadata would simply have the size of the block.
+
+Since we write integers and pointers into memory that we already control, we can later consistently hop from one address to the next.
+This internal information represents some overhead.
+Meaning even if we had requested 1024 KiB of contiguous memory from the system, we will not be able to provide all of it to the running program.
+
+Our heap memory is a list of blocks where each block is either allocated or unallocated.
 Thus there is conceptually a list of free blocks, but it is implicit in the form of block size information that we store as part of each block.
+Let's think of it in terms of a simple implementation.
+\begin{lstlisting}[language=C]
+  typedef struct {
+    size_t block_size;
+    char data[0];
+  } block;
+  block *p = sbrk(100);
+  p->size = 100 - sizeof(*p) - sizeof(boundary_tag);
+  // Other block allocations
+\end{lstlisting}
 
 We could navigate from one block to the next block just by adding the block's size.
-For example if you have a pointer \keyword{p} that points to the start of a block, then \keyword{next\_block} with be at \keyword{((char\ *)p)\ +\ \ *(size\_t\ *)\ p}, if you are storing the size of the blocks in bytes.
-The cast to \keyword{char\ *} ensures that pointer arithmetic is calculated in bytes.
-The cast to \keyword{size\_t\ *} ensures the memory at \keyword{p} is read as a size value and would be necessarily if \keyword{p} was a \keyword{void\ *} or \keyword{char\ *} type.
+
+\begin{lstlisting}[language=C]
+p + sizeof(meta) + p->block_size + sizeof(boundary_tag)
+\end{lstlisting}
+
+Make sure to get your casting right!
+Otherwise you will move an extreme amount of bytes over.
 
 The calling program never sees these values.
 They are internal to the implementation of the memory allocator.
@@ -341,21 +383,62 @@ The simplest implementation uses first fit.
 Start at the first block, assuming it exists, and iterate until a block that represents unallocated space of sufficient size is found, or we've checked all the blocks.
 If no suitable block is found, it's time to call \keyword{sbrk()} again to sufficiently extend the size of the heap.
 For the purposes of this class, we will try to serve every memory request until the operating system tells us we are going to run out of heap space.
-Other applications may limit themselves entirely.
+Other applications may limit themselves to a certain heap size and cause requests to intermittenly fail.
 In addition, a fast implementation might extend it a significant amount so that we will not need to request more heap memory in the near future.
 
 When a free block is found, it may be larger than the space we need.
 If so, we will create two entries in our implicit list.
 The first entry is the allocated block, the second entry is the remaining space.
-There are two simple ways to note if a block is in use or available.
-The first is to store it as a byte in the header information along with the size and the second to encode it as the lowest bit in the size!
-Thus block size information would be limited to only even values:
+There are ways to do this if you want to keep the overhead small.
+We recommend first for going with readability.
 
 \begin{lstlisting}[language=C]
-// Assumes p is a reasonable pointer type, e.g. 'size_t *'.
-isallocated = (*p) & 1;
-realsize = (*p) & ~1;  // mask out the lowest bit
+  typedef struct {
+    size_t block_size;
+    int is_free;
+    char data[0];
+  } block;
+  block *p = sbrk(100);
+  p->size = 100 - sizeof(*p) - sizeof(boundary_tag);
+  // Other block allocations
 \end{lstlisting}
+
+If you want certain bits to hold different pieces of information, use bitfields!
+
+\begin{lstlisting}[language=C]
+typedef struct {
+   unsigned int block_size : 7;
+   unsigned int is_free : 1;
+} size_free;
+
+typedef struct {
+    size_free info;
+    char data[0];
+} block;
+\being{lstlisting}
+
+The compiler will handle it for you.
+After setting up your fields then it becomes simply looping through each of the blocks and checking the appropriate fields
+
+Here is a visual representation of what happens.
+As for some more ascii art, if we assume that we have a block that looks like this, we want to spit if the allocation is let's say 16 bytes
+\begin{verbatim}
+Check if this block is free
+
+|-------------------------------------------------|
+| meta | 40 bytes ---------------------------->|bt|
+|-------------------------------------------------|
+\end{verbatim}
+
+Here is what the heap will look like after
+
+\begin{verbatim}
+|-------------------------|-----------------------|
+| meta | 16 bytes ---->|bt| meta | 12 bytes -->|bt|
+|-------------------------|-----------------------|
+\end{verbatim}
+
+This is before alignment concerns as well.
 
 \subsection{Alignment and rounding up considerations}
 
@@ -391,13 +474,15 @@ There is a \emph{lot} of overhead for that allocation which is what we are tryin
 \subsection{Implementing free}
 
 When \keyword{free} is called we need to re-apply the offset to get back to the `real' start of the block -- to where we stored the size information.
-A naive implementation would simply mark the block as unused. If we are storing the block allocation status in the lowest size bit, then we just need to clear the bit:
+A naive implementation would simply mark the block as unused.
+If we are storing the block allocation status in a bitfield, then we just need to clear the bit:
 
 \begin{lstlisting}[language=C]
-*p = (*p) & ~1; // Clear lowest bit
+p->info.is_free = 0;
 \end{lstlisting}
 
-However, we have a bit more work to do: If the current block and the next block (if it exists) are both free we need to coalesce these blocks into a single block.
+However, we have a bit more work to do.
+If the current block and the next block (if it exists) are both free we need to coalesce these blocks into a single block.
 Similarly, we also need to check the previous block, too.
 If that exists and represents an unallocated memory, then we need to coalesce the blocks into a single large block.
 
@@ -408,12 +493,31 @@ As the blocks are contiguous, the end of one blocks sits right next to the start
 So the current block (apart from the first one) can look a few bytes further back to lookup the size of the previous block.
 With this information you can now jump backwards!
 
+Take for example a double coalesce.
+If we wanted to free the middle block we need to turn the surrounding blocks into one big blocks
+
+\begin{verbatim}
+|-----------------|----------------|-------------|
+| free | space |bt| meta | space|bt| free |spc|bt|
+|-----------------|----------------|-------------|
+\end{verbatim}
+
+Becomes a single free block as below
+
+\begin{verbatim}
+|------------------------------------------------|
+| free | space ------------------------------>|bt|
+|------------------------------------------------|
+\end{verbatim}
+
 \subsection{Performance}
 
-With the above description it's possible to build a memory allocator. It's main advantage is simplicity - at least simple compared to other allocators!
+With the above description it's possible to build a memory allocator.
+It's main advantage is simplicity - at least simple compared to other allocators!
 Allocating memory is a worst-case linear time operation -- search linked lists for a sufficiently large free block.
 De-allocation is constant time.
 No more than 3 blocks will need to be coalesced into a single block, and using a most recently used block scheme only one linked list entry.
+
 Using this allocator it is possible to experiment with different placement strategies.
 For example, you could start searching from where you last free'd a block, or where you last allocated from.
 If you do store pointers to blocks, you need to be very careful that they always remain valid
@@ -426,6 +530,32 @@ In that case, we can immediately traverse to the next free block and the previou
 This can reduce the search time, because the linked list only includes unallocated blocks.
 A second advantage is that we now have some control over the ordering of the linked list.
 For example, when a block is free'd, we could choose to insert it into the beginning of the linked list rather than always between its neighbors.
+We may update our struct to look like this
+
+\begin{lstlisting}[language=C]
+typedef struct {
+    size_t info;
+    struct block *next;
+    char data[0];
+} block;
+\being{lstlisting}
+
+Here is what that would look like along with our implicit linked list
+
+\begin{verbatim}
+Free list pointers above and below
+
+>--++                                ++---------->
+   \/                                /\
+|-----------------|----------------|-------------|
+| free | space |bt| meta | space|bt| free |spc|bt|
+|-----------------|----------------|-------------|
+   \/                                /\
+   ++--------------------------------++
+\end{verbatim}
+
+Again apologies for the ascii art, we are really system programmers not computer graphics people.
+
 
 Where do we store the pointers of our linked list?
 A simple trick is to realize that the block itself is not being used and store the next and previous pointers as part of the block, though now you have to ensure that the free blocks are always sufficiently large to hold two pointers.
