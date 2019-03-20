@@ -2,6 +2,52 @@
 
 \epigraph{\texttt{/home} is where another mount point should be if you are fault tolerant}{Bhuvy}
 
+Filesystems are important because they allow you to persist data after a computer is shut down, crashes, or has memory corruption.
+Back in the day, filesystems were expensive to use.
+Writing to the filesystem or FS involved writing to a magnetic tape and reading from that tape \todo{citation needed}.
+It was slow, heavy, and prone to errors.
+
+Nowadays most of our files are stored on disk -- though not all of them!
+The disk is still slower than memory by an order of magnitude or two \todo{citation needed}
+
+
+Some terminology before we begin this chapter.
+A filesystem as we'll define later is anything that satisifies the API of a filesystem, it may not be a hard disk.
+A disk is either a HDD or Hard Disk Drive which includes a spinning metallic platter and a head which can zap the platter to encode a 1 or a 0, or an SSD or Solid State Drive that can flip certain NAND gates on a chip or standalone drive to store a 1 or a 0.
+As of 2019, SSDs are an order of magnitude faster than the standard HDD.
+These are typical backings for a filesystem.
+A filesystem is implemented on top of this backing, meaning that we can either implement something like EXT, MinixFS, NTFS, FAT32 etc on a commercially available hard disk.
+This filesystem tells the operating system how to organize the 1s and 0s to store file information as well as directory information, but more on that later.
+
+\textbf{The last piece of background is an important one.} In this chapter, we will refer to sizes of files in the ISO-compliant KiB or Kebibyte. The *iB family is short for power of two storage.
+That means the following
+
+\begin{verbatim}
+KiB = 1024B
+MiB = 1024 * 1024 B
+GiB = 1024^3 B
+...
+\end{verbatim}
+
+And the standard notational prefixes mean the following.
+
+\begin{verbatim}
+KB = 1000B
+MB = 1000 * 1000 B
+GB = 1000^3 B
+...
+\end{verbatim}
+
+We will do this in the book and in the networking chapter to keep consistency and not to confuse anyone.
+What will be confusing is that in the real world there is a convention.
+That convention is that when a file is stored on a traditional file system, \textbf{KB is the same as KiB}.
+When we are talking about computer networks \textbf{KB is not the same as KiB} and is the ISO/Metric Definition above.
+This is a historical quirk was brought by a clash between network developers and memory/hard storage developers.
+Hard storage and memory developers found that if a bit could take one of two states, it would be naturally to call a Kilo- prefix 1024 because it was about 1000.
+Network developers had to deal with bits, real time signal processing, and various other factors so they went with the already accepted convention that Kilo- means a 1000 of something \todo{citation needed}.
+What you need to know is if you see KB in the wild, that it may be 1024 based on the context.
+If any time in this class you see KB or any of the family refer to a filesystems question, you can safely infer that they are referring to 1024 as the base unit.
+
 \section{What is a filesystem?}
 
 You may have encountered the old unix adage, "everything is a file". In most UNIX systems, files operations provide an interface to abstract many different operations. Network sockets, hardware devices and even data on disk are all represented by a file-like object. A file-like object must follow certain conventions:
