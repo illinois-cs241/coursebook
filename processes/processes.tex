@@ -9,8 +9,6 @@ This is the piece of software that is loaded up before all of your other program
 What the kernel does is the following, abbreviated
 
 \begin{enumerate}
-  \def\labelenumi{\arabic{enumi}.}
-  \tightlist
 \item
   The operating system executes ROM or read only code
 \item
@@ -124,14 +122,14 @@ Most notably, this section contains variables that were initialized with a stati
 
 \begin{lstlisting}[language=C]
 int global = 1;
-\end{lstlsting}
+\end{lstlisting}
 
 But not those that are default initialized, that is the next segment.
 
 \item \textbf{A BSS Segment} or the Basic Service Segment. This contains all of your globals and any other static duration variables that are implicitly zeroed out like.
 \begin{lstlisting}[language=C]
 int assumed_to_be_zero;
-\end{lstlsting}
+\end{lstlisting}
 
 It is not an error to assume that this will be zero because otherwise we'd have a security risk from other processes.
 They just get put in a different section to speed up process start up time.
@@ -729,7 +727,6 @@ Read the man pages and the posix groups above!
 \subsection{Topics}
 
 \begin{itemize}
-  \tightlist
 \item
   Correct use of fork, exec and waitpid
 \item

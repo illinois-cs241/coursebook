@@ -17,6 +17,7 @@ Just know that there are other ways of dividing up memory like with \texttt{mmap
 \section{C Memory Allocation API}
 
 \begin{itemize}
+
 \item \keyword{malloc(size\_t bytes)} is a C library call and is used to reserve a contiguous block of memory that may be uninitialized \cite[P. 348]{jones2010wg14}.
 Unlike stack memory, the memory remains allocated until \keyword{free} is called with the same pointer.
 If \keyword{malloc} can either return a pointer to at least that much free space requested or \texttt{NULL}.
@@ -111,6 +112,7 @@ free(ptr);
 \end{lstlisting}
 
 If you use a piece of memory after it is freed - that is undefined behavior.
+
 \end{itemize}
 
 \subsection{Heaps and sbrk}
@@ -466,7 +468,6 @@ One of three allocators used internally by the Linux Kernel.
 See \href{http://man7.org/linux/man-pages/man3/malloc.3.html}{the man page}!
 
 \begin{itemize}
-\tightlist
 \item
   \href{http://en.wikipedia.org/wiki/SLUB_\%28software\%29}{SLUB} (wikipedia)
 \item
@@ -476,7 +477,6 @@ See \href{http://man7.org/linux/man-pages/man3/malloc.3.html}{the man page}!
 \section{Topics}
 
 \begin{itemize}
-\tightlist
 \item
   Best Fit
 \item
