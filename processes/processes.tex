@@ -2,7 +2,11 @@
 
 \epigraph{Who needs process isolation?}{Intel Marketing on Meltdown and Spectre}
 
-In the beginning, there is a kernel. The operating system kernel is a special piece of software. This is the piece of software that is loaded up before all of your other programs even consider getting booted up. What the kernel does is the following, abbreviated
+To understand process you need to understand the boot order.
+In the beginning, there is a kernel.
+The operating system kernel is a special piece of software.
+This is the piece of software that is loaded up before all of your other programs even consider getting booted up.
+What the kernel does is the following, abbreviated
 
 \begin{enumerate}
   \def\labelenumi{\arabic{enumi}.}
@@ -38,8 +42,14 @@ When you are executing in user space the kernel provides some important operatio
 The kernel handles all of this stuff in kernel mode.
 Kernel mode gets you greater power, like executing extra CPU instructions but at the cost of one failure crashes your entire computer -- ouch.
 That is what you are going to interacting with in this class.
-One of the things that you have already become familiar with is that the kernel gives you file descriptors when you open text files.
-Here is a zine from Julia Evans that details it a bit.
+
+More relevantly, the kernel creates the first process \keyword{init.d}. Init.d boots up things like your GUI, terminals etc.
+What is important is the operating system only really creates one process by default, all other processes are \keyword{fork} and \keyword{exec}'ed from that single process.
+
+\section{File Descriptors}
+
+Although it was mentioned in the last chapter, we are going to give you a quick reminder about file descriptors.
+Here is a zine from Julia Evans that details it a bit \cite{evans_2018}.
 
 \begin{figure}[htbp]
   \centering
@@ -50,14 +60,16 @@ Here is a zine from Julia Evans that details it a bit.
 As the little zine shows, the Kernel keeps track of the file descriptors and what they point to.
 We will see later that file descriptors need not point to actual files and the OS keeps track of them for you.
 Also, notice that between processes file descriptors may be reused but inside of a process they are unique.
-File descriptors also have a notion of position. You can read a file on disk completely because the OS keeps track of the position in the file, and that belongs to your process as well.
+File descriptors may have a notion of position.
+You can read a file on disk completely because the OS keeps track of the position in the file, and that belongs to your process as well.
+Other file descriptors point to network sockets and various other pieces of information.
 
 \section{Processes}
 
 A process an instance of a computer program that may be running.
 Processes have a lot of things at their disposal.
 At the start of each program you get one process, but each program can make more processes.
-In fact, your operating system starts up with only one process and all other processes are forked off of that -- all of that is done under the hood when booting up. A program consists of the following.
+A program consists of the following.
 
 \begin{itemize}
 \item A binary format: This tells the operating system which set of bits in the binary are what -- which part is executable, which parts are constants, which libraries to include etc.
@@ -67,13 +79,10 @@ In fact, your operating system starts up with only one process and all other pro
 \item Libraries to link and where to fill in the address of those libraries
 \end{itemize}
 
-When your operating system starts on a linux machine, there is a process called \keyword{init.d} that gets created.
-That process is a special one handling signals, interrupts, and a persistence module for certain kernel elements.
-Whenever you want to make a new process, you call \keyword{fork} and use \keyword{exec} to load another program.
-
 Processes are very powerful but they are isolated!
 That means that by default, no process can communicate with another process.
 This is very important because if you have a large system (let's say the University of Illinois Engineering Workstations) then you want some processes to have higher privileges than your average user, and one certainly doesn't want the average user to be able to bring down the entire system either on purpose or accidentally by modifying a process.
+As most of you have realized by now if you stuck the following code snippet into a program, the variables would not be shared between two parallel invocations of the program.
 
 \begin{lstlisting}[language=C]
 int secrets;
@@ -82,14 +91,15 @@ printf("%d\n", secrets);
 \end{lstlisting}
 
 On two different terminals, as you would guess they would both print out 1 not 2.
-Even if we changed the code to do something really hacky, there would be no way to change another process' state.
-Okay, check out the Post-Mortems chapter if you want to break some things).
+Even if we changed the code to do something really hacky, there would be no way to change another process' state unintentionally.
+There are ways of changing it purposefully though.
 
 \section{Process Contents}
 
 \subsection{Memory Layout}
 
 When a process starts, it gets its own address space. Each process gets the following.
+
 \begin{itemize}
 \item \textbf{A Stack}.
 The stack is the place where automatic variable and function call return addresses are stored.
@@ -99,25 +109,45 @@ If the stack grows too far -- meaning that it either grows beyond a preset bound
 \textbf{The stack is statically allocated by default meaning that there is only a certain amount of space to which one can write}
 
 \item \textbf{A Heap}.
-The heap is an expanding region of memory.
+The heap is a contiguous, expanding region of memory \cite{mallocinternals}.
 If you want to allocate a large object, it goes here.
 The heap starts at the top of the text segment and grows upward, meaning sometimes when you call \keyword{malloc} that it asks the operating system to push the heap boundary upward.
 More on that in the memory allocation chapter.
 This area is also writable but not executable.
-One can run out of heap memory if the system is constrained or if you run out of addresses. This is more common on a 32bit system.
+One can run out of heap memory if the system is constrained or if you run out of addresses.
+This is more common on a 32bit system.
 
-\item \textbf{A Data Segment} This contains all of your globals.
+\item \textbf{A Data Segment} or as we will tried to refer to it as the Initialized Segement. This contains all of your globals and any other static duration variables.
 This section starts at the end of the text segment and is static in size because the amount of globals is known at compile time.
-There are two areas to the data usually the \textbf{IBSS} and the \textbf{UBSS} which stand for the initialized basic service set and the uninitialized data segment respectively.
-This section is writable but not executable.
+This section is be writable \cite[P. 124]{van1994expert}.
+Most notably, this section contains variables that were initialized with a static initializer like
+
+\begin{lstlisting}[language=C]
+int global = 1;
+\end{lstlsting}
+
+But not those that are default initialized, that is the next segment.
+
+\item \textbf{A BSS Segment} or the Basic Service Segment. This contains all of your globals and any other static duration variables that are implicitly zeroed out like.
+\begin{lstlisting}[language=C]
+int assumed_to_be_zero;
+\end{lstlsting}
+
+It is not an error to assume that this will be zero because otherwise we'd have a security risk from other processes.
+They just get put in a different section to speed up process start up time.
+This section starts at the end of the data segment and is also static in size because the amount of globals is known at compile time.
+At this point the BSS and data segment are combined and confusingly referred to as the data segment \cite[P. 124]{van1994expert}.
+From now on for convenience, we will adopt that the data segment is both the data segment
 
 \item \textbf{A Text Segment}.
 This is where all your code is stored -- all the 1's and 0's.
 The program counter moves through this segment executing instructions and moving down the next instruction.
 It is important to note that this is the only executable section of the code created by default.
-If you try to change the code while it's running, most likely you will segfauls.
+If you try to change the code while it's running, most likely you will segfaults.
 There are ways around it, but we won't be exploring those in this course.
-Why doesn't it start at zero? Because of \href{https://en.wikipedia.org/wiki/Address_space_layout_randomization}{Address Space Layout Randomization}. It is outside the scope of this class but know that it exists.
+Why doesn't it start at zero? Because of \href{https://en.wikipedia.org/wiki/Address_space_layout_randomization}{Address Space Layout Randomization}.
+It is outside the scope of this class but know that it exists.
+The address can be fixed if compiled with the DEBUG flag though.
 \end{itemize}
 
 \subsection{Other Contents}
@@ -129,12 +159,16 @@ Every process has a parent, that parent could be \keyword{init.d}.
 Processes could also contain
 
 \begin{itemize}
-\item Running State - Whether a process is getting ready, running, stopped, terminated etc.
+\item Running State - Whether a process is getting ready, running, stopped, terminated etc. (more on this during the Scheduling chapter).
 \item File Descriptors - List of mappings from integers to real devices (files, usb sticks, sockets)
-\item Permissions - What \keyword{user} the file is running on and what \keyword{group} the process belongs to. The process can then only do this admissible to the \keyword{user} or \keyword{group} like opening a file that the \keyword{user} has made exclusives. There are tricks to make a program not be the user who started the program i.e. \keyword{sudo} takes a program that a \keyword{user} starts and executes it as \keyword{root}.
+\item Permissions - What \keyword{user} the file is running on and what \keyword{group} the process belongs to.
+  The process can then only do this admissible to the \keyword{user} or \keyword{group} like opening a file that the \keyword{user} has made exclusives.
+  There are tricks to make a program not be the user who started the program i.e. \keyword{sudo} takes a program that a \keyword{user} starts and executes it as \keyword{root}.
 \item Arguments - a list of strings that tell your program what parameters to run under
 \item Environment List - a list of strings in the form \keyword{NAME=VALUE} that one can modify.
 \end{itemize}
+
+If we want to give you the technical definition, all POSIX says a process needs is a thread and address space, but most kernel developers and users know that really isn't enough \cite{process_def}.
 
 \section{Intro to Fork}
 
@@ -151,14 +185,14 @@ If you must work on fork() code remotely, remember that \textbf{kill -9 -1} will
 
 TL;DR: Fork can be \textbf{extremely} dangerous if you aren't prepared for it. \textbf{You have been warned.}
 
-\subsection{What does fork do?}
+\subsection{Fork Functionality}
 
 The \keyword{fork} system call clones the current process to create a new process.
-It creates a new process (the child process) by duplicating the state of the existing process with a few minor differences.
+It creates a new process called the child process by duplicating the state of the existing process with a few minor differences.
 The child process does not start from main.
 Instead it executes the next line after the \keyword{fork()} just as the parent process does.
-Just as a side remark, in older UNIX systems, the entire address space of the parent process was directly copied (regardless of whether the resource was modified or not).
-These days, kernel performs \href{https://en.wikipedia.org/wiki/Copy-on-write}{copy-on-write}, which saves a lot of resources, while being very time efficient.
+Just as a side remark, in older UNIX systems, the entire address space of the parent process was directly copied regardless of whether the resource was modified or not.
+These days, kernel performs \href{https://en.wikipedia.org/wiki/Copy-on-write}{copy-on-write}, which saves a lot of resources, while being very time efficient \cite[Copy-on-write section]{Bovet:2005:ULK:1077084}.
 Here's a very simple example
 
 \begin{lstlisting}[language=C]
@@ -169,6 +203,7 @@ Here's a very simple example
   printf("You see this line twice!\n");
 \end{lstlisting}
 
+Here is a simple example of this address space cloning.
 The following program may print out 42 twice - but the \keyword{fork()} is after the \keyword{printf}!? Why?
 
 \begin{lstlisting}[language=C]
@@ -182,15 +217,22 @@ The following program may print out 42 twice - but the \keyword{fork()} is after
   }
 \end{lstlisting}
 
-The \keyword{printf} line \emph{is} executed only once however notice that the printed contents is not flushed to standard out. There's no newline printed, we didn't call \keyword{fflush}, or change the buffering mode. The output text is therefore still in process memory waiting to be sent. When \keyword{fork()} is executed the entire process memory is duplicated including the buffer. Thus the child process starts with a non-empty output buffer which will be flushed when the program exits.
+The \keyword{printf} line \emph{is} executed only once however notice that the printed contents is not flushed to standard out.
+There's no newline printed, we didn't call \keyword{fflush}, or change the buffering mode.
+The output text is therefore still in process memory waiting to be sent.
+When \keyword{fork()} is executed the entire process memory is duplicated including the buffer.
+Thus the child process starts with a non-empty output buffer which will be flushed when the program exits.
+We also say may because the contents may be unwritten given a bad program exit as well.
 
 To write code that is different for the parent and child process, check the return value of \keyword{fork()}.
-If fork() returns -1, that implies something went wrong in the process of creating a new child.
-One should check the value stored in \emph{errno} to determine what kind of error occurred; commons one include EAGAIN and ENOMEM Which are essentially try again and out of memory.
+If \keyword{fork()} returns -1, that implies something went wrong in the process of creating a new child.
+One should check the value stored in \emph{errno} to determine what kind of error occurred.
+Commons one include \keyword{EAGAIN} and \keyword{ENOMEM} Which are essentially try again and out of memory.
 Similarly, a return value of 0 indicates that we are in the child process, while a positive integer shows that we are in parent process.
 The positive value returned by \keyword{fork()} gives as the process id (\emph{pid}) of the child.
 
 Another way to remember which is which is that the child process can find its parent - the original process that was duplicated - by calling \keyword{getppid()} - so does not need any additional return information from \keyword{fork()}.
+In the POSIX word, you only have one parent process.
 The parent process however can only find out the id of the new child process from the return value of \keyword{fork}:
 
 \begin{lstlisting}[language=C]
@@ -221,7 +263,8 @@ A slightly silly example is shown below. What will it print? Try it with multipl
   }
 \end{lstlisting}
 
-Another example is below. This is the amazing parallel apparent-O(N) \emph{sleepsort} is today's silly winner. First published on \href{https://dis.4chan.org/read/prog/1295544154}{4chan in 2011}. A version of this awful but amusing sorting algorithm is shown below.
+Another example is below.
+This is the amazing parallel apparent-O(N) \emph{sleepsort} is today's silly winner. First published on \href{https://dis.4chan.org/read/prog/1295544154}{4chan in 2011}. A version of this awful but amusing sorting algorithm is shown below.
 
 \begin{lstlisting}[language=C]
   int main(int c, char **v) {
@@ -233,22 +276,23 @@ Another example is below. This is the amazing parallel apparent-O(N) \emph{sleep
   }
 \end{lstlisting}
 
-Note: The algorithm isn't actually O(N) because of how the system scheduler works, though you can get faster times.
+The algorithm isn't actually O(N) because of how the system scheduler works.
 
 \subsection{What is a fork bomb?}
 
+A fork bomb is what we warned you about earlier.
 A `fork bomb' is when you attempt to create an infinite number of processes.
 This will often bring a system to a near-standstill as it attempts to allocate CPU time and memory to a very large number of processes that are ready to run.
 System administrators don't like fork-bombs and may set upper limits on the number of processes each user can have or may revoke login rights because it creates a disturbance in the force for other users' programs.
-You can also limit the number of child processes created by using \keyword{setrlimit()}.
-fork bombs are not necessarily malicious - they occasionally occur due to student coding errors.
-Below is a simple example.
+You can also limit the number of child processes created by using \keyword{setrlimit()}. fork bombs are not necessarily malicious - they occasionally occur due to coding errors.
+Below is a simple example that is malicious.
 
 \begin{lstlisting}[language=C]
   while (1) fork();
 \end{lstlisting}
 
 There may even be subtle forkbombs that occur when you are being careless while coding.
+Can you spot the fork bomb here?
 
 \begin{lstlisting}[language=C]
   #include <unistd.h>
@@ -279,28 +323,71 @@ There may even be subtle forkbombs that occur when you are being careless while 
 \end{lstlisting}
 
 We misspelled \keyword{ehco}, so we can't \keyword{exec} it. What does this mean? Instead of creating 10 processes we just created \textbf{1024 processes, fork bombing our machine. How could we prevent this? Put an exit right after exec so in case exec fails we won't end up fork bombing our machine.}
+There are various other ways. What if we removed the \keyword{echo} binary? What if the binary itself creates a forkbomb.
+
+\subsection{Signals}
+
+We won't fully get into signals until the very end of the course, but it is relevant to bring it up now because various semantics with fork and a few other function calls detail what a signal is.
+
+A signal can be thought of as a software interrupt. This means that a process that receives a signal stops execution of the current program and makes the program respond to the signal.
+
+There are various signals defined by the operating system, two of which you may already know: SIGSEGV and SIGINT. One is caused by an illegal memory access and one is sent by a user wanting to terminate a program. Each case, the program jumps from what it is doing to the signal handler. If no signal handler is supplied by the program a default handler is executed -- for example terminating, ignoring.
+
+Here is an example of a simple user defined signal handler.
+
+\begin{lstlisting}[language=C]
+  void handler(int signum) {
+    write(1, "signaled!", 9);
+    // we don't need the signum because we are only catching SIGINT
+    // if you want to use the same piece of code for multiple
+    // signals, check the signum
+  }
+  int main() {
+    signal(SIGINT, handler);
+    while(1) ;
+    return 0;
+  }
+\end{lstlisting}
+
+A signal can be in the generated, sent, pending, and received state. These refer to when a process generates, the kernel sends, the kernel is about to deliver, and when the kernel delivers a signal which all take a bit of time to do.
+The terminology is important because fork and exec require different operations based on what state the signal is in.
+
+Just to note, It is generally poor programming practice to use signals in program logic.
+Meaning send a signal to perform a certain operation.
+Signals have no timeframe of delivery and no assurance that they will be delivered.
+If you need to communicate between two processes, there are other ways of doing so.
+
+
+If you want to read more, feel free to skip ahead to that particular chapter and read it over. It isn't very long and gives you the long and short about how to deal with signals in processes.
 
 \subsection{POSIX Fork Detailings}
 
-POSIX determines what the standards of fork are. The commonly expected standards are detailed \href{https://pubs.opengroup.org/onlinepubs/009695399/functions/fork.html}{in the posix fork page} Here are a summary of what gets inherited
+POSIX determines what the standards of fork are \cite{fork_2018}.
+You can read the previous citation, but it can be quite verbose.
+Here are a summary of what is relevant.
 
 \begin{enumerate}
 \item Fork will return a non-negative integer on success
-\item A child will inherit any open file descriptors of the parent. That means if a parent reads a bit of the file and forks, the child will start at that offset. Any other flags are also carried over.
-\item Pending signals are not inherited. This means that if a parent has a pending signal and creates a child, the child will not receive that signal unless another process signals the child.
+\item A child will inherit any open file descriptors of the parent.
+  That means if a parent reads a half way of the file and forks, the child will start at that offset.
+  Any other flags are also carried over.
+\item Pending signals are not inherited.
+  This means that if a parent has a pending signal and creates a child, the child will not receive that signal unless another process signals the child.
 \item The process will be created with one thread (more on that later, the general consensus is to not fork and pthread at the same time).
 \item Since we have copy on write, read-only memory addresses are shared between processes
 \item If you set up certain regions of memory, they are shared between processes.
-\item Signal handlers are inherited but can be changed
-\item Current working directory is inherited but can be changed
-\item Environment variables are inherited but can be changed
+\item Signal handlers are inherited but can be changed.
+\item Current working directory is inherited but can be changed.
+\item Environment variables are inherited but can be changed.
 \end{enumerate}
 
-Key differences include:
+Key differences between the parent and the child include:
 \begin{itemize}
-\item The process id returned by \keyword{getpid()}. The parent process id returned by \keyword{getppid()}.
+\item The process id returned by \keyword{getpid()}.
+  The parent process id returned by \keyword{getppid()}.
 \item The parent is notified via a signal, SIGCHLD, when the child process finishes but not vice versa.
-\item The child does not inherit pending signals or timer alarms. For a complete list see the \href{http://man7.org/linux/man-pages/man2/fork.2.html}{fork man page}
+\item The child does not inherit pending signals or timer alarms.
+  For a complete list see the \href{http://man7.org/linux/man-pages/man2/fork.2.html}{fork man page}
 \item The child has its own set of environment variables
 \end{itemize}
 
@@ -327,7 +414,8 @@ If the parent process wants waits for the child to finish, \keyword{waitpid} (or
 After the first one changes state \keyword{wait} returns.
 \keyword{waitpid} is similar to \keyword{wait} but it has a few differences.
 First, you \textit{can} wait on a specific process, or you can pass in special values for the \keyword{pid} to do different things (check the man pages).
-The last parameter to waitpid is an option parameter. The options are listed below
+The last parameter to waitpid is an option parameter.
+The options are listed below
 
 
 \begin{enunmerate}
@@ -338,15 +426,12 @@ The last parameter to waitpid is an option parameter. The options are listed bel
 \item WCONTINUED - Wait for continued children
 \end{enunmerate}
 
-It is generally poor programming practice to use signals in program logic.
-Signals have no timeframe of delivery and no assurance that they will be delivered.
-If you need to communicate between two processes, there are other ways of doing so.
-
 Exit statuses or the value stored in the integer pointer for both of the calls above are explained below.
 
 \subsection{Exit statuses}
 
-To find the return value of \keyword{main()} or value included in \keyword{exit()}), Use the \texttt{Wait macros} - typically you will use \keyword{WIFEXITED} and \keyword{WEXITSTATUS} . See \keyword{wait}/\keyword{waitpid} man page for more information.
+To find the return value of \keyword{main()} or value included in \keyword{exit()}), Use the \texttt{Wait macros} - typically you will use \keyword{WIFEXITED} and \keyword{WEXITSTATUS} .
+See \keyword{wait}/\keyword{waitpid} man page for more information.
 
 \begin{lstlisting}[language=C][language=C]
   int status;
@@ -364,7 +449,7 @@ To find the return value of \keyword{main()} or value included in \keyword{exit(
   }
 \end{lstlisting}
 
-A process can only have 256 return values, the rest of the bits are informational, this is done by bit shifting.
+A process can only have 256 return values, the rest of the bits are informational, and the information is extracte with bit shifting.
 But, The kernel has an internal way of keeping track of signaled, exited, or stopped.
 That API is abstracted so that that the kernel developers are free to change at will.
 Remember that these macros only make sense if the precondition is met.
@@ -384,7 +469,7 @@ As such there is no need to memorize the following, this is just a high level ov
   #define WIFEXITED(x)  (_WSTATUS(x) == 0)
 \end{lstlisting}
 
-There is an untold convention about exit codes.
+There is a convention about exit codes.
 If the process exited normally and everything was successful, then a zero should be returned.
 Beyond that, there isn't too many conventions except the ones that you place on yourself.
 If you know how the program you spawn is going to interact, you may be able to make more sense of the 256 error codes.
@@ -398,7 +483,7 @@ If you don't wait on your children they become zombies.
 Zombies occur when a child terminates and then take up a spot in the kernel process table for your process.
 The process table keeps information about that process like pid, status, how it was killed.
 The only way to get rid of a zombie is to wait on your children.
-If you never wait on your children, and the program is long running then you may lose the ability to fork.
+If you never wait on your children, and the program is long running, you may lose the ability to fork.
 
 You don't always need to wait for your children!
 Your parent process can continue to execute code without having to wait for the child process.
@@ -410,7 +495,9 @@ The init process automatically waits for all of its children, thus removing thes
 
 \subsection{Extra: How can I asynchronously wait for my child using SIGCHLD?}
 
-Warning: This section uses signals which we have not yet fully introduced. The parent gets the signal SIGCHLD when a child completes, so the signal handler can wait on the process. A slightly simplified version is shown below.
+Warning: This section uses signals which we have not yet fully introduced.
+The parent gets the signal SIGCHLD when a child completes, so the signal handler can wait on the process.
+A slightly simplified version is shown below.
 
 \begin{lstlisting}[language=C]
   pid_t child;
@@ -460,7 +547,6 @@ To make the child process execute another program, use one of the \href{http://m
 The \keyword{exec} set of functions replaces the process image with the the process image of what is being called.
 This means that any lines of code after the \keyword{exec} call are replaced.
 Any other work you want the child process to do should be done before the \keyword{exec} call.
-The \href{https://en.wikipedia.org/wiki/Exec_(system_call)\#C_language_prototypes}{Wikipedia article} does a great job helping you make sense of the names of the exec family.
 The naming schemes can be shortened mnemonically.
 
 \begin{enumerate}
@@ -492,7 +578,7 @@ An example of this code is below. This code executes \keyword{ls}
       // Remember first arg is the program name
       // Last arg must be a char pointer to NULL
 
-      execl("/bin/ls", "/bin/ls","-alh", (char *) NULL);
+      execl("/bin/ls", "/bin/ls", "-alh", (char *) NULL);
 
       // If we get to this line, something went wrong!
       perror("exec failed!");
@@ -515,10 +601,11 @@ Try to decode the following example
 
     execl("/bin/ls", /* Remaining items sent to ls*/ "/bin/ls", ".", (char *) NULL); // "ls ."
     perror("exec failed");
-    return 0; // Not expected
+    return 0;
   }
 \end{lstlisting}
 
+The example writes "Captain's Log" to a file then prints everything in /usr/include to the same file.
 There's no error checking in the above code (we assume close,open,chdir etc works as expected).
 
 \begin{enumerate}
@@ -526,22 +613,28 @@ There's no error checking in the above code (we assume close,open,chdir etc work
 \item \keyword{chdir} -- Change the current directory to /usr/include
 \item \keyword{execl} -- Replace the program image with /bin/ls and call its main() method
 \item \keyword{perror} -- We don't expect to get here - if we did then exec failed.
+\item We need the return zero because compilers complain if we don't have it.
 \end{enumerate}
 
-\subsection{Deeper Semantics}
+\subsection{POSIX Exec Detailings}
 
-\href{https://pubs.opengroup.org/onlinepubs/009695399/functions/exec.html}{Here is the full POSIX standard for Exec}
-What you need to know is the following bullet points (in addition to above).
+POSIX details all of the semantics that exec needs to cover \cite{exec_2018}.
+What you need to know is the following bullet points.
 
 \begin{enumerate}
 \item File descriptors are preserved after an exec. That means if you open a file, and you forget to close it, it remains open in the child.
-This is a problem because usually the child doesn't know about those file descriptors and they take up a slot in the file descriptor table and could possible prevent other processes from accessing the file. The one exception to this is if the file descriptor has the Close Exec flag set (more on how to set that later).
-\item Various signal semantics (don't need to worry about this yet). If you are coming back to do a re-read, exec'ed processes preserve the signal mask and the pending signal set.
+  This is a problem because usually the child doesn't know about those file descriptors and they take up a slot in the file descriptor table and could possible prevent other processes from accessing the file.
+  The one exception to this is if the file descriptor has the Close Exec flag set (more on how to set that later).
+\item Various signal semantics. The exec'ed processes preserve the signal mask and the pending signal set, but does not preserve the signal handlers because it is a different program.
+\item Environment variables are preserved unless using an environ version of exec
+  \item The operating system may open up 0, 1, 2 -- stdin, stdout, stderr, if they are closed after exec, most of the time they leave them closed.
+  \item The exec'ed process runs as the same PID and has the same parent and process group as the previous process.
+    \item The exec'ed process is run on the same user and group with the same working directory
 \end{enumerate}
 
 \subsection{Shortcuts}
 
-\keyword{system} pre-packs the above code. Here is how to use it:
+\keyword{system} pre-packs the above code \cite[P. 371]{jones2010wg14}. Here is how to use it:
 
 \begin{lstlisting}[language=C]
 
@@ -555,10 +648,13 @@ This is a problem because usually the child doesn't know about those file descri
 \end{lstlisting}
 
 The \keyword{system} call will fork, execute the command passed by parameter and the original parent process will wait for this to finish.
-This also means that \keyword{system} is a blocking call: The parent process can't continue until the process started by \keyword{system} exits.
+This also means that \keyword{system} is a blocking call.
+The parent process can't continue until the process started by \keyword{system} exits.
 Also, \keyword{system} actually creates a shell which is then given the string, which is more overhead than just using \keyword{exec} directly.
-The standard shell will use the \keyword{PATH} environment variable to search for a filename that matches the command. Using system will usually be sufficient for many simple run-this-command problems but can quickly become limiting for more complex or subtle problems, and it hides the mechanics of the fork-exec-wait pattern so we encourage you to learn and use \keyword{fork} \keyword{exec} and \keyword{waitpid} instead.
-Not only that, it tends to be a huge security risk. By allowing someone to access a shell version of the environment, you can reach all sorts of problems
+The standard shell will use the \keyword{PATH} environment variable to search for a filename that matches the command.
+Using system will usually be sufficient for many simple run-this-command problems but can quickly become limiting for more complex or subtle problems, and it hides the mechanics of the fork-exec-wait pattern so we encourage you to learn and use \keyword{fork} \keyword{exec} and \keyword{waitpid} instead.
+Not only that, it tends to be a huge security risk.
+By allowing someone to access a shell version of the environment, you can reach all sorts of problems
 
 \begin{lstlisting}[language=C]
   int main(int argc, char**argv) {
@@ -567,7 +663,7 @@ Not only that, it tends to be a huge security risk. By allowing someone to acces
   }
 \end{lstlisting}
 
-Passing something along the lines of argv[1] = "; sudo su" could cause all sorts of problems.
+Passing something along the lines of argv[1] = "; sudo su" is a huge security risk.
 
 \section{The fork-exec-wait Pattern}
 
@@ -588,10 +684,14 @@ Meanwhile the parent uses \keyword{wait} (or \keyword{waitpid}) to wait for the 
       waitpid(pid, &status, 0);
     } else { // I am the child
       execl("/bin/ls", "/bin/ls", NULL);
-      exit(1);
+      exit(1); // For safety.
     }
   }
 \end{lstlisting}
+
+You may ask why we didn't just execute ls directly.
+The reason is that now we have a monitor program aka our parent that can do other things.
+It can proceed afterwards and execute another function, or it can also modify the state of the system or read the output of the functino call.
 
 \subsection{Environment Variables}
 
@@ -599,26 +699,27 @@ Environment variables are variables that the system keeps for all processes to u
 Your system has these set up right now!
 In Bash, you can check some of these
 
-\begin{lstlisting}[language=C]
-  $ echo $HOME
-  /home/bhuvy
-  $ echo $PATH
-  /usr/local/sbin:/usr/bin:...
-\end{lstlisting}
+\begin{verbatim}
+$ echo $HOME
+/home/bhuvy
+$ echo $PATH
+/usr/local/sbin:/usr/bin:...
+\end{verbatim}
 
-How would you get these in C/C++? You can use the \keyword{getenv} and \keyword{setenv} function
+How would you get and set these in C/C++? You can use the \keyword{getenv} and \keyword{setenv} function respectively.
 
 \begin{lstlisting}[language=C]
   char* home = getenv("HOME"); // Will return /home/bhuvy
   setenv("HOME", "/home/bhuvan", 1 /*set overwrite to true*/ );
 \end{lstlisting}
 
-Environment variables are important because they are inherited between processes and can be used the specify \href{https://pubs.opengroup.org/onlinepubs/9699919799/basedefs/V1_chap08.html}{A standard set of behaviors}
+Environment variables are important because they are inherited between processes and can be used the specify a standard set of behaviors \cite{env_std_2018}, though you don't need to memorize the options.
 Another security related concern is that environment variables cannot be read by an outside process whereas argv can be.
 
 \section{Further Reading}
 
-Read the man pages!
+Read the man pages and the posix groups above!
+
 \begin{itemize}
 \item \href{http://man7.org/linux/man-pages/man2/fork.2.html}{fork}
 \item \href{http://man7.org/linux/man-pages/man3/exec.3.html}{exec}
