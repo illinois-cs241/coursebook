@@ -487,7 +487,7 @@ Similarly, we also need to check the previous block, too.
 If that exists and represents an unallocated memory, then we need to coalesce the blocks into a single large block.
 
 To be able to coalesce a free block with a previous free block we will also need to find the previous block, so we store the block's size at the end of the block, too.
-These are called ``boundary tags'' \cite{knuth1974art}.
+These are called ``boundary tags'' \cite{knuth1973art}.
 These are Knuth's solution to the coalescing problem both ways.
 As the blocks are contiguous, the end of one blocks sits right next to the start of the next block.
 So the current block (apart from the first one) can look a few bytes further back to lookup the size of the previous block.
