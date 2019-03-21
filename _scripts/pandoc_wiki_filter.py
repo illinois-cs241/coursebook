@@ -29,13 +29,10 @@ def change_base_url(elem, doc):
         return elem
 
     if isinstance(elem, Math):
-        # Fix superscripts and subscripts
-        # TODO: Fix regexes and return new raw HTML element in the math instead of inline
-        elem.text = re.sub(r'_([A-Za-z0-9])\b', r'<sub>\g<1></sub>', elem.text)
-        elem.text = re.sub(r'_\{([A-Za-z0-9]+)\}\b', r'<sub>\g<1></sub>', elem.text)
-        elem.text = re.sub(r'\^([-_A-Za-z0-9])', r'<sup>\g<1></sup>', elem.text)
-        elem.text = re.sub(r'\^{([-_A-Za-z0-9]+)}', r'<sup>\g<1></sup>', elem.text)
-        return elem
+        # Raw inline mathlinks so jekyll renders them
+        content = elem.text
+        escaped = "$$ {} $$".format(content)
+        return RawInline(escaped)
     if isinstance(elem, Link):
         # Transform all Links into a tags
         # Reason being is github and jekyll are weird

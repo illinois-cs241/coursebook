@@ -158,11 +158,13 @@ def convert_latex_to_md(files_m):
         md_path = files_m.md_path
         command = ['pandoc',
                     '--toc', #generate Table of Contents
-                    '--self-contained', # Should be a standalone document
+                    '--standalone', # Should be a standalone document
                     '-f', # Input format
                     'latex',
                     '-t', # Output format
-                    'gfm+raw_html+autolink_bare_uris', # Github Flavored Markdown + Add raw HTML + link any bare HTTPS;//
+                    'gfm+raw_html+autolink_bare_uris-tex_math_dollars',
+                    # Github Flavored Markdown + Add raw HTML + link any bare HTTPS;//
+                    # + get mathjax to display correctly
                     '-s', # Create a standalone wiki page not a fragment
                     '--filter',
                     'pandoc-citeproc', # Filter with citeproc first. It has to be first!
