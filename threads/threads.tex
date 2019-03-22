@@ -3,20 +3,22 @@
 \epigraph{If you think your programs were not working before, just wait until they crash ten times as fast}{Bhuvy}
 
 A thread is short for `thread-of-execution'.
-It represents the sequence of instructions that the CPU has (and will) execute.
+It represents the sequence of instructions that the CPU has and will execute.
 To remember how to return from function calls, and to store the values of automatic variables and parameters a thread uses a stack.
-A thread is a process (meaning that creating a thread is similar to \keyword{fork}) except there is \textbf{no copying} meaning no copy on write.
+Almost weirdly, a thread is a process, meaning that creating a thread is similar to \keyword{fork}, except there is \textbf{no copying} meaning no copy on write.
 What this allows is for a process to share the same address space, variables, heap, file descriptors and etc.
-The actual system call to create a thread is similar to \keyword{fork}; it's \keyword{clone}.
+The actual system call to create a thread is similar to \keyword{fork}. Tt's \keyword{clone}.
 We won't go into the specifics but you can read the \href{http://man7.org/linux/man-pages/man2/clone.2.html}{man pages} keeping in mind that it is outside the direct scope of this course.
-LWP or threads are preferred to forking for a lot of scenarios because there is a lot less overhead creating them. But in some cases (notably python uses this) multiprocessing is the way to make your code faster.
+LWP or Lightweight Processes or threads are preferred to forking for a lot of scenarios because there is a lot less overhead creating them.
+But in some cases, notably python uses this, multiprocessing is the way to make your code faster.
 
 \section{Processes vs threads}
 
 Creating separate processes is useful when
+
 \begin{itemize}
 \item When more security is desired. For example, Chrome browser uses different processes for different tabs.
-\item When running an existing and complete program then a new process is required (e.g.~starting `gcc')
+\item When running an existing and complete program then a new process is required, for example starting `gcc'.
 \item When you are running into synchronization primitives and each process is operating on something in the system.
 \item When you have too many threads -- the kernel tries to schedule all the threads near each other which could cause more harm than good.
 \item When you don't want to worry about race conditions
@@ -41,21 +43,65 @@ Once it returns from a function, we can move the stack pointer back up to its pr
 We keep a copy of the old stack pointer value - on the stack!
 This is why returning from a function is very quick - it's easy to `free' the memory used by automatic variables - we just need to change the stack pointer.
 
-In a multi threaded program, there are multiple stack but only one address space. The pthread library allocates some stack space (either in the heap or using a part of the main program's stack) and uses the \keyword{clone} function call to start the thread at that stack address.
+In a multi threaded program, there are multiple stack but only one address space. The pthread library allocates some stack space and uses the \keyword{clone} function call to start the thread at that stack address.
 
-\begin{figure}[htbp]
-\centering
-\includegraphics{threads/images/thread_stack.png}
-\caption{Thread address space}
-\end{figure}
+\begin{verbatim}
++-------+
+|       | <- Maybe some reserved space
++-------+
+|       | <- The first stack is the main thread stack
+| Stack |
+|   1   |
+|       |
++-------+
+|       | <- This is the first additional thread stack
+| Stack |
+|   2   |
+|       |
++-------+
+|  ...  |
+\end{verbatim}
 
-You can have more than one thread running inside a process. You get the first thread for free! It runs the code you write inside `main'. If you need more threads you can call \keyword{pthread\_create} to create a new thread using the pthread library. You'll need to pass a pointer to a function so that the thread knows where to start.
+You can have more than one thread running inside a process.
+You get the first thread for free! It runs the code you write inside `main'.
+If you need more threads you can call \keyword{pthread\_create} to create a new thread using the pthread library. You'll need to pass a pointer to a function so that the thread knows where to start.
 
-The threads you create all live inside the same virtual memory because they are part of the same process. Thus they can all see the heap, the global variables and the program code etc. Thus you can have two (or more) CPUs working on your program at the same time and inside the same process. It's up to the operating system to assign the threads to CPUs. If you have more active threads than CPUs then the kernel will assign the thread to a CPU for a short duration (or until it runs out of things to do) and then will automatically switch the CPU to work on another thread. For example, one CPU might be processing the game AI while another thread is computing the graphics output.
+The threads you create all live inside the same virtual memory because they are part of the same process.
+Thus they can all see the heap, the global variables and the program code etc.
+
+\begin{verbatim}
++-------+
+|       |
++-------+
+|       | # Stack 1
+|int *a2|-----------+
+|       |           |
+|       |           |
++-------+           |
+|       | # Stack 2 |
+|int *a1|--+        |
+|       |  |        |
+|       |  |        |
++-------+  |        |
+|  ...  |  |        |
++-------+  |        |
+|       |  |        |
+|   1   |<-+--------+
+|       |
+|       | # Heap
+\end{verbatim}
+
+
+Thus you can have two (or more) CPUs working on your program at the same time and inside the same process.
+It's up to the operating system to assign the threads to CPUs.
+If you have more active threads than CPUs then the kernel will assign the thread to a CPU for a short duration or until it runs out of things to do and then will automatically switch the CPU to work on another thread.
+For example, one CPU might be processing the game AI while another thread is computing the graphics output.
 
 \section{Simple Usage}
 
-To use pthreads you will need to include \keyword{pthread.h} and compile with \keyword{-pthread} (or \keyword{-lpthread}) compiler option. This option tells the compiler that your program requires threading support. To create a thread use the function \keyword{pthread\_create}. This function takes four arguments:
+To use pthreads you will need to include \keyword{pthread.h} and compile and link with \keyword{-pthread} or \keyword{-lpthread} compiler option.
+This option tells the compiler that your program requires threading support.
+To create a thread use the function \keyword{pthread\_create}. This function takes four arguments:
 
 \begin{lstlisting}[language=C]
 int pthread_create(pthread_t *thread, const pthread_attr_t *attr,
@@ -74,15 +120,16 @@ int pthread_create(pthread_t *thread, const pthread_attr_t *attr,
   Fourth is a pointer that will be given to our function
 \end{itemize}
 
-The argument \keyword{void *(*start\_routine) (void *)} is difficult to read! It means a pointer that takes a \keyword{void *} pointer and returns a \keyword{void *} pointer. It looks like a function declaration except that the name of the function is wrapped with \keyword{(* .... )}
+The argument \keyword{void *(*start\_routine) (void *)} is difficult to read!
+It means a pointer that takes a \keyword{void *} pointer and returns a \keyword{void *} pointer.
+It looks like a function declaration except that the name of the function is wrapped with \keyword{(* .... )}
 
 \begin{lstlisting}[language=C]
 #include <stdio.h>
 #include <pthread.h>
-// remember to set compilation option -pthread
 
 void *busy(void *ptr) {
-// ptr will point to "Hi"
+    // ptr will point to "Hi"
     puts("Hello World");
     return NULL;
 }
@@ -98,6 +145,8 @@ In the above example, \keyword{result} will be \keyword{null} because the busy f
 We need to pass the address-of result because \keyword{pthread\_join} will be writing into the contents of our pointer.
 
 \section{Pthread Functions}
+
+Here are some common pthread functions to help you get going.
 
 \begin{itemize}
 \item \keyword{pthread\_create}.
@@ -154,15 +203,22 @@ This is equivalent to turning your children into zombies, so keep this in mind f
 // ...
 \end{lstlisting}
 
-\item You've heard about this already, but how can a thread be terminated?
+
+\end{itemize}
+
+To be clear, now we have a whole host of way to exit threads.
+Here is a non-complete list.
+
 \begin{itemize}
 \item Returning from the thread function
 \item Calling \keyword{pthread\_exit}
 \item Cancelling the thread with \keyword{pthread\_cancel}
-\item Terminating the process (e.g.~SIGTERM); exit(); returning from \keyword{main}
+\item Terminating the process through a signal.
+\item calling \keyword{exit()} or \keyword{abort()}
+\item Returning from \keyword{main}
+\item \keyword{exec}'ing another program
 \item Unplugging your computer
-\end{itemize}
-
+\item Some undefined behavior can terminate your threads, it is undefined behavior
 \end{itemize}
 
 \section{Race Conditions}
@@ -173,33 +229,33 @@ Meaning that the same program can run multiple times and depending on how the ke
 The following is the canonical race condition.
 
 \begin{lstlisting}[language=C]
-  void *thread_main(void *data) {
-    int *int_ptr = data;
-    *int_ptr += *int_ptr;
-    return NULL;
-  }
+void *thread_main(void *data) {
+  int *int_ptr = data;
+  *int_ptr += *int_ptr;
+  return NULL;
+}
 
-  int main() {
-    int data = 1;
-    pthread_t one, two;
-    pthread_create(&one, NULL, thread_main, &data);
-    pthread_create(&two, NULL, thread_main, &data);
-    pthread_join(one, NULL);
-    pthread_join(two, NULL);
-    printf("%d\n", data);
-    return 0;
-  }
+int main() {
+  int data = 1;
+  pthread_t one, two;
+  pthread_create(&one, NULL, thread_main, &data);
+  pthread_create(&two, NULL, thread_main, &data);
+  pthread_join(one, NULL);
+  pthread_join(two, NULL);
+  printf("%d\n", data);
+  return 0;
+}
 \end{lstlisting}
 
 Breaking down the assembly there are many different accesses of the code.
 We will assume that data is stored in the \keyword{eax} register.
 The code to increment is the following with no optimization (assume int\_ptr contains eax).
 
-\begin{lstlisting}
-mov     eax, DWORD PTR [rbp-4]
-add     eax, eax
-mov     DWORD PTR [rbp-4], eax
-\end{lstlisting}
+\begin{verbatim}
+mov     eax, DWORD PTR [rbp-4]    # Loads int_ptr
+add     eax, eax                  # Does the addition
+mov     DWORD PTR [rbp-4], eax    # Stores it back
+\end{verbatim}
 
 This is a fine access pattern
 
@@ -227,8 +283,25 @@ This access pattern will cause the variable \keyword{data} to be 2.
 This is undefined behavior and a race condition.
 What we want is one thread to access the part of the code at a time.
 
+You may also ask, well when I compile the code with \keyword{-O2} then I get
+
+\begin{verbatim}
+shl     dword ptr [rdi]   # Optimized way of doing the add
+\end{verbatim}
+
+Shouldn't that fix it? It is a single assembly instructions so no interleaving?
+Well it doesn't fix the problems that the \textit{hardware itself} may experience a race condition because we as programmers didn't tell the hardware to check for it.
+The easiest way is to add the \textit{lock} prefix \cite[p. 1120]{guide2011intel}.
+
+But we don't want to be coding in assembly!
+We need to come up with a software solution to this problem.
+
+\subsubsection{A day at the races}
+
 Here is another small race condition.
-The following code is supposed to start ten threads with values 0,1,2,3,\ldots{}9 However, when run prints out \keyword{1 7 8 8 8 8 8 8 8 10}!
+The following code is supposed to start ten threads with the integers 0 through 9 inclusive.
+However, when run prints out \keyword{1 7 8 8 8 8 8 8 8 10}!
+Or very seldom does it print out what we expect.
 Can you see why?
 
 \begin{lstlisting}[language=C]
@@ -251,9 +324,10 @@ int main() {
 \end{lstlisting}
 
 The above code suffers from a \keyword{race condition} - the value of i is changing.
-A race condition simply put is a sequence of instructions that shouldn't be executed by two threads at once.
-The new threads start later (in the example output the last thread starts after the loop has finished).
-To overcome this race-condition, we will give each thread a pointer to its own data area. For example, for each thread we may want to store the id, a starting value and an output value. We will instead treat i as a pointer and cast it by value.
+The new threads start later in the example output the last thread starts after the loop has finished.
+To overcome this race-condition, we will give each thread a pointer to its own data area.
+For example, for each thread we may want to store the id, a starting value and an output value.
+We will instead treat i as a pointer and cast it by value.
 
 \begin{lstlisting}[language=C]
 void* myfunc(void* ptr) {
@@ -273,24 +347,48 @@ int main() {
 }
 \end{lstlisting}
 
-Race conditions aren't just in our code; they can be in provided code
+Race conditions aren't just in our code.
+they can be in provided code
 Some functions like \keyword{asctime}, \keyword{getenv}, \keyword{strtok}, \keyword{strerror} not thread-safe.
-Let's look at a simple function that is also not `thread-safe' The result buffer could be stored in global memory.
-This is good - we wouldn't want to return a pointer to an invalid address on the stack, but there's only one result buffer in the entire memory.
-If two threads were to use it at the same time then one would corrupt the other:
+Let's look at a simple function that is also not `thread-safe'.
+The result buffer could be stored in global memory.
+This is good in a single threaded program.
+We wouldn't want to return a pointer to an invalid address on the stack, but there's only one result buffer in the entire memory.
+If two threads were to use it at the same time, one would corrupt the other.
 
 \begin{lstlisting}[language=C]
 char *to_message(int num) {
-    char static result [256];
+    static char result [256];
     if (num < 10) sprintf(result, "%d : blah blah" , num);
     else strcpy(result, "Unknown");
     return result;
 }
 \end{lstlisting}
 
-There are ways around this like using synchronization locks, to be explained later.
-These are used to prevent race conditions and ensure proper synchronization between threads running in the same program.
-In addition, these locks are conceptually identical to the primitives used inside the kernel.
+There are ways around this like using synchronization locks, but first let's do this by design.
+How would you fix the function above?
+You can change any of the params and any return types.
+Here is one valid solution.
+
+\begin{lstlisting}[language=C]
+int to_message_r(int num, char *buf, size_t nbytes) {
+  size_t written;
+  if (num < 10) {
+    written = snprintf(buf, nbtytes, "%d : blah blah" , num);
+  } else {
+    strncpy(buf, "Unknown", nbytes);
+    buf[nbytes] = '\0';
+    written = strlen(buf) + 1;
+  }
+  return written <= nbytes;
+}
+\end{lstlisting}
+
+Instead of making the function responsible for the memory, we made the caller responsible!
+A lot of programs, and hopefully your programs, have minimal communication needed.
+Often a malloc call is much less work than locking a mutex or sending a message to another thread.
+
+\subsection{Don't Cross the Streams}
 
 In case you were wondering, you can fork inside a process with multiple threads!
 However, the child process only has a single thread, which is a clone of the thread that called \keyword{fork}.
@@ -365,10 +463,11 @@ The time complexity analysis gets interesting here as well.
 The parallel algorithm runs in $O(\log^3(n))$ running time because we the analysis assumes that we have a lot of cores.
 
 In practice though, we typically do two changes.
-One, once the array gets small enough, we ditch the parallel mergesort algorithm and do a quicksort or other algorithm that works fast on small arrays (something something cache coherency).
+One, once the array gets small enough, we ditch the parallel mergesort algorithm and do a quicksort or other algorithm that works fast on small arrays, usually cache coherency rules at this level.
 The other thing that we know is that CPUs don't have infinite cores.
 To get around that, we typically keep a worker pool.
 You won't see the speedup right away because of things like cache coherency and scheduling extra threads.
+Over the long term though, you will start to see speedups.
 
 Another embarrassingly parallel problem is parallel map.
 Say we want to apply a function to an entire array, one element at a time.
@@ -389,6 +488,7 @@ What do you think would be the best way to split up the work between threads.
 \subsection{Extra: Scheduling}
 
 There are a few ways to split up the work.
+These are common to the OpenMP framework \cite{silberschatz2005operating}.
 
 \begin{itemize}
 \item \keyword{static scheduling} break up the problems into fixed size chunks (predetermined) and have each thread work on each of the chunks.
@@ -402,9 +502,7 @@ There are a few ways to split up the work.
   Instead of deciding it yourself, let the program decide what to do!
 \end{itemize}
 
-\href{https://software.intel.com/en-us/articles/openmp-loop-scheduling}{source}, but no need to memorize.
-
-The above link references openmp.
+No need to memorize any of the scheduling routines though.
 Openmp is a standard that is an alternative to pthreads.
 For example here is how to parallelize a for loop
 
@@ -445,6 +543,92 @@ From \href{https://en.wikipedia.org/wiki/Embarrassingly_parallel}{Wikipedia}
 \item Discrete Fourier Transform where each harmonic is independently calculated.
 \end{itemize}
 
+\subsection{Extra: threads.h}
+
+We have a lot of threading libraries discussed in the extra section.
+We have the standard POSIX threads, OpenMP threads, we also have a new C11 threading library that is built into the standard.
+This library provides restricted functionality.
+
+You may be asking to yourself, why would I use the restricted functionality?
+The key is in the name.
+Since this is the C standard library, it has to be implemented on all operating systems that are compliant which are pretty much all of them.
+This means there is first-class portability when using threads.
+
+We won't drone on about the functions.
+Most of them are just renaming of pthread functions anyway.
+If you ask why we don't teach these, there are a few reasons
+
+\begin{enumerate}
+\item They are pretty new. Even though the standard came out in roughly 2011, POSIX threads have been around forever.
+  A lot of their quirks have been ironed out.
+\item You lose expressivity.
+  This is a concept that we'll talk about in later chapters, but when you make something portable, you lose some expressivity with the host hardware.
+  That means that the threads.h library is pretty bare bones.
+  It is hard to set CPU affinities.
+  Schedule threads together.
+  Efficiently look at the internals for performance reasons.
+\item A lot of legacy code is already written with POSIX threads in mind.
+  Other libraries like OpenMP, CUDA, MPI will either use POSIX processes or POSIX threads with a begrudging port to Windows.
+\end{enumerate}
+
+\subsection{Extra: Lightweight Processes?}
+
+Earlier in the beginning of the chapter we mentioned that threads are just processes.
+What do we mean by that?
+You can create a thread just like a process
+Take a look at the example code below
+
+\begin{lstlisting}[language=C]
+
+// 8 KiB stacks
+#define STACK_SIZE (8 * 1024 * 1024)
+
+int thread_start(void *arg) {
+  // Just like the pthread function
+  puts("Hello Clone!")
+  // I share the same heap and address space!
+  return 0;
+}
+
+int main() {
+    // Allocate stack space for the child
+    char *child_stack = malloc(STACK_SIZE);
+    // Remember stacks work by growing down, so we need
+    // to give the top of the stack
+    char *stack_top = stack + STACK_SIZE;
+
+    // clone create thread
+    pid_t pid = clone(thread_start, stack_top, SIGCHLD, NULL);
+    if (pid == -1) {
+      perror("clone");
+      exit(1);
+    }
+    printf("Child pid %ld\n", (long) pid);
+
+    // Wait just like any child
+    if (waitpid(pid, NULL, 0) == -1) {
+      perror("waitpid");
+      exit(1);
+    }
+
+    return 0;
+}
+\end{lstlisting}
+
+Seems pretty simple right?
+Well why don't we have you do it this way every time?
+First there is a decent bit of boilerplate code.
+You have to create the stack everytime and pass in the right flags, and wait like a process which requires a lot of finnicky flags to be set from the man pages.
+In addition, almost everyone uses pthreads by default.
+Pthreads let you set various attributes -- some that resemble the option in clone -- to customize your thread.
+But as we mentioned earlier, with each later of abstraction for portability reasons we lose some functionality.
+clone can do some neat things like keep different parts of your heap the same while creating copies of other pages.
+You have finer linux control of scheduling because it is a process, just with the same mappings.
+
+At no time in this course should you be using clone.
+But in the future, know that it is a perfectly viable alternative to fork.
+You just have to be careful about what you are doing.
+
 \subsection{Further Reading}
 
 \begin{itemize}
@@ -478,7 +662,7 @@ Under what conditions will a process exit
 \begin{itemize}
 \tightlist
 \item
-What happens when a pthread gets created? (you don't need to go into super specifics)
+What happens when a pthread gets created?
 \item
 Where is each thread's stack?
 \item
