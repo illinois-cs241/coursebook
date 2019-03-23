@@ -144,6 +144,9 @@ int main() {
 In the above example, \keyword{result} will be \keyword{null} because the busy function returned \keyword{null}.
 We need to pass the address-of result because \keyword{pthread\_join} will be writing into the contents of our pointer.
 
+In the man pages, it warns that programmers should use \keyword{pthread\_t} as an opaque type and not look at the internals.
+We do ignore that often, though.
+
 \section{Pthread Functions}
 
 Here are some common pthread functions to help you get going.

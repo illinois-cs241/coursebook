@@ -707,7 +707,7 @@ int is_empty() {
 Version 2 contains at least one error.
 Take a moment to see if you can the error(s) and work out the consequence(s).
 
-If three threads called \keyword{push()} at the same time, the lock \keyword{m1} ensures that only one thread at time manipulates the stack on push or is_empty -- Two threads will need to wait until the first thread completes
+If three threads called \keyword{push()} at the same time, the lock \keyword{m1} ensures that only one thread at time manipulates the stack on push or is\_empty -- Two threads will need to wait until the first thread completes
 A similar argument applies to concurrent calls to \keyword{pop}.
 However version 2 does not prevent push and pop from running at the same time because \keyword{push} and \keyword{pop} use two different mutex locks.
 The fix is simple in this case - use the same mutex lock for both the push and pop functions.
@@ -2181,7 +2181,7 @@ Make sure to note.
 \begin{enumerate}
 \item The lock is only held during the critical section (access to the data structure).
 \item A complete implementation would need to guard against early returns from \keyword{sem\_wait} due to POSIX signals.
-\end{enuemrate}
+\end{enumerate}
 
 \begin{lstlisting}[language=C]
 enqueue(void *value){
