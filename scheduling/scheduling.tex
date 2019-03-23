@@ -440,9 +440,15 @@ The proofs are intuitive for people who don't have a background in queueing theo
   E[W] = E[S] * E[N]
   \]
 
-  or about the same waiting time as FCFS shockingly.
   The reason this proof is not rigorous and not accepted is because we can't assume that there will always be $E[N] * Q$ time on average in between cycles because it depends on the state of the system.
   This means we need to factor in various variations in processing delay.
+  We also can't use Little's law in this case because there is no real steady state of the system (otherwise we'd be able to prove some weird things)
+
+  One thing that is interesting is that we don't have to worry about the convoy effect or any new processes coming in.
+  The total wait time remains bounded by the number of people in the queue.
+  For those of you familiar with tail inequalities since processes arrive according to a poinsson distribution, the probability that we'll get many processes drops off exponentially due to chernoff bounds (all arrivals are independent of other arrivals).
+  Meaning roughly we can assume low variance on the number of processes.
+  As long as the service time is reasonable on average, the wait time will be too.
 
 \item The expected response time is
   \[
