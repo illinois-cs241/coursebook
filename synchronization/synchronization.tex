@@ -1387,6 +1387,7 @@ Here is a sketch of how we could do it.
 
 \begin{lstlisting}[language=C]
 typedef struct cv_node_ {
+  pthread_mutex_t *dynamic;
   int is_awoken;
   struct cv_node_ *next;
 } cv_node;
@@ -1397,6 +1398,7 @@ typedef struct {
 
 void cond_init(cond_t *cv) {
   cv->head = NULL;
+  cv->dynamic = NULL;
 }
 
 void cond_destroy(cond_t *cv) {
@@ -1404,7 +1406,7 @@ void cond_destroy(cond_t *cv) {
   // Though may be useful for the future to put pieces
 }
 
-static void remove_from_list(cond_t *cv, cv_node *ptr) {
+static int remove_from_list(cond_t *cv, cv_node *ptr) {
   // Function assumes mutex is locked
   // Some sanity checking
   if (ptr == NULL) {
@@ -1438,6 +1440,14 @@ The interesting stuff is below.
 
 \begin{lstlisting}[language=C]
 void cond_wait(cond_t *cv, pthread_mutex_t *m) {
+  // See note (dynamic) below
+  if (cv->dynamic == NULL) {
+    cv->dynamic = m
+  } else if (cv->dynamic != m) {
+    // Error can't wait with a different mutex!
+
+    abort();
+  }
   // mutex is locked so we have the critical section right now
   // Create linked list node _on the stack_
   cv_node my_node;
@@ -1453,6 +1463,11 @@ void cond_wait(cond_t *cv, pthread_mutex_t *m) {
 
   pthread_mutex_lock(m);
   remove_from_list(cv, &my_node);
+
+  // The dynamic binding is over
+  if (cv->head == NULL) {
+    cv->dynamic = NULL;
+  }
 }
 
 void cond_signal(cond_t *cv) {
@@ -1484,6 +1499,12 @@ Instead of malloc'ing space which could lead to deadlock.
 We keep the datastructures or the linked list nodes on each thread's stack.
 The linked list in the wait function is created \textbf{While the thread has the mutex lock} this is important because otherwise we may have a race condition on the insert and removal.
 A more robust implementation would have a mutex per condition variable.
+
+What is the note about (dynamic)?
+In the pthread man pages, wait creates a runtime binding to a mutex. This means that after the first call is called, a mutex is associated with a condition variable while there is still a thread waiting on that condition variable.
+Each new thread coming in must have the same mutex, and it must be locked.
+Hence, the beginning and end of wait (everything besides the while loop) is mutually exclusive.
+After the last thread leaves, meaning when head is NULL, then the binding is lost.
 
 The signal and broadcast functions merely tell either one thread or all threads respectively that they should be worken up.
 \textbf{It doesn't modify the linked lists because there is no mutex to prevent a corruption if two threads call signal or broadcast}
