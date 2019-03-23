@@ -29,23 +29,7 @@ The most recent version of the coursebook as a single pdf is here: [main.pdf](ht
 
 ## Contributing
 
-Want to contribute? Afraid of latex or python? Don't be!
-
-If you want to contribute, all you need to do is
-1. Fork
-2. Make the changes by
-    1. Going to the appropriate chapter
-    2. Make changes either online or on the command line
-    3. Make a PR
-3. The PR will be cleared up and on build, a new version of the couresbook will be released and deployed!
-
-### Contributing Guidlines
-
-If you want to make a quick typo fix or a quick formatting fix, make the pull request and it should be resolved soon.
-
-Otherwise, you should probably make an issue first to see what either the course staff or the professor has to say about it. 
-Examples of something like this could be adding a new chapter, adding a substantial amount about some topic, adding more "fun examples", or changing the build system.
-
+Read `CONTRIBUTING.md`
 
 ## Building
 
