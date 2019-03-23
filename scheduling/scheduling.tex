@@ -299,14 +299,18 @@ Here are some concepts from queueing theory that you'll need to know that will h
 
 \begin{enumerate}
 \item Queueing theory involves a random variable controlling the interarrival time -- or the time between two different processes arriving.
-We won't name this random variable, but we will assume that (1) it has a mean of $\lambda$ and (2) it is distributed as a poisson random variable. This means the probability of getting a process $t$ units after getting another process is $\lambda^t * \exp(-\lambda)/(t!)$ where $(t!)$ can be approximated by the gamma function when dealing with real values.
-\item We will be denoting the service time $S$, and deriving the waiting time $W$, and the response time $R$; more specifically the expected values of all of those variables $E[S]$ deriving turnaround time is simply $S + W$. For clarity we will introduce another variable $N$ that is the number of people currently in the queue. A famous result in queueing theory is Little's Law which states $E[N] = \lambda E[W]$ meaning that the number of people waiting is the arrival rate times the expected waiting time (assuming the queue is in a steady state).
+  We won't name this random variable, but we will assume that (1) it has a mean of $\lambda$ and (2) it is distributed as a poisson random variable.
+  This means the probability of getting a process $t$ units after getting another process is $\lambda^t * \frac{\exp(-\lambda)}{t!}$ where $t!$ can be approximated by the gamma function when dealing with real values.
+\item We will be denoting the service time $S$, and deriving the waiting time $W$, and the response time $R$; more specifically the expected values of all of those variables $E[S]$ deriving turnaround time is simply $S + W$.
+  For clarity we will introduce another variable $N$ that is the number of people currently in the queue.
+  A famous result in queueing theory is Little's Law which states $E[N] = \lambda E[W]$ meaning that the number of people waiting is the arrival rate times the expected waiting time (assuming the queue is in a steady state).
 \item We won't make many assumptions about how much time it'll take to run each process except that it will take a finite amount of time -- otherwise this gets almost impossible to evaluate.
-We will however denote two variables that $1 / \mu$ is the mean of the waiting time and that the coefficient of variation $C$ is defined as $C^2 = var(S) / E[S]^2$ to help us control for processes that take a while to finish.
-An important piece to note is that when $C > 1$ we say that the running times of the process are variadic. We will note below that this rockets up the wait and response times for FCFS quadratically.
-\item $\rho = \lambda / \mu < 1$ Otherwise our queue would become infinitely long
+We will however denote two variables that $\frac{1}{\mu}$ is the mean of the waiting time and that the coefficient of variation $C$ is defined as $C^2 = \frac{var(S)}{E[S]^2}$ to help us control for processes that take a while to finish.
+An important note is that when $C > 1$ we say that the running times of the process are variadic. We will note below that this rockets up the wait and response times for FCFS quadratically.
+\item $\rho = \frac{\lambda}{\mu} < 1$ Otherwise our queue would become infinitely long
 \item We will assume that there is one processor. This is known as a M/G/1 queue in queueing theory.
-\item We'll leave the service time as an expectation $S$ otherwise we may run into over-simplifications with the algebra. Plus it is easier to compare different queueing disciplines with a common factor of service time.
+\item We'll leave the service time as an expectation $S$ otherwise we may run into over-simplifications with the algebra.
+  Plus it is easier to compare different queueing disciplines with a common factor of service time.
 \end{enumerate}
 
 \subsection{First Come First Served}
@@ -314,34 +318,84 @@ An important piece to note is that when $C > 1$ we say that the running times of
 All results are from Jorma Virtamo's lectures on the matter \cite{virtamo}
 
 \begin{enumerate}
-  \item $E[W] = \frac{(1 + C^2)}{2}\frac{\rho}{(1 - \rho)} * E[S]$. What does this say? When given as $\rho \rightarrow 1$ or the mean job arrival rate equals the mean job processing rate, then the wait times get really long. In addition, as the variance of the job increases, the wait times go up.
-  \item $E[R] = E[N] * E[S] = \lambda * E[W] * E[S]$. The response time is simple to calculate, it is just the expected number of people ahead of the process in the queue times the expected time to service each of those processes. From Little's law above, we can substitute that for this. Since we already know the value of the waiting time, we can reason about the response time as well.
-  \item A discussion of the results is shows something very cool discovered by Conway and Al \cite{conway1967theory}. Any scheduling discipline that isn't pre-emptive and doesn't take into account the run time of the process or a priority will have the same wait, response, and turnaround time.
+\item The first is expected waiting time.
+  \[
+  E[W] = \frac{(1 + C^2)}{2}\frac{\rho}{(1 - \rho)} * E[S]
+  \]
+
+  What does this say? When given as $\rho \rightarrow 1$ or the mean job arrival rate equals the mean job processing rate, then the wait times get really long.
+  In addition, as the variance of the job increases, the wait times go up.
+
+\item Next is the expected response time
+
+  \[
+  E[R] = E[N] * E[S] = \lambda * E[W] * E[S]
+  \]
+  The response time is simple to calculate, it is just the expected number of people ahead of the process in the queue times the expected time to service each of those processes.
+  From Little's law above, we can substitute that for this. Since we already know the value of the waiting time, we can reason about the response time as well.
+\item A discussion of the results is shows something very cool discovered by Conway and Al \cite{conway1967theory}.
+  Any scheduling discipline that isn't pre-emptive and doesn't take into account the run time of the process or a priority will have the same wait, response, and turnaround time.
+  We will often use this as a baseline.
 \end{enumerate}
 
 \subsection{Round Robin or Processor Sharing}
 
-It is really hard to analyze round robin from a probabilistic sense because it is so state based. The next job that you work on requires you to remember the previous jobs. Queueing theory developers have made an assumption that the time quanta is roughly zero -- ignoring context switching and the like.
-This leads way into processor sharing. Many different tasks can get worked on at the same time but experience a slowdown.
+It is really hard to analyze round robin from a probabilistic sense because it is so state based.
+The next job that you work on requires you to remember the previous jobs.
+Queueing theory developers have made an assumption that the time quanta is roughly zero -- ignoring context switching and the like.
+This leads way into processor sharing.
+Many different tasks can get worked on at the same time but experience a slowdown.
 All of these proofs will be adapted from Harchol-Balter's book \cite{harchol2013performance}.
-I highly recommend checking out the books if you are interested
+I highly recommend checking out the books if you are interested.
+The proofs are intuitive for people who don't have a background in queueing theory.
 
 \begin{enumerate}
   \item Before we jump to the answer let's reason about this.
-  With our new-found abstraction, we essentially have a FCFS queue where we are going to be working on each job a little slower than before.      Since we are never not working on a job $E[W] = 0$.
+    With our new-found abstraction, we essentially have a FCFS queue where we are going to be working on each job a little slower than before.
+    Since we are never not working on a job
+
+    \[
+    E[W] = 0
+    \]
+
   Under a non-strict analysis of processor sharing though, the amount of time that you wait is best approximated by the amount of times you need to wait.
   You'll need $\frac{E[S]}{Q}$ service periods where $Q$ is the quanta, and you'll need about $E[N] * Q$ time in between those periods.
-  Leading to an average time of $E[W] = E[S] * E[N]$ or about the same waiting time as FCFS shockingly. The reason this proof is not rigorous and not accepted is because we can't assume that there will always be $E[N] * Q$ time on average in between cycles because it depends on the state of the system.
-  \item $E[R] = 0$ Under strict processor sharing it is 0 because all jobs are worked on. In practice however, the response time is.
-  $E[R] = E[N] * Q$ Where Q is the quanta.
-  Using little's law again, we can find out that $E[R] = \lambda E[W] * E[S]$.
-\item One variable that is different is the amount of service time let the service time for round robin be defined as $S_{RR}$.
-  The slowdown is $E[S_{RR}] = \frac{E[S]}{1 - \rho}$
+  Leading to an average time of
+  \[
+  E[W] = E[S] * E[N]
+  \]
+
+  or about the same waiting time as FCFS shockingly.
+  The reason this proof is not rigorous and not accepted is because we can't assume that there will always be $E[N] * Q$ time on average in between cycles because it depends on the state of the system.
+  This means we need to factor in various variations in processing delay.
+
+\item The expected response time is
+  \[
+  E[R] = 0
+  \]
+
+  Under strict processor sharing it is 0 because all jobs are worked on.
+  In practice however, the response time is.
+  \[
+  E[R] = E[N] * Q
+  \]
+
+  Where $Q$ is the quanta.
+  Using Little's Law again, we can find out that
+  \[
+  E[R] = \lambda E[W] * E[S]
+  \]
+\item One variable that is different is the amount of service time let the service time for processor sharing be defined as $S_{PS}$.
+  The slowdown is $E[S_{PS}] = \frac{E[S]}{1 - \rho}$
   Which means as the mean arrival rate equals the mean processing time, then the jobs will take asymptotically as long to finish.
   In the non-strict analyis of processor sharing, we assume that
-  $E[S_{RR}] = E[S] + Q * \epsilon$ where $\epsilon > 0$ is the amount of time a context switch takes.
+  \[
+    E[S_{RR}] = E[S] + Q * \epsilon, \epsilon > 0
+  \]
+    $\epsilon$ is the amount of time a context switch takes.
 
-  \item That naturally leads to the comparison, what is better? The response time is roughly the same comparing the non-strict versions, the wait time is roughly the same, but notice that nothing about the variation of the jobs is put in.
+\item That naturally leads to the comparison, what is better?
+  The response time is roughly the same comparing the non-strict versions, the wait time is roughly the same, but notice that nothing about the variation of the jobs is put in.
   That's because RR doesn't have to deal with the convoy effect and any variances associated, otherwise FCFS is faster in a strict sense.
   It also takes more times for the jobs to finish, but the overall turnaround time is lower under high variance loads.
 \end{enumerate}
@@ -353,11 +407,18 @@ We will also denote $\rho(x) = \sum\limits_{i=0}^x \rho_i$ which is the load con
 The last bit of notation is that we will assume that the probability of getting a process of priority $i$ is $p_i$ and naturally $\sum\limits_{j=0}^k p_j = 1$
  
 \begin{enumerate}
- \item If $E[W_i]$ is the wait time for priority $i$, $E[W_x] = \frac{(1 + C)}{2}\frac{\rho}{(1 - \rho(x))*( 1 - \rho(x-1))} * E[S_i]$.
+\item If $E[W_i]$ is the wait time for priority $i$,
+  \[
+  E[W_x] = \frac{(1 + C)}{2}\frac{\rho}{(1 - \rho(x))*( 1 - \rho(x-1))} * E[S_i]
+  \]
     The full derivation is as always in the book.
     A more useful inequality is that.
-  $E[W_x] \leq \frac{1 + C}{2}* \frac{\rho}{(1 - \rho(x))^2} * E[S_i]$ because the addition of $\rho_x$ can only increase the sum, decrease the denominator or increase the overal function.
-  This means that if one is priority 0, then they only need to wait for the other P0 processes which require variance $\rho C/ (1 - \rho_0)$ to process which is the reduction of the FCFS formula with some variation.
+
+    \[
+    E[W_x] \leq \frac{1 + C}{2}* \frac{\rho}{(1 - \rho(x))^2} * E[S_i]
+    \]
+    because the addition of $\rho_x$ can only increase the sum, decrease the denominator or increase the overal function.
+  This means that if one is priority 0, then a process only need to wait for the other P0 processes which there should be $\rho C/ (1 - \rho_0)$ P0 processes arrived before to process in FCFS order.
   Then the next priority has to wait for all the others and so on and so forth.
 
   The expected overall wait time is now
@@ -376,13 +437,20 @@ The last bit of notation is that we will assume that the probability of getting 
 
   \[
       \frac{1}{1-\rho}
-      \]
+  \]
 
   In words -- you can work this out with experiementing distributions -- if you have a lot of low priority processes who don't contribute a lot to the average load, your average wait time becomes much lower.
 
-\item $E[R_i] = \sum\limits_{j = 0}^i E[N_j] * E[S_j]$ Which simply says that you need to wait for all jobs with a higher priority and the same to go before you can go.
+\item The average per process response time is
+
+  \[
+  E[R_i] = \sum\limits_{j = 0}^i E[N_j] * E[S_j]
+  \]
+
+  Which simply says that you need to wait for all jobs with a higher priority and the same to go before you can go.
   Imagine a series of FCFS queues which you need to wait your turn.
-  Using Little's law (really his red job theorem) and the formula above we can simplify this
+  Using Little's Law for different colored jobs and the formula above we can simplify this
+
   \[
       E[R_i] = \sum\limits_{j=0}^i \lambda_j E[W_j] * E[S_j]
   \]
@@ -393,43 +461,35 @@ The last bit of notation is that we will assume that the probability of getting 
       E[R] = \sum\limits_{i=0}^k p_i [\sum\limits_{j=0}^k \lambda_j E[W_j] * E[S_j] ]
   \]
 
-  Meaning that we are tied to wait times and service times of all other processes. Again, if we keep average wait times low or we can assume that the jobs don't take that much time to service on average, this becomes better than FCFS.
-  Another way of thinking about it is adding in another term $p_i$
-
-  \[
-      E[R] = E[S] \sum\limits_{i=0}^k p_i \sum\limits_{j = 0}^i \lambda_j E[W_j] / p_j
-
-  \]
-
-  Our final inequality will be taking out the $\lambda$ from the sum for comparison
-
-  \[
-      E[R] \leq \lambda * E[S] \sum\limits_{i=0}^k p_i \sum\limits_{j = 0}^i E[W_j] / p_j
-  \]
-
-  So after all of this alphabet soup We finally have some expression for when we can compare this to the other distributions.
-  Here is FCFS
-
-  \[
-      \lambda E[W] E[S]
-  \]
-
-  If we want a better response time that FCFS, we can keep the expected wait times down or we can again expect a higher number of low priority processes so that on average our weight times are lower.
+  Meaning that we are tied to wait times and service times of all other processes.
+  If we break down this equation, we see again if we have a lot of high priority jobs that don't contribute a lot to the load then our entire sum goes down.
+  We won't make too many assumptions about the service time for a job because that would interfere with our analysis from FCFS where we left it as an expression.
 
   \item As for a comparison with FCFS in the average case, it usually does better assuming that we have a smooth probability distribution -- i.e. the probability of getting any particular priority is zero.
   This is because in all of our formulas, we still have some probability mass to put on lower priority processes, bringing the expectation down.
+  This statement doesn't hold for all smooth distributions but for most real-world smoothed distributions (which tend to be smooth) they do.
+
+\item This isn't even to mention the idea of utility.
+  Utility means that if we gain an amount of happiness by having certain jobs finish, priority and pre-emptive priority maximize that while balanacing out other measures of efficiency.
 \end{enumerate}
 
 
 \subsection{Shortest Job First}
+This is a wonderful reduction to the priority.
+Instead of having discrete priorities, we'll introduce that a process that takes $S_t$ time to get serviced.
+$T$ is the maximum amount of time a process can run for, our processes cannot run infinitely long.
+That means the following definitions hold, overriding the previous definitions in priority
 
 \begin{enumerate}
-\item This is a wonderful reduction to the priority.
-  Instead of having discrete priorities, we'll introduce that a process that takes $S_t$ time to get serviced.
-  $T$ is the maximum amount of time a process can run for, our processes cannot run infinitely long.
-  That means the following definitions hold, overriding the previous definitions in priority
-\item $\rho(x) = \int_0^x \rho_u du$ The average load contribution up to this point.
-\item $\int_0^k p_u du = 1$ Probability constraint.
+\item Let
+  \[
+  \rho(x) = \int_0^x \rho_u du
+  \]
+  Be the average load contribution up to this point.
+\item
+  \[
+  \int_0^k p_u du = 1
+  \] Probability constraint.
 \item Etc, replace all the summations above with integrals
 \item The only notational difference is we don't have to make any assumptions about the service times of the jobs because they are denoted by service times subscript, all other analyses are the same.
   \item This means if you want low wait times on average compared to FCFS, your distribution needs to be right skewed.
@@ -440,6 +500,7 @@ The last bit of notation is that we will assume that the probability of getting 
 We will describe priority and sjf's pre-emptive version in the same section because it is essentially the same as we've shown above.
 We'll use the same notation as before.
 We will also introduce an additional term $C_i$ which denotes the variation among a particular class
+
 \[
     C_i = \frac{var(S_i)}{E[S_i]}
 \]
@@ -471,7 +532,7 @@ We will also introduce an additional term $C_i$ which denotes the variation amon
   E[W_i] = E[R_i] + \frac{E[S_i]}{1 - \rho(i)}
   \]
 
-  Averaging that out amongst processes we get
+  Taking the expectation among all processes we get
 
   \[
   E[W] = \sum\limits_{i = 0}^k p_i (E[R_i] + \frac{E[S_i]}{1 - \rho(i)})
