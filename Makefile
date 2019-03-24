@@ -13,11 +13,10 @@ ORDER_TEX_DEP=order.yaml
 TEX_ORDER=$(shell sh -c "cat order.yaml | sed 's/^- //'")
 CHAPTER_PDF=$(patsubst %,%.pdf,$(TEX_ORDER))
 
-$(info $(CHAPTER_PDF))
-
-
 .PHONY: all
 all: $(PDF_TEX) chapters
+	-@rm *aux *bbl *glg *glo *gls *ist *latexmk *fls
+	-@rm **/*aux **/*bbl **/*glg **/*glo **/*gls **/*ist **/*latexmk **/*fls
 
 .PHONY: chapters
 chapters: $(CHAPTER_PDF)
@@ -29,18 +28,18 @@ $(ORDER_TEX): $(ORDER_TEX_DEP)
 	python3 _scripts/gen_order.py $^ > $@
 
 $(CHAPTER_PDF): %.pdf: %.tex
+	du . -sh
 	echo "\includeonly{$(basename $^)}\input{$(MAIN_TEX)}" >> $@.tmp
 	-latexmk -interaction=nonstopmode -quiet -f -pdf -jobname="$@" $@.tmp
 	-@latexmk -c
-	-sh -c "cd $(dir $^) && rm *gls *ist *glo *aux *fls *log *out *blg *glg *fdb_latexmk"
 	@mv $@.pdf $@
 	@ls $@ > /dev/null
-	@rm $@.tmp
+	-@rm $@.tmp
 
 $(PDF_TEX): $(TEX) $(MAIN_TEX) $(BIBS) Makefile $(ORDER_TEX)
+	du . -sh
 	-@latexmk -quiet -interaction=nonstopmode -f -pdf $(MAIN_TEX) 2>&1 >/dev/null
 	-@latexmk -c
-	-@rm *aux *bbl *glg *glo *gls *ist *latexmk *fls
 	@ls $(PDF_TEX) > /dev/null
 	@echo "Finished"
 
