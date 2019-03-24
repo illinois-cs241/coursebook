@@ -22,8 +22,8 @@ else
     git checkout --orphan pdf_deploy;
 
     # Remove all other files, we won't need them
-    rm -rf *;
-    rm -rf .*;
+    rm -rf * || true;
+    rm -rf .* || true;
 
     # Move the tempfile back to the coursebook pdf
     mv $TMP_DIR/* .;
