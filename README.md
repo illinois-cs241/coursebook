@@ -1,7 +1,7 @@
 # Coursebook
 
 [![Build Status](https://travis-ci.com/illinois-cs241/coursebook.svg?branch=master)](https://travis-ci.com/illinois-cs241/coursebook)
-[![Current Pdf Link](https://img.shields.io/badge/current-pdf-blue.svg)](https://github.com/illinois-cs241/coursebook/blob/pdf_deploy/coursebook.pdf)
+[![Current Pdf Link](https://img.shields.io/badge/current-pdf-blue.svg)](https://github.com/illinois-cs241/coursebook/blob/pdf_deploy/main.pdf)
 [![Current Wiki Link](https://img.shields.io/badge/current-wiki-blue.svg)](https://github.com/illinois-cs241/coursebook/wiki)
 [![Current HTML Link](https://img.shields.io/badge/current-html-blue.svg)](http://cs241.cs.illinois.edu/wikibook/Index.html)
 

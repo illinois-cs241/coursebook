@@ -1,5 +1,6 @@
 \documentclass[hidelinks,10pt]{book}
 
+%% Differentiate out the prelude to use in standalone markdown builds
 \input{prelude.tex}
 
 % Set up glossaries here so they aren't generated in each
@@ -40,11 +41,14 @@
 
 \raggedbottom
 
-\include{title.tex}
+%% The title so that it isn't included in the chapters
+\include{title}
 
+%% Introduction, background, then the book starts
 \setcounter{chapter}{-2}
 \input{order.tex}
 
+%% Print gls
 \printglossaries
 
 \end{document}
