@@ -29,6 +29,7 @@ $(ORDER_TEX): $(ORDER_TEX_DEP)
 	python3 _scripts/gen_order.py $^ > $@
 
 $(CHAPTER_PDF): %.pdf: %.tex
+	echo '\\let\\cleardoublepage\\clearpage' >> $@.tmp
 	echo "\includeonly{$(basename $^)}\input{$(MAIN_TEX)}" >> $@.tmp
 	-latexmk -interaction=nonstopmode -quiet -f -pdf -jobname="$@" $@.tmp 2>&1 >/dev/null
 	@mv $@.pdf $@

@@ -6,8 +6,8 @@
 - threads/threads
 - synchronization/synchronization
 - deadlock/deadlock
-- scheduling/scheduling
 - ipc/ipc
+- scheduling/scheduling
 - networking/networking
 - filesystems/filesystems
 - signals/signals

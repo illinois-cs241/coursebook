@@ -47,8 +47,7 @@ The 7 layer model is as follows
 
 \end{enumerate}
 
-Just to be clear this is not a networking class.
-We won't go over most of these layers in depth.
+This book won't cover networking in depth.
 We will focus on some aspects of layers 3, 4, and 7 because they are essential to know if you are going to be doing something with the internet, which at some point in your career you will be.
 As for another definition, a protocol is a set of specifications put forward by the \gls{Internet Engineering Task Force} that govern how implementers of protocol have their program or circuit behave under specific circumstances.
 
@@ -120,11 +119,11 @@ Datagrams are formatted as such
 \end{enumerate}
 
 
-\subsection{Routing}
+\subsection{Extra: Routing}
 
 The internet protocol routing is an amazing intersection of theory and application.
 We can imagine the entire internet as a set of graphs.
-Most peers are connected to what we call "peering points" these are the WIFI routers and the ethernet ports that one finds in their house, work, or public.
+Most peers are connected to what we call "peering points" these are the WiFi routers and the ethernet ports that one finds in their house, work, or public.
 These peering points are then connected to a wired network of routers, switches, and servers that all route themselves.
 At a top level there are two types of routing
 
@@ -150,26 +149,26 @@ So these two protocols need to be fair so the end result works
 
 If you want to read more about this, look at the wikipedia page for routing here \href{https://en.wikipedia.org/wiki/Routing}{Routing}.
 
-\subsection{Fragmentation/Reassembly}
+\subsection{Extra: Fragmentation/Reassembly}
 
 Lower layers like WiFi and Ethernet have maximum transmission sizes.
 The reason being is
 
 \begin{enumerate}
   \item One host shouldn't crowd the medium for too long
-  \item If an error occurs, we want some sort of "progress bar" on how far the communication has gone instead of retransmitting the stream
-  \item There are physical limitations as well, keeping a laser beam in optics working continuously may cause bit errors.
+  \item If an error occurs, we want some sort of "progress bar" on how far the communication has gone instead of retransmitting the entire stream.
+  \item There are physical limitations, keeping a laser beam in optics working continuously may cause bit errors.
 \end{enumerate}
 
-As such if the internet protocol receives a packet that is too big for the maximum size, it must chunk it up.
-TCP calculates how many datagrams it needs to construct a packet and ensures that they are all transmitted and reconstructed at the end receiver.
+If the internet protocol receives a packet that is too big for the maximum size, it must chunk it up.
+TCP calculates how many datagrams that it needs to construct a packet and ensures that they are all transmitted and reconstructed at the end receiver.
 The reason that we barely use this feature is that if any fragment is lost, the entire packet is lost.
 Meaning that, assuming the probability of receiving a packet assuming each fragment is lost with an independent percentage, the probability of successfully sending a packet drops off exponentially as packet size increases.
 
 As such, TCP slices its packets so that it fits inside on IP datagram.
 The only time that this applies is when sending UDP packets that are too big, but most people who are using UDP optimize and set the same packet size as well.
 
-\subsection{IP Multicast}
+\subsection{Extra: IP Multicast}
 
 A little known feature is that using the IP protocol one can send a datagram to all devices connected to a router in what is called a multicast.
 Multicasts can also be configured with groups, so one can efficiently slice up all connected routers and send a piece of information to all of them efficiently.
@@ -188,7 +187,7 @@ IPv4 was designed with little to no security in mind.
 As such, now there is a key exchange similar to TLS in higher layers that allows you to encrypt communication.
 
 Another feature is simplified processing.
-In order to make the internet fast, IPv4 and IPv6 headers alike are actually implemented in hardware.
+In order to make the internet fast, IPv4 and IPv6 headers verification are actually implemented in hardware.
 That means that all header options are processed in circuits as they come in.
 The problem is that as the IPv4 spec grew to include a copious amount of headers, the hardware had to become more and more advanced to support those headers.
 IPv6 reorders the headers so that packets can be dropped and routed with less hardware cycles.
@@ -208,24 +207,29 @@ Therefore we need to manually determine the struct sized based on the family.
 The complete code is shown below.
 
 \begin{lstlisting}[language=C]
-    int required_family = AF_INET; // Change to AF_INET6 for IPv6
-    struct ifaddrs *myaddrs, *ifa;
-    getifaddrs(&myaddrs);
-    char host[256], port[256];
-    for (ifa = myaddrs; ifa != NULL; ifa = ifa->ifa_next) {
-        int family = ifa->ifa_addr->sa_family;
-        if (family == required_family && ifa->ifa_addr) {
-            if (0 == getnameinfo(ifa->ifa_addr,
-                                (family == AF_INET) ? sizeof(struct sockaddr_in) :
-                                sizeof(struct sockaddr_in6),
-                                host, sizeof(host), port, sizeof(port)
-                                 , NI_NUMERICHOST | NI_NUMERICSERV  ))
-                puts(host);
-            }
+int required_family = AF_INET; // Change to AF_INET6 for IPv6
+struct ifaddrs *myaddrs, *ifa;
+getifaddrs(&myaddrs);
+char host[256], port[256];
+
+for (ifa = myaddrs; ifa != NULL; ifa = ifa->ifa_next) {
+    int family = ifa->ifa_addr->sa_family;
+    if (family == required_family && ifa->ifa_addr) {
+        int ret = getnameinfo(ifa->ifa_addr,
+                            (family == AF_INET) ? sizeof(struct sockaddr_in) :
+                            sizeof(struct sockaddr_in6),
+                            host, sizeof(host), port, sizeof(port)
+                              , NI_NUMERICHOST | NI_NUMERICSERV)
+        if (0 == ret) {
+            puts(host);
         }
+    }
+}
 \end{lstlisting}
 
-To get your IP Address from the command line use \keyword{ifconfig} (or Windows' \keyword{ipconfig}) However this command generates a lot of output for each interface, so we can filter the output using grep
+To get your IP Address from the command line use \keyword{ifconfig} or Windows' \keyword{ipconfig}.
+
+However, this command generates a lot of output for each interface, so we can filter the output using grep
 
 \begin{lstlisting}
 ifconfig | grep inet
@@ -238,8 +242,7 @@ Example output:
     inet 192.168.1.100 netmask 0xffffff00 broadcast 192.168.1.255
 \end{lstlisting}
 
-To actually grab the IP Address of a remote website. The function \keyword{getaddrinfo} can convert a human readable domain name (e.g.
-\keyword{www.illinois.edu}) into an IPv4 and IPv6 address.
+To actually grab the IP Address of a remote website, The function \keyword{getaddrinfo} can convert a human readable domain name (e.g. \keyword{www.illinois.edu}) into an IPv4 and IPv6 address.
 In fact it will return a linked-list of addrinfo structs:
 
 \begin{lstlisting}[language=C]
@@ -258,7 +261,7 @@ struct addrinfo {
 For example, suppose you wanted to find out the numeric IPv4 address of a webserver at \keyword{www.bbc.com}
 We do this in two stages.
 First use getaddrinfo to build a linked-list of possible connections.
-Secondly use \keyword{getnameinfo} to convert the binary address into a readable form.
+Secondly use \keyword{getnameinfo} to convert the binary address of one of those into a readable form.
 
 \begin{lstlisting}[language=C]
 #include <stdio.h>
@@ -272,6 +275,7 @@ struct addrinfo hints, *infoptr; // So no need to use memset global variables
 int main() {
   hints.ai_family = AF_INET; // AF_INET means IPv4 only addresses
 
+  // Get the machine addresses
   int result = getaddrinfo("www.bbc.com", NULL, &hints, &infoptr);
   if (result) {
     fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(result));
@@ -282,7 +286,7 @@ int main() {
   char host[256];
 
   for(p = infoptr; p != NULL; p = p->ai_next) {
-
+    // Get the name for all returned addresses
     getnameinfo(p->ai_addr, p->ai_addrlen, host, sizeof(host), NULL, 0, NI_NUMERICHOST);
     puts(host);
   }
@@ -292,6 +296,8 @@ int main() {
 }
 \end{lstlisting}
 
+Possible output.
+
 \begin{lstlisting}
 212.58.244.70
 212.58.244.71
@@ -299,6 +305,12 @@ int main() {
 
 If you are wondering how the the computer maps \gls{hostnames} to addresses, we will talk about that in Layer 7.
 Spoiler: It is a service called \gls{DNS}
+Before we move onto the next section, it is important to note that a single website can have multiple IP addresses.
+This may be to be efficient with machines.
+If Google or Facebook has a single server routing \textit{all} of their incoming requests to other computers, they'd have to spend massive amounts of money on that computer or data center.
+Instead they can give different regions different IP addresses and have a computer pick.
+It isn't bad to access a website through the non-preferred IP address.
+You may just get slower loading times.
 
 \section{Layer 4: TCP and Client}
 
@@ -388,28 +400,33 @@ For network communications we need to standardize on agreed format.
 
 \keyword{htons(xyz)} returns the 16 bit unsigned integer `short' value xyz in network byte order.
 \keyword{htonl(xyz)} returns the 32 bit unsigned integer `long' value xyz in network byte order.
+Any longer integers need to have the computers specify the order.
 
-These functions are read as `host to network'; the inverse functions (\keyword{ntohs}, \keyword{ntohl}) convert network ordered byte values to host-ordered ordering.
-So, is host-ordering little-endian or big-endian? The answer is - it depends on your machine! It depends on the actual architecture of the host running the code.
+These functions are read as `host to network'.
+The inverse functions (\keyword{ntohs}, \keyword{ntohl}) convert network ordered byte values to host-ordered ordering.
+So, is host-ordering little-endian or big-endian?
+The answer is - it depends on your machine!
+It depends on the actual architecture of the host running the code.
 If the architecture happens to be the same as network ordering then the result of these functions is just the argument.
 For x86 machines, the host and network ordering is different.
 
-Unless agreed otherwise whenever you read or write the low level C network structures (e.g.~port and address information), remember to use the above functions to ensure correct conversion to/from a machine format.
+Unless agreed otherwise whenever you read or write the low level C network structures, for example port and address information, remember to use the above functions to ensure correct conversion to/from a machine format.
 Otherwise the displayed or specified value may be incorrect.
 
-
 This doesn't apply to protocols that negotiate the endianness before-hand.
-If two computers are CPU bound by converting the messages between network orders -- this happens with JSON parsing all the time in high performance systems -- it may be worth it to negotiate if they are on similar endians to send in little endian order.
+If two computers are CPU bound by converting the messages between network orders -- this happens with RPCs in high performance systems -- it may be worth it to negotiate if they are on similar endians to send in little endian order.
 
-Why is network order defined to be big endian? The simple answer is that \link{https://tools.ietf.org/html/rfc1700} RFC1700 says so.
+Why is network order defined to be big endian?
+The simple answer is that \link{https://tools.ietf.org/html/rfc1700} RFC1700 says so.
 If you want more information, we'll cite the famous article located \link{https://www.ietf.org/rfc/ien/ien137.txt} that argued for a particular version.
 The most important part is that it is standard.
-What happens when we don't have one standard? We have 4 different USB standards that don't interact well with each other.
+What happens when we don't have one standard?
+We have 4 different USB plug types (Regular, Micro, Mini, and USB-C) that don't interact well with each other.
 Obviously include relevant XKCD here.
 
 \subsection{TCP Client}
 
-There are three basic system calls you need to connect to a remote machine:
+There are three basic system calls you need to connect to a remote machine.
 
 \begin{enumerate}
 
@@ -419,8 +436,9 @@ There are three basic system calls you need to connect to a remote machine:
 
 The \keyword{getaddrinfo} call if successful, creates a linked-list of \keyword{addrinfo} structs and sets the given pointer to point to the first one.
 
-In addition, you can use the hints struct to only grab certain entries like certain IP protocols etc. The addrinfo structure that is passed into \keyword{getaddrinfo} to define the kind of connection you'd like.
-For example, to specify stream-based protocols over IPv6:
+In addition, you can use the hints struct to only grab certain entries like certain IP protocols etc.
+The addrinfo structure that is passed into \keyword{getaddrinfo} to define the kind of connection you'd like.
+For example, to specify stream-based protocols over IPv6, you can use the following snippet.
 
 \begin{lstlisting}[language=C]
 struct addrinfo hints;
@@ -429,7 +447,10 @@ memset(&hints, 0, sizeof(hints));
 hints.ai_family = AF_INET6; // Only want IPv6 (use AF_INET for IPv4)
 hints.ai_socktype = SOCK_STREAM; // Only want stream-based connection
 \end{lstlisting}
-Error handling with \keyword{getaddrinfo} is a little different: The return value \emph{is} the error code. To convert to a human-readable error use \keyword{gai\_strerror} to get the equivalent short English error text.
+
+Error handling with \keyword{getaddrinfo} is a little different.
+The return value \emph{is} the error code.
+To convert to a human-readable error use \keyword{gai\_strerror} to get the equivalent short English error text.
 
 \begin{lstlisting}[language=C]
 int result = getaddrinfo(...);
@@ -442,7 +463,7 @@ if(result) {
 
 \item \keyword{int socket(int domain, int socket\_type, int protocol);}
 
-The socket call creates an outgoing socket and returns a descriptor that can be used with \keyword{read} and \keyword{write}.
+The socket call creates an network socket and returns a descriptor that can be used with \keyword{read} and \keyword{write}.
 In this sense it is the network analog of \keyword{open} that opens a file stream - except that we haven't connected the socket to anything yet!
 
 Socket creates a socket with domain
@@ -778,7 +799,6 @@ Each has a specific purpose and should be called in roughly the above order
   If you shutdown a socket for further read then all process are be affected because you've changed the socket, not just the file descriptor.
 
   Well written code will \keyword{shutdown} a socket before calling \keyword{close} it.
-
 
 \end{enumerate}
 

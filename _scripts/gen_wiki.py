@@ -71,7 +71,7 @@ This book is an introduction to programming in C, and system programming (proces
 
 -- Bhuvy
 
-<a href="https://github.com/illinois-cs241/coursebook/tree/pdf_deploy">🗎 All Documents </a>
+<a href="https://github.com/illinois-cs241/coursebook/tree/pdf_deploy"alt="PDF Versions">🗎 All Documents </a>
 
 {% for chapter in chapters %}
 ## {{loop.index}}. [{{chapter.meta['name']}}](./{{chapter.bare_title}}) [🗎](https://github.com/illinois-cs241/coursebook/blob/pdf_deploy/{{chapter.pdf_path}}) {% for section_name in (chapter.meta['subsections'] or []) %}
