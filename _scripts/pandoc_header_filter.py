@@ -9,6 +9,10 @@ import sys
 import atexit
 import yaml
 import os
+try:
+    from yaml import CLoader as Loader, CDumper as Dumper
+except ImportError:
+    from yaml import Loader, Dumper
 
 # Metadata gleaned from the file
 meta = dict(
@@ -29,13 +33,13 @@ def exit_handler():
     """
     meta_file_name = os.environ['META_FILE_NAME']
     with open(meta_file_name, 'r') as f:
-        new_meta = yaml.load(f)
+        new_meta = yaml.load(f, Loader=Loader)
     if new_meta is None:
         new_meta = [meta]
     else:
         new_meta += [meta]
 
-    out = yaml.dump(new_meta)
+    out = yaml.dump(new_meta, Dumper=Dumper)
     with open(meta_file_name, 'w') as f:
         f.write(out)
 

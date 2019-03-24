@@ -182,7 +182,7 @@ def convert_latex_to_md(files_m):
         maybe_bib = files_m.meta['bib_file']
         if maybe_bib != '':
             command += ['--bibliography', maybe_bib]
-        logger.info(command)
+        logger.info(' '.join(command))
         subprocess.check_call(command)
 
         # Run this sed command to remove a weird glyph that appears

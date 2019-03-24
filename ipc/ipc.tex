@@ -90,7 +90,7 @@ Now to go through the actual calculations.
 We will assume that a 32 bit machine has 4KiB pages
 Naturally to address all the possible entries there are $2^{20}$ frames.
 A process can have.
-Since there are $2^{20}$ possible frames, we will need 20 bits to number all of the possible frames meaning \keyword{frame\_num{ must be 2.5 bytes long.
+Since there are $2^{20}$ possible frames, we will need 20 bits to number all of the possible frames meaning \keyword{frame\_num} must be 2.5 bytes long.
 In practice, we'll round that up to 4 bytes and do something interesting with the rest of the bits.
 With 4 bytes per entry x $2^{20}$ entries = 4 MiB of physical memory are required to hold the entire page table for a process.
 
@@ -110,7 +110,7 @@ VirtualAddress = 11110000111100001111000010101010
                                      |= offset =|
 \end{verbatim}
 
-We first go to the page table and find the frame number -- with pointer arith this would be \keyword{page\_table_entry *ptr + num}
+We first go to the page table and find the frame number -- with pointer arith this would be \keyword{page\_table\_entry *ptr + num}
 
 \begin{verbatim}
 | frame_num |
