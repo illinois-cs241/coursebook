@@ -30,7 +30,7 @@ $(ORDER_TEX): $(ORDER_TEX_DEP)
 $(CHAPTER_PDF): %.pdf: %.tex
 	du . -sh
 	echo "\includeonly{$(basename $^)}\input{$(MAIN_TEX)}" >> $@.tmp
-	-latexmk -interaction=nonstopmode -quiet -f -pdf -jobname="$@" $@.tmp
+	-latexmk -interaction=nonstopmode -quiet -f -pdf -jobname="$@" $@.tmp 2>&1 >/dev/null
 	-@latexmk -c
 	@mv $@.pdf $@
 	@ls $@ > /dev/null
@@ -38,7 +38,8 @@ $(CHAPTER_PDF): %.pdf: %.tex
 
 $(PDF_TEX): $(TEX) $(MAIN_TEX) $(BIBS) Makefile $(ORDER_TEX)
 	du . -sh
-	-@latexmk -quiet -interaction=nonstopmode -f -pdf $(MAIN_TEX) 2>&1 >/dev/null
+	ls
+	-@latexmk -quiet -interaction=nonstopmode -f -pdf $(MAIN_TEX) # 2>&1 >/dev/null
 	-@latexmk -c
 	@ls $(PDF_TEX) > /dev/null
 	@echo "Finished"
