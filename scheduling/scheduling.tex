@@ -364,6 +364,26 @@ For example, a navigation process might be more important to execute than a logg
 Okay so we've given you a bunch of tools, but if your co-worker came up to you now and asked you what scheduling algorithm to use, you wouldn't really know what to say.
 So let's think about scheduling algorithms at a high level and break them down by their times.
 We will be evaluating this in the context of a random process timing, meaning that each process takes a random but fininte amount of time to finish.
+
+Just a refresher, here are the terms.
+
+\begin{tabular}{|c|c|}
+  Concept & Meaning \\ \hline
+  Start time & The time the scheduler first started work \\
+  End time & When the scheduler finished the process \\
+  Arrival time & When the job first arrived at the scheduler \\
+  Run time & How long does the process take to run if there is no pre-emption
+\end{tabular}
+
+And here are the measures we are trying to optimize.
+
+\begin{tabular}{|c|c|}
+  Measure & Formula \\ \hline
+  Response Time & Start time minus Arrival time\\
+  Turnaround time & End time minus Arrival time\\
+  Wait time & End time minus Arrival time minus Run time \\
+\end{tabular}
+
 Other discussions about different use cases will be discussed after.
 To make any mathematical arguments either, let the maximum amount of time that a process run be equal to $S$.
 We will also assume that there are a finite number of processes running at any given time $c$.
