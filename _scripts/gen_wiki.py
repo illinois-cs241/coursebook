@@ -37,7 +37,7 @@ logger = logging.getLogger()
 filter_template = "_scripts/pandoc_header_filter.py"
 # prelude file absolute location
 prelude_file = 'prelude.tex'
-# Compatability with github
+# Compatibility with github
 github_shim = 'github_redefinitions.tex'
 # Weird glyph that appears regex
 sed_regex = r'0,/\\\[1\\\]\\\[\\\]/{//d;}'

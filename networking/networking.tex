@@ -100,7 +100,7 @@ Datagrams are formatted as such
     If this packet was fragmented, this is the number this fragment represents
   \item The next octet is time to live.
     So this is the number of "hops" (travels over a wire) a packet is allowed to go.
-    This is set because different routing protocols could cuase packets to go in circles, the packets must be dropped at some point.
+    This is set because different routing protocols could cause packets to go in circles, the packets must be dropped at some point.
   \item The next octet is the protocol number.
     Although protocols between different layers of the OCI model are supposed to be black boxes, this is included, so that hardware can peer into the underlying protocol efficiently.
     Take for example IP over IP (yes you can do that!).

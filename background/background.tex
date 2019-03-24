@@ -117,7 +117,7 @@ The first loop allocates 9 elements through a valid malloc.
 The last element is \keyword{0xCAFE}, meaning a dereference should result in a segfault.
 For the first 9 iterations, the branch is taken and the second branch in the dereference (the question mark) also returns the first value.
 The interesting part happens in the last iteration.
-The resulting behavior of the program is to skip the last iteration and \keyword{val} never gets asisgned the last previous value.
+The resulting behavior of the program is to skip the last iteration and \keyword{val} never gets assigned the last previous value.
 
 But under the right compilation conditions and compiler flags, the instructions will get out of order executed. The processor thinks that the branch will be taken -- it has been taken in the last 9 iterations.
 As such the processor will load that code up.
@@ -748,7 +748,7 @@ read(3, "# C Datastructures\n\n[![Build Sta"..., 8192) = 1250
 Newer versions of strace can actually inject faults into your program.
 This is useful when you want to occasionly make reads and writes fail for example in a networking application, which your program should handle.
 The problem is as of early 2019, that version is not in any ubuntu apt repositories.
-Meaning that you'll ahve to install it from source.
+Meaning that you'll have to install it from source.
 
 \subsection{printfs}
 
@@ -1032,13 +1032,13 @@ The biggest tip that we can give you when asking a question on piazza if you wan
 Hi, My code got a 50% on the autograder. I tried testing it a lot, but couldn't get it to fail. Can you give me some hints as to the test cases
 \end{verbatim}
 
-Sounds good and curteous, but course staff would much much prefer a post resembling the following
+Sounds good and courteous, but course staff would much much prefer a post resembling the following
 
 \begin{verbatim}
 Hi, I recently failed test X, Y, Z which is about half the tests on this current assignments. I noticed that they all have something to do with networking and epoll, but couldn't really figure out what was linking them together, or I may be completely off track. So to test my idea, I tried spawning 1000 clients with various get and put requests and verifying the files matched their originals. I couldn't really get it to fail while running normally, the debug build, or valgrind or tsan. I have no warnings and none of the pre-syntax checks showed me anything. Could you tell me if my understanding of the failure is correct and what I could do to modify my tests to better reflect X, Y, Z? netid: bvenkat2
 \end{verbatim}
 
-You don't need to be as curteous, though we'd appreciate it, but this will get a faster response time hand over foot. If you were trying to answer this question, you'd have everything you need in the question body.
+You don't need to be as courteous, though we'd appreciate it, but this will get a faster response time hand over foot. If you were trying to answer this question, you'd have everything you need in the question body.
 
 \bibliographystyle{plainnat}
 \bibliography{background/background}

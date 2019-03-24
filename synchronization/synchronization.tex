@@ -1475,7 +1475,7 @@ void cond_signal(cond_t *cv) {
     // Signal makes sure one thread that has not woken up
     // is woken up
     if (iter->is_awoken == 0) {
-      // DONT remove from the linked list here
+      // DON'T remove from the linked list here
       // There is no mutual exclusion, so we could
       // have a race condition
       iter->is_awoken = 1;

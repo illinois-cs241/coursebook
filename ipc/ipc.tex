@@ -1,12 +1,21 @@
-\chapter{Interprocess Communication}
+\chapter{Virtual Memory and Interprocess Communication}
 
-\todo{Epigraph}
+\epigraph{Abbott: Now you've got it. \\
+Costello: I throw the ball to Naturally. \\
+Abbott: You don't! You throw it to Who! \\
+Costello: Naturally. \\
+Abbott: Well, that's it—say it that way. \\
+Costello: That's what I said.}{Abbott and Costello on Effective Communication}
 
-In very simple embedded systems and early computers, processes directly access memory i.e. ``Address 1234'' corresponds to a particular byte stored in a particular part of physical memory.
-For example the IBM 709 had to read and write directly to a tape with no level of abstraction \cite[P. 65]{ibm709}. Even in systems after that, it was hard to adopt virtual memory because virtual memory required the whole fetch cycle to be altered through hardware -- a change many manufacturers still thought was expensive.
+In very simple embedded systems and early computers, processes directly access memory -- ``Address 1234'' corresponds to a particular byte stored in a particular part of physical memory.
+For example the IBM 709 had to read and write directly to a tape with no level of abstraction \cite[P. 65]{ibm709}.
+Even in systems after that, it was hard to adopt virtual memory because virtual memory required the whole fetch cycle to be altered through hardware -- a change many manufacturers still thought was expensive.
 In the PDP-10, a workaround was used by using different registers for each process and then virtual memory was added later \cite{ricm}.
-In modern systems, this is no longer the case. Instead each process is isolated, and there is a translation process between the address of a particular CPU instruction or piece of data of a process and the actual byte of physical memory (``RAM'').
-Memory addresses no longer map to physical addresses; the process runs inside virtual memory. Virtual memory not only keeps processes safe because one process cannot directly read or modify another process's memory.
+In modern systems, this is no longer the case.
+Instead each process is isolated, and there is a translation process between the address of a particular CPU instruction or piece of data of a process and the actual byte of physical memory (``RAM'').
+Memory addresses no longer map to physical addresses
+The process runs inside virtual memory.
+Virtual memory not only keeps processes safe because one process cannot directly read or modify another process's memory.
 Virtual memory also allows the system to efficiently allocate and re-allocate portions of memory to different processes.
 The modern process of translating memory is as follows.
 
@@ -17,37 +26,12 @@ The modern process of translating memory is as follows.
 \item The CPU performs the operation by either reading from the physical address or writing to the address.
 \end{enumerate}
 
-\section{MMU and Translating Addresses}
+\section{Translating Addresses}
 
-The Memory Management Unit is part of the CPU, and it converts a virtual memory address into a physical address. There is a sort of pseudocode associated with the MMU.
+The Memory Management Unit is part of the CPU, and it converts a virtual memory address into a physical address.
+First we'll talk about what the virtual memory abstraction is and how to translate addresses
 
-\begin{enumerate}
-\item Receive address
-\item Try to translate address according to the programmed scheme
-\item If the translation fails, report an invalid address
-\item Otherwise,
-	\begin{enumerate}
-	\item If the page exists in memory, check if the process has permissions
-		to perform the operation on the page meaning the process has access
-		to the page, and it is reading from the page/writing to a page
-		that is not marked as read only.
-		\begin{enumerate}
-		\item If so then provide the address, cache the results in the TLB
-		\item Otherwise trigger a hardware interrupt. The kernel
-			will most likely send a SIGSEGV or a Segmentation Violation.
-		\end{enumerate}
-	\item If the page doesn't exist in memory, generate an Interrupt.
-		\begin{enumerate}
-		\item The kernel could realize that this page could either be not
-			allocated or on disk. If it fits the mapping, allocate the page
-			and try the operation again.
-		\item Otherwise, this is an invalid access and the kernel will most
-			likely send a SIGSEGV to the process.
-		\end{enumerate}
-	\end{enumerate}
-\end{enumerate}
-
-Imagine you had a 32 bit machine, meaning pointers are 32 bits.
+To illustrate, imagine you had a 32 bit machine, meaning pointers are 32 bits.
 They can address $2^{32}$ different locations or 4GB of memory where one address is one byte.
 Imagine we had a large table for every possible address where we will store the `real' i.e. ~physical address.
 Each physical address will need 4 bytes -- to hold the 32 bits.
@@ -56,18 +40,26 @@ It should be painfully obvious that our lookup scheme would consume all of the m
 Our lookup table better be smaller than the memory we have otherwise we will have no space left for our actual programs and operating system data.
 The solution is to chunk memory into small regions called `pages' and `frames' and use a lookup table for each page.
 
-A \textbf{page} is a block of virtual memory.
-A typical block size on Linux operating system is 4KiB or $2^{12}$ addresses, though you can find examples of larger blocks. So rather than talking about individual bytes we can talk about blocks of 4KiBs, each block is called a page. We can also number our pages (``Page 0'' ``Page 1'' etc). Let's do a sample calculation of how many pages are there assume page size of 4KiB.
-
-\begin{shaded*}
-For a 32 bit machine, $2^{32}$ address / $2^{12}$ (address/page) = $2^{20}$ pages.
-
-For a 64 bit machine, $2^{64}$ / $2^{12}$ = $2^{52}$, which is roughly $10^{15}$ pages.
-\end{shaded*}
-
 \subsection{Terminology}
 
-A \textbf{frame} or sometimes called a `page frame' is a block of \emph{physical memory} or RAM -- Random Access Memory.
+A \textbf{page} is a block of virtual memory.
+A typical block size on Linux operating system is 4KiB or $2^{12}$ addresses, though you can find examples of larger blocks.
+So rather than talking about individual bytes we can talk about blocks of 4KiBs, each block is called a page.
+We can also number our pages (``Page 0'' ``Page 1'' etc). Let's do a sample calculation of how many pages are there assume page size of 4KiB.
+
+For a 32 bit machine,
+
+\[
+   2^{32} \text{address} / 2^{12} \text{(address/page)} = 2^{20} \text{pages}.
+\]
+
+For a 64 bit machine,
+
+\[
+   2^{64} \text{address} / 2^{12} \text{(address/page)} = 2^{52} \text{pages} \approx 10^{15} \text{pages}.
+\]
+
+We also call this a \textbf{frame} or sometimes called a `page frame' is a block of \emph{physical memory} or RAM -- Random Access Memory.
 A frame is the same number of bytes as a virtual page or 4KiB on our machine.
 A frame actually stores the bytes of interest.
 To access a particular byte in a frame, you go from the start of the frame and add the offset -- discussed later.
@@ -84,7 +76,7 @@ You can imagine a page table just as that
 |    1     |     30    |
 \end{verbatim}
 
-In practice we will omit the first column because it will always be sequentially 1, 2, 3, etc and instead we'll use the offset from the start of the table as the entry number.
+In practice we will omit the first column because it will always be sequentially 0, 1, 2, etc and instead we'll use the offset from the start of the table as the entry number.
 
 
 \begin{verbatim}
@@ -97,21 +89,58 @@ In practice we will omit the first column because it will always be sequentially
 Now to go through the actual calculations.
 We will assume that a 32 bit machine has 4KiB pages
 Naturally to address all the possible entries there are $2^{20}$ frames.
-Since there are $2^{20}$ possible frames, we will need 20 bits to number all of the possible frames meaning frame\_num must be 2.5 bytes.
+A process can have.
+Since there are $2^{20}$ possible frames, we will need 20 bits to number all of the possible frames meaning \keyword{frame\_num{ must be 2.5 bytes long.
 In practice, we'll round that up to 4 bytes and do something interesting with the rest of the bits.
 With 4 bytes per entry x $2^{20}$ entries = 4 MiB of physical memory are required to hold the entire page table for a process.
 
+Remember our page table maps pages to frames, but each frame is a block of contiguous addresses.
+How do we calculate which particular byte to use inside a particular frame?
+The solution is to re-use the lowest bits of the virtual memory address directly.
+For example, suppose our process is reading the following address- \keyword{VirtualAddress = 11110000111100001111000010101010 (binary)}
+
+So to give an example say we have the virtual address above.
+How would we split it up using a one page table to frame scheme?
+
+\begin{verbatim}
+                 |== Page Number ===|
+                 |                  | 
+VirtualAddress = 11110000111100001111000010101010
+                                     |          |
+                                     |= offset =|
+\end{verbatim}
+
+We first go to the page table and find the frame number -- with pointer arith this would be \keyword{page\_table_entry *ptr + num}
+
+\begin{verbatim}
+| frame_num |
+|-----------|
+|    ...    | <- ...
+|    101    | <- 11110000111100001111
+|    ...    | <- ...
+\end{verbatim}
+
+Then after, we go to that particular frame and find that byte this would be \keyword{char *frame + offset}
+
+\begin{verbatim}
+Frame number 101 in memory
+
+| frame_bytes |
+|-------------|
+|     ...     | <- 000010101001
+|     0x2     | <- 000010101010
+|     ...     | <- 000010101011
+\end{verbatim}
+
+And if we were reading from it, 'return' that value.
 This sounds like a perfect solution.
 Take each address and map it to a virtual address in sequential order.
 The process will believe that the address look continuous, but the top 20 bits are used to figure out \texttt{page\_num},
 which will allow us to find the frame number, find the frame, add the \textbf{offset} -- derived from the last 12 bits -- and do the read or write.
 
-Remember our page table maps pages to frames, but each page is a block of contiguous addresses.
-How do we calculate which particular byte to use inside a particular frame?
-The solution is to re-use the lowest bits of the virtual memory address directly.
-For example, suppose our process is reading the following address- \keyword{VirtualAddress = 11110000111100001111000010101010 (binary)}
-
-On a machine with page size 256 Bytes, then the lowest 8 bits (10101010) will be used as the offset. The remaining upper bits will be the page number (111100001111000011110000). This offset is treated as a binary number and is added to the start of the frame when we get it.
+There are other ways to split it as well.
+On a machine with page size 256 Bytes, then the lowest 8 bits (10101010) will be used as the offset.
+The remaining upper bits will be the page number (111100001111000011110000). This offset is treated as a binary number and is added to the start of the frame when we get it.
 
 We do a have a problem with 64 bit operating systems.
 For a 64 bit machine with 4KiB pages, each entry needs 52 bits.
@@ -122,7 +151,11 @@ In 64 bit architectures memory addresses are sparse, so we need a mechanism to r
 We'll take about this below. There is one last piece of terminology that needs to be covered.
 
 \subsection{Multi-level page tables}
-Multi-level pages are one solution to the page table size issue for 64 bit architectures. We'll look at the simplest implementation - a two level page table. Each table is a list of pointers that point to the next level of tables, not all sub-tables need to exist. An example, two level page table for a 32 bit architecture is shown below-
+
+Multi-level pages are one solution to the page table size issue for 64 bit architectures.
+We'll look at the simplest implementation - a two level page table.
+Each table is a list of pointers that point to the next level of tables, not all sub-tables need to exist.
+An example, two level page table for a 32 bit architecture is shown below.
 
 \begin{verbatim}
 VirtualAddress = 11110000111111110000000010101010 (binary)
@@ -139,19 +172,62 @@ That will contain a frame number.
 This is the good old fashioned 4KiB RAM that we were talking about earlier.
 Then you add the offset and do the read or write.
 
-Now some calculations on size concerns.
-Each directory index is 10 bits wide because there are only $2^{10}$ possible \texttt{sub-tables}, so we need 10 bits to store each directory index.
+\subsubsection{Visualizing The Dereference}
+
+For those of you who love ascii art or need another way of describing it, let's do it through the scheme as before.
+First, we find our ``base'' level pages table.
+We use that \keyword{Index1} to find the first level index.
+
+\begin{verbatim}
+| page_table_num |
+|----------------|
+|       ...      | <- 111100000
+|       402      | <- 111100001 // Index1
+|       ...      | <- 111100010
+\end{verbatim}
+
+Then after we go to the 402'th \keyword{page\_table}
+
+
+\begin{verbatim}
+Page table #402
+
+| frame_num |
+|-----------|
+|    ...    | <- ...
+|    703    | <- 1111110000 // Index2
+|    ...    | <- ...
+\end{verbatim}
+
+Same as before, just another level of indirection
+
+\begin{verbatim}
+Frame number #703
+
+| frame_bytes |
+|-------------|
+|     ...     | <- 000010101001
+|     0x5     | <- 000010101010
+|     ...     | <- 000010101011
+\end{verbatim}
+
+\subsubsection{Calculating Size Concerns}
+
+Now some calculations on size.
+Each \keyword{page\_table\_num} index is 10 bits wide because there are only $2^{10}$ possible \texttt{sub-tables}, so we need 10 bits to store each directory index.
 We'll round up to 2 bytes for the sake of reasoning.
 If 2 bytes are used for each entry in the top level table and there are only $2^{10}$ entries, we only need 2KiB to store this entire first level page table.
 Each subtable will point to physical frames, and each of their entries need to be the required 4 bytes to be able to address all the frames as mentioned earlier.
 However, for processes with only tiny memory needs, we only need to specify entries for low memory address for the heap and program code and high memory addresses for the stack.
 
 Thus the total memory overhead for our multi-level page table has shrunk from 4MiB for the single level implementation to 3 page tables of memory or 2KiB for the top level and 4KiB for the two intermediate levels or 10KiB.
-Here's why: We need at least one frame for the high level directory and two frames for just two sub-tables.
+Here's why.
+We need at least one frame for the high level directory and two frames for just two sub-tables.
 One sub-table is necessary for the low addresses -- program code, constants and possibly a tiny heap.
 The other sub-table is for higher addresses used by the environment and stack.
-In practice, real programs will likely need more sub-table entries, as each subtable can only reference 1024*4KiB = 4MIB of address space.
-The main point still stands - we have significantly reduced the memory overhead required to perform page table lookups.
+In practice, real programs will likely need more sub-table entries, as each subtable can only reference 1024*4KiB = 4MiB of address space.
+The main point still stands.
+We have significantly reduced the memory overhead required to perform page table lookups.
 
 \subsection{Page Table Disadvantages}
 
@@ -166,7 +242,40 @@ Everytime a virtual address needs to be translated into a physical memory locati
 For most memory accesses of most programs, there is a significant chance that the TLB has cached the results.
 However if a program does not have good cache coherence, the TLB will not have the result cache and now the MMU must use the much slower page table to determine the physical frame.
 
-\subsection{Advanced Frames and Page Protections}
+\subsection{MMU Algorithm}
+
+There is a sort of pseudocode associated with the MMU.
+We will assume that this is for a single level page table.
+
+\begin{enumerate}
+\item Receive address
+\item Try to translate address according to the programmed scheme
+\item If the translation fails, report an invalid address
+\item Otherwise,
+	\begin{enumerate}
+  \item If the TLB contains the physical memory, get the physical frame from the TLB and perform the read and write.
+	\item If the page exists in memory, check if the process has permissions
+		to perform the operation on the page meaning the process has access
+		to the page, and it is reading from the page/writing to a page
+		that it has permissions to do so.
+		\begin{enumerate}
+		\item If so then do the dereference provide the address, cache the results in the TLB
+		\item Otherwise trigger a hardware interrupt. The kernel
+			will most likely send a SIGSEGV or a Segmentation Violation.
+		\end{enumerate}
+	\item If the page doesn't exist in memory, generate an Interrupt.
+		\begin{enumerate}
+		\item The kernel could realize that this page could either be not
+			allocated or on disk.
+      If it fits the mapping, allocate the page and try the operation again.
+		\item Otherwise, this is an invalid access and the kernel will most likely send a SIGSEGV to the process.
+		\end{enumerate}
+	\end{enumerate}
+\end{enumerate}
+
+How would you alter this for a multi-level page table?
+
+\subsection{Frames and Page Protections}
 
 Frames be shared between processes, and this is where the heart of the chapter comes into play.
 We can use these tables to communicate with processes.
@@ -180,37 +289,49 @@ That is why sometimes memory accesses segfault and sometimes they don't, it all 
 In addition, processes can share a page with a child process using the \keyword{mmap} system call.
 \keyword{mmap} is an interesting call because instead of tying each virtual address to a physical frame, it ties it to something else. It is an important distinction that we are talking about mmap and not memory-mapped IO in general. The \texttt{mmap} system call can't reliably be used to do other memory mapped operations like communicate with GPUs and write pixels to the screen -- this is mainly hardware dependent.
 
-\subsubsection{Read-only or NX bit}
+\subsubsection{Bits on Pages}
 
-The read-only bit marks the page as read-only.
+This is \textit{Heavily} dependent on the chipset.
+We will include some bits that have historically been popular in chipsets.
+
+\begin{enumerate}
+\item The read-only bit marks the page as read-only.
 Attempts to write to the page will cause a page fault.
 The page fault will then be handled by the Kernel.
 Two examples of the read-only page include sharing the c runtime library between multiple processes for security you wouldn't want to allow one process to modify the library and Copy-On-Write where the cost of duplicating a page can be delayed until the first write occurs.
 
-The execution bit defines whether bytes in a page can be executed as CPU instructions.
-A lot of operating systems will merge these bits into one and deem a page either writable or executable.
+\item The execution bit defines whether bytes in a page can be executed as CPU instructions.
+Processors may will merge these bits into one and deem a page either writable or executable.
 This bit is useful because it prevents stack overflow or code injection attacks when writing user data into the heap or the stack because those are not read only and thus not executable.
 Further reading: \href{http://en.wikipedia.org/wiki/NX\_bit\#Hardware\_background}{background}
 
-\subsubsection{Dirty bit}
-
-\href{http://en.wikipedia.org/wiki/Page\_table\#Page\_table\_data}{Page Table} The dirty bit allows for a performance optimization.
+\item The dirty bit allows for a performance optimization.
 A page on disk that is paged in to physical memory, then read from, and subsequently paged out again does not need to be written back to disk, since the page hasn't changed.
 However, if the page was written to after it's paged in, its dirty bit will be set, indicating that the page must be written back to the backing store.
 This strategy requires that the backing store retain a copy of the page after it is paged in to memory.
 When a dirty bit is not used, the backing store need only be as large as the instantaneous total size of all paged-out pages at any moment.
 When a dirty bit is used, at all times some pages will exist in both physical memory and the backing store.
+\item There are plenty of other bits. Take a look at your favorite architecture and see what other bits are associated!
+\end{enumerate}
 
 \subsection{Page Faults}
 
-A page fault is when a running program tries to access some virtual memory in its address space that is not mapped to physical memory. Page faults will also occur in other situations. There are three types of Page Faults
+A page fault is when a running program tries to access some virtual memory in its address space that is not mapped to physical memory.
+Page faults will also occur in other situations.
+There are three types of Page Faults
 
 \begin{enumerate}
- \item \textbf{Minor} If there is no mapping yet for the page, but it is a valid address. This could be memory asked for by \keyword{sbrk(2)} but not written to yet meaning that the operating system can wait for the first write before allocating space. The OS simply makes the page, loads it into memory, and moves on.
+\item \textbf{Minor} If there is no mapping yet for the page, but it is a valid address.
+  This could be memory asked for by \keyword{sbrk(2)} but not written to yet meaning that the operating system can wait for the first write before allocating space -- if it was read from, the operating system could short circuit the operation to read 0.
+  The OS simply makes the page, loads it into memory, and moves on.
 
- \item \textbf{Major} If the mapping to the page is not in memory but on disk. What this will do is swap the page into memory and swap another page out. If this happens frequently enough, your program is said to \emph{thrash} the MMU.
+\item \textbf{Major} If the mapping to the page is not in memory but on disk.
+  What this will do is swap the page into memory and swap another page out.
+  If this happens frequently enough, your program is said to \emph{thrash} the MMU.
 
- \item \textbf{Invalid} When you try to write to a non-writable memory address or read to a non-readable memory address. The MMU generates an invalid fault and the OS will usually generate a \keyword{SIGSEGV} meaning segmentation violation meaning that you wrote outside the segment that you could write to.
+\item \textbf{Invalid} When you try to write to a non-writable memory address or read to a non-readable memory address.
+  The MMU generates an invalid fault and the OS will usually generate a \keyword{SIGSEGV} meaning segmentation violation meaning that you wrote outside the segment that you could write to.
+
 \end{enumerate}
 
 \subsection{What does this have to do with IPC?}
@@ -225,9 +346,10 @@ The other is to ask the kernel to map two pages of memory to the same virtual me
 
 \section{mmap}
 
-mmap as mentioned earlier is a trick of virtual memory of instead of mapping a page to just a frame, that frame can be backed by a file on disk.
+\keyword{mmap} as mentioned earlier is a trick of virtual memory of instead of mapping a page to just a frame, that frame can be backed by a file on disk, or the frame can be shared among processes.
 We can use that to read from a file on disk efficiently or sync changes to the file.
-One of the big optimizations is that this does not mean that the file is malloc'ed to memory right away. Take the following code for example.
+One of the big optimizations is that this does not mean that the file is malloc'ed to memory right away.
+Take the following code for example.
 
 \begin{lstlisting}[language=C]
 int fd = open(...); //File is 2 Pages
@@ -235,10 +357,11 @@ char* addr = mmap(..fd..);
 addr[0] = 'l';
 \end{lstlisting}
 
-The kernel may say, ``okay I see that you want to mmap the file into memory, so I'll reserve some space in your address space that is the length of the file''.
+The kernel may say, see that you want to mmap the file into memory, so it will reserve some space in your address space that is the length of the file.
 That means when you write to \keyword{addr[0]} that you are actually writing to the first byte of the file.
 The kernel can actually do some optimizations too.
-Instead of loading the file into memory, it may only load pages at a time because if the file is 1024 pages; you may only access 3 or 4 pages making loading the entire file a waste of time.
+Instead of loading the file into memory, it may only load pages at a time because if the file is 1024 pages.
+You may only access 3 or 4 pages making loading the entire file a waste of time.
 That is why page faults are so powerful.
 They let the operating system take control of how much you use your files.
 
@@ -246,7 +369,7 @@ They let the operating system take control of how much you use your files.
 
 \texttt{mmap} does more than just take a file and map it to memory.
 It is the general interface for creating shared memory among processes.
-Currently it only supports regular files and posix shmem \cite{mmap_2018}.
+Currently it only supports regular files and posix \keyword{shmem} \cite{mmap_2018}.
 Naturally, you can read all about it in the citation above, which references the current working group posix standard.
 Some other options to note in the page will follow.
 

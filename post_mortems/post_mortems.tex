@@ -164,6 +164,6 @@ Required Sections: Intro to C
 
 \href{http://users.csc.calpoly.edu/~jdalbey/SWE/Papers/att_collapse.html}{Explanation}
 
-To be honest the explanation of the bug is really good at the link above, I recommend reading that. Basically it was a series of network delays that caused some switches (telephone) across the coutnry to think that other switches were operable when they weren't. When the switches came back online, they realized they had a huge backlog of calls to route and began doing so. Other routing failures and restarts only compounded the problem.
+To be honest the explanation of the bug is really good at the link above, I recommend reading that. Basically it was a series of network delays that caused some switches (telephone) across the country to think that other switches were operable when they weren't. When the switches came back online, they realized they had a huge backlog of calls to route and began doing so. Other routing failures and restarts only compounded the problem.
 
 Lessons Learned: Not using C would've actually helped here because of more rigorous fuzzing (though C++ in this day and age would be worse with its language constructs). The real moral of the story is networks are random and expect any jump at any point in your code. That means writing simulations and running them with random delays to figure out bugs before they happen.
