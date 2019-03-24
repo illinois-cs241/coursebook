@@ -14,7 +14,7 @@ TEX_ORDER=$(shell sh -c "cat order.yaml | sed 's/^- //'")
 CHAPTER_PDF=$(patsubst %,%.pdf,$(TEX_ORDER))
 
 .PHONY: all
-all: $(PDF_TEX) chapters
+all: $(PDF_TEX)
 	-@rm *aux *bbl *glg *glo *gls *ist *latexmk *fls
 	-@rm **/*aux **/*bbl **/*glg **/*glo **/*gls **/*ist **/*latexmk **/*fls
 
