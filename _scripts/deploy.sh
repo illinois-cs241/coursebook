@@ -23,7 +23,7 @@ else
 
     # Remove all other files, we won't need them
     rm -rf * || true;
-    rm -rf .* || true;
+    rm -rf .github .gitattributes .gitignore || true;
 
     # Move the tempfile back to the coursebook pdf
     mv $TMP_DIR/* .;
