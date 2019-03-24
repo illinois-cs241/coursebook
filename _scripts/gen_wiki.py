@@ -52,6 +52,7 @@ class ConvertableTexFile(object):
 
     def __init__(self, bare_name, tex_name, meta, outdir):
         self.tex_path = tex_name
+        self.pdf_path = os.path.basename(os.path.splitext(tex_name)[0]) + '.pdf'
         self.meta = meta
         self.bare_name = bare_name
         self.bare_title = self.bare_name.title()
@@ -70,8 +71,10 @@ This book is an introduction to programming in C, and system programming (proces
 
 -- Bhuvy
 
+<a href="https://github.com/illinois-cs241/coursebook/tree/pdf_deploy">🗎 All Documents </a>
+
 {% for chapter in chapters %}
-## {{loop.index}}. [{{chapter.meta['name']}}](./{{chapter.bare_title}}){% for section_name in (chapter.meta['subsections'] or []) %}
+## {{loop.index}}. [{{chapter.meta['name']}}](./{{chapter.bare_title}}) [🗎](https://github.com/illinois-cs241/coursebook/blob/pdf_deploy/{{chapter.pdf_path}}) {% for section_name in (chapter.meta['subsections'] or []) %}
 {{loop.index}}. [{{section_name}}](./{{chapter.bare_title}}#{{section_name.lower().replace(' ', '-')}}){% endfor %}
 {% endfor %}
 """
