@@ -12,8 +12,8 @@ if test $BUILD_FOCUS = WIKI; then
     bash _scripts/push_to_wiki.sh;
 else
     # Copy main to a tempfile, so we don't get any checkout errors
-    TMP_FILE=`mktemp`;
-    cp main.pdf $TMP_FILE;
+    TMP_DIR=`mktemp -d`;
+    find . -iname "*.pdf" -exec mv {} $TMP_DIR \;
 
     # Set up ssh 
     git config --global core.sshCommand "ssh -i /tmp/deploy_wiki -F /dev/null";
@@ -23,13 +23,14 @@ else
 
     # Remove all other files, we won't need them
     rm -rf *;
+    rm -rf .*;
 
-    # Copy the tempfile back to the coursebook pdf
-    cp $TMP_FILE coursebook.pdf;
+    # Move the tempfile back to the coursebook pdf
+    mv $TMP_DIR/* .;
 
     # Git add commit
     git add -A;
-    git commit -m "Adding coursebook";
+    git commit -m "Adding build on $(date)";
 
     # Swap the https origin for the ssh origin so we can push
     OLD_ORIGIN=`git remote get-url origin`;

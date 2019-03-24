@@ -226,3 +226,4 @@ TSWLatexianTemp*
 # Don't commit the wikibook
 main.pdf
 out/*
+*pdf

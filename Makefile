@@ -10,14 +10,32 @@ OTHER=$$(find . -iname *aux) $$(find . -iname *bbl) $$(find . -iname *blg)
 ORDER_TEX=order.tex
 ORDER_TEX_DEP=order.yaml
 
+TEX_ORDER=$(shell sh -c "cat order.yaml | sed 's/^- //'")
+CHAPTER_PDF=$(patsubst %,%.pdf,$(TEX_ORDER))
+
+$(info $(CHAPTER_PDF))
+
+
 .PHONY: all
-all: $(PDF_TEX)
+all: $(PDF_TEX) chapters
+
+.PHONY: chapters
+chapters: $(CHAPTER_PDF)
 
 .PHONY: debug
 debug: $(PDF_TEX)-debug
 
 $(ORDER_TEX): $(ORDER_TEX_DEP)
 	python3 _scripts/gen_order.py $^ > $@
+
+$(CHAPTER_PDF): %.pdf: %.tex
+	echo "\includeonly{$(basename $^)}\input{$(MAIN_TEX)}" >> $@.tmp
+	-latexmk -interaction=nonstopmode -quiet -f -pdf -jobname="$@" $@.tmp
+	-@latexmk -c
+	-sh -c "cd $(dir $^) && rm *gls *ist *glo *aux *fls *log *out *blg *glg *fdb_latexmk"
+	@mv $@.pdf $@
+	@ls $@ > /dev/null
+	@rm $@.tmp
 
 $(PDF_TEX): $(TEX) $(MAIN_TEX) $(BIBS) Makefile $(ORDER_TEX)
 	-@latexmk -quiet -interaction=nonstopmode -f -pdf $(MAIN_TEX) 2>&1 >/dev/null
