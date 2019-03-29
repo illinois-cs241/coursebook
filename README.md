@@ -8,7 +8,7 @@
 
 The Coursebook is an aim to standardize and build upon Angrave's [original wikibook experiment](https://github.com/angrave/SystemProgramming/wiki).
 
-The most recent version of the coursebook as a single pdf is here: [main.pdf](https://github.com/illinois-cs241/coursebook/blob/pdf_deploy/coursebook.pdf).
+The most recent version of the coursebook as a single pdf is here: [main.pdf](https://github.com/illinois-cs241/coursebook/blob/pdf_deploy/main.pdf).
 
 ## Overview
 
