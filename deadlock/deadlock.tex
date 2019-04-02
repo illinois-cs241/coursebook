@@ -311,8 +311,17 @@ void* philosopher(void* forks){
      pthread_mutex_t* left_fork = phil_info->left_fork;
      pthread_mutex_t* right_fork = phil_info->right_fork;
      while(phil_info->simulation){
-          pthread_mutex_lock(left_fork);
-          pthread_mutex_lock(right_fork);
+          int left_succeed = pthread_mutex_trylock(left_fork);
+          if (!left_succeed) {
+              sleep();
+              continue;
+          }
+          int right_succeed = pthread_mutex_trylock(right_fork);
+          if (!right_succeed) {
+              pthread_mutex_unlock(left_fork);
+              sleep();
+              continue;
+          }
           eat(left_fork, right_fork);
           pthread_mutex_unlock(left_fork);
           pthread_mutex_unlock(right_fork);
