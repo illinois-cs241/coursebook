@@ -377,9 +377,9 @@ The first option is that the \texttt{flags} argument of mmap can take many optio
 
 \begin{enumerate}
 \item \keyword{PROT\_READ} This means the process can read the memory. This isn't the only flag that gives the process read permission however! The underlying file descriptor in this case must be opened with read privileges.
-\item \keyword{PROT\_WRITE} This means the process can write to the memory. This has to be supplied for a process to write to a mapping. If this is supplied and \keywork{PROT\_NONE} is also supplied, the latter wins and no writes can be performed. The underlying file descriptor in this case must either be opened with write privileges or a private mapping must be supplied below
+\item \keyword{PROT\_WRITE} This means the process can write to the memory. This has to be supplied for a process to write to a mapping. If this is supplied and \keyword{PROT\_NONE} is also supplied, the latter wins and no writes can be performed. The underlying file descriptor in this case must either be opened with write privileges or a private mapping must be supplied below
 \item \keyword{PROT\_EXEC} This means the process can execute this piece of memory. Although this is not stated in POSIX documents, this shouldn't be supplied with WRITE or NONE because that would make this invalid under the NX bit or not being able to execute (respectively)
-\item \keyword{PROT\_NONE} This means the process can't do anything with the mapping. This could be useful if you implement gaurd pages in terms of security. If you surround critical data with many more pages that can't be accessed, that decreases the chance of various attacks.
+\item \keyword{PROT\_NONE} This means the process can't do anything with the mapping. This could be useful if you implement guard pages in terms of security. If you surround critical data with many more pages that can't be accessed, that decreases the chance of various attacks.
 \item \keyword{MAP\_SHARED} This mapping will be synchronized to the underlying file object. The file descriptor must've been opened with write permissions in this case.
 \item \keyword{MAP\_PRIVATE} This mapping will only be visible to the process itself. Useful to not thrash the operating system.
 \end{enumerate}
