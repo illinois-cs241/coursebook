@@ -1171,7 +1171,7 @@ overhead of the file, and thus the total overhead of storing this file on disk i
 
 Performing reads tend to be pretty easy in our filesystem because our files are compact. Let's say that we want to read
 the entirety of this particular file. What we'd start by doing is go to the inode's direct struct and find the first
-direct inode number. In our case it is \#7. Then we find the 7th data block from the \textit{start} of all data blocks.
+direct data block number. In our case it is \#7. Then we find the 7th data block from the \textit{start} of all data blocks.
 Then we read all of those bytes.
 We do the same thing for all of the direct nodes. What do we do after? We go to the indirect block and read the
 indirect block. We know that every 4 bytes of the indirect block are either a sentinel node (-1) or the number of
