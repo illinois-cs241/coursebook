@@ -35,6 +35,57 @@ Responsibilities
 * Be welcoming to systems experts and newbies alike
 * Have a professional attitude
 
+# Development environment
+
+## Wiki Dev Environment
+
+To get started with a development environment, make sure you have an up-to-date version of `python3` on your system.
+We perfer to use virtualenvironments so that python packages don't conflict. To create one, make sure you have `virtualenv` installed and perform the following commands
+
+```
+$ virtualenv -p python3 env
+$ source env/bin/activate
+(env) $
+```
+
+Then to install python dependencies do the following
+
+```
+(env) $ python -m pip install -r requirements.txt
+```
+
+This will help you build the wiki version of the book. This is the one that gets put into the site. To build that, just run
+
+```
+(env) $ mkdir out
+(env) $ python _scripts/gen_wiki.py order.yaml out
+```
+
+And the markdown will be generated!
+
+## PDF Dev Environment
+
+To get the latex/pdf environment set up, it is a bit easier.
+Make sure you have `texlive-full` or the equivalent installed on your machine.
+
+```
+$ sudo apt install texlive-full
+```
+
+Then to make the whole pdf it is
+
+```
+$ make main.pdf
+```
+
+To make any chapter it is
+
+```
+$ make introc/introc.pdf
+```
+
+For those of you unfamiliar to latex, feel free to peruse one of the many online resources. For a scenic tour, I recommend <https://learnxinyminutes.com/docs/latex/>
+
 # Your First Contribution
 
 To start contributing, feel free to take an issue or find a problem, file an issue and start working on it.
