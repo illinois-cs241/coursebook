@@ -69,8 +69,6 @@ This coursebook is being built by students and faculty from the University of Il
 
 This book is an introduction to programming in C, and system programming (processes, threads, synchronization, networking and more!). We assume you've already had some programming experience, in an earlier computer science course. If you have any typos to report or content to request, feel free to file an issue at the link above. Happy Reading!
 
--- Bhuvy
-
 <a href="https://github.com/illinois-cs241/coursebook/tree/pdf_deploy/main.pdf" alt="PDF Versions">🗎 One Big File</a>
 
 {% for chapter in chapters %}
