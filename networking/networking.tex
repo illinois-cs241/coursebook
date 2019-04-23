@@ -1428,7 +1428,7 @@ int listen_sock, conn_sock, nfds, epollfd;
 
 /* Code to set up listening socket, 'listen_sock',
   (socket(), bind(), listen()) omitted */
-// This part of the code is wrong, the size must be greater than 0
+
 epollfd = epoll_create1(0);
 if (epollfd == -1) {
     perror("epoll_create1");
