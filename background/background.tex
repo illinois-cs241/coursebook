@@ -25,7 +25,7 @@ Serious implications arise for race conditions and atomic operations.
 
 An operation is atomic if no other processor should interrupt it. Take for example the above assembly code to add one to a register.
 In the architecture, it may actually have a few different steps on the circuit.
-The operation may start by fetching the value of the memory from the stick of ram, then storing it in the cache or a register, and then finally writing back \cite{schweizer2015evaluating} -- under the description for \textit{fetch-and-add} though your microarchitecture may vary.
+The operation may start by fetching the value of the memory from the stick of ram, then storing it in the cache or a register, and then finally writing back \cite{schweizer2015evaluating} -- under the description for \textit{fetch-and-add} though your micro-architecture may vary.
 Or depending on performance operations, it may keep that value in cache or in a register which is local to that process -- try dumping the \texttt{-O2} optimized assembly of incrementing a variable and printing it out on most modern compilers, which will probably just use a register.
 The problem comes in if two processors try to do it at the same time.
 The two processors could at the same time copy the value of the memory address, add one, and store the same result back.
@@ -50,7 +50,7 @@ Ah yes Caching.
 One of computer science's greatest problems.
 Caching that we are referring is processor caching.
 Whenever you do a memory access if the particular address is already in the cache then the processor will perform the operation on the cache such as adding and update the actual memory later because updating memory is slow \cite[Section 3.4]{intel2015improving}.
-If it isn't, the processor requests a chunk of memory from the the memory chip and stores it in cache, kicking out the least recently used page -- this depends on caching policy, but intel's does use this.
+If it isn't, the processor requests a chunk of memory from the the memory chip and stores it in cache, kicking out the least recently used page -- this depends on caching policy, but Intel's does use this.
 This is done because the l3 processor cache is roughly three times faster to reach than the memory in terms of time \cite[p. 22]{levinthal2009performance} though exact speeds will vary based on clock speed and architecture.
 Naturally this leads to problems because there are two different copies of the same value, in the cited paper this refers to an unshared line.
 This isn't a class about caching, just know how this could impact your code.
@@ -59,7 +59,7 @@ A short but non complete list could be
 \begin{enumerate}
 \item Race Conditions! If a value is stored in two different processor caches, then that value may not be shared.
 \item Speed. With a cache you program may look slower or faster and you may not know why. Just assume that reads and writes that either happened recently or are next to each other in memory are fast.
-\item Side effects. Every read or write effects the cache state. While most of the time this doesn't help or hurt, it is important to know. Check the intel programmer guide on the lock prefix for more information.
+\item Side effects. Every read or write effects the cache state. While most of the time this doesn't help or hurt, it is important to know. Check the Intel programmer guide on the lock prefix for more information.
 \end{enumerate}
 
 \subsection{Interrupts}
@@ -68,7 +68,7 @@ Interrupts are a very important part of system programming.
 An interrupt is internally an electrical signal that is delivered to the processor when something happens -- this is hardware interrupt \cite{redhat_hardware_int}.
 Then the hardware decides if this is something that it should handle (i.e. handling keyboard or mouse input for older keyboard and mouses) or it should pass to the operating system.
 The operating system then decides if this is something that it should handle (i.e. paging a memory table from disk) or something the application should handle (i.e. a SEGFAULT).
-If the operating system decides that this is something that the process or program should take care of, it sends a \textbf{software fault} and that software fault is then propogated.
+If the operating system decides that this is something that the process or program should take care of, it sends a \textbf{software fault} and that software fault is then propagated.
 The application then decides if it is an error (SEGFAULT) or not (SIGPIPE for example) and reports to the user.
 Applications can also send signals to the kernel and to the hardware as well.
 This is an oversimplification because there are certain hardware faults that can't be ignored or masked away, but this class isn't about teaching you to build an operating system.
@@ -77,7 +77,7 @@ An important application of this is this is how system calls are served!
 There is a well established set of registers that the arguments go in according to the kernel as well as a system call ``number'' again defined by the kernel.
 Then the operating system triggers an interrupt which the kernel catches and serves the system call \cite{garg_2006}.
 
-Operating system developers and instruction set developers alike didn't like the overhead of causing an interrupt on a system call. Now, systems use \texttt{SYSENTER} and \texttt{SYSEXIT} which has a cleaner way of transfering control safely to the kernel and safely back.
+Operating system developers and instruction set developers alike didn't like the overhead of causing an interrupt on a system call. Now, systems use \texttt{SYSENTER} and \texttt{SYSEXIT} which has a cleaner way of transferring control safely to the kernel and safely back.
 What safely means is obvious out of the scope for this class, but it persists.
 
 \subsection{Extra: Out of order instructions}
@@ -112,9 +112,9 @@ Here is an example
   }
 \end{lstlisting}
 
-Let's anaylze this code.
+Let's analyze this code.
 The first loop allocates 9 elements through a valid malloc.
-The last element is \keyword{0xCAFE}, meaning a dereference should result in a segfault.
+The last element is \keyword{0xCAFE}, meaning a dereference should result in a SEGFAULT.
 For the first 9 iterations, the branch is taken and the second branch in the dereference (the question mark) also returns the first value.
 The interesting part happens in the last iteration.
 The resulting behavior of the program is to skip the last iteration and \keyword{val} never gets assigned the last previous value.
@@ -122,10 +122,10 @@ The resulting behavior of the program is to skip the last iteration and \keyword
 But under the right compilation conditions and compiler flags, the instructions will get out of order executed. The processor thinks that the branch will be taken -- it has been taken in the last 9 iterations.
 As such the processor will load that code up.
 Due to out of order instruction execution, while the value of i is being fetched from memory -- we have to force it not to be in a register -- the processor will try to dereference that address.
-Naturally that should result in a segfault, but since the address was never logically reached by the program the result is just discarded.
+Naturally that should result in a SEGFAULT, but since the address was never logically reached by the program the result is just discarded.
 
 Now here is the trick.
-Even though the value of the calculation would've resulted in a segfault, the bug doesn't clear the cache that refers to the physical memory where 0xCAFE is located. This not an exact explanation, but essentially how it works.
+Even though the value of the calculation would've resulted in a SEGFAULT, the bug doesn't clear the cache that refers to the physical memory where 0xCAFE is located. This not an exact explanation, but essentially how it works.
 Since it is still in the cache, if you again trick the processor to read form the cache using \keyword{val} then you will read a memory value that you wouldn't be able to read normally.
 This includes important information like passwords, payment info etc etc.
 
@@ -174,7 +174,7 @@ If you don't want to type your password out every time, you can generate an ssh 
 
 If you still think that that is too much typing, you can always alias hosts.
 You may need to restart your VM or reload sshd for this to take effect.
-The config file is available on linux and mac distros.
+The config file is available on Linux and Mac distros.
 For windows you'll have to use the Windows Linux Subsystem or configure any aliases in PuTTY
 
 \begin{verbatim}
@@ -187,7 +187,7 @@ Host vm
 
 \subsection{git}
 
-What is `git`? Git is a version control system. What that means is git stores the entire history of a directory. We refer to the directory as a repository. So what do you need to know is a few things. First, create your repository with the repo creator. If you haven't already signed into enterprise github, make sure to do so otherwise your repository won't be created for you. After that, that means your repository is created on the server. Git is a decentralized version control system, meaning that you'll need to get a repository onto your VM. We can do this with a clone. Whatever you do, \textbf{do not go through the README.md tutorial}.
+What is `git`? Git is a version control system. What that means is git stores the entire history of a directory. We refer to the directory as a repository. So what do you need to know is a few things. First, create your repository with the repo creator. If you haven't already signed into enterprise GitHub, make sure to do so otherwise your repository won't be created for you. After that, that means your repository is created on the server. Git is a decentralized version control system, meaning that you'll need to get a repository onto your VM. We can do this with a clone. Whatever you do, \textbf{do not go through the README.md tutorial}.
 
 \begin{verbatim}
 $ git clone https://github-dev.cs.illinois.edu/cs241-fa18/<netid>.git
@@ -265,7 +265,7 @@ Here are some links that can help you out
 
 Some people take this as an opportunity to learn a new editor, others not so much. The first part is those of you who want to learn a new editor. In the editor war that spans decades, we have come to the battle of vim vs emacs.
 
-Vim is a text editor and unix-like utility. You enter vim by typing \texttt{vim [file]}. This takes you into the editor. You start off in normal mode. In this mode you can move around with many keys with the most common ones being \texttt{jklh}. To exit vim from this mode, you need to type \texttt{:q} which quits. If you have any unsaved edits, you must either save them \texttt{:w}, save and quit \texttt{:wq}, or discard changes \texttt{:q!}. To make edits you can either type \texttt{i} to change you into insert mode or \texttt{a} to change to insert mode \textbf{a}fter the cursor. This is the very basics when it comes to vim
+Vim is a text editor and Unix-like utility. You enter vim by typing \texttt{vim [file]}. This takes you into the editor. You start off in normal mode. In this mode you can move around with many keys with the most common ones being \texttt{jklh}. To exit vim from this mode, you need to type \texttt{:q} which quits. If you have any unsaved edits, you must either save them \texttt{:w}, save and quit \texttt{:wq}, or discard changes \texttt{:q!}. To make edits you can either type \texttt{i} to change you into insert mode or \texttt{a} to change to insert mode \textbf{a}fter the cursor. This is the very basics when it comes to vim
 
 Emacs is more of a way of life, and I don't mean that figuratively. A lot people when they switch to the emacs environment realize that it is a powerful operating system lacking a decent text editor. This means emacs can house a terminal, gdb session, ssh session, code and a whole lot more. It would not be fitting any other way to introduce you the gnu-emacs any other way than the gnu-docs \url{https://www.gnu.org/software/emacs/tour/}. Just note that emacs is \textit{insanely} powerful. You can do almost anything with it. There are a fair number of students who like the IDE-aspect of other programming languages, just know you can set up emacs to be an IDE, but you have to learn a bit of lisp \url{http://martinsosic.com/development/emacs/2017/12/09/emacs-cpp-ide.html}.
 
@@ -276,7 +276,7 @@ For this we require sshfs which has ports on many different machines
 \item Mac \url{https://github.com/osxfuse/osxfuse/wiki/SSHFS}
 \item Linux \url{https://help.ubuntu.com/community/SSHFS}
 \end{enumerate}
-At that point the files on your VM are synced with the files on your machine and edits can be made and will be sync'ed
+At that point the files on your VM are synced with the files on your machine and edits can be made and will be synced
 
 At the time of writing, Bhuvy (That's me!) really likes to use spacemacs \url{http://spacemacs.org/} which marries both vim and emacs and both of their difficulties.
 I'll give my soapbox for why I like it, but be warned that if you are starting from absolutely no vim or emacs experience the learning curve along with this course may be too much.
@@ -329,7 +329,7 @@ But for the sake of debugging, it may benefit you in the long run to adopt some 
 Use assertions to make sure your code works up to a certain point -- and importantly, to make sure you don't break it later.
 For example, if your data structure is a doubly linked list, you can do something like \texttt{assert(node == node->next->prev)} to assert that the next node has a pointer to the current node.
 You can also check the pointer is pointing to an expected range of memory address, not null, -\textgreater{}size is reasonable etc.
-The \texttt{NDEBUG} macro will disable all assertions, so don't forget to set that once you finish debugging \cite{cplusplus_assert}.
+The \texttt{DEBUG} macro will disable all assertions, so don't forget to set that once you finish debugging \cite{cplusplus_assert}.
 
 Here's a quick example with assert. Let's say that I'm writing code using memcpy. I'd want to put an assert before that checks whether or not my two memory regions overlap.
 If they do overlap, memcpy runs into undefined behavior, so we want to catch that problem than later.
@@ -344,7 +344,7 @@ This check can be turned off at compile time, but will save you \textbf{tons} of
 \section{Valgrind}
 
 Valgrind is a suite of tools designed to provide debugging and profiling tools to make your programs more correct and detect some runtime issues \cite{valgrind}.
-The most used of these tools is Memcheck, which can detect many memory-related errors that are common in C and C++ programs and that can lead to crashes and unpredictable behaviour (for example, unfreed memory buffers).
+The most used of these tools is Memcheck, which can detect many memory-related errors that are common in C and C++ programs and that can lead to crashes and unpredictable behavior (for example, unfreed memory buffers).
 To run Valgrind on your program:
 
 \begin{lstlisting}[language=C]
@@ -607,7 +607,7 @@ Want to take a look at the source?
 (gdb)
 \end{verbatim}
 
-From running the code, the breakpoint didn’t even trigger, meaning the code never got to that point. That’s because of the comparison! Okay flip the sign it should work now right?
+From running the code, the breakpoint didn't even trigger, meaning the code never got to that point. That’s because of the comparison! Okay flip the sign it should work now right?
 
 \begin{verbatim}
 (gdb) run
@@ -645,7 +645,7 @@ There is a whole load more resources on the web, here are a few specific ones th
 \begin{enumerate}
 \item \href{http://www.cs.cmu.edu/~gilpin/tutorial/}{Introduction to gdb}
 \item \href{http://www.delorie.com/gnu/docs/gdb/gdb\_56.html}{Memory Content}
-\item \href{https://www.youtube.com/watch?v=PorfLSr3DDI}{CppCon 2015: Greg Law “Give me 15 minutes & I’ll change your view of GDB”}
+\item \href{https://www.youtube.com/watch?v=PorfLSr3DDI}{CppCon 2015: Greg Law “Give me 15 minutes & I'll change your view of GDB”}
 \end{enumerate}
 
 \subsection{Shell}
@@ -746,7 +746,7 @@ read(3, "# C Datastructures\n\n[![Build Sta"..., 8192) = 1250
 \end{verbatim}
 
 Newer versions of strace can actually inject faults into your program.
-This is useful when you want to occasionly make reads and writes fail for example in a networking application, which your program should handle.
+This is useful when you want to occasionally make reads and writes fail for example in a networking application, which your program should handle.
 The problem is as of early 2019, that version is not in any ubuntu apt repositories.
 Meaning that you'll have to install it from source.
 
@@ -861,9 +861,9 @@ The virtual machine-in-your-browser and the videos you need for HW0 are here:
 Questions? Comments? Use the current semester's CS241 Piazza:
 \url{https://piazza.com/}
 
-The in-browser virtual machine runs entirely in Javascript and is fastest in Chrome. Note the VM and any code you write is reset when you reload the page, \textbf{so copy your code to a separate document.} The post-video challenges are not part of homework 0 but you learn the most by doing rather than just passively watching - so we suggest you have some fun with each end-of-video challenge.
+The in-browser virtual machine runs entirely in JavaScript and is fastest in Chrome. Note the VM and any code you write is reset when you reload the page, \textbf{so copy your code to a separate document.} The post-video challenges are not part of homework 0 but you learn the most by doing rather than just passively watching - so we suggest you have some fun with each end-of-video challenge.
 
-HW0 questions are below. Copy your answers into a text document sd you'll need to submit them later in the course.
+HW0 questions are below. Copy your answers into a text document because you'll need to submit them later in the course.
 
 \subsection{Chapter 1}
 
@@ -896,7 +896,7 @@ Sizing up C types and their limits, \keyword{int} and \keyword{char} arrays, and
 If the address of data is \keyword{0x7fbd9d40}, then what is the address of \keyword{data+2}?
 \item What is \keyword{data[3]} equivalent to in C? Hint: what does C convert \keyword{data[3]} to before dereferencing the address?
 Remember, the type of a string constant \keyword{"abc"} is an array.
-\item Why does this segfault?
+\item Why does this SEGFAULT?
 \begin{lstlisting}[language=C]
 char *ptr = "hello";
 *ptr = 'J';
@@ -1019,7 +1019,7 @@ Oh, and did I mention that this is an easy way to score points with your interns
 \item Have I read the MP/Lab specification completely?
 \item Have I watched all of the videos?
 \item Did I Google the error message and a few permutations thereof if necessary? How about stackoverflow.
-\item Did I try commenting out, printlining, and/or stepping through parts of the code bit by bit to find out precisely where the error occurs?
+\item Did I try commenting out, printing, and/or stepping through parts of the code bit by bit to find out precisely where the error occurs?
 \item \textbf{Did I commit my code to git in case the TAs need more context?}
 \item Did I include the console/GDB/Valgrind output **AND** code surrounding the bug in my Piazza post?
 \item Have I fixed other segmentation faults not related to the issue I'm having?
