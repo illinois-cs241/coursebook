@@ -4,7 +4,7 @@
   The future is still so much bigger than the past}{Tim Berners-Lee}
 
 Networking has become arguably the most important use of computers in the past 10-20 years.
-Most of us nowadays can't stand a place without wifi or any connectivity, so it is crucial as programmers that you have an understanding of networking and how to program to communicate across networks.
+Most of us nowadays can't stand a place without WiFi or any connectivity, so it is crucial as programmers that you have an understanding of networking and how to program to communicate across networks.
 Although it may sound complicated, POSIX has defined nice standards that make connecting to the outside world easy.
 POSIX also lets you peer underneath the hood and optimize all the little parts of each connection to write highly performant programs.
 
@@ -63,7 +63,7 @@ As for another definition, a protocol is a set of specifications put forward by 
 
 The following is a short introduction to internet protocol (IP), the primary way to send datagrams of information from one machine to another.
 ``IP4'', or more precisely, \gls{IPv4} is version 4 of the Internet Protocol that describes how to send \gls{packets} of information across a network from one machine to another.
-Even as of 2018, IPv4 still dominats internet traffic, but google reports that 24 countries now supply 15\% of their traffic through IPv6 \cite{internet_society_2018}.
+Even as of 2018, IPv4 still dominates internet traffic, but google reports that 24 countries now supply 15\% of their traffic through IPv6 \cite{internet_society_2018}.
 A significant limitation of IPv4 is that source and destination addresses are limited to 32 bits.
 IPv4 was designed at a time when the idea of 4 billion devices connected to the same network was unthinkable or at least not worth making the packet size larger.
 \gls{IPv4 address} are written typically in a sequence of four octets delimited by periods "255.255.255.0" for example.
@@ -99,7 +99,7 @@ Datagrams are formatted as such
     This means this is the header, the data, footer, and padding.
     This is given in multiple of octets, meaning that a value of 20 means 20 octets.
   \item The next two are Identification number.
-    IP handles taking packets that are too big to be sent over the phsyical wire and chunks them up.
+    IP handles taking packets that are too big to be sent over the physical wire and chunks them up.
     As such, this number identifies what datagram this originally belonged to.
   \item The next octet is various bit flags that can be set.
   \item The next octet and half is fragment number.
@@ -130,7 +130,7 @@ Datagrams are formatted as such
 
 The internet protocol routing is an amazing intersection of theory and application.
 We can imagine the entire internet as a set of graphs.
-Most peers are connected to what we call "peering points" these are the WiFi routers and the ethernet ports that one finds in their house, work, or public.
+Most peers are connected to what we call "peering points" these are the WiFi routers and the Ethernet ports that one finds in their house, work, or public.
 These peering points are then connected to a wired network of routers, switches, and servers that all route themselves.
 At a top level there are two types of routing
 
@@ -154,7 +154,7 @@ In addition, ISPs need to be nice to each other because theoretically an ISP can
 If everyone does that then, no packets get delivered at all which won't make customers happy at all.
 So these two protocols need to be fair so the end result works
 
-If you want to read more about this, look at the wikipedia page for routing here \href{https://en.wikipedia.org/wiki/Routing}{Routing}.
+If you want to read more about this, look at the Wikipedia page for routing here \href{https://en.wikipedia.org/wiki/Routing}{Routing}.
 
 \subsection{Extra: Fragmentation/Reassembly}
 
@@ -265,7 +265,7 @@ struct addrinfo {
 };
 \end{lstlisting}
 
-For example, suppose you wanted to find out the numeric IPv4 address of a webserver at \keyword{www.bbc.com}.
+For example, suppose you wanted to find out the numeric IPv4 address of a web server at \keyword{www.bbc.com}.
 We do this in two stages.
 First use getaddrinfo to build a linked-list of possible connections.
 Secondly use \keyword{getnameinfo} to convert the binary address of one of those into a readable form.
@@ -336,7 +336,7 @@ TCP has a number of features that set it apart from the other transport protocol
   A process can listen for incoming packets on a particular port.
   However only processes with \gls{super-user} (root) access can listen on ports less than 1024.
   Any process can listen on ports 1024 or higher.
-  An often used port is port 80: Port 80 is used for unencrypted http requests or web pages.
+  An often used port is port 80: Port 80 is used for unencrypted HTTP requests or web pages.
   For example, if a web browser connects to \keyword{http://www.bbc.com/} then it will be connecting to port 80.
 
 \item \gls{Retransmission}
@@ -985,7 +985,7 @@ A streaming video signal may send picture updates using UDP
 \item Unreliable Datagram Protocol
   Packets sent through UDP are not guaranteed to reach their destination.
   The probability that the packet gets delivered goes down over time.
-  This can especially be confusing because if you only test on your loopback device -- this is localhost or 127.0.0.1 for most users -- then there will almost never be loss because no network packets are sent.
+  This can especially be confusing because if you only test on your loop-back device -- this is localhost or 127.0.0.1 for most users -- then there will almost never be loss because no network packets are sent.
 \item Simple
   The UDP protocol is supposed to have much less fluff than TCP.
   Meaning that for TCP there are a lot of configurable parameters and a lot of edge cases in the implementation.
@@ -1109,7 +1109,7 @@ hints.ai_flags =  AI_PASSIVE;
 
 Next, use getaddrinfo to specify the port number.
 We don't need to specify a host as we are creating a server socket, not sending a packet to a remote host.
-Be careful not to send ``localhost'' or any other synonym for the loopback address because otherwise we may end up trying to passively listen to ourselves and get bind errors.
+Be careful not to send ``localhost'' or any other synonym for the loop-back address because otherwise we may end up trying to passively listen to ourselves and get bind errors.
 
 \begin{lstlisting}[language=C]
 getaddrinfo(NULL, "300", &hints, &res);

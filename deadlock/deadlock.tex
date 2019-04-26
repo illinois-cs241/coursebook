@@ -75,7 +75,7 @@ int isCyclic(Graph *G, int* is_visited) {
 Assume that the processes ask for exclusive access to the file.
 If you have a bunch of processes running and they request resources and the operating system ends up in this state, you deadlock!
 You may not see this because the operating system may \textbf{preempt} some processes breaking the cycle but there is still a change that your three lonely processes could deadlock.
-You can also make these kind of graphs with \texttt{make} and rule dependencies with our parmake MP for example.
+You can also make these kind of graphs with \texttt{make} and rule dependencies with our Parallel Make MP for example.
 
 There are four \emph{necessary} and \emph{sufficient} conditions for deadlock -- meaning if these conditions hold then there is a non-zero probability that the system will deadlock at any given iteration.
 These are known as the \gls{Coffman Conditions} \cite{coffman1971system}.
@@ -92,9 +92,9 @@ These are known as the \gls{Coffman Conditions} \cite{coffman1971system}.
   No \gls{pre-emption}: nothing can force the process to give up a resource.
 \end{itemize}
 
-\begin{proof} Deadlock can happen if and only if the four coffman conditions are satisfied.
+\begin{proof} Deadlock can happen if and only if the four Coffman conditions are satisfied.
 
-$\rightarrow$ If the system is deadlocked, the four coffman conditions are apparent.
+$\rightarrow$ If the system is deadlocked, the four Coffman conditions are apparent.
 
 \begin{itemize}
 \item For the purposes of contradiction, assume that there is no circular wait. If not then that means the resource allocation graph is acyclic, meaning that there is at least one one process that is not waiting on any resource to be freed. Since the system can move forward, the system is not deadlocked.
@@ -188,7 +188,7 @@ The following proof \textbf{is not required for our 241 related purposes but is 
   This meaning that for any probability level $l$ we can produce a number of iterations $n$ that the probability that the system is not livelocked after that state is at least $l$.
 
   Let $L = \{p_1, p_2, p_3, ...\}$ be an infinite set that has probabilities if we choose a resource that causes livelock in the $i$th iteration of the livelocked by breaking a random resource.
-  Also let the set have the property that $\forall i > 0, \exists j > i, p_j < 1$ Meaning that for all elements after any given element that there is atleast one element int he future that has a probability of breaking deadlock.
+  Also let the set have the property that $\forall i > 0, \exists j > i, p_j < 1$ Meaning that for all elements after any given element that there is at least one element int he future that has a probability of breaking deadlock.
   The probability that the system is not livelocked after $n$ iterations is
 \[
 P(n) = 1 - \prod\limits_{i = 1}^{n}p_i
@@ -211,12 +211,12 @@ P(n) >& l \\
 1 - Y^n  >& l \\
 \log_Y(1 - l) <& n
 \end{align*}
-We have found the number of steps in the set $E$ and since our set has the property that gaps between non-one elements is finite, we can reconstruct the number of iterations by picking an $n$ that satifies the $E$ criteria and just adding the finite gaps together, which is what we needed to show.
+We have found the number of steps in the set $E$ and since our set has the property that gaps between non-one elements is finite, we can reconstruct the number of iterations by picking an $n$ that satisfies the $E$ criteria and just adding the finite gaps together, which is what we needed to show.
 \end{proof}
 \end{comment}
 
 Deadlock prevention is making sure that deadlock cannot happen, meaning that you break a Coffman condition.
-This works the best inside a single program and the software engineer making the choice to break a certain coffman condition. Consider the 
+This works the best inside a single program and the software engineer making the choice to break a certain Coffman condition. Consider the 
 \href{https://en.wikipedia.org/wiki/Banker's\_algorithm}{Banker's Algorithm} \cite{Dijkstra:1965:CSP:1102034}.
 It is another algorithm for deadlock avoidance.
 The whole implementation is outside the scope of this class, just know that there are more generalized algorithms for operating systems.
@@ -278,7 +278,7 @@ However these chopsticks are shared with his neighbor.
 \end{wrapfigure}
 
 Is it possible to design an efficient solution such that all philosophers get to eat? Or, will some philosophers starve, never obtaining a second chopstick? Or will all of them deadlock? For example, imagine each guest picks up the chopstick on their left and then waits for the chopstick on their right to be free.
-Oops - our philosophers have deadlocked! Each of the philosophers are essentially the same, meaning that each philosopher has the same instruction set based on the other philosopher ie you can't tell every even philosopher to do one thing and every odd philosopher to do another thing.
+Oops - our philosophers have deadlocked! Each of the philosophers are essentially the same, meaning that each philosopher has the same instruction set based on the other philosopher i.e. you can't tell every even philosopher to do one thing and every odd philosopher to do another thing.
 
 
 \subsection{Failed Solutions}
@@ -302,7 +302,7 @@ This looks good but.
 What if everyone picks up their left fork and is waiting on their right fork? We have deadlocked the program.
 It is important to note that deadlock doesn't happen all the time and the probability that this solution deadlocks goes down as the number of philosophers goes up.
 What is really important to note is that eventually that this solution will deadlock, letting threads starve which is bad.
-So now you are thinking about breaking one of the coffman conditions.
+So now you are thinking about breaking one of the Coffman conditions.
 Let's break Hold and Wait!
 
 \begin{lstlisting}[language=C]
@@ -350,7 +350,7 @@ This has the added bonus of being able to have multiple philosopher eat at the s
 There are a lot of problems with these solutions.
 One is that they are slow and have a single point of failure or the arbitrator.
 Assuming that all the philosophers are good-willed, the arbitrator needs to be fair and be able to determine if a transaction would cause deadlock in the multi-arbitrator case.
-Furthermore in practical systems, the arbitrator tends to give forks to the same processes because of scheduling or pseudorandomness.
+Furthermore in practical systems, the arbitrator tends to give forks to the same processes because of scheduling or pseudo-randomness.
 Another important thing to note is that this prevents deadlock for the entire system.
 But in our model of dining philosophers, the philosopher has to release the lock themselves.
 Then you can consider the case of the malicious philosopher (let's say Descartes because of his Evil Demons) could hold on to the arbitrator forever.
@@ -359,7 +359,7 @@ He would make forward progress and the system would make forward progress but th
 
 \begin{proof} Arbitrator doesn't deadlock
 
-The proof is about as simple as it gets. For number of philosophers $n >= 2$ only one philosopher can request resources at a time. There is no way to make a cycle in the resource allocation graph with only one philsopher acting in pickup the left then the right fork which is what we needed to show.
+The proof is about as simple as it gets. For number of philosophers $n >= 2$ only one philosopher can request resources at a time. There is no way to make a cycle in the resource allocation graph with only one philosopher acting in pickup the left then the right fork which is what we needed to show.
 
 \end{proof}
 
@@ -416,7 +416,7 @@ If the last philosopher $p_{n-1}$ holds the first lock that means that the previ
 Since no other blockers, the philosopher previous $p_{n-3}$ will grab her first lock.
 This is now a reduction to the previous proof of stalling because we now have $n$ resources but only $n-1$ philosophers, meaning this cannot deadlock.
 
-If the philosopher doesn't obtain that first lock, then we have a reduction to stalling's proof above because now have $n-1$ philosophers vying for $n$ resources.
+If the philosopher doesn't obtain that first lock, then we have a reduction to Stalling's proof above because now have $n-1$ philosophers vying for $n$ resources.
 Since we can't reach deadlock in either case, this solution cannot deadlock which is what we needed to show.
 
 \end{proof}

@@ -18,7 +18,7 @@ The additional complexity of multi-threaded and multiple CPU cores are considere
 Another gotcha for non-native speakers is the dual meanings of ``Time'': The word ``Time'' can be used in both clock and elapsed duration context.
 For example ``The arrival time of the first process was 9:00am.'' and, ``The running time of the algorithm is 3 seconds''.
 
-One clarification that we will make is that our scheduling will mainly deal with short term or cpu scheduling.
+One clarification that we will make is that our scheduling will mainly deal with short term or CPU scheduling.
 That means we will assume that the processes are in memory and ready to go.
 The other types of scheduling are long and medium term.
 Long term schedulers act as gatekeepers to the processing world.
@@ -162,7 +162,7 @@ Although it is called the Fair Scheduler there are a fair bit of problems.
 
 \section{Scheduling Algorithms}
 
-Unless otherwised stated
+Unless otherwise stated
 
 \begin{enumerate}
 \item Process 1: Runtime 1000ms
@@ -363,7 +363,7 @@ For example, a navigation process might be more important to execute than a logg
 
 Okay so we've given you a bunch of tools, but if your co-worker came up to you now and asked you what scheduling algorithm to use, you wouldn't really know what to say.
 So let's think about scheduling algorithms at a high level and break them down by their times.
-We will be evaluating this in the context of a random process timing, meaning that each process takes a random but fininte amount of time to finish.
+We will be evaluating this in the context of a random process timing, meaning that each process takes a random but finite amount of time to finish.
 
 Just a refresher, here are the terms.
 
@@ -394,7 +394,7 @@ Here are some concepts from queueing theory that you'll need to know that will h
 
 \begin{enumerate}
 \item Queueing theory involves a random variable controlling the interarrival time -- or the time between two different processes arriving.
-  We won't name this random variable, but we will assume that (1) it has a mean of $\lambda$ and (2) it is distributed as a poisson random variable.
+  We won't name this random variable, but we will assume that (1) it has a mean of $\lambda$ and (2) it is distributed as a Poisson random variable.
   This means the probability of getting a process $t$ units after getting another process is $\lambda^t * \frac{\exp(-\lambda)}{t!}$ where $t!$ can be approximated by the gamma function when dealing with real values.
 \item We will be denoting the service time $S$, and deriving the waiting time $W$, and the response time $R$; more specifically the expected values of all of those variables $E[S]$ deriving turnaround time is simply $S + W$.
   For clarity we will introduce another variable $N$ that is the number of people currently in the queue.
@@ -466,7 +466,7 @@ The proofs are intuitive for people who don't have a background in queueing theo
 
   One thing that is interesting is that we don't have to worry about the convoy effect or any new processes coming in.
   The total wait time remains bounded by the number of people in the queue.
-  For those of you familiar with tail inequalities since processes arrive according to a poinsson distribution, the probability that we'll get many processes drops off exponentially due to chernoff bounds (all arrivals are independent of other arrivals).
+  For those of you familiar with tail inequalities since processes arrive according to a Poisson distribution, the probability that we'll get many processes drops off exponentially due to Chernoff bounds (all arrivals are independent of other arrivals).
   Meaning roughly we can assume low variance on the number of processes.
   As long as the service time is reasonable on average, the wait time will be too.
 
@@ -489,7 +489,7 @@ The proofs are intuitive for people who don't have a background in queueing theo
 \item One variable that is different is the amount of service time let the service time for processor sharing be defined as $S_{PS}$.
   The slowdown is $E[S_{PS}] = \frac{E[S]}{1 - \rho}$
   Which means as the mean arrival rate equals the mean processing time, then the jobs will take asymptotically as long to finish.
-  In the non-strict analyis of processor sharing, we assume that
+  In the non-strict analysis of processor sharing, we assume that
   \[
     E[S_{RR}] = E[S] + Q * \epsilon, \epsilon > 0
   \]
@@ -518,7 +518,7 @@ The last bit of notation is that we will assume that the probability of getting 
     \[
     E[W_x] \leq \frac{1 + C}{2}* \frac{\rho}{(1 - \rho(x))^2} * E[S_i]
     \]
-    because the addition of $\rho_x$ can only increase the sum, decrease the denominator or increase the overal function.
+    because the addition of $\rho_x$ can only increase the sum, decrease the denominator or increase the overall function.
   This means that if one is priority 0, then a process only need to wait for the other P0 processes which there should be $\rho C/ (1 - \rho_0)$ P0 processes arrived before to process in FCFS order.
   Then the next priority has to wait for all the others and so on and so forth.
 
@@ -540,7 +540,7 @@ The last bit of notation is that we will assume that the probability of getting 
       \frac{1}{1-\rho}
   \]
 
-  In words -- you can work this out with experiementing distributions -- if you have a lot of low priority processes who don't contribute a lot to the average load, your average wait time becomes much lower.
+  In words -- you can work this out with experimenting distributions -- if you have a lot of low priority processes who don't contribute a lot to the average load, your average wait time becomes much lower.
 
 \item The average per process response time is
 
@@ -625,7 +625,7 @@ We will also introduce an additional term $C_i$ which denotes the variation amon
   If 99\% of jobs are high priority jobs and the rest make up the other percent, then the other jobs will get frequently interrupted, but high priority jobs will make up most of the jobs, so the expectation is still low.
   The other extreme is if one percent of jobs are high priority and they come in a very low variance.
   That means the chances us of the system getting a really high priority jobs that will take a long time is low, thus making our response times lower on average.
-  We only run into trouble if high priority jobs make up a non-negligable amount, and they have a high variance in service times.
+  We only run into trouble if high priority jobs make up a non-negligible amount, and they have a high variance in service times.
   This brings down response times as well as wait times.
 
 \item Waiting Time
@@ -659,7 +659,7 @@ We will also introduce an additional term $C_i$ which denotes the variation amon
 
 \subsection{Pre-emptive Shortest Job First}
 
-Unforutnately we can't use the same trick as before because an infinitesimal point doesn't have a well controlled variance.
+Unfortunately we can't use the same trick as before because an infinitesimal point doesn't have a well controlled variance.
 You can imagine the comparisons though as the same as the previous section.
 
 \section{Topics}
