@@ -4,7 +4,7 @@
 
 \gls{C} is the de-facto programming language to do serious system serious programming.
 Why? Most kernels are written in largely in C.
-The \gls{linux kernel} \cite{Love} and the XNU kernel \citet{xnukernel} of which Mac OS X is based off.
+The \gls{Linux kernel} \cite{Love} and the XNU kernel \citet{xnukernel} of which Mac OS X is based off.
 The Windows Kernel uses C++, but doing system programming on that is much harder on windows that UNIX for beginner system programmers.
 Most of you have some experience with C++, but C is a different beast entirely.
 You don't have nice abstractions like classes and RAII to clean up memory.
@@ -32,7 +32,7 @@ We'll begin by providing a decently comprehensive overview of the language with 
 \section{Features}
 
 \begin{itemize}
-	\item Fast. There is ver little separating you and the system.
+	\item Fast. There is very little separating you and the system.
 	\item Simple.
     C and its standard library pose a simple set of portable functions.
 	\item Memory Management.
@@ -58,7 +58,7 @@ int main(void) {
 
 \begin{enumerate}
 	\item The \keyword{\#include} directive takes the file \keyword{stdio.h} (which stands for \textbf{st}an\textbf{d}ard \textbf{i}nput and \textbf{o}utput) located somewhere in your operating system, copies the text, and substitutes it where the \keyword{\#include} was.
-	\item The \keyword{int main(void)} is a function declaration. The first word \keyword{int} tells the compiler what the return type of the function is. The part before the parens (\keyword{main}) is the function name. In C, no two functions can have the same name in a single compiled program, shared libraries are a different touchy subject. Then, what comes after is the parameter list. When we give the parameter list for regular functions \keyword{(void)} that means that the compiler should error if the function is called with any arguments. For regular functions having a declaration like \keyword{void func()} means that you are allowed to call the function like \keyword{func(1, 2, 3)} because there is no delimiter. In the case of \keyword{main}, it is a special function. There are many ways of declaring \keyword{main} but the ones that you will be familiar with are \keyword{int main(void)}, \keyword{int main()}, and \keyword{int main(int argc, char *argv[])}.
+	\item The \keyword{int main(void)} is a function declaration. The first word \keyword{int} tells the compiler what the return type of the function is. The part before the parenthesis (\keyword{main}) is the function name. In C, no two functions can have the same name in a single compiled program, shared libraries are a different touchy subject. Then, what comes after is the parameter list. When we give the parameter list for regular functions \keyword{(void)} that means that the compiler should error if the function is called with any arguments. For regular functions having a declaration like \keyword{void func()} means that you are allowed to call the function like \keyword{func(1, 2, 3)} because there is no delimiter. In the case of \keyword{main}, it is a special function. There are many ways of declaring \keyword{main} but the ones that you will be familiar with are \keyword{int main(void)}, \keyword{int main()}, and \keyword{int main(int argc, char *argv[])}.
 	\item \keyword{printf("Hello World\n");} is what we call a function call. \keyword{printf} is defined as a part of \keyword{stdio.h}. The function has been compiled and lives somewhere else on our machine. All we need to do is include the header and call the function with the appropriate parameters (a string literal \keyword{"Hello World\n"}). If you don't have the newline, the buffer will not be flushed. It is by convention that buffered IO is not flushed until a newline.
 	\item \keyword{return 0;}. \keyword{main} has to return an integer. By convention, \keyword{return 0} means success and anything else means failure.
 \end{enumerate}
@@ -677,7 +677,7 @@ void foo(void);
 	      The other use of \keyword{void} is when you are defining.
         A \keyword{void *} pointer is just a memory address. It is specified as an incomplete type meaning that you cannot dereference it but it can be promoted to any time to any other type. Pointer arithmetic with these pointer is undefined behavior.
 
-	      \begin{lstlisting}[langauge=C]
+	      \begin{lstlisting}[language=C]
 int *array = void_ptr; // No cast needed
 \end{lstlisting}
 
@@ -728,7 +728,7 @@ Operators are language constructs in C that are defined as part of the grammar o
 	\item \keyword{.} is the structure reference operator. If you have an object on the stack \texttt{a} then you can access an element \texttt{a.element}.
 	\item \keyword{+/-a} is the unary plus and minus operator. They either keep or negate the sign, respectively, of the integer or float type underneath.
 	\item \keyword{*a} is the dereference operator. If you have a pointer  \texttt{*p}, you can use this to access the element located at this memory address. If you are reading, the return value will be the size of the underlying type. If you are writing, the value will be written with an offset.
-	\item \keyword{\&a} is the addressof operator. This takes the an element and returns its address.
+	\item \keyword{\&a} is the address-of operator. This takes the an element and returns its address.
 	\item \keyword{++} is the increment operator. You can either take it prefix or postfix, meaning that the variable that is being incremented can either be before or after the operator. \keyword{a = 0; ++a === 1} and \keyword{a = 1; a++ === 0}.
 	\item \keyword{--} is the decrement operator. Same semantics as the increment operator except with decreasing the value by one.
 	\item \keyword{sizeof} is the sizeof operator. This is also mentioned in the keywords section.
@@ -793,7 +793,7 @@ If you are a student and completed HW0, feel free to gloss over this section.
 A system call is an operation that the kernel carries out instead of the program.
 The operating system prepares a system call then the kernel executes the system call to the best of its ability in kernel space.
 In the previous example we opened up a file descriptor object.
-We can now also write some bytes to the file descriptor object that represents a file and the oeprating system will do its best to get the bytes written to the disk.
+We can now also write some bytes to the file descriptor object that represents a file and the operating system will do its best to get the bytes written to the disk.
 
 \begin{lstlisting}[language=C]
 write(file_fd, "Hello!", 6);
@@ -806,7 +806,7 @@ Their cost in terms of time and CPU cycles has recently been decreased, but try 
 
 \subsection{C Calls}
 
-Many C calls that we will discuss in the next sections will call some of the calls above in their linux implementation.
+Many C calls that we will discuss in the next sections will call some of the calls above in their Linux implementation.
 Their Windows implementation may be entirely different.
 But we will be looking at one operating system in general.
 
@@ -819,7 +819,7 @@ To find more information about any functions, use the man pages. Note the man pa
 In this section we will cover all the basic input and output functions in the standard library with references to system calls.
 As a little bit of terminology, when your program is running on a terminal your Standard Output is your terminal and Standard Input is your terminal waiting for input.
 There are other cases as you'll see later in this course of redirecting those to point to other things.
-They are designated by the filedescriptors 0 and 1 respectively. 2 is reserved for standard error which by library convention is unbuffered.
+They are designated by the file descriptors 0 and 1 respectively. 2 is reserved for standard error which by library convention is unbuffered.
 
 \subsubsection{stdout oriented streams}
 
@@ -971,14 +971,14 @@ scanf("%9s", buffer); // reads up to 9 characters from input (leave room for the
 \end{lstlisting}
 
 One last thing to note is if you thought system calls were expensive, the \keyword{scanf} family is much more expensive due to compatibility reasons. Imagine needing to take all of the printf specifiers correctly, the code isn't going to be very efficient.
-Most of the time, if you are writing a standalone program, write the parser yourself.
+Most of the time, if you are writing a stand-alone program, write the parser yourself.
 If it is a one of program, feel free to use scanf.
 
 \subsection{string.h}
 
 String.h functions are a series of functions that deal with how to manipulate and check pieces of memory.
 Most of them deal with C-Strings
-A C-String is a series of bytes delimited by a NUL character which is eaul to the byte 0x00.
+A C-String is a series of bytes delimited by a NUL character which is equal to the byte 0x00.
 \href{https://linux.die.net/man/3/string}{More information about all of these functions}.
 Any behavior not in the docs like passing \keyword{strlen(NULL)} is considered undefined behavior.
 
@@ -1039,7 +1039,7 @@ char* upped = strdup("strtok,is,tricky,,,!!");
 	      \keyword{long long int strtoll(const char *nptr, char **endptr, int base);}.
 
 	      What these functions do is take the pointer to your string
-	      \keyword{*nptr} and a \keyword{base} (ie binary, octal, decimal,
+	      \keyword{*nptr} and a \keyword{base} (i.e. binary, octal, decimal,
 	      hexadecimal etc) and an optional pointer \keyword{endptr} and returns a
 	      parsed value.
 
@@ -1103,7 +1103,7 @@ struct contact bhuvan;
 \end{lstlisting}
 
 \begin{lstlisting}[language=C]
-/* a lot of times we will do the following typdef
+/* a lot of times we will do the following typedef
  so we can just write contact contact1 */
 
 typedef struct contact contact;
@@ -1172,7 +1172,7 @@ strcmp(bhuvan_name->c_str, "bhuvan") == 0 //The strings are equal!
 
 What that zero length array does is point to the \textbf{end of the struct} this means that the compiler will leave room for all of the elements calculated with respect to their size on the operating system (ints, chars, etc). The zero length array will take up no bytes of space.
 Since structs are just continuous pieces of memory, we can allocate \textbf{more} space than required and use the extra space as a place to store extra bytes.
-Although this seems like a parlour trick, it is an important optimization because to have a variable length string any other way, one would need to have two different memory allocation calls.
+Although this seems like a parlor trick, it is an important optimization because to have a variable length string any other way, one would need to have two different memory allocation calls.
 This is highly inefficient for doing something as common in programming as string manipulation.
 
 \subsubsection{Extra: Struct packing}
@@ -1211,7 +1211,7 @@ struct picture{
 }
 \end{lstlisting}
 
-Here is some more ascii art for you
+Here is some more ASCII art for you
 
 \begin{verbatim}
 | h | ? | data  | w | ? | encod |
@@ -1247,7 +1247,7 @@ struct picture{
     int height;
     int width;
     pixel** data;
-    char* enconding;
+    char* encoding;
 }
 \end{lstlisting}
 
@@ -1264,11 +1264,11 @@ In C we have
 	Terminated} strings rather than
 \href{https://en.wikipedia.org/wiki/String_(computer_science)\#Length-prefixed}{Length
 	Prefixed} for historical reasons. What that means for your average everyday programming is that you need to remember the null character!
-A string in C is defined as a bunch of bytes until you reach `\0' or the Nul Byte.
+A string in C is defined as a bunch of bytes until you reach `\0' or the NUL Byte.
 
 \subsection{Places for strings}
 
-Whenever you define a constant string -- one in the form \keyword{char*\ str\ =\ "constant"} -- that string is stored in the \emph{data} depending on your architecture which is \textbf{read-only} meaning that any attempt to modify the string will cause a segfault.
+Whenever you define a constant string -- one in the form \keyword{char*\ str\ =\ "constant"} -- that string is stored in the \emph{data} depending on your architecture which is \textbf{read-only} meaning that any attempt to modify the string will cause a SEGFAULT.
 One can also declare strings to be either in the writable data segment or the stack. To do so, just specify a length for the string or put brackets instead of a pointer \keyword{char str[] = "mutable"} and put in the global scope or the function scope for the data segment or the stack respectively.
 If one, however, \keyword{malloc}'s space, one can change that string to be whatever they want.
 Forgetting to NUL terminate a string is a big effect on the strings! Bounds checking is important.
@@ -1452,7 +1452,7 @@ For char pointers, this is trivial because characters are always one byte.
 
 \begin{lstlisting}[language=C]
 char *ptr = "Hello"; // ptr holds the memory location of 'H'
-ptr += 2; //ptr now points to the first'l'
+ptr += 2; //ptr now points to the first 'l''
 \end{lstlisting}
 
 If an int is 4 bytes then ptr+1 points to 4 bytes after whatever ptr is pointing at.
@@ -1519,7 +1519,7 @@ void mystrcpy(char*dest, char* src) {
 }
 \end{lstlisting}
 
-In the above code it simply changes the dest pointer to point to source string. Also the nuls bytes are not copied. Here's a better version -
+In the above code it simply changes the dest pointer to point to source string. Also the NULs bytes are not copied. Here's a better version -
 
 \begin{lstlisting}[language=C]
   while( *src ) { *dest = *src; src ++; dest++; }
@@ -1686,7 +1686,7 @@ while ((nread = getline(&line, &len, stream)) != -1)
 \end{lstlisting}
 
 This piece of code calls getline, and assigns the return value or the number of bytes read to nread. It also in the same line checks if that value is -1 and if so terminates the loop.
-It is always good practice to put parens around any assignment condition.
+It is always good practice to put parenthesis around any assignment condition.
 
 \subsection{Undeclared or incorrectly prototyped functions}
 
@@ -1700,7 +1700,7 @@ The system function `time' actually takes a parameter a pointer to some memory t
 The compiler did not catch this error because the programmer did not provide a valid function prototype by including \keyword{time.h}.
 
 More confusingly this could compile, work for decades and then crash. The reason for that is that time would be found at link time, not compile time in the c standard library which almost surely is already in memory.
-Since we aren't passing a parameter in, we are hoping the arguments on the stack (any garbage) is zeroed out because if it isn't, time will try to write the result of the function to that garbage which will cause the program to segfault.
+Since we aren't passing a parameter in, we are hoping the arguments on the stack (any garbage) is zeroed out because if it isn't, time will try to write the result of the function to that garbage which will cause the program to SEGFAULT.
 
 \subsection{Extra Semicolons}
 
@@ -1766,9 +1766,9 @@ It increases the number of lines of code, which is a great productivity metric.
 	\item
 	      static memory
 	\item
-	      fileio POSIX vs.~C library
+	      file input output. POSIX vs.~C library
 	\item
-	      C io fprintf and printf
+	      C input output: fprintf and printf
 	\item
 	      POSIX file IO (read, write, open)
 	\item
@@ -1855,7 +1855,7 @@ return output;
 	\item
 	      Write a function that accepts a string and opens that file prints out the file 40 bytes at a time but every other print reverses the string (try using POSIX API for this).
 	\item
-	      What are some differences between the POSIX file descriptor model and C's \keyword{FILE*} (ie what function calls are used and which is buffered)? Does POSIX use C's \keyword{FILE*} internally or vice versa?
+	      What are some differences between the POSIX file descriptor model and C's \keyword{FILE*} (i.e. what function calls are used and which is buffered)? Does POSIX use C's \keyword{FILE*} internally or vice versa?
 \end{itemize}
 
 \section{Rapid Fire: Pointer Arithmetic}
