@@ -2,7 +2,7 @@
 
 \epigraph{That's a signal, Jerry, that's a signal! [snaps his fingers again] Signal!}{George Costanza (Seinfeld)}
 
-Signals have been a unix construct since the beginning. They are a convenient way to deliver low-priority information and for users to interact with their programs when no other form of interaction is available like using standard input. Signals allow a program to cleanup or perform an action in the case of an event. Some time, a program can choose to ignore events and that is completely fine and even supported by the standard. Crafting a program that uses signals well is tricky due to all the rules with inheritance. As such, signals are usually kept as cleanup or termination measures.
+Signals have been a Unix construct since the beginning. They are a convenient way to deliver low-priority information and for users to interact with their programs when no other form of interaction is available like using standard input. Signals allow a program to cleanup or perform an action in the case of an event. Some time, a program can choose to ignore events and that is completely fine and even supported by the standard. Crafting a program that uses signals well is tricky due to all the rules with inheritance. As such, signals are usually kept as cleanup or termination measures.
 
 This chapter will go over how to first read information from a process that has either exited or been signaled and then it will deep dive into what are signals, how does the kernel deal with a signal, and the various ways processes can handle signals both in a single and multithreaded way.
 
@@ -31,7 +31,7 @@ SIGKILL & Terminate Process (Cannot be caught) & You want the process gone \\
 
 \section{Sending Signals}
 
-Signals can be generated multiple ways. The user can send a signal. For example, you are at the terminal, and you send \keyword{CTRL-C} this is rarely the case in operating systems but is included in user programs for convenience. Another way is when a system event happens. For example, if you access a page that you aren't supposed to, the hardware generates a segfault interrupt which gets intercepted by the kernel. The kernel finds the process that caused this and sends a software interrupt signal \keyword{SIGSEGV}. There are softer kernel events like a child being created or sometimes when the kernel wants to like when it is scheduling processes. Finally, another process can send a message when you execute \keyword{kill\ -9\ PID}, it sends \keyword{SIGKILL} to the process. This could be used in low-stakes communication of events between process. If you are relying on signals to be the driver in your program, you should rethink your application design. There are many drawbacks to using signals for asynchronous communication that is avoided by having a dedicated thread and some form of proper Interprocess Communication.
+Signals can be generated multiple ways. The user can send a signal. For example, you are at the terminal, and you send \keyword{CTRL-C} this is rarely the case in operating systems but is included in user programs for convenience. Another way is when a system event happens. For example, if you access a page that you aren't supposed to, the hardware generates a SEGFAULT interrupt which gets intercepted by the kernel. The kernel finds the process that caused this and sends a software interrupt signal \keyword{SIGSEGV}. There are softer kernel events like a child being created or sometimes when the kernel wants to like when it is scheduling processes. Finally, another process can send a message when you execute \keyword{kill\ -9\ PID}, it sends \keyword{SIGKILL} to the process. This could be used in low-stakes communication of events between process. If you are relying on signals to be the driver in your program, you should rethink your application design. There are many drawbacks to using signals for asynchronous communication that is avoided by having a dedicated thread and some form of proper Interprocess Communication.
 
 You can temporarily pause a running process by sending it a SIGSTOP signal. If it succeeds it will freeze a process, the process will not be allocated any more CPU time. To allow a process to resume execution send it the SIGCONT signal. For example, Here's program that slowly prints a dot every second, up to 59 dots.
 
@@ -328,7 +328,7 @@ pthread_kill(pthread_self(), SIGKILL); // send SIGKILL to myself
 
 As a word of warning \keyword{pthread\_kill(threadid, SIGKILL)} will kill the entire process. Though individual threads can set a signal mask, the signal disposition (the table of handlers/action performed for each signal) is \emph{per-proces}s not \emph{per-thread}. This means \keyword{sigaction} can be called from any thread because you will be setting a signal handler for all threads in the process.
 
-The linux man pages discusses signal system calls in section 2. There is also a longer article in section 7 (though not in OSX/BSD):
+The Linux man pages discusses signal system calls in section 2. There is also a longer article in section 7 (though not in OSX/BSD):
 
 \begin{lstlisting}[language=C]
 man -s7 signal

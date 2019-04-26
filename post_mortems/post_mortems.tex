@@ -15,7 +15,7 @@ This was a back door into most shells. The bug allowed an attacher to exploit an
   vulnerable...
 \end{lstlisting}
 
-This meant that in any system that uses environment variables and doesn't sanitize their input (hint no one sanitized environment variable input because they saw it as safe) you can execute whatever code you want on others machines including setting up a webserver.
+This meant that in any system that uses environment variables and doesn't sanitize their input (hint no one sanitized environment variable input because they saw it as safe) you can execute whatever code you want on others machines including setting up a web server.
 
 Lessons Learned: On production machines make sure that there is a minimal operating system (something like BusyBox with DietLibc) so that you can understand most of the code in the systems and their effectiveness. Put in multiple layers of abstraction and checks to make sure that data isn't leaked. For example the above is a problem insofar as getting information back to the attackers if it is allowed to communicate with them. This means that you can harden your machine ports by disallowing connections on all but a few ports. In addition, you can harden your system to never perform exec calls to perform tasks (i.e. perform an exec call to update a value) and instead do it in C or your favorite programming language of choice. Although you don't have flexibility, you have peace of mind what you allow users to do.
 
@@ -126,9 +126,9 @@ Required Sections: Intro to C
 
 \href{https://www.geek.com/games/why-gandhi-is-always-a-warmongering-jerk-in-civilization-1608515/}{Ghandi's Aggressiveness}
 
-This is probably well known to gamers why someone as (in real life) non-violent as Ghandi was uber aggressive in the video game civilization. In the original, the game kept aggressiveness as an unsigned integer. During the course of the game the integer could be decremented and then the problem ensued because Ghandi was already at 0. This caused him to become the most aggressive character in the game.
+This is probably well known to gamers why someone as (in real life) non-violent as Ghandi was very aggressive in the video game civilization. In the original, the game kept aggressiveness as an unsigned integer. During the course of the game the integer could be decremented and then the problem ensued because Ghandi was already at 0. This caused him to become the most aggressive character in the game.
 
-Lessons Learned: The takeaway from this is \textbf{Never} use unsigned numbers unless you have an express written reason for it (reasons include you need to know about the overflow behavior, you are bit shifting, you are bit masking). In every other case, cast it.
+Lessons Learned: The take away from this is \textbf{Never} use unsigned numbers unless you have an express written reason for it (reasons include you need to know about the overflow behavior, you are bit shifting, you are bit masking). In every other case, cast it.
 
 
 \section{The Woes of Shell Scripting}

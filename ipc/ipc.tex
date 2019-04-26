@@ -110,7 +110,7 @@ VirtualAddress = 11110000111100001111000010101010
                                      |= offset =|
 \end{verbatim}
 
-We first go to the page table and find the frame number -- with pointer arith this would be \keyword{page\_table\_entry *ptr + num}
+We first go to the page table and find the frame number -- with pointer arithmetic this would be \keyword{page\_table\_entry *ptr + num}
 
 \begin{verbatim}
 | frame_num |
@@ -174,7 +174,7 @@ Then you add the offset and do the read or write.
 
 \subsubsection{Visualizing The Dereference}
 
-For those of you who love ascii art or need another way of describing it, let's do it through the scheme as before.
+For those of you who love ASCII art or need another way of describing it, let's do it through the scheme as before.
 First, we find our ``base'' level pages table.
 We use that \keyword{Index1} to find the first level index.
 
@@ -238,7 +238,7 @@ For a two-level page table, memory access is now three times as slow -- three me
 
 To overcome this overhead, the MMU includes an associative cache of recently-used virtual-page-to-frame lookups.
 This cache is called the TLB (``translation lookaside buffer'').
-Everytime a virtual address needs to be translated into a physical memory location, the TLB is queried in parallel to the page table.
+Every time a virtual address needs to be translated into a physical memory location, the TLB is queried in parallel to the page table.
 For most memory accesses of most programs, there is a significant chance that the TLB has cached the results.
 However if a program does not have good cache coherence, the TLB will not have the result cache and now the MMU must use the much slower page table to determine the physical frame.
 
@@ -284,7 +284,7 @@ Read only frames can then be safely shared between multiple processes.
 For example, the C-library instruction code can be shared between all processes that dynamically load the code into the process memory.
 Each process can only read that memory.
 Meaning that if you try to write to a read-only page in memory you will get a \keyword{SEGFAULT}.
-That is why sometimes memory accesses segfault and sometimes they don't, it all depends on if your hardware says that you can access.
+That is why sometimes memory accesses SEGFAULT and sometimes they don't, it all depends on if your hardware says that you can access.
 
 In addition, processes can share a page with a child process using the \keyword{mmap} system call.
 \keyword{mmap} is an interesting call because instead of tying each virtual address to a physical frame, it ties it to something else. It is an important distinction that we are talking about mmap and not memory-mapped IO in general. The \texttt{mmap} system call can't reliably be used to do other memory mapped operations like communicate with GPUs and write pixels to the screen -- this is mainly hardware dependent.
@@ -339,7 +339,7 @@ There are three types of Page Faults
 What does this have to do with IPC?
 Well internally before this point in your programming career you knew that processes had isolation.
 But, you one didn't really know how that isolation mapped.
-Two, you may've not know how you can break this isolation.
+Two, you may have not know how you can break this isolation.
 To break any memory level isolation you have two avenues.
 One is to ask the kernel to provide some kind of interface.
 The other is to ask the kernel to map two pages of memory to the same virtual memory area, and handle all the synchronization yourself.
@@ -369,8 +369,8 @@ They let the operating system take control of how much you use your files.
 
 \texttt{mmap} does more than just take a file and map it to memory.
 It is the general interface for creating shared memory among processes.
-Currently it only supports regular files and posix \keyword{shmem} \cite{mmap_2018}.
-Naturally, you can read all about it in the citation above, which references the current working group posix standard.
+Currently it only supports regular files and POSIX \keyword{shmem} \cite{mmap_2018}.
+Naturally, you can read all about it in the citation above, which references the current working group POSIX standard.
 Some other options to note in the page will follow.
 
 The first option is that the \texttt{flags} argument of mmap can take many options.
@@ -566,7 +566,7 @@ int main() {
 \end{lstlisting}
 
 The problem with using a pipe in this fashion is that writing to a pipe can block meaning the pipe only has a limited buffering capacity.
-The maximum size of the buffer is system dependent; typical values from 4KiB upto 128KiB though they can be changed.
+The maximum size of the buffer is system dependent; typical values from 4KiB up to 128KiB though they can be changed.
 
 \begin{lstlisting}[language=C]
 int main() {
@@ -694,7 +694,7 @@ Consider this useless use of cat
 \begin{verbatim}
 $ cat /dev/urandom | head -n 20
 \end{verbatim}
-Which grabs 20 lines of input from unrandom. \texttt{head} will terminate after 20 newline characters have been read. Well what about \texttt{cat}?
+Which grabs 20 lines of input from urandom. \texttt{head} will terminate after 20 newline characters have been read. Well what about \texttt{cat}?
 \texttt{cat} needs to receive a SIGPIPE informing it that the program just tried to write to a pipe that no one is listening on.
 
 \subsection{Other pipe facts}
@@ -716,7 +716,7 @@ ls -1 | cut -f1 -d.
 \end{verbatim}
 
 This command take the output of \texttt{ls -1} which lists the content of the current directory on one line each and pipes it to cut.
-Cut take a delimiter in this case a dot and a field position in our case 1 and outputs per line the n'th field by each delimiter.
+Cut take a delimiter in this case a dot and a field position in our case 1 and outputs per line the nth field by each delimiter.
 At a high level, this grabs the file names without the extension of our current directory.
 
 Underneath the hood, this is how bash does it internally.
@@ -818,11 +818,11 @@ to:       fprintf(writer, "Score %d\n", 10 + 10);
 \end{lstlisting}
 
 If you want your bytes to be sent to the pipe immediately, you'll need to fflush!
-At the beginning of this course we assumed that file streams are always \emph{line buffered} -- the C library will flush its buffer everytime you send a newline character.
-Actually this is only true for terminal streams - for other filestreams the C library attempts to improve performance by only flushing when it's internal buffer is full or the file is closed.
+At the beginning of this course we assumed that file streams are always \emph{line buffered} -- the C library will flush its buffer every time you send a newline character.
+Actually this is only true for terminal streams - for other file streams the C library attempts to improve performance by only flushing when it's internal buffer is full or the file is closed.
 
 \textbf{Even though we have a section on it, it is highly not recommended to fdopen() anything that doesn't point to an underlying file descriptor}. The reason being is that while we get conveniences we also get annoyances like the buffering example we mentioned, caching, etc etc.
-The basic UNIX motto is that anything that you can \texttt{fseek} or move to an arbitrary position in, you should be able to \texttt{fdopen}. Files satisfiy this behavior, shared memory also, terminals, etc.
+The basic UNIX motto is that anything that you can \texttt{fseek} or move to an arbitrary position in, you should be able to \texttt{fdopen}. Files satisfy this behavior, shared memory also, terminals, etc.
 When it comes to pipes, sockets, epoll objects, etc, don't do it.
 
 \section{Named Pipes}
@@ -903,7 +903,7 @@ But here is an invalid series of operations that causes a race condition.
 
 \section{Files}
 
-On linux, there are two abstractions with files. The first is the linux \keyword{fd} level abstraction.
+On Linux, there are two abstractions with files. The first is the Linux \keyword{fd} level abstraction.
 
  \begin{itemize}
 \item \keyword{open} takes a path to a file and creates a file descriptor entry in the process table. If the file is not available to you, it errors out.
@@ -914,9 +914,9 @@ On linux, there are two abstractions with files. The first is the linux \keyword
 \item \keyword{fcntl} is the catch all function for file descriptors. You can do everything with this function. Set file locks, read, write, edit permissions, etc \ldots{}
  \end{itemize}
 
-The linux interface is very powerful and expressive, but sometimes we need portability for example if we are writing for a mac or windows.
+The Linux interface is very powerful and expressive, but sometimes we need portability for example if we are writing for a Macintosh or windows.
 This is where C's abstraction comes into play.
-On different operating systems, C uses the low level functions to create a wrapper around files you can use everywhere, meaning that C on linux uses the above calls.
+On different operating systems, C uses the low level functions to create a wrapper around files you can use everywhere, meaning that C on Linux uses the above calls.
 
 \begin{itemize}
 \item \keyword{fopen} opens a file and returns an object. \keyword{null} is returned if you don't have permission for the file.
@@ -929,7 +929,7 @@ On different operating systems, C uses the low level functions to create a wrapp
 \item \keyword{fflush} Take any buffered changes and flush them to a file
 \end{itemize}
 
-But you don't get the expressiveness that linux gives you with system calls you can convert back and forth between them with \keyword{int\ fileno(FILE*\ stream)} and \keyword{FILE*\ fdopen(int\ fd...)} Another important aspect to note is the C files are \textbf{buffered} meaning that their contents may not be written right away by default. You can can change that with C options.
+But you don't get the expressiveness that Linux gives you with system calls you can convert back and forth between them with \keyword{int\ fileno(FILE*\ stream)} and \keyword{FILE*\ fdopen(int\ fd...)} Another important aspect to note is the C files are \textbf{buffered} meaning that their contents may not be written right away by default. You can can change that with C options.
 
 \textbf{Danger} With portability you lose something important, the ability to tell an error. Take for example the advice that we gave you above. You can \texttt{fopen} a file descriptor and get a \texttt{FILE*} object but \textbf{it won't be the same as a file} meaning that certain calls will fail or act weirdly.
 The C API reduces this weirdness, but for example you cannot \keyword{fseek} to a part of the file, or perform any operations with its buffering.
@@ -988,7 +988,7 @@ Okay so now you have a list of tools in your toolbox in order to tackle communic
 
 There really is no hard answer, though this is the most interesting question. Generally we have retained pipes for legacy reasons. This means that we only really use them to redirect stdin, stdout, and stderr for the collection of logs and similar programs. You may find processes trying to communicate with unnamed or named pipes as well. Most of the time you won't be dealing with this interaction directly though.
 
-Files are used almost all the time as a form of IPC. Hadoop is a great example where processes will write to append only tables and then other processes will read from those tables. We generally use files under a few cases. One case is if we want to save the intermediate results of an operation to a file for future use. Another case is if putting it in memory would cause an out of memory error. On linux, file operations are generally pretty cheap, so most programmers use it as a larger intermediate storage.
+Files are used almost all the time as a form of IPC. Hadoop is a great example where processes will write to append only tables and then other processes will read from those tables. We generally use files under a few cases. One case is if we want to save the intermediate results of an operation to a file for future use. Another case is if putting it in memory would cause an out of memory error. On Linux, file operations are generally pretty cheap, so most programmers use it as a larger intermediate storage.
 
 mmap is used for two scenarios. One is a \texttt{linear} or \texttt{near-linear} read through of the file. Meaning, you read the file front to back or back to front. The key is that you don't jump around too much. Jumping around too much causes thrashing and loses all the benefits of using mmap. The other case of mmap is a direct memory inter-process communication. This means that you can store structures in a piece of mmap'ed memory and share them between two processes. Python and ruby use this mapping all the time to utilize copy on write semantics.
 
@@ -1026,7 +1026,7 @@ mmap is used for two scenarios. One is a \texttt{linear} or \texttt{near-linear}
     \item The NX Bit
   \end{enumerate}
 \item What is a page table? How about a physical frame? Does a page always need to point to a physical frame?
-\item What is a page fault? What are the types? When does it result in a segfault?
+\item What is a page fault? What are the types? When does it result in a SEGFAULT?
 \item What are the advantages to a single level page table? Disadvantages? How about a multi leveled table?
 \item What does a multi leveled table look like in memory?
 \item How do you determine how many bits are used in the page offset?

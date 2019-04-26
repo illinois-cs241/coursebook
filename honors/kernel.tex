@@ -3,16 +3,16 @@
 Throughout the course of CS 241, you become familiar with system calls - the userspace interface to interacting with the
 kernel. How does this kernel actually work? What is a kernel? In this section, we will explore these questions in more
 detail and shed some light on various black boxes that you have encountered in this course. We will mostly be focusing
-on the linux kernel in this chapter, so please assume that all examples pertain to the linux kernel unless otherwise
+on the Linux kernel in this chapter, so please assume that all examples pertain to the Linux kernel unless otherwise
 specified.
 
 %Topics to be covered:
 %* Microkernel vs monolithic kernel
-%* Overview of linux kernel architechture/brief history of development.
+%* Overview of Linux kernel architecture/brief history of development.
 
 \subsection{What kinds of kernels are there?}
 
-As it stands, most of you are probably familiar with the linux kernel, at least in terms of interacting with it via
+As it stands, most of you are probably familiar with the Linux kernel, at least in terms of interacting with it via
 system calls. Some of you may also have explored the windows kernel (which we won't talk about too much in this chapter)
 or \keyword{Darwin}, the UNIX-like kernel for macOS (a derivative of BSD). Those of you who might have done a bit more
 digging might have also encountered projects such a \keyword{GNU HURD} or \keyword{zircon}.
@@ -27,7 +27,7 @@ form of IPC, typically RPC. As a result of this design, micro-kernels have tradi
 kernels due to the IPC overhead.
 
 We will devote our discussion from here onwards to focusing on monolithic kernels and unless specified otherwise,
-\textbf{specifically} the linux kernel.
+\textbf{specifically} the Linux kernel.
 
 \subsection{System Calls Demystified}
 

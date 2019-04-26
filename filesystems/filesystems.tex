@@ -10,16 +10,15 @@ It was slow, heavy, and prone to errors.
 Nowadays most of our files are stored on disk -- though not all of them!
 The disk is still slower than memory by an order of magnitude or two \todo{citation needed}
 
-
 Some terminology before we begin this chapter.
-A filesystem as we'll define later is anything that satisifies the API of a filesystem, it may not be a hard disk.
+A filesystem, as we'll define more concretely later, is anything that satisfies the API of a filesystem, it may not be a hard disk.
 A disk is either a HDD or Hard Disk Drive which includes a spinning metallic platter and a head which can zap the platter to encode a 1 or a 0, or an SSD or Solid State Drive that can flip certain NAND gates on a chip or standalone drive to store a 1 or a 0.
 As of 2019, SSDs are an order of magnitude faster than the standard HDD.
 These are typical backings for a filesystem.
 A filesystem is implemented on top of this backing, meaning that we can either implement something like EXT, MinixFS, NTFS, FAT32 etc on a commercially available hard disk.
 This filesystem tells the operating system how to organize the 1s and 0s to store file information as well as directory information, but more on that later.
 
-\textbf{The last piece of background is an important one.} In this chapter, we will refer to sizes of files in the ISO-compliant KiB or Kebibyte. The *iB family is short for power of two storage.
+\textbf{The last piece of background is an important one.} In this chapter, we will refer to sizes of files in the ISO-compliant KiB or Kibibyte. The *iB family is short for power of two storage.
 That means the following
 
 \begin{verbatim}
@@ -50,13 +49,13 @@ If any time in this class you see KB or any of the family refer to a filesystems
 
 \section{What is a filesystem?}
 
-You may have encountered the old unix adage, "everything is a file".
+You may have encountered the old Unix adage, "everything is a file".
 In most UNIX systems, files operations provide an interface to abstract many different operations.
 Network sockets, hardware devices and even data on disk are all represented by a file-like object.
 A file-like object must follow certain conventions.
 
 \begin{enumerate}
-  \item It must present it self to the filesystem
+  \item It must present itself to the filesystem
   \item It must support common filesystem operations, such as \keyword{open}, \keyword{read}, \keyword{write}. At a minimum, it needs to be opened and closed.
 \end{enumerate}
 
@@ -70,7 +69,7 @@ Filesystems handle the abstraction between a file which contains data and how ex
 Before we dive into the details of a filesystem, let's take a look at some examples.
 
 \begin{enumerate}
-  \item \keyword{ext4} Usually mounted at / on linux systems, this is the filesystem that usually provides disk access as you're used to.
+  \item \keyword{ext4} Usually mounted at / on Linux systems, this is the filesystem that usually provides disk access as you're used to.
   \item \keyword{procfs} Usually mounted at /proc, provides information and control over processes.
   \item \keyword{sysfs} Usually mounted at /sys, a more modern version of /proc that also allows control over various other hardware such as network sockets.
   \item \keyword{tmpfs} Mounted at /tmp in some systems, an in-memory filesystem to hold temporary files.
@@ -79,7 +78,7 @@ Before we dive into the details of a filesystem, let's take a look at some examp
 
 To clarify, a mount point is simply a mapping of a directory to a filesystem represented in the kernel.
 What this means is that to resolve which filesystem a structure a call must resolve to.
-Meaning that \keyword{/root} is resolved by the \keyword{ext4} filesystem in our case, but \keyword{/proc/2} is resolved by the \keyword{procfs} system even though it contains \keyword{/} as a subsystem.
+Meaning that \keyword{/} is resolved by the \keyword{ext4} filesystem in our case, but \keyword{/proc/2} is resolved by the \keyword{procfs} system even though it contains \keyword{/} as a subsystem.
 
 As you may have noticed, some of these filesystems provide an interface to things that aren't a "file".
 Filesystems such as \keyword{procfs} are usually referred to as \emph{virtual} filesystems, since they don't provide data access in the same sense as a traditional filesystem would.
@@ -206,7 +205,7 @@ This is a very important concept, as inodes are stored in the superblock, or som
 As a worked example, suppose we divide the disk into 4KiB blocks and we want to address up to $2^{32}$ blocks.
 The maximum disk size is $4KiB *2^{32} = 16TiB$ remember $2^{10} = 1024$.
 A disk block can store $\frac{4KiB}{4B}$ possible pointers or  1024 pointers.
-Four bytes pointers are needed because we want to addres 32 bits worth of blocks.
+Four bytes pointers are needed because we want to address 32 bits worth of blocks.
 Each pointer refers to a 4KiB disk block, so you can refer up to $1024*4KiB = 4MiB$ of data.
 For the same disk configuration, a double indirect block stores 1024 pointers to 1024 indirection tables.
 Thus a double-indirect block can refer up to $1024 * 4MiB = 4GiB$ of data.
@@ -244,7 +243,7 @@ One can have a file be multiple different names in a directory, or exist in mult
 
 \subsection{Unix Directory Conventions}
 
-In standard unix file systems the following entries are specially added on requests to read a directory.
+In standard Unix file systems the following entries are specially added on requests to read a directory.
 
 \begin{enumerate}
   \item \keyword{.} represents the current directory
@@ -263,7 +262,7 @@ Additional facts about name-related conventions.
 \item Files that start with '.' on disk are conventionally considered 'hidden' and will not be listed by programs like \keyword{ls} without additional flags (\keyword{-a}).
   This is not a feature of the filesystem and programs may choose to ignore this.
 \item Some files may also start with a null byte.
-  These are usually \emph{abstract unix sockets} and are used to prevent cluttering up the filesystem since they will be effectively hidden by any program not expecting them.
+  These are usually \emph{abstract Unix sockets} and are used to prevent cluttering up the filesystem since they will be effectively hidden by any program not expecting them.
   They will, however, be listed by tools that detail information about sockets, so this is not a feature providing security.
 \item If you want to annoy your neighbor, create a file with the terminal bell character. Ever single time they call ls, an audible bell is heard.
 \end{enumerate}
@@ -299,7 +298,7 @@ This means eventually the process will run out of resources and an \keyword{open
 
 The fix is to ensure we free up resources in every possible code-path.
 In the above code, this means calling \keyword{closedir} before \keyword{return 1}.
-Forgetting to release resources is a common C programming bug because there is no support in the C lanaguage to ensure resources are always released with all codepaths.
+Forgetting to release resources is a common C programming bug because there is no support in the C language to ensure resources are always released with all code paths.
 
 
 After a call to \keyword{fork()}, either (XOR), the parent or the child can use \keyword{readdir()}, \keyword{rewinddir()} or \keyword{seekdir()}.
@@ -355,14 +354,14 @@ closedir(dirp);
 One final note of caution.
 \keyword{readdir} is not thread-safe!
 You shouldn't use the re-entrant version of the function.
-Synchronizing the filesytem within a process is important, so use locks around \keyword{readdir}
+Synchronizing the filesystem within a process is important, so use locks around \keyword{readdir}
 
 See the man page of readdir for more details.
 
 \subsection{Linking}
 
 Links are what force us to model a filesystem as a tree rather than a graph.
-While modelling the filesystem as a tree would imply that every inode has a unique parent directory, links allow inodes to present themselves as files in multiple places, potentially with different names, thus leading to an inode having multiple parents directories.
+While modeling the filesystem as a tree would imply that every inode has a unique parent directory, links allow inodes to present themselves as files in multiple places, potentially with different names, thus leading to an inode having multiple parents directories.
 
 The first kind of link is a hard link.
 A hard link is simply an entry in a directory assigning some name to an inode number that already has a different name and mapping in either the same directory or a different one.
@@ -461,7 +460,7 @@ It becomes expensive to enforce or verify this constraint if directory linking i
 Breaking these assumptions can cause file integrity tools to not be able to repair the file system.
 Recursive searches potentially never terminate and directories can have more than one parent but ``..'' can only refer to a single parent.
 All in all, a bad idea.
-Softlinks are merely ignored, which is why we can use them to reference directories.
+Soft links are merely ignored, which is why we can use them to reference directories.
 
 When you remove a file using \keyword{rm} or \keyword{unlink}, you are removing an inode reference from a directory.
 However the inode may still be referenced from other directories.
@@ -631,7 +630,7 @@ Finally if none of the ids match, then the other field will apply.
 Before we discuss how to change permission bits, we should be able to read them.
 In C, the \keyword{stat} family of library calls can be used.
 To read permission bits from the command line, use \keyword{ls -l}.
-Note, the permissions will outputed in the format `trwxrwxrwx'.
+Note, the permissions will outputted in the format `trwxrwxrwx'.
 The first character indicates the type of file type.
 Possible values for the first character include but aren't limited to.
 
@@ -690,7 +689,7 @@ As a code example, suppose a new file is created with \keyword{open()} and mode 
 open("myfile", O_CREAT, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH);
 \end{lstlisting}
 
-If umask is octal \keyword{022}, then the permissions of the created file will be \keyword{0666} \& \textasciitilde{}\keyword{022} ie.
+If umask is octal \keyword{022}, then the permissions of the created file will be \keyword{0666} \& \textasciitilde{}\keyword{022} for example.
 
 \begin{lstlisting}[language=C]
 S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH
@@ -717,7 +716,7 @@ $ ls -l /usr/bin/sudo
 \end{verbatim}
 
 When executing a process with the setuid bit, it is still possible to determine a user's original uid with \keyword{getuid}.
-The real action of the \keyword{setuid} bit is to set the effective userid (\keyword{euid}) which can be determined with \keyword{geteuid}.
+The real action of the \keyword{setuid} bit is to set the effective user id (\keyword{euid}) which can be determined with \keyword{geteuid}.
 The actions of \keyword{getuid} and \keyword{geteuid} are described below.
 
 \begin{itemize}
@@ -725,7 +724,7 @@ The actions of \keyword{getuid} and \keyword{geteuid} are described below.
 \item
   \keyword{getuid} returns the real user id (zero if logged in as root)
 \item
-  \keyword{geteuid} returns the effective userid (zero if acting as root, e.g.~due to the setuid flag set on a program)
+  \keyword{geteuid} returns the effective user id (zero if acting as root, e.g.~due to the setuid flag set on a program)
 \end{itemize}
 
 These functions can allow one to write a program that can only be run by a privileged user by checking \keyword{geteuid} or go a step further and ensure that the only user who can run the code is root by using \keyword{getuid}.
@@ -764,7 +763,7 @@ Note that in the example above, the username is prepended to the prompt, and the
 
 \section{Virtual filesystems and other filesystems}
 
-POSIX systems, such as Linux and Mac OSX (which is based on BSD) include several virtual filesystems that are mounted (available) as part of the file-system.
+POSIX systems, such as Linux and Mac OS X (which is based on BSD) include several virtual filesystems that are mounted (available) as part of the file-system.
 Files inside these virtual filesystems do not exist on the disk.
 They are generated dynamically by the kernel when a process requests a directory listing.
 Linux provides 3 main virtual filesystems.
@@ -826,7 +825,7 @@ Random will block/wait until enough entropy is collected from the environment.
 
 Use the versatile \keyword{dd} command.
 For example, the following command copies 1 MiB of data from the file \keyword{/dev/urandom} to the file \keyword{/dev/null}.
-The data is copied as 1024 blocks of blocksize 1024 bytes.
+The data is copied as 1024 blocks of block size 1024 bytes.
 
 \begin{verbatim}
 $ dd if=/dev/urandom of=/dev/null bs=1k count=1024
@@ -842,7 +841,7 @@ This means the speed of the transfer is unaffected by hardware power.
 The \keyword{touch} executable creates file if it does not exist and also updates the file's last modified time to be the current time. For example, we can make a new private file with the current time:
 
 \begin{verbatim}
-$ umask 077       # all future new files will maskout all r,w,x bits for group and other access
+$ umask 077       # all future new files will mask out all r,w,x bits for group and other access
 $ touch file123   # create a file if it does not exist, and update its modified time
 $ stat file123
   File: `file123'
@@ -1029,7 +1028,7 @@ If your data is important and needs to be force written to disk, call \keyword{s
 However, not all operating systems honor this request and even if the data is evicted from the kernel buffers the disk firmware use an internal on-disk cache or may not yet have finished changing the physical media.
 Note, you can also request that all changes associated with a particular file descriptor are flushed to disk using \keyword{fsync(int fd)}.
 
-If your operating system fails in the middle of an operation, most modern file systems do something called \textbf{journalling} that work around this.
+If your operating system fails in the middle of an operation, most modern file systems do something called \textbf{journaling} that work around this.
 What the file system does is before it completes a potentially expensive operation, is that it writes what it is going to do down in a journal.
 In the case of a crash or failure, one can step through the journal and see which files are corrupt and fix them.
 This is a way to salvage hard disks in cases there is critical data and there is no apparent backup.
@@ -1105,7 +1104,7 @@ The one drawback is that you need more disks to have this setup and there are mo
 \end{figure}
 
 Failure is the common case.
-Google reports 2-10\% of disks fail per year Now multiply that by 60,000+ disks in a single warehous must survive failure of not just a disk, but a rack of servers or a whole data center
+Google reports 2-10\% of disks fail per year Now multiply that by 60,000+ disks in a single warehouse must survive failure of not just a disk, but a rack of servers or a whole data center
 
 Solutions Simple redundancy (2 or 3 copies of each file) e.g., Google GFS (2001).
 More efficient redundancy (analogous to RAID 3++) e.g., \href{http://goo.gl/LwFIy}{Google Colossus filesystem} (\textasciitilde{}2010): customizable replication including Reed-Solomon codes with 1.5x redundancy
@@ -1123,16 +1122,16 @@ So what does our hypothetical filesystem look like? We will base it off of the \
 that happens to be the first filesystem that Linux ran on. Laid out sequentially on disk, we first have our superblock.
 The superblock stores important metadata about the entire filesystem. Since we want to be able to read this block before
 we know anything else about the data on disk, this needs to be in a well-known location so the very start of the disk is
-a good choice. After the superblock, we'll keep a map of which inodes are being used. The n'th bit is set if the n'th
-inode -- $0$ being the inode root -- is being used. Similarly, we store a map recording which datablocks are used.
-Finally, we have an array of inodes followed by the rest of the disk - implicitly partitioned into datablocks. It's
-important to note that there may not be any real distinction from one datablock to the next from the perspective of the
-hardware components of the disk. Thinking about the disk as an array of datablocks is simply something we do so that we
+a good choice. After the superblock, we'll keep a map of which inodes are being used. The nth bit is set if the nth
+inode -- $0$ being the inode root -- is being used. Similarly, we store a map recording which data blocks are used.
+Finally, we have an array of inodes followed by the rest of the disk - implicitly partitioned into data blocks. It's
+important to note that there may not be any real distinction from one data block to the next from the perspective of the
+hardware components of the disk. Thinking about the disk as an array of data blocks is simply something we do so that we
 have a way to describe where files live on disk.
 
 Below, we have an example of how an inode that describes a file may look. Note that for the sake of simplicity, we have
-drawn arrows mapping datablock numbers in the inode to their locations on disk, these aren't pointers so much as
-indicies into an array.
+drawn arrows mapping data block numbers in the inode to their locations on disk, these aren't pointers so much as
+indices into an array.
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=.8\textwidth]{filesystems/images/sample_file.png}
@@ -1164,7 +1163,7 @@ second block referenced by the indirect block. With this information, we can wor
 Note that our calculations so far have been to determine how much data the user is storing on disk. We have not
 considered the \textit{overhead} of storing this data incurred while using this filesystem. You'll notice that we use an
 indirect block to store the disk block numbers of blocks used beyond the two direct blocks. While doing our above
-calculations, we did not take this block into account while computing the filesize. This would instead be counted as the
+calculations, we did not take this block into account while computing the file size. This would instead be counted as the
 overhead of the file, and thus the total overhead of storing this file on disk is $sizeof(indirect\_block)=4KiB)$.
 
 \subsection{Performing Reads}
@@ -1176,7 +1175,7 @@ Then we read all of those bytes.
 We do the same thing for all of the direct nodes. What do we do after? We go to the indirect block and read the
 indirect block. We know that every 4 bytes of the indirect block are either a sentinel node (-1) or the number of
 \textit{another} data block. In our particular example, the first four bytes evaluate to the integer 5, meaning that
-our data continues on the 5th datablock from the beginning. We do the same for data block \#4 and we stop after because
+our data continues on the 5th data block from the beginning. We do the same for data block \#4 and we stop after because
 we exceed the size of the inode
 
 Now, let's think about the edge cases.
@@ -1197,7 +1196,7 @@ Some questions for you. How would you consider performing a write that would go 
 Performing a write to a directory meaning that an inode needs to be added to a directory.
 If we pretend that the example above is a directory.
 We know that we will be adding at most one directory entry at a time.
-Meaning that we have to have enough space for one directory entry in our datablocks.
+Meaning that we have to have enough space for one directory entry in our data blocks.
 Luckily the last data block that we have has enough free space.
 This means we just need to find the number of the last data block as we did above, go to where the data ends, and write one directory entry.
 Don't forget to update the size of the directory so that the next creation doesn't overwrite your file!
@@ -1213,8 +1212,8 @@ If the inode is a file, then remove the directory entry in the parent directory 
 You need to make sure to decrease the hard link count of the inode and if the count reaches zero, free the inode in the inode map and free all associated data blocks so they are reclaimed by the filesystem.
 
 If the inode is a directory, first you have to recursively remove every directory entry inside
-After, you have to mark the directory's inode as free and set the associated datablocks to free as well.
-Why don't we have to check hardlink counts for directories?
+After, you have to mark the directory's inode as free and set the associated data blocks to free as well.
+Why don't we have to check hard link counts for directories?
 Because you can't hard link directories! Meaning, we can just easily delete it.
 
 \section{Topics}
@@ -1254,7 +1253,7 @@ Because you can't hard link directories! Meaning, we can just easily delete it.
 \item
   How big can files be on a file system with 15 Direct blocks, 2 double, 3 triple indirect, 4kb blocks and 4byte entries? (Assume enough infinite blocks)
 \item
-  What is a superblock? Inode? Datablock?
+  What is a superblock? Inode? Data block?
 \item
   How do I simplify \keyword{/./proc/../dev/./random}/
 \item
