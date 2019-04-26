@@ -30,7 +30,7 @@ When you are executing in user space the kernel provides some important operatio
 \item Scheduling Processes and threads
 \item Handling synchronization primitives
 \item Providing System Calls like \keyword{write} or \keyword{read}
-\item Manages virtual memory and low level binary devices like \keyword{usb} drivers
+\item Manages virtual memory and low level binary devices like \keyword{USB} drivers
 \item Handles reading and understanding a filesystem
 \item Handles communicating over networks
 \item Handles communications with other processes
@@ -115,7 +115,7 @@ This area is also writable but not executable.
 One can run out of heap memory if the system is constrained or if you run out of addresses.
 This is more common on a 32bit system.
 
-\item \textbf{A Data Segment} or as we will tried to refer to it as the Initialized Segement. This contains all of your globals and any other static duration variables.
+\item \textbf{A Data Segment} or as we will tried to refer to it as the Initialized Segment. This contains all of your globals and any other static duration variables.
 This section starts at the end of the text segment and is static in size because the amount of globals is known at compile time.
 This section is be writable \cite[P. 124]{van1994expert}.
 Most notably, this section contains variables that were initialized with a static initializer like
@@ -141,7 +141,7 @@ From now on for convenience, we will adopt that the data segment is both the dat
 This is where all your code is stored -- all the 1's and 0's.
 The program counter moves through this segment executing instructions and moving down the next instruction.
 It is important to note that this is the only executable section of the code created by default.
-If you try to change the code while it's running, most likely you will segfaults.
+If you try to change the code while it's running, most likely you will SEGFAULT.
 There are ways around it, but we won't be exploring those in this course.
 Why doesn't it start at zero? Because of \href{https://en.wikipedia.org/wiki/Address_space_layout_randomization}{Address Space Layout Randomization}.
 It is outside the scope of this class but know that it exists.
@@ -352,13 +352,13 @@ The terminology is important because fork and exec require different operations 
 
 Just to note, It is generally poor programming practice to use signals in program logic.
 Meaning send a signal to perform a certain operation.
-Signals have no timeframe of delivery and no assurance that they will be delivered.
+Signals have no time frame of delivery and no assurance that they will be delivered.
 If you need to communicate between two processes, there are other ways of doing so.
 
 
 If you want to read more, feel free to skip ahead to that particular chapter and read it over. It isn't very long and gives you the long and short about how to deal with signals in processes.
 
-\subsection{POSIX Fork Detailings}
+\subsection{POSIX Fork Details}
 
 POSIX determines what the standards of fork are \cite{fork_2018}.
 You can read the previous citation, but it can be quite verbose.
@@ -418,7 +418,7 @@ The options are listed below
 
 \begin{enunmerate}
 \item WNOHANG - Return whether or not the searched process is exited
-\item WNOWAIT - Wait, but leave the child waitable by another wait call
+\item WNOWAIT - Wait, but leave the child wait-able by another wait call
 \item WEXITED - Wait for exited children
 \item WSTOPPED - Wait for stopped children
 \item WCONTINUED - Wait for continued children
@@ -447,7 +447,7 @@ See \keyword{wait}/\keyword{waitpid} man page for more information.
   }
 \end{lstlisting}
 
-A process can only have 256 return values, the rest of the bits are informational, and the information is extracte with bit shifting.
+A process can only have 256 return values, the rest of the bits are informational, and the information is extracted with bit shifting.
 But, The kernel has an internal way of keeping track of signaled, exited, or stopped.
 That API is abstracted so that that the kernel developers are free to change at will.
 Remember that these macros only make sense if the precondition is met.
@@ -471,7 +471,7 @@ There is a convention about exit codes.
 If the process exited normally and everything was successful, then a zero should be returned.
 Beyond that, there isn't too many conventions except the ones that you place on yourself.
 If you know how the program you spawn is going to interact, you may be able to make more sense of the 256 error codes.
-You could in fact write your program to return \texttt{1} if the program went to stage 1 (like writing to a file) \texttt{2} if it did something else etc... But none of the unix programs are designed to follow that for simplicity sake.
+You could in fact write your program to return \texttt{1} if the program went to stage 1 (like writing to a file) \texttt{2} if it did something else etc... But none of the Unix programs are designed to follow that for simplicity sake.
 
 
 \subsection{Zombies and Orphans}
@@ -614,7 +614,7 @@ There's no error checking in the above code (we assume close,open,chdir etc work
 \item We need the return zero because compilers complain if we don't have it.
 \end{enumerate}
 
-\subsection{POSIX Exec Detailings}
+\subsection{POSIX Exec Details}
 
 POSIX details all of the semantics that exec needs to cover \cite{exec_2018}.
 What you need to know is the following bullet points.
@@ -688,8 +688,8 @@ Meanwhile the parent uses \keyword{wait} (or \keyword{waitpid}) to wait for the 
 \end{lstlisting}
 
 You may ask why we didn't just execute ls directly.
-The reason is that now we have a monitor program aka our parent that can do other things.
-It can proceed afterwards and execute another function, or it can also modify the state of the system or read the output of the functino call.
+The reason is that now we have a monitor program -- our parent that can do other things.
+It can proceed afterwards and execute another function, or it can also modify the state of the system or read the output of the function call.
 
 \subsection{Environment Variables}
 
@@ -716,7 +716,7 @@ Another security related concern is that environment variables cannot be read by
 
 \section{Further Reading}
 
-Read the man pages and the posix groups above!
+Read the man pages and the POSIX groups above!
 
 \begin{itemize}
 \item \href{http://man7.org/linux/man-pages/man2/fork.2.html}{fork}
