@@ -9,7 +9,7 @@ Allocating and de-allocating heap memory is one of the most common operations in
 The heap at the system level is contiguous series of addresses that the program can expand or contract and use as its own accord \cite{mallocinternals}.
 In POSIX, this is called the system break.
 We use \keyword{sbrk} to move the system break.
-Most programs don't interact directly with this call, they use a memory allocation system around it to handle chunking up and keeping track of which memory is allocated and which is free'd.
+Most programs don't interact directly with this call, they use a memory allocation system around it to handle chunking up and keeping track of which memory is allocated and which is freed.
 
 We will mainly be looking into simple allocators.
 Just know that there are other ways of dividing up memory like with \texttt{mmap} or other allocation schemes and methods like \keyword{jemalloc}.
@@ -48,7 +48,7 @@ int main() {
   // 1
   int *array = malloc(sizeof(int) * 2);
   array[0] = 10; array[1] = 20;
-  // Ooops need a bigger array - so use realloc..
+  // Oops need a bigger array - so use realloc..
   array = realloc(array, 3 * sizeof(int));
   array[2] = 30;
 
@@ -68,7 +68,7 @@ int main() {
   if (tmp == NULL) {
     // Nothing I can do here
   } else if (tmp == array) {
-    // realloc returned same spce
+    // realloc returned same space
     array[2] = 30;
   } else {
     // realloc returned different space
@@ -268,7 +268,7 @@ The challenges of writing a heap allocator are
 \item The allocator doesn't know the program's memory allocation requests in advance. Even if we did, this is the \href{http://en.wikipedia.org/wiki/Knapsack_problem}{Knapsack problem} which is known to be NP hard!
 \end{itemize}
 
-Different strategies affect the fragmentation of heap memory in non-obvious ways, which only are discovered by mathematical analysis or careful simulations under real-world conditions (for example simulating the memory allocation requests of a database or webserver).
+Different strategies affect the fragmentation of heap memory in non-obvious ways, which only are discovered by mathematical analysis or careful simulations under real-world conditions (for example simulating the memory allocation requests of a database or web server).
 
 
 First we will have a more mathematical, one-shot approach to each of these algorithms \cite{Garey:1972:WAM:800152.804907}. The paper describes a scenario where you have a certain number of bins, and a certain number of allocations, and you are trying to fit the allocations in as few bins as possible, hence using as little memory as possible.
@@ -293,7 +293,7 @@ Here are some summarized takeaways
   There are multiple notions of first.
   First could be ordered in terms of time of free, or it could be ordered through the addresses of the start of the block, or it could be ordered by the time of last free -- first being least recently used.
   The survey didn't go too in depth into the performance of each, but did make a note that address ordered and least recently used lists ended up with better performance than the most recently used first.
-\item The paper concludes by first saying that under simulated random (assuming uniform at random) work loads, best fit and first fit do as well. Even in practice, both best and address ordered first fit do about as equally as well with a splititng threshold and coalescing. The reasons why aren't entirely known.
+\item The paper concludes by first saying that under simulated random (assuming uniform at random) work loads, best fit and first fit do as well. Even in practice, both best and address ordered first fit do about as equally as well with a splitting threshold and coalescing. The reasons why aren't entirely known.
 \end{enumerate}
 
 Some additional notes we make
@@ -301,7 +301,7 @@ Some additional notes we make
 \begin{enumerate}
 \item Best fit may not require a full scan of the heap. When a block of perfect size or of perfect size within a threshold is found, that can be returned, depending on what edge-case policy you have.
 \item Worst fit may not need to scan the entire heap as well. Depending on how you set up data structures, your heap could represent the data structure max-heap and each allocation call simply needs to pop the top off, reheapify, and possibly insert a split memory block.
-  Using fibonacci heaps, that can be extremely inefficient.
+  Using Fibonacci heaps, that can be extremely inefficient.
 \item First fit needs to have some sort of ordering. Most of the time people will default to linked lists which is a fine choice. There isn't too many improvements you can make with a least recently used and most recently used linked list policy, but with address ordered linked lists you can speed up insertion from O(n) to O(log(n)) by using a randomized skip-list in conjunction with your singly linked list.
   Basically an insert would use the skip list as shortcuts to find the right place to insert the block and a removal would go through the list as normal.
 \item There are many placement strategies that we haven't talked about, one is next-fit which is first fit on the next fit block. This adds a sort-of deterministic randomness. You won't be expected to know this algorithm, just know as you are implementing a memory allocator as part of a machine problem, there are more than these.
@@ -313,7 +313,7 @@ A memory allocator needs to keep track of which bytes are currently allocated an
 This section introduces the implementation and conceptual details of building an allocator, or the actual code that implements \keyword{malloc} and \keyword{free}.
 
 Conceptually we are thinking about creating linked lists and lists of blocks!
-Please enjoy the following ascii art.
+Please enjoy the following ASCII art.
 bt is short for boundary tag.
 
 \begin{verbatim}
@@ -383,7 +383,7 @@ The simplest implementation uses first fit.
 Start at the first block, assuming it exists, and iterate until a block that represents unallocated space of sufficient size is found, or we've checked all the blocks.
 If no suitable block is found, it's time to call \keyword{sbrk()} again to sufficiently extend the size of the heap.
 For the purposes of this class, we will try to serve every memory request until the operating system tells us we are going to run out of heap space.
-Other applications may limit themselves to a certain heap size and cause requests to intermittenly fail.
+Other applications may limit themselves to a certain heap size and cause requests to intermittently fail.
 In addition, a fast implementation might extend it a significant amount so that we will not need to request more heap memory in the near future.
 
 When a free block is found, it may be larger than the space we need.
@@ -403,7 +403,7 @@ We recommend first for going with readability.
   // Other block allocations
 \end{lstlisting}
 
-If you want certain bits to hold different pieces of information, use bitfields!
+If you want certain bits to hold different pieces of information, use bit fields!
 
 \begin{lstlisting}[language=C]
 typedef struct {
@@ -475,7 +475,7 @@ There is a \emph{lot} of overhead for that allocation which is what we are tryin
 
 When \keyword{free} is called we need to re-apply the offset to get back to the `real' start of the block -- to where we stored the size information.
 A naive implementation would simply mark the block as unused.
-If we are storing the block allocation status in a bitfield, then we just need to clear the bit:
+If we are storing the block allocation status in a bit field, then we just need to clear the bit:
 
 \begin{lstlisting}[language=C]
 p->info.is_free = 0;
@@ -581,7 +581,7 @@ A segregated allocator is one that divides the heap into different areas that ar
 Sizes are grouped into powers of two and each size is handled by a different sub-allocator and each size maintains its own free list.
 
 A well known allocator of this type is the buddy allocator \cite[P. 85]{rangan1999foundations}.
-We'll discuss the binary buddy allocator which splits allocation into blocks of size $2^n; n = 1, 2, 3, ...$ times some base unit number of bytes, but others also exist like Fibonacci split where the allocation is rounded up to the next fibonacci number.
+We'll discuss the binary buddy allocator which splits allocation into blocks of size $2^n; n = 1, 2, 3, ...$ times some base unit number of bytes, but others also exist like Fibonacci split where the allocation is rounded up to the next Fibonacci number.
 The basic concept is simple: If there are no free blocks of size $2^n$, go to the next level and steal that block and split it into two.
 If two neighboring blocks of the same size become unallocated, they can be coalesced back together into a single large block of twice the size.
 

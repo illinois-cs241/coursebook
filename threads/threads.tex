@@ -7,7 +7,7 @@ It represents the sequence of instructions that the CPU has and will execute.
 To remember how to return from function calls, and to store the values of automatic variables and parameters a thread uses a stack.
 Almost weirdly, a thread is a process, meaning that creating a thread is similar to \keyword{fork}, except there is \textbf{no copying} meaning no copy on write.
 What this allows is for a process to share the same address space, variables, heap, file descriptors and etc.
-The actual system call to create a thread is similar to \keyword{fork}. Tt's \keyword{clone}.
+The actual system call to create a thread is similar to \keyword{fork}. It's \keyword{clone}.
 We won't go into the specifics but you can read the \href{http://man7.org/linux/man-pages/man2/clone.2.html}{man pages} keeping in mind that it is outside the direct scope of this course.
 LWP or Lightweight Processes or threads are preferred to forking for a lot of scenarios because there is a lot less overhead creating them.
 But in some cases, notably python uses this, multiprocessing is the way to make your code faster.
@@ -370,7 +370,7 @@ char *to_message(int num) {
 
 There are ways around this like using synchronization locks, but first let's do this by design.
 How would you fix the function above?
-You can change any of the params and any return types.
+You can change any of the parameters and any return types.
 Here is one valid solution.
 
 \begin{lstlisting}[language=C]
@@ -466,7 +466,7 @@ The time complexity analysis gets interesting here as well.
 The parallel algorithm runs in $O(\log^3(n))$ running time because we the analysis assumes that we have a lot of cores.
 
 In practice though, we typically do two changes.
-One, once the array gets small enough, we ditch the parallel mergesort algorithm and do a quicksort or other algorithm that works fast on small arrays, usually cache coherency rules at this level.
+One, once the array gets small enough, we ditch the parallel Mergesort algorithm and do a quicksort or other algorithm that works fast on small arrays, usually cache coherency rules at this level.
 The other thing that we know is that CPUs don't have infinite cores.
 To get around that, we typically keep a worker pool.
 You won't see the speedup right away because of things like cache coherency and scheduling extra threads.
@@ -496,7 +496,7 @@ These are common to the OpenMP framework \cite{silberschatz2005operating}.
 \begin{itemize}
 \item \keyword{static scheduling} break up the problems into fixed size chunks (predetermined) and have each thread work on each of the chunks.
   This works well when each of the subproblems take roughly the same time because there is no additional overhead.
-  All you need to do is write a loop and give the map function to each subarray.
+  All you need to do is write a loop and give the map function to each sub-array.
 \item \keyword{dynamic scheduling} as a new problem becomes available have a thread serve it.
   This is useful when you don't know how long the scheduling will take
 \item \keyword{guided scheduling} This is a mix of the above with a mix of the benefits and the tradeoffs.
@@ -529,7 +529,7 @@ Runtime is a whole bag of worms.
 From \href{https://en.wikipedia.org/wiki/Embarrassingly_parallel}{Wikipedia}
 \begin{itemize}
 \tightlist
-\item Serving static files on a webserver to multiple users at once.
+\item Serving static files on a web server to multiple users at once.
 \item The Mandelbrot set, Perlin noise and similar images, where each point is calculated independently.
 \item Rendering of computer graphics. In computer animation, each frame may be rendered independently (see parallel rendering).
 \item Brute-force searches in cryptography.
@@ -537,7 +537,7 @@ From \href{https://en.wikipedia.org/wiki/Embarrassingly_parallel}{Wikipedia}
 \item BLAST searches in bioinformatics for multiple queries (but not for individual large queries)
 \item Large scale facial recognition systems that compare thousands of arbitrary acquired faces (e.g., a security or surveillance video via closed-circuit television) with similarly large number of previously stored faces (e.g., a rogues gallery or similar watch list).
 \item Computer simulations comparing many independent scenarios, such as climate models.
-\item Evolutionary computation metaheuristics such as genetic algorithms.
+\item Evolutionary computation meta-heuristics such as genetic algorithms.
 \item Ensemble calculations of numerical weather prediction.
 \item Event simulation and reconstruction in particle physics.
 \item The marching squares algorithm
@@ -621,7 +621,7 @@ int main() {
 Seems pretty simple right?
 Well why don't we have you do it this way every time?
 First there is a decent bit of boilerplate code.
-You have to create the stack everytime and pass in the right flags, and wait like a process which requires a lot of finnicky flags to be set from the man pages.
+You have to create the stack every time and pass in the right flags, and wait like a process which requires a lot of finicky flags to be set from the man pages.
 In addition, almost everyone uses pthreads by default.
 Pthreads let you set various attributes -- some that resemble the option in clone -- to customize your thread.
 But as we mentioned earlier, with each later of abstraction for portability reasons we lose some functionality.
@@ -645,7 +645,7 @@ You just have to be careful about what you are doing.
 \begin{itemize}
 \tightlist
 \item
-pthread lifecycle
+pthread life-cycle
 \item
 Each thread has a stack
 \item
@@ -673,7 +673,7 @@ How do you get a return value given a \keyword{pthread\_t}? What are the ways a 
 \item
 Why is \keyword{pthread\_join} important (think stack space, registers, return values)?
 \item
-What does \keyword{pthread\_exit} do under normal circumstances (ie you are not the last thread)? What other functions are called when you call pthread\_exit?
+What does \keyword{pthread\_exit} do under normal circumstances (i.e. you are not the last thread)? What other functions are called when you call pthread\_exit?
 \item
 Give me three conditions under which a multithreaded process will exit. Can you think of any more?
 \item

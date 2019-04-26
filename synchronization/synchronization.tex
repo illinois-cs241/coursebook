@@ -202,7 +202,7 @@ A faster multi-thread example would be to add one million using an automatic (lo
 }
 \end{lstlisting}
 
-Obviously if you know the gaussian sum, you can avoid race conditions altogether, but this is just for illustration.
+Obviously if you know the Gaussian sum, you can avoid race conditions altogether, but this is just for illustration.
 
 Starting with the gotchas.
 Firstly, C Mutexes do not lock variables.
@@ -270,7 +270,7 @@ If it is currently locked, it will keep checking again until another thread has 
 // Version 1 (Incorrect!)
 
 void lock(mutex_t *m) {
-  while(m->locked) { /*Locked? Nevermind - just loop and check again!*/ }
+  while(m->locked) { /*Locked? Never-mind - just loop and check again!*/ }
 
   m->locked = 1;
 }
@@ -637,7 +637,7 @@ We have atomic instructions in hardware by providing the lock prefix
 \begin{lstlisting}
 lock ...
 \end{lstlisting}
-But atomicity also applies to higher orders of operations
+But Atomicity also applies to higher orders of operations
 We say a data structure operation is an atomic if it happens all at once and successfully or not at all.
 
 As such, we can use synchronization primitives in order to make our data structures thread safe.
@@ -846,7 +846,7 @@ Take a second before looking at the answer to spot the errors.
 
 So did you catch all of them?
 \begin{enumerate}
-\item The first one is a simpel one. In push, our check should eb against the total capacity, not zero.
+\item The first one is a simple one. In push, our check should be against the total capacity, not zero.
 \item We only have if statement checks. wait() could spuriously wake up
 \item We never signal any of the threads! Threads could get stuck waiting indefinitely.
 \end{enumerate}
@@ -1064,7 +1064,7 @@ To simplify the discussion we consider only two threads.
 Note, these arguments work for threads and processes and the classic CS literature discusses these problem in terms of two processes that need exclusive access to a critical section or shared resource.
 Raising a flag represents a thread/process's intention to enter the critical section.
 
-Remember that the psuedo-code outlined below is part of a larger program.
+Remember that the pseudo-code outlined below is part of a larger program.
 The thread or process will typically need to enter the critical section many times during the lifetime of the process.
 So imagine each example as wrapped inside a loop where for a random amount of time the thread or process is working on something else.
 
@@ -1119,7 +1119,7 @@ turn = yourid
 Candidate \#3 satisfies mutual exclusion -- each thread or process gets exclusive access to the Critical Section.
 However, both threads/processes must take a strict turn-based approach to using the critical section.
 They are forced into an alternating critical section access pattern.
-For example if thread 1 wishes to read a hashtable every millisecond, but another thread writes to a hashtable every second, then the reading thread would have to wait another 999ms before being able to read from the hashtable again.
+For example if thread 1 wishes to read a hash table every millisecond, but another thread writes to a hash table every second, then the reading thread would have to wait another 999ms before being able to read from the hash table again.
 This `solution' is not effective because our threads should be able to make progress and enter the critical section if no other thread is currently in the critical section.
 
 \subsection{Desired Properties for Solutions}
@@ -1129,7 +1129,7 @@ There are three main desirable properties that we desire in a solution the criti
 \begin{enumerate}
 \item Mutual Exclusion. The thread/process gets exclusive access.
   Others must wait until it exits the critical section.
-\item Bounded Wait. A thread/process cannot get superceded by another thread infinite amounts of time.
+\item Bounded Wait. A thread/process cannot get superseded by another thread infinite amounts of time.
 \item Progress. If no thread/process is inside the critical section, the thread/process should be able to proceed without having to wait.
 \end{enumerate}
 
@@ -1204,7 +1204,7 @@ Let's check the conditions.
 \item Bounded Wait.
   Assuming that the critical section ends in finite time, a thread once it has left the critical section cannot then get the critical section back.
   The reason being is the turn variable is set to the other thread, meaning that that thread now has priority.
-  That means a thread cannot be superceded infinitely by another thread.
+  That means a thread cannot be superseded infinitely by another thread.
 \item Progress.  If the other thread isn't in the critical section, it will simply continue with a simple check. We didn't make any statement about if threads are randomly stopped by the system scheduler.
   This is an idealized scenario where threads will keep executing instructions.
 \end{enumerate}
@@ -1232,7 +1232,7 @@ Thread \#1 arrives, \emph{sets the turn back to 1} and now waits until thread 2 
 \item Mutual Exclusion. Let's try to sketch a simple proof again.
   You don't get into the critical section until the turn variable is yours or the other thread's flag isn't up.
   If the other thread's flag isn't up, it isn't trying to enter the critical section.
-  That is the first action the thread does and the last action the thread undos.
+  That is the first action the thread does and the last action the thread undoes.
   If the turn variable is set to this thread, that means that the other thread has given the control to this thread.
   Since my flag is raised and the turn variable is set, the other thread has to wait in the loop until the current thread is done.
 \item Bounded Wait. After one thread lowers, a thread waiting in the while loop will leave because the first condition is broken. This means that threads cannot win all the time.
@@ -1277,7 +1277,7 @@ In addition, there are CPU instructions to ensure that main memory and the CPUs'
 Higher level synchronization primitives, such as \keyword{pthread\_mutex\_lock} are will call these CPU instructions as part of their implementation.
 Thus, in practice, surrounding critical section with a mutex lock and unlock calls is sufficient to ignore these lower-level problems.
 
-For further reading, we suggest the following web post that discusses implementing Peterson's algorithm on an x86 process and the linux documentation on memory barriers.
+For further reading, we suggest the following web post that discusses implementing Peterson's algorithm on an x86 process and the Linux documentation on memory barriers.
 \begin{enumerate}
 \item \href{Memory Fences}{http://bartoszmilewski.com/2008/11/05/who-ordered-memory-fences-on-an-x86/}
 \item \href{Memory Barriers}{http://lxr.free-electrons.com/source/Documentation/memory-barriers.txt}
@@ -1496,7 +1496,7 @@ void cond_broadcast(cond_t *cv) {
 
 So how does this work?
 Instead of malloc'ing space which could lead to deadlock.
-We keep the datastructures or the linked list nodes on each thread's stack.
+We keep the data structures or the linked list nodes on each thread's stack.
 The linked list in the wait function is created \textbf{While the thread has the mutex lock} this is important because otherwise we may have a race condition on the insert and removal.
 A more robust implementation would have a mutex per condition variable.
 
@@ -1506,7 +1506,7 @@ Each new thread coming in must have the same mutex, and it must be locked.
 Hence, the beginning and end of wait (everything besides the while loop) is mutually exclusive.
 After the last thread leaves, meaning when head is NULL, then the binding is lost.
 
-The signal and broadcast functions merely tell either one thread or all threads respectively that they should be worken up.
+The signal and broadcast functions merely tell either one thread or all threads respectively that they should be woken up.
 \textbf{It doesn't modify the linked lists because there is no mutex to prevent a corruption if two threads call signal or broadcast}
 
 Now an advanced point. Do you see how a broadcast could cause a spurious wakeup in this case? Consider this series of events.
@@ -1520,7 +1520,7 @@ Now an advanced point. Do you see how a broadcast could cause a spurious wakeup 
 \end{enumerate}
 
 There is no assurance as to \textit{when} broadcast was called and when threads were added in a high performance mutex.
-The ways to prevent this behavior are to include lamport time stamps or require that broadcast be called with the mutex in question.
+The ways to prevent this behavior are to include Lamport time stamps or require that broadcast be called with the mutex in question.
 That way something that \textit{happens-before} the broadcast call doesn't get signaled after.
 The same argument is put forward for signal too.
 
@@ -1531,7 +1531,7 @@ If you broadcast after you unlock, the time that broadcast takes could be infini
 \item Broadcast is called on a waiting queue of threads
 \item First thread is freed, broadcast thread is frozen. Since the mutex is unlocked, it locks and continues.
 \item It continues for such a long time that it calls broadcast again.
-\item With our implementation of a condition variable, this would be terminated. If you had an implementation that appended to the tail of the list and iterated form the head to the tail, this could go on inifinitely many times.
+\item With our implementation of a condition variable, this would be terminated. If you had an implementation that appended to the tail of the list and iterated form the head to the tail, this could go on infinitely many times.
 \end{enumerate}
 
 In high performance systems, we want to make sure that each thread that calls wait isn't passed by another thread that calls wait.
@@ -1660,7 +1660,7 @@ void *calc(void *ptr) {
 \end{lstlisting}
 
 After calculation 1 completes, we need to wait for the slower threads unless we are the last thread!.
-So, keep track of the number of threads that have arrived at our barrier aka `checkpoint':
+So, keep track of the number of threads that have arrived at our barrier  `checkpoint':
 
 \begin{lstlisting}[language=C]
 // Global:
@@ -2394,12 +2394,12 @@ One can have stale reads and writes, but after reading the new value, it won't b
                             printf("%d\n", x) // could be 1 or 0
 \end{verbatim}
 
-But that maeans that previous loads and stores don't need to effect other threads.
+But that means that previous loads and stores don't need to effect other threads.
 In the previous example, the code can now fail.
 
 \subsection{Acquire/Release}
 
-The simplest way I can explain it is the order of atomic variables don't need to be consistent -- meaning if I assign atomic var y to be 10 then atomic var x to be 0 those don't need to propogate and you could get stale reads.
+The simplest way I can explain it is the order of atomic variables don't need to be consistent -- meaning if I assign atomic var y to be 10 then atomic var x to be 0 those don't need to propagate and you could get stale reads.
 Non-atomic variables have to get updated in all threads though.
 
 \subsection{Consume}
