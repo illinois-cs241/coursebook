@@ -771,7 +771,7 @@ Each has a specific purpose and should be called in roughly the above order
 
   The \keyword{bind} call associates an abstract socket with an actual network interface and port.
   It is possible to call bind on a TCP client.
-  The port information used by bind can be set manually many older IPv4-only C code examples do this, or be created using \keyword{getaddrinfo}.
+  The port information used by bind can be set manually (many older IPv4-only C code examples do this), or be created using \keyword{getaddrinfo}.
 
   By default a port is not immediately released when the server socket is closed.
   Instead, the port enters a ``TIMED-WAIT'' state.
