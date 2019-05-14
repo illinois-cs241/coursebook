@@ -401,7 +401,7 @@ finish:
 \end{lstlisting}
 	    \item \keyword{if else else-if} are control flow keywords.
         There are a few ways to use these (1) A bare if (2) An if with an else (3) an if with an else-if (4) an if with an else if and else.
-        Note that an else is matched with the most recent else. A subtle bug related to a mismatched if and else statement, is the \herf{dangling else problem}{https://en.wikipedia.org/wiki/Dangling_else}.
+        Note that an else is matched with the most recent if. A subtle bug related to a mismatched if and else statement, is the \href{dangling else problem}{https://en.wikipedia.org/wiki/Dangling_else}.
         The statements are always executed from the if to the else.
         If any of the intermediate conditions are true, the if block performs that action and goes to the end of that block.
 
@@ -722,7 +722,7 @@ There are many data types in C. As you may realize, all of them are either integ
 	\item \keyword{double} represents an IEEE-754 double precision floating point number specified by the same standard, which is aligned to the nearest eight byte boundary.
 \end{enumerate}
 
-If you want a fixed width integer type, for more portable code, you may use the types defined in stdint.h, and , which are of the form [u]int\emph{width}_t, where u (which is optional) represents the signedness, and width is any of 8, 16, 32, and 64.
+If you want a fixed width integer type, for more portable code, you may use the types defined in stdint.h, which are of the form [u]int\emph{width}_t, where u (which is optional) represents the signedness, and width is any of 8, 16, 32, and 64.
 
 \subsection{Operators}
 
