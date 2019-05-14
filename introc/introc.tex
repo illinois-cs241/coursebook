@@ -1341,7 +1341,8 @@ printf("%p : %s\n", ptr, ptr);
 \end{lstlisting}
 
 As mentioned before, the char array is mutable, so we can change its contents.
-Be careful not to write bytes beyond the end of the array.
+Be careful not to write bytes beyond the end of the array. C does \emph{not} do bounds checking at compile-time, but invalid reads/writes can get your program to crash.
+
 Once again, be careful not to get the two mixed up!
 
 \begin{lstlisting}[language=C]
@@ -1360,7 +1361,7 @@ printf("%p : %s\n", ptr, ptr);
 strcpy(ptr, "World"); // OK because now ptr is pointing to mutable memory (the array)
 \end{lstlisting}
 
-What one must take away from this is that pointers can point to any type of memory while the char arrays mentioned earlier will always refer to the same piece of memory.
+What one must take away from this, is that, pointers can point to any type of memory while the char arrays mentioned earlier will always refer to the same piece of memory.
 In a more common case, pointers will point to heap memory in which case the memory referred to by the pointer \textbf{can} be modified.
 
 \section{Pointers}
@@ -1373,7 +1374,7 @@ In this section, we will try to take you through a very basic introduction to po
 
 \subsubsection{Declaring a Pointer}
 
-A pointer refers to a memory address. The type of the pointer is useful- it tells the compiler how many bytes need to be read/written and what the semantics for pointer arithmetic (addition and subtraction) are.
+A pointer refers to a memory address. The type of the pointer is useful- it tells the compiler how many bytes need to be read/written and delineates the semantics for pointer arithmetic (addition and subtraction).
 
 \begin{lstlisting}[language=C]
 int *ptr1;
@@ -1388,7 +1389,7 @@ int* ptr3, ptr4;
 
 Will only declare \keyword{*ptr3} as a pointer.
 \keyword{ptr4} will actually be a regular int variable.
-To fix this declaration, ensure the \keyword{*} precedes the pointer
+To fix this declaration, ensure the \keyword{*} precedes the pointer.
 
 \begin{lstlisting}[language=C]
 int *ptr3, *ptr4;
@@ -1403,7 +1404,7 @@ Example:
 struct person *ptr3;
 \end{lstlisting}
 
-\subsubsection{Reading/Writing with pointers}
+\subsubsection{Reading / Writing with pointers}
 
 Let's say that we declare a pointer \keyword{int\ *ptr}. For the sake of discussion, let us assume that \keyword{ptr} contains the memory address \keyword{0x1000}.
 If we want to write to a pointer, we can dereference and assign \keyword{*ptr}.
@@ -1423,9 +1424,9 @@ Reading works roughly the same way, except you put the variable in the spot that
 \end{lstlisting}
 
 Reading and writing to non-primitive types gets tricky.
-You can't assign a pointer to an integer, you need to have the same type.
+You can't assign a pointer to an integer; you need to have the same type.
 In addition to that, the compilation unit - usually the file or a header - needs to have the size of the data structure readily available. This means that opaque data structures can't be copied.
-Here is an example of assigning a struct pointer
+Here is an example of assigning a struct pointer:
 
 \begin{lstlisting}[language=C]
 #include <stdio.h>
@@ -1459,7 +1460,7 @@ For char pointers, this is trivial because characters are always one byte.
 
 \begin{lstlisting}[language=C]
 char *ptr = "Hello"; // ptr holds the memory location of 'H'
-ptr += 2; //ptr now points to the first 'l''
+ptr += 2; // ptr now points to the first 'l''
 \end{lstlisting}
 
 If an int is 4 bytes then ptr+1 points to 4 bytes after whatever ptr is pointing at.
