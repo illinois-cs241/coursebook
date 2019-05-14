@@ -14,7 +14,7 @@ Before you create this PR confirm that it meets all requirements listed below by
 
 - [ ] I updated AUTHORS with my name and email.
 - [ ] I read the Contributor Guide and followed the process outlined there for submitting PRs.
-- [ ] My PR includes unit or integration tests for *all* changed/updated/fixed behaviors (See [Contributor Guide]).
+- [ ] My PR builds for *all* changed/updated/fixed behaviors (See [Contributor Guide]).
 - [ ] I updated/added relevant documentation.
 - [ ] The title of the PR is descriptive and doesn't have [WIP]
 - [ ] I updated CHANGELOG.md to add a description of the change.
@@ -22,7 +22,7 @@ Before you create this PR confirm that it meets all requirements listed below by
 
 ## Breaking Change
 
-Does your PR require plugin users to manually update their apps to accommodate your change?
+Does this cause any new material not previously covered in the course to be required?
 
-- [ ] Yes, this is a breaking change (please indicate a breaking change in CHANGELOG.md and increment major revision).
+- [ ] Yes, this is a breaking change (please indicate a breaking change in CHANGELOG.md).
 - [ ] No, this is *not* a breaking change.
