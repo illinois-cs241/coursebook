@@ -1507,9 +1507,9 @@ char *string = give_me_space;
 
 This does not require a cast because C automatically promotes \keyword{void*} to its appropriate type. \textbf{Note:}
 
-\keyword{gcc} and \keyword{clang} are not total ISO-C compliant, meaning that they will let you do arithmetic on a void pointer.
+\keyword{gcc} and \keyword{clang} are not totally ISO C compliant, meaning that they will let you do arithmetic on a void pointer.
 They will treat it as a \keyword{char} pointer.
-Do not do this because it may not work with all compilers!
+Do not do this because it is not portable (it is not guaranteed to work with all compilers)!
 
 \section{Common Bugs}
 
@@ -1771,7 +1771,7 @@ It increases the number of lines of code, which is a great productivity metric.
 	\item
 	      static memory
 	\item
-	      file input output. POSIX vs.~C library
+	      file input / output. POSIX vs. C library
 	\item
 	      C input output: fprintf and printf
 	\item
@@ -1804,7 +1804,7 @@ char str1[] = "bhuvan";
 char *str2 = "another one";
 \end{lstlisting}
 	\item
-	      What is a string in c?
+	      What is a string in C?
 	\item
 	      Code up a simple \keyword{my\_strcmp}. How about \keyword{my\_strcat}, \keyword{my\_strcpy}, or \keyword{my\_strdup}? Bonus: Code the functions while only going through the strings \emph{once}.
 	\item
