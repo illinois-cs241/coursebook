@@ -1,4 +1,4 @@
-\chapter{C Programming Language}
+\chapter{The C Programming Language}
 
 \epigraph{If you want to teach systems, don't drum up the programmers, sort the issues, and make PRs. Instead, teach them to yearn for the vast and endless C.}{Antoine de Saint-Exup\'{e}ry (With edits from Bhuvy)}
 
@@ -7,46 +7,46 @@ Why? Most kernels are written in largely in C.
 The \gls{Linux kernel} \cite{Love} and the XNU kernel \citet{xnukernel} of which Mac OS X is based off.
 The Windows Kernel uses C++, but doing system programming on that is much harder on windows that UNIX for beginner system programmers.
 Most of you have some experience with C++, but C is a different beast entirely.
-You don't have nice abstractions like classes and RAII to clean up memory.
+You don't have nice abstractions like classes and Resource Acquisition Is Initialization (RAII) to clean up memory.
 You are going to have to do that yourself.
-C gives you much more of an opportunity to shoot yourself in the foot but lets you do things at a much finer grain level.
+C gives you much more of an opportunity to shoot yourself in the foot, but it lets you do things at a much more fine-grained level.
 
 \section{History of C}
 
 C was developed by Dennis Ritchie and Ken Thompson at Bell Labs back in 1973 \cite{Ritchie:1993:DCL:155360.155580}.
 Back then, we had gems of programming languages like Fortran, ALGOL, and LISP.
 The goal of C was two fold.
-One, to target the most popular computers at the time like the PDP-7.
-Two, try and remove some of the lower level constructs like managing registers, programming assembly for jumps and instead create a language that had the power to express programs procedurally (as opposed to mathematically like lisp) with more readable code all while still having the ability to interface with the operating system.
+Firstly, it was made to target the most popular computers at the time, such as the PDP-7.
+Secondly, to try to remove some of the lower level constructs like managing registers, and programming assembly for jumps, and instead create a language that had the power to express programs procedurally (as opposed to mathematically like LISP) with more readable code, all while still having the ability to interface with the operating system.
 It sounded like a tough feat.
 At first, it was only used internally at Bell Labs along with the UNIX operating system.
 
-The first "real" standardization is with Brian Kernighan and Dennis Ritchie's book \cite{kernighan1988c}. It is still widely regarded today as the only \gls{portable} set of C instructions. The K\&R book is known as the de-facto standard for learning C.  There were different standards of C from ANSI to ISO after the Unix guides. The one that we will be mainly focusing on is the \gls{POSIX} C library. Now to get the elephant out of the room, the Linux kernel is not entirely POSIX compliant. Mostly, it is because they didn't want to pay the fee for compliance but also it doesn't want to be completely compliant with a bunch of different standards because then it has to ensue increasing development costs to maintain compliance.
+The first "real" standardization was with Brian Kernighan and Dennis Ritchie's book \cite{kernighan1988c}. It is still widely regarded today as the only \gls{portable} set of C instructions. The K\&R book is known as the de-facto standard for learning C.  There were different standards of C from ANSI to ISO after the Unix guides. The one that we will be mainly focusing on is the \gls{POSIX} C library. Now to get the elephant out of the room, the Linux kernel is not entirely POSIX compliant. Mostly, this is so because the C developers didn't want to pay the fee for compliance but also because they did not want to be fully compliant with a multiple different standards because that meant ensuing increased development costs to maintain compliance.
 
 Fast forward however many years, and we are at the current C standard put forth by ISO: C11.
-Not all the code that we us in this class will be in this format.
-We will aim to using C99 as the standard that most computers recognize.
-We will talk about some off-hand features like \keyword{getline} because they are so widely used with the GNU-C library.
-We'll begin by providing a decently comprehensive overview of the language with pairing facilities.
+Not all the code that we will write and use in this class will follow this standard.
+We will aim to use C99, as it is the standard that most computers recognize.
+We will talk about some off-hand features like \keyword{getline} because they are so widely used with the GNU C library.
+We'll begin by providing a fairly comprehensive overview of the language with pairing facilities.
 
 \section{Features}
 
 \begin{itemize}
-	\item Fast. There is very little separating you and the system.
-	\item Simple.
-    C and its standard library pose a simple set of portable functions.
-	\item Memory Management.
-    C let's you manage your memory.
-    This can also bite you if you have memory errors.
-	\item It's Everywhere.
-    Pretty much every computer that is not embedded has some way of interfacing with C.
+	\item Speed. There is very little separating you and the system.
+	\item Simplicity.
+    C and its standard library comprise a simple set of portable functions.
+	\item Manual Memory Management.
+    C gives you the ability you manage your memory.
+    However, this can bite you, if you have memory errors.
+	\item Ubiquity.
+    Almost every computer that is not embedded has some way to interface with C.
     The standard library is also everywhere.
     C has stood the test of time as a popular language, and it doesn't look like it is going anywhere.
 \end{itemize}
 
-\section{Crash course intro to C}
+\section{Crash course introduction to C}
 
-The only way to start learning C is by starting with hello world. As per the original example that Kernighan and Ritchie proposed way back when, the hello world hasn't changed that much.
+The only way to start learning C is by starting with the \emph{hello world} program. As per the original example that Kernighan and Ritchie proposed way back when, this program hasn't changed that much.
 
 \begin{lstlisting}[language=C]
 #include <stdio.h>
@@ -58,9 +58,9 @@ int main(void) {
 
 \begin{enumerate}
 	\item The \keyword{\#include} directive takes the file \keyword{stdio.h} (which stands for \textbf{st}an\textbf{d}ard \textbf{i}nput and \textbf{o}utput) located somewhere in your operating system, copies the text, and substitutes it where the \keyword{\#include} was.
-	\item The \keyword{int main(void)} is a function declaration. The first word \keyword{int} tells the compiler what the return type of the function is. The part before the parenthesis (\keyword{main}) is the function name. In C, no two functions can have the same name in a single compiled program, shared libraries are a different touchy subject. Then, what comes after is the parameter list. When we give the parameter list for regular functions \keyword{(void)} that means that the compiler should error if the function is called with any arguments. For regular functions having a declaration like \keyword{void func()} means that you are allowed to call the function like \keyword{func(1, 2, 3)} because there is no delimiter. In the case of \keyword{main}, it is a special function. There are many ways of declaring \keyword{main} but the ones that you will be familiar with are \keyword{int main(void)}, \keyword{int main()}, and \keyword{int main(int argc, char *argv[])}.
-	\item \keyword{printf("Hello World\n");} is what we call a function call. \keyword{printf} is defined as a part of \keyword{stdio.h}. The function has been compiled and lives somewhere else on our machine. All we need to do is include the header and call the function with the appropriate parameters (a string literal \keyword{"Hello World\n"}). If you don't have the newline, the buffer will not be flushed. It is by convention that buffered IO is not flushed until a newline.
-	\item \keyword{return 0;}. \keyword{main} has to return an integer. By convention, \keyword{return 0} means success and anything else means failure.
+	\item The \keyword{int main(void)} is a function declaration. The first word \keyword{int} tells the compiler what the return type of the function is. The part before the parenthesis (\keyword{main}) is the function name. In C, no two functions can have the same name in a single compiled program, although shared libraries are a different touchy subject. Then, what comes after is the parameter list. When we provide the parameter list for regular functions \keyword{(void)} that means that the compiler should produce an error if the function is called with a non-zero number of arguments. For regular functions having a declaration like \keyword{void func()} means that you are allowed to call the function in a manner similar to \keyword{func(1, 2, 3)}, because there is no delimiter. \keyword{main} is a special function. There are many ways of declaring \keyword{main} but the ones that you will likely be familiar with are \keyword{int main(void)}, \keyword{int main()}, and \keyword{int main(int argc, char *argv[])}.
+	\item \keyword{printf("Hello World\n");} is what we call a function call. \keyword{printf} is defined as a part of \keyword{stdio.h}. The function has been compiled and lives somewhere else on our machine (the location of the C standard library). All we need to do is include the header and call the function with the appropriate parameters (a string literal \keyword{"Hello World\n"}). If you don't include a newline, the buffer will not be flushed (i.e. the write will not complete immediately). It is by convention that buffered IO is not flushed until a newline.
+	\item \keyword{return 0;}. \keyword{main} has to return an integer. By convention, \keyword{return 0} means success and anything else means failure. Here are some exit codes / statuses with special meaning: \link{http://tldp.org/LDP/abs/html/exitcodes.html}. Note that all of CS 241's assignments require an exit code to be 0 to indicate successful execution, and normal exit. 
 \end{enumerate}
 
 \begin{verbatim}
@@ -71,27 +71,28 @@ $
 \end{verbatim}
 
 \begin{enumerate}
-	\item \keyword{gcc} is short for the GNU-Compiler-Collection which has a host of compilers ready for use. The compiler infers from the extension that you are trying to compile a .c file
-	\item \keyword{./main} tells your shell to execute the program in the current directory called main. The program then prints out hello world
+	\item \keyword{gcc} is short for the GNU Compiler Collection which has a host of compilers ready for use. The compiler infers from the extension that you are trying to compile a .c file.
+	\item \keyword{./main} tells your shell to execute the program in the current directory called main. The program then prints out "hello world".
 \end{enumerate}
 
 \section{Preprocessor}
 
-What is the preprocessor? Preprocessing is an operation that the compiler performs \textbf{before} actually compiling the program.
-It is a copy and paste command.
-Meaning the following substitution is performed.
+What is the preprocessor? Preprocessing is a copy and paste operation that the compiler performs \textbf{before} actually compiling the program.
+
+Here is an example of a substitution:
 
 \begin{lstlisting}[language=C]
+// Before preprocessing
 #define MAX_LENGTH 10
 char buffer[MAX_LENGTH]
-// After
+// After preprocessing
 char buffer[10]
 \end{lstlisting}
 
 There are side effects to the preprocessor though.
 One problem is that the preprocessor needs to be able to tokenize properly, meaning trying to redefine the internals of the C language with a preprocessor may be impossible.
-Another problem is that they can't be nested infinitely -- there is an unbounded depth where they need to stop.
-Macros are also just simple text substitutions.
+Another problem is that they can't be nested infinitely -- there is an bounded depth where they need to stop.
+Macros are also just simple text substitutions, without semantics.
 For example, look at what can happen if we have a macro that performs an inline modification.
 
 \begin{lstlisting}[language=C]
@@ -104,8 +105,8 @@ int main() {
 \end{lstlisting}
 
 Macros are simple text substitution so the above example expands to \keyword{x++\ \textless{}\ 100\ ?\ x++\ :\ 100} (parenthesis omitted for clarity).
-Now for this case, it is opaque what gets printed out but it will be 6.
-Also consider the edge case when operator precedence comes into play.
+Now for this case, it is opaque what gets printed out, but it will be 6.
+Also consider the edge case when operator precedence comes into play. This is what is meant by lack of semantics.
 
 \begin{lstlisting}[language=C]
 #define min(a,b) a < b ? a : b
@@ -158,7 +159,7 @@ int bar() {
 \end{lstlisting}
 
 The other thing we have is conditionals.
-If a macro is defined or equal to zeros, that branch is not taken
+If a macro is defined or equal to zeros, that branch is not taken.
 
 \begin{lstlisting}[language=C]
 int main() {
@@ -170,7 +171,7 @@ int main() {
 }
 \end{lstlisting}
 
-Using \keyword{gcc} your compiler would see this
+Using \keyword{gcc} your compiler would see this:
 
 \begin{lstlisting}[language=C]
 int main() {
@@ -179,7 +180,7 @@ int main() {
 \end{lstlisting}
 
 
-Using \keyword{clang} your compiler would see this
+Using \keyword{clang} your compiler would see this:
 
 \begin{lstlisting}[language=C]
 int main() {
@@ -220,10 +221,10 @@ while(1) {
 \end{lstlisting}
 	    \item \keyword{const} is a language level construct that tells the compiler that this data should not be modified.
         If one tries to change a const variable, the program will not even compile.
-        \keyword{const} works a little differently when put before the type, the compiler flips the first type and const.
-        Then the compiler uses a left associativity rule.
+        \keyword{const} works a little differently when put before the type, the compiler re-orders the first type and const.
+        Then the compiler uses a \href{https://en.wikipedia.org/wiki/Operator_associativity}{left associativity rule}.
         Meaning that whatever is left of the pointer is constant.
-        This is known as const-correctedness.
+        This is known as const-correctness.
 	      \\
 	      \begin{lstlisting}[language=C]
 const int i = 0; // Same as "int const i = 0"
@@ -256,9 +257,9 @@ while(i--) {
 } /* Then reaches the end of the while loop */
 \end{lstlisting}
 
-	    \item \keyword{do \{\} while();} is another loop constructs.
+	    \item \keyword{do \{\} while();} is another loop construct.
         These loops execute the body and then check the condition at the bottom of the loop.
-        If the condition is zero, the loop body is not executed and the rest of the program is executed.
+        If the condition is zero, the loop body is not executed and the rest of the program is executed (the program counter is set to the first instruction after the loop).
         Otherwise, the loop body is executed.
 
 	      \begin{lstlisting}[language=C]
@@ -270,9 +271,9 @@ do {
 
 	    \item \keyword{enum} is to declare an enumeration.
         An enumeration is a type that can take on many, finite values.
-        If you have an enum and don't specify any numerics, the c compiler when generate a unique number for that enum (within the context of the current enum) and use that for comparisons.
-        To declare an instance of an enum, you must say \keyword{enum <type> varname}.
-        The added benefit to this is that C can type check these expressions to make sure that you are only comparing alike types.
+        If you have an enum and don't specify any numerics, the C compiler will generate a unique number for that enum (within the context of the current enum) and use that for comparisons.
+        The syntax to declare an instance of an enum is \keyword{enum <type> varname}.
+        The added benefit to this is that the compiler can type check these expressions to make sure that you are only comparing alike types.
 
 	      \begin{lstlisting}[language=C]
 enum day{ monday, tuesday, wednesday,
@@ -288,7 +289,7 @@ void process_day(enum day foo) {
 \end{lstlisting}
 
 	      It is completely possible to assign enum values to either be different or the same.
-        Just don't rely on the compiler for consistent numbering. If you are going to use this abstraction, try not to break it.
+        It is not advisable to rely on the compiler for consistent numbering, if you do the above. If you are going to use this abstraction, try not to break it.
 
 	      \begin{lstlisting}[language=C]
 enum day{
@@ -329,7 +330,7 @@ int panic = 1;
 \end{lstlisting}
 
 	    \item \keyword{for} is a keyword that allows you to iterate with an initialization condition, a loop invariant, and an update condition.
-        This is meant to be a replacement for the while loop
+        This is meant to be equivalent to a while loop, but with differing syntax.
 
 	      \begin{lstlisting}[language=C]
 for (initialization; check; update) {
@@ -356,17 +357,17 @@ for(int i = 0; i < 10; ++i) {
 	      The order of evaluation for a \keyword{for} loop is as follows
 
 	      \begin{enumerate}
-		      \item Perform the initialization condition.
+		      \item Perform the initialization statement.
 		      \item Check the invariant. If false, terminate the loop and execute the next statement. If true, continue to the body of the loop.
 		      \item Perform the body of the loop.
-		      \item Perform the update condition.
+		      \item Perform the update statement.
 		      \item Jump to checking the invariant step.
 	      \end{enumerate}
 
 	    \item \keyword{goto} is a keyword that allows you to do conditional jumps.
         Do not use \keyword{goto} in your programs.
-        The reason being is that it makes your code infinitely more hard to understand when strung together with multiple chains.
-        It is fine to use in some contexts though.
+        The reason being is that it makes your code infinitely more hard to understand when strung together with multiple chains, which is called spaghetti code.
+        It is acceptable to use in some contexts though, for example, error checking code in the Linux kernel.
         The keyword is usually used in kernel contexts when adding another stack frame for cleanup isn't a good idea.
         The canonical example of kernel cleanup is as below.
 
@@ -400,6 +401,7 @@ finish:
 \end{lstlisting}
 	    \item \keyword{if else else-if} are control flow keywords.
         There are a few ways to use these (1) A bare if (2) An if with an else (3) an if with an else-if (4) an if with an else if and else.
+        Note that an else is matched with the most recent else. A subtle bug related to a mismatched if and else statement, is the \herf{dangling else problem}{https://en.wikipedia.org/wiki/Dangling_else}.
         The statements are always executed from the if to the else.
         If any of the intermediate conditions are true, the if block performs that action and goes to the end of that block.
 
@@ -450,6 +452,7 @@ int main() {
 
 	    \item \keyword{restrict} is a keyword that tells the compiler that this particular memory region shouldn't overlap with all other memory regions.
         The use case for this is to tell users of the program that it is undefined behavior if the memory regions overlap.
+        Note that memcpy has undefined behavior when memory regions overlap. If this might be the case in your program, consider using memmove.
 
 	      \begin{lstlisting}[language=C]
 memcpy(void * restrict dest, const void* restrict src, size_t bytes);
@@ -478,7 +481,7 @@ void process() {
 \end{lstlisting}
 
 	    \item \keyword{signed} is a modifier which is rarely used, but it forces an type to be signed instead of unsigned.
-        The reason that this is so rarely used is because types are signed by default and need to have the \keyword{unsigned} modifier to make them unsigned but it may be useful in cases where you want the compiler to default a signed type like.
+        The reason that this is so rarely used is because types are signed by default and need to have the \keyword{unsigned} modifier to make them unsigned but it may be useful in cases where you want the compiler to default to a signed type such as below.
 
 	      \begin{lstlisting}[language=C]
 int count_bits_and_sign(signed representation) {
@@ -486,7 +489,7 @@ int count_bits_and_sign(signed representation) {
 }
 \end{lstlisting}
 	    \item \keyword{sizeof} is an operator that is evaluated at compile time, which evaluates to the number of bytes that the expression contains.
-        Meaning that when the compiler infers the type the following code changes.
+        When the compiler infers the type the following code changes as follows.
 	      \begin{lstlisting}[language=C]
 char a = 0;
 printf("%zu", sizeof(a++));
@@ -515,8 +518,8 @@ struct person {
 \end{lstlisting}
 
 	      This code will not compile because sizeof is not able to compile \keyword{file.c} without knowing the full declaration of the \texttt{person} struct.
-        That is typically why we either put the full declaration in a header file or we abstract the creation and the interaction away so that users cannot access the internals of our struct.
-        Also, if the compiler knows the full length of an array object, it will use that in the expression instead of decaying it to a pointer.
+        That is typically why programmers either put the full declaration in a header file or we abstract the creation and the interaction away so that users cannot access the internals of our struct.
+        Additionally, if the compiler knows the full length of an array object, it will use that in the expression instead of having it decay into a pointer.
 
 	      \begin{lstlisting}[language=C]
 char str1[] = "will be 11";
@@ -531,7 +534,7 @@ sizeof(str2) //8 because it is a pointer
 
 	      \begin{enumerate}
 		      \item When used with a global variable or function declaration it means that the scope of the variable or the function is only limited to the file.
-		      \item When used with a function variable, that declares that the variable has static allocation -- meaning that the variable is allocated once at program start up not every time the program is run.
+		      \item When used with a function variable, that declares that the variable has static allocation -- meaning that the variable is allocated once at program start up not every time the program is run, and its lifetime is extended to that of the program.
 	      \end{enumerate}
 
 	      \begin{lstlisting}[language=C]
@@ -548,7 +551,7 @@ char *print_time(void) {
 \end{lstlisting}
 
 	    \item \keyword{struct} is a keyword that allows you to pair multiple types together into a new structure.
-        Structs are contiguous regions of memory that one can access specific elements of each memory as if they were separate variables.
+        C-structs are contiguous regions of memory that one can access specific elements of each memory as if they were separate variables. Note that there might be padding between elements, such that each variable is memory-aligned (starts at a memory address that is a multiple of its size).
 
 	      \begin{lstlisting}[language=C]
 struct hostname {
@@ -569,6 +572,7 @@ struct hostname google = {"80", "www.google.com", "/"};
 
 	    \item \keyword{switch case default} Switches are essentially glorified jump statements.
         Meaning that you take either a byte or an integer and the control flow of the program jumps to that location.
+        Note that, the various cases of a switch statement fall through. It means that if execution starts at one case, flow of control will continue to all subsequent cases, until a break statement.
 	      \\
 	      \begin{lstlisting}[language=C]
 switch(/* char or int */) {
@@ -640,7 +644,7 @@ comparator gt = greater_than;
 	      This declares a function type comparator that accepts two \keyword{void*} params and returns an integer.
 
 	    \item \keyword{union} is a new type specifier.
-        A union is one piece of memory that a bunch of variables occupy.
+        A union is one piece of memory that a many variables occupy.
         It is used to maintain consistency while having the flexibility to switch between types without maintaining functions to keep track of the bits.
         Consider an example where we have different pixel values.
 	      \begin{lstlisting}[language=C]
@@ -663,18 +667,18 @@ fprintf(picture, "%d", a.encoded);
 \end{lstlisting}
 
 	    \item \keyword{unsigned} is a type modifier that forces \keyword{unsigned} behavior in the variables they modify.
-        Unsigned can only be on primitive int types (like \keyword{int} and \keyword{long}).
-        There is a lot of behavior associated with unsigned arithmetic, just know for the most part unless you need to do bit shifting you probably won't need it.
+        Unsigned can only be used with primitive int types (like \keyword{int} and \keyword{long}).
+        There is a lot of behavior associated with unsigned arithmetic. For the most part, unless your code involves bit shifting, it isn't essential to know the difference in behavior with regards to unsigned and signed arithmetic.
 
 	    \item \keyword{void} is a two folded keyword.
-        When used in terms of function or parameter definition then it means that it returns no value or accepts no parameter specifically. The following declares a function that accepts no parameters and returns nothing.
+        When used in terms of function or parameter definition, it means that the function explicitly returns no value or accepts no parameter, respectively. The following declares a function that accepts no parameters and returns nothing.
 
 	      \begin{lstlisting}[language=C]
 void foo(void);
 \end{lstlisting}
 
 
-	      The other use of \keyword{void} is when you are defining.
+	      The other use of \keyword{void} is when you are defining an \keyword{lvalue}.
         A \keyword{void *} pointer is just a memory address. It is specified as an incomplete type meaning that you cannot dereference it but it can be promoted to any time to any other type. Pointer arithmetic with these pointer is undefined behavior.
 
 	      \begin{lstlisting}[language=C]
@@ -700,13 +704,13 @@ while(1) {
     // Do things unrelated to flag
 }
 \end{lstlisting}
-	      If you put the volatile keyword then it forces the compiler to keep the variable in and perform that check. This is particularly useful for cases where you are doing multi-process or multi-threaded programs so that we can
-	\item \keyword{while } represents the traditional \keyword{while} loop. There is a condition at the top of the loop. While that condition evaluates to a non-zero value, the loop body will be run.
+	      If you use the volatile keyword, the compiler is forced to keep the variable in and perform that check. This is particularly useful for cases where you are doing multi-process or multi-threaded programs so that we can affect the running of one sequence of execution with another.
+	\item \keyword{while } represents the traditional \keyword{while} loop. There is a condition at the top of the loop, which is checked before every execution of the loop body. If the condition evaluates to a non-zero value, the loop body will be run.
 \end{enumerate}
 
 \subsection{C data types}
 
-There are many data types in c. All of them as you may realize are either an integer or a floating point number and different types are variations on that.
+There are many data types in C. As you may realize, all of them are either integers or floating point numbers and other types are variations of these.
 
 \begin{enumerate}
 	\item \keyword{char} Represents exactly one byte of data. The number of bits in a byte might vary. \keyword{unsigned char} and \keyword{signed char} mean the exact same thing. This must be aligned on a boundary (meaning you cannot use bits in between two addresses). The rest of the types will assume 8 bits in a byte.
@@ -717,6 +721,8 @@ There are many data types in c. All of them as you may realize are either an int
 	\item \keyword{float} represents an IEEE-754 single precision floating point number tightly specified by IEEE \cite{4610935}. This will be four bytes aligned to a four byte boundary on most machines.
 	\item \keyword{double} represents an IEEE-754 double precision floating point number specified by the same standard, which is aligned to the nearest eight byte boundary.
 \end{enumerate}
+
+If you want a fixed width integer type, for more portable code, you may use the types defined in stdint.h, and , which are of the form [u]int\emph{width}_t, where u (which is optional) represents the signedness, and width is any of 8, 16, 32, and 64.
 
 \subsection{Operators}
 
