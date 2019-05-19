@@ -12,7 +12,7 @@ The following is an brief overview on the tasks performed by the kernel.
     \item
           The operating system executes code from read-only memory, called firmware.
     \item
-          The operating system then executes a bootloader, which often conforms to the Extensible Firmware Interface (\keyword{EFI}) , which is an interface between the system firmware and the operating system.
+          The operating system then executes a bootloader, which often conforms to the Extensible Firmware Interface (\keyword{EFI}), which is an interface between the system firmware and the operating system.
     \item
           The bootloader's boot manager loads the operating system kernels, based on the boot settings.
     \item
@@ -24,7 +24,7 @@ The following is an brief overview on the tasks performed by the kernel.
 \end{enumerate}
 
 You don't need to know the specifics of the booting process, but there it is.
-When you are executing in user space the kernel provides some important services to programs.
+When you are executing in user space, the kernel provides some important services to programs.
 
 \begin{itemize}
     \item Scheduling processes and threads
@@ -33,16 +33,17 @@ When you are executing in user space the kernel provides some important services
     \item Managing virtual memory and low level binary devices such as \keyword{USB} drivers
     \item Managing filesystems
     \item Handling communication over networks
-    \item Handles communication between processes
+    \item Handling communication between processes
     \item Dynamically linking libraries
 \end{itemize}
 
 The kernel handles all of these tasks in kernel mode.
-Kernel mode gets you greater power, such as the ability to execute extra CPU instructions. However, a single failure can crash your entire computer -- ouch.
+Kernel mode gets you greater power, such as the ability to execute extra CPU instructions. 
+However, a single failure can crash your entire computer -- ouch.
 These services are what you will be interacting with in this class.
 
-Importantly, the kernel creates the first process \keyword{init.d} (an alternative is system.d). \emph{init.d} boots up programs such as graphical user interfaces, terminals etc.
-What is important is the operating system only explicitly creates one process by default. All other processes are instantiated by using the system calls \keyword{fork} and \keyword{exec} from that single process.
+The kernel creates the first process \keyword{init.d} (an alternative is system.d). \emph{init.d} boots up programs such as graphical user interfaces, terminals etc -- by default, this is the only process explicitly created by the system.
+All other processes are instantiated by using the system calls \keyword{fork} and \keyword{exec} from that single process.
 
 \section{File Descriptors}
 
@@ -55,8 +56,8 @@ Here is a zine from Julia Evans that gives some details: \cite{evans_2018}.
     \caption{File Descriptors}
 \end{figure}
 
-As the little zine shows, the Kernel keeps track of the file descriptors and what they point to.
-Later, we will learn two things: that file descriptors need not point to actual files, and that the operating system keeps track of them for you.
+As the little zine shows, the kernel keeps track of the file descriptors and what they point to.
+Later we will learn two things: that file descriptors need not point to actual files and that the operating system keeps track of them for you.
 
 Notice that file descriptors may be reused between processes, but inside of a process, they are unique.
 File descriptors may have a notion of position. These are known as seekable streams.
@@ -258,7 +259,7 @@ We say may because the contents may be unwritten given a bad program exit as wel
 To write code that is different for the parent and child process, check the return value of \keyword{fork()}.
 If \keyword{fork()} returns -1, that implies something went wrong in the process of creating a new child.
 One should check the value stored in \emph{errno} to determine what kind of error occurred.
-Common errors include \keyword{EAGAIN} and \keyword{ENOMEM} Which are essentially "try again", and "out of memory".
+Common errors include \keyword{EAGAIN} and \keyword{ENOENT} Which are essentially "try again -- resource temporarily unavailable", and "no such file or directory".
 
 Similarly, a return value of 0 indicates that we are operating in the context of the child process, whereas a positive integer shows that we are in the context of the parent process.
 
@@ -315,7 +316,7 @@ The algorithm isn't actually O(N) because of how the system scheduler works. In 
 
 \subsection{What is a fork bomb?}
 
-A `fork bomb` is what we warned you about earlier.
+A `fork bomb' is what we warned you about earlier.
 This occurs when there is an attempt to create an infinite number of processes.
 This will often bring a system to a near-standstill, as it attempts to allocate CPU time and memory to a very large number of processes that are ready to run.
 System administrators don't like them, and may set upper limits on the number of processes each user can have, or revoke login rights because they create disturbances in the Force for other users' programs.
@@ -430,7 +431,14 @@ Key differences between the parent and the child include:
 
 \section{Waiting and Execing}
 
-If the parent process wants to wait for the child to finish, \keyword{waitpid} (or \keyword{wait}).
+If the parent process wants to wait for the child to finish, it must use \keyword{waitpid} (or \keyword{wait}), both of which wait for a child to change process states, which can be one of the following:
+
+\begin{enumerate}
+    \item the child terminated
+    \item the child was stopped by a signal
+    \item the child was resumed by a signal
+\end{enumerate}
+
 Note: These can be set to be non-blocking, which means they will return immediately, letting you know if the child has exited.
 
 \begin{lstlisting}[language=C]
@@ -491,7 +499,7 @@ See \keyword{wait}/\keyword{waitpid} man page for more information.
 \end{lstlisting}
 
 A process can only have 256 return values, the rest of the bits are informational, and the information is extracted with bit shifting.
-However, the kernel has an internal way of keeping track of signaled, exited, or stopped. processes.
+However, the kernel has an internal way of keeping track of signaled, exited, or stopped processes.
 This API is abstracted so that that the kernel developers are free to change it at will.
 Remember: these macros only make sense if the precondition is met.
 For example, a process' exit status won't be defined if the process isn't signaled.
