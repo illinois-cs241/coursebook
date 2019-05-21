@@ -251,11 +251,12 @@ In standard Unix file systems the following entries are specially added on reque
   \item \keyword{~~} is the name of the home directory usually
 \end{enumerate}
 
-Unituitively, \keyword{...} does not refer to the `grandparent' directory (parent of the parent). More generally, there are only reserved aliases for the current directory and the parent directory.
-However, \keyword{...} \emph{could} however be the name of a file or direcotyr on disk. (You can try this with \texttt{mkdir ...}).
-Confusingly, the shell \keyword{zsh} does interprent \keyword{...} as a handy shortcut to the grandparent directory (should it exist) while expanding shell commands.
+Unintuitively, \keyword{...} does not refer to the `grandparent' directory (parent of the parent).
+Only the current directory and the parent directory have special aliases involving \keyword{.} (namely , \keyword{.} and \keyword{..}).
+However, \keyword{...} \emph{could} however be the name of a file or directory on disk (You can try this with \texttt{mkdir ...}).
+Confusingly, the shell \keyword{zsh} does interpret \keyword{...} as a handy shortcut to the grandparent directory (should it exist) while expanding shell commands.
 
-Additional facts about name-related conventions.
+Additional facts about name-related conventions:
 
 \begin{enumerate}
 \item Files that start with '.' on disk are conventionally considered 'hidden' and will not be listed by programs like \keyword{ls} without additional flags (\keyword{-a}).
@@ -1146,8 +1147,10 @@ of it's direct blocks, one of the entries for it's indirect block and partially 
 The following subsections will all refer to the file presented above.
 
 \subsection{How big is our file?}
-The size of a file is not something that we can compute by staring at it. We need additional information that is
-typically stored in the inode. This is because the filesystem isn't aware of the actual contents of what is in a file.  That data is considered the user's. However, we can compute an upper bound by looking at how many blocks the file uses.
+The size of a file is not something that we can compute by staring at it's structure.
+We need additional information that is typically stored in the inode.
+This is because the filesystem isn't aware of the actual contents of what is in a file - that data is considered the user's and should only be manipulated by the user.
+However, we can compute an upper and lower bounds on the filesize by only looking at how many blocks the file uses.
 
 There are two full direct blocks, which together store $2*sizeof(data\_block)=2*4KiB=8KiB$.
 
@@ -1177,7 +1180,7 @@ However, on disk we also store the indirect block itself. This means that an add
 disk usage will be $4MiB + 12KiB$.
 
 Note that when only using direct blocks, completely filling up a direct block implies that our filesize and our disk usage are the same thing!
-While it would seem like we always want this idea scenario, it puts a very restrictive limit on the maximum filesize.
+While it would seem like we always want this ideal scenario, it puts a very restrictive limit on the maximum filesize.
 Attempting to remedy this by increasing the number of direct blocks seems promising, but note that this requires increasing the size of an inode and reducing the amount of space availible to store user data
 -- a tradeoff you will have to evaluate for yourself.
 Alternatively always trying to split your data up into chunks that never use indirect blocks is also not necessarily wise since it could exhaust the limited pool of availible inodes.
