@@ -201,7 +201,7 @@ def main(args):
     outdir = args.outdir
 
     with open(order_file, 'r') as order_f:
-        order = yaml.load(order_f)
+        order = yaml.load(order_f, Loader=yaml.Loader)
 
     logger.info("Creating Metadata")
     with tempfile.NamedTemporaryFile(mode='r', prefix=tmp_dir) as fp:
