@@ -222,10 +222,10 @@ n.b. Fork can be \textbf{extremely} dangerous if you aren't prepared for it. \te
 
 The \keyword{fork} system call clones the current process to create a new process, called a child process.
 This occurs by duplicating the state of the existing process with a few minor differences.
-\begin{itemize} {
+\begin{itemize}
     \item The child process does not start from main. Instead it executes the next line after the \keyword{fork()} just as the parent process does.
     \item Just as a side remark, in older UNIX systems, the entire address space of the parent process was directly copied regardless of whether the resource was modified or not. Current behavior is for the kernel to perform a \href{https://en.wikipedia.org/wiki/Copy-on-write}{copy-on-write}, which saves a lot of resources, whilst being very time efficient \cite[Copy-on-write section]{Bovet:2005:ULK:1077084}.
-}
+\end{itemize}
 
 Here is a very simple example:
 
