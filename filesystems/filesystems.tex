@@ -86,7 +86,7 @@ Technically, all filesystems in the kernel are represented by virtual filesystem
 
 \subsection{The File API}
 
-A filesystem must provide callback functions to a variety of actions. Some of them as listed below:
+A filesystem must provide callback functions to a variety of actions. Some of them are listed below:
 
 \begin{itemize}
   \item \keyword{open} Opens a file for IO
@@ -251,10 +251,9 @@ In standard Unix file systems the following entries are specially added on reque
   \item \keyword{~~} is the name of the home directory usually
 \end{enumerate}
 
-Note that \keyword{...} is NOT a valid representation of any directory.
-This not the grandparent directory.
-It \emph{could} however be the name of a file on disk.
-Though confusingly, \keyword{zsh} provides this as a handy shortcut to the grandparent directory should it exist.
+Unituitively, \keyword{...} does not refer to the `grandparent' directory (parent of the parent). More generally, there are only reserved aliases for the current directory and the parent directory.
+However, \keyword{...} \emph{could} however be the name of a file or direcotyr on disk. (You can try this with \texttt{mkdir ...}).
+Confusingly, the shell \keyword{zsh} does interprent \keyword{...} as a handy shortcut to the grandparent directory (should it exist) while expanding shell commands.
 
 Additional facts about name-related conventions.
 
@@ -269,8 +268,8 @@ Additional facts about name-related conventions.
 
 \subsection{Directory API}
 
-While interacting with a file in C is done by using \keyword{open} to open the file and then \keyword{read} or \keyword{write} to interact with the file before calling \keyword{close} to release resources, directories have special calls such as, \keyword{opendir}, \keyword{closedir} and \keyword{readdir}.
-There is no function \keyword{writedir} since typically that implies creating a file or link.
+While interacting with a file in C is typically done by using \keyword{open} to open the file and then \keyword{read} or \keyword{write} to interact with the file before calling \keyword{close} to release resources, directories have special calls such as, \keyword{opendir}, \keyword{closedir} and \keyword{readdir}.
+There is no function \keyword{writedir} since typically that implies creating a file or link (for that you would just use something like \keyword{open} or \keyword{mkdir}).
 
 To explore these functions, let's write a program to search the contents of a directory for a particular file.
 The code below has a bug, try to spot it!
@@ -301,7 +300,7 @@ In the above code, this means calling \keyword{closedir} before \keyword{return 
 Forgetting to release resources is a common C programming bug because there is no support in the C language to ensure resources are always released with all code paths.
 
 
-After a call to \keyword{fork()}, either (XOR), the parent or the child can use \keyword{readdir()}, \keyword{rewinddir()} or \keyword{seekdir()}.
+Given an open directory, after a call to \keyword{fork()}, either (XOR), the parent or the child can use \keyword{readdir()}, \keyword{rewinddir()} or \keyword{seekdir()}.
 If both the parent and the child use the above, behavior is undefined.
 
 There are two main gotchas and one consideration.
@@ -1148,8 +1147,7 @@ The following subsections will all refer to the file presented above.
 
 \subsection{How big is our file?}
 The size of a file is not something that we can compute by staring at it. We need additional information that is
-typically stored in the inode. This is because the filesystem isn't aware of the actual contents of what is in a file.
-That data is considered the user's. However, we can compute an upper bound by looking at how many blocks the file uses.
+typically stored in the inode. This is because the filesystem isn't aware of the actual contents of what is in a file.  That data is considered the user's. However, we can compute an upper bound by looking at how many blocks the file uses.
 
 There are two full direct blocks, which together store $2*sizeof(data\_block)=2*4KiB=8KiB$.
 
@@ -1165,6 +1163,25 @@ considered the \textit{overhead} of storing this data incurred while using this 
 indirect block to store the disk block numbers of blocks used beyond the two direct blocks. While doing our above
 calculations, we did not take this block into account while computing the file size. This would instead be counted as the
 overhead of the file, and thus the total overhead of storing this file on disk is $sizeof(indirect\_block)=4KiB)$.
+
+Now that we're thinking about overhead, a related calculation could be to determine the max/min disk usage per file in this filesystem.
+
+Trivially a file of size $0$ has no associated data blocks and takes up no space on disk (ignoring the space required for the inode since these are located in a fixed size array somewhere on disk).
+How about the disk usage of the smallest non-empty file? That is, consider a file of size $1B$.
+Note that when a user writes the first byte, a data block will be allocated. Since each data block is $4KiB$, we find that $4KiB$ is the minimum disk usage for a non-empty file.
+Here, we observe that the file size will only be $1B$, despite the fact that $4KiB$ of the disk is used -- there is a distinction between file size and disk usage because of overhead!
+
+Finding maximum is slightly more involved. As we saw earlier in this chapter, a filesystem with this structure can have $1024$ data block numbers in one
+indirect block. This implies that the maximum filesize can be $2*4KiB + 1024*4KiB = 4MiB + 8KiB$ (after accounting for the direct blocks as well).
+However, on disk we also store the indirect block itself. This means that an additional $4KiB$ of overhead will be used to account for the indirect block, so the total
+disk usage will be $4MiB + 12KiB$.
+
+Note that when only using direct blocks, completely filling up a direct block implies that our filesize and our disk usage are the same thing!
+While it would seem like we always want this idea scenario, it puts a very restrictive limit on the maximum filesize.
+Attempting to remedy this by increasing the number of direct blocks seems promising, but note that this requires increasing the size of an inode and reducing the amount of space availible to store user data
+-- a tradeoff you will have to evaluate for yourself.
+Alternatively always trying to split your data up into chunks that never use indirect blocks is also not necessarily wise since it could exhaust the limited pool of availible inodes.
+
 
 \subsection{Performing Reads}
 
