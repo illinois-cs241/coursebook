@@ -678,7 +678,7 @@ What you need to know is the following bullet points.
 \begin{enumerate}
     \item File descriptors are preserved after an exec. That means if you open a file, and you forget to close it, it remains open in the child.
           This is a problem because usually the child doesn't know about those file descriptors. Nevertheless, they take up a slot in the file descriptor table and could possible prevent other processes from accessing the file.
-          The one exception to this is if the file descriptor has the Close-On-Exec flag set (O_CLOXEC) -- we will go over setting flags later.
+          The one exception to this is if the file descriptor has the Close-On-Exec flag set (O\_CLOEXEC) -- we will go over setting flags later.
     \item Various signal semantics. The exec'd processes preserve the signal mask and the pending signal set, but does not preserve the signal handlers because it is a different program.
     \item Environment variables are preserved unless using an environ version of exec
     \item The operating system may open up 0, 1, 2 -- stdin, stdout, stderr, if they are closed after exec, most of the time they leave them closed.
@@ -717,7 +717,7 @@ By allowing someone to access a shell version of the environment, you can run in
   }
 \end{lstlisting}
 
-Passing something along the lines of argv[1] = "; sudo su" is a huge security risk called \href{https://en.wikipedia.org/wiki/Privilege_escalation}{privilege escalation}.
+Passing something along the lines of argv[1] = "; sudo su" is a huge security risk called \href{https://en.wikipedia.org/wiki/Privilege\_escalation}{privilege escalation}.
 
 \section{The fork-exec-wait Pattern}
 
