@@ -1,0 +1,51 @@
+\section{The C and Linux}
+
+So up until this point we've covered C's language fundamentals.
+What starts diverging from all forms of C is the functions we use and how we interact with the operating system.
+We'll now be focusing our attention to C and the POSIX variety of functions available to us.
+We will talk about portable functions, for example \texttt{fwrite} \texttt{printf} etc etc, but we will be evaluating the internals and scrutinizing them under the POSIX models and more specifically GNU/Linux. There are a number of things to that philosophy that makes the rest of this easier to know, so we'll put those things here.
+
+\subsection{Everything is a file}
+
+One POSIX mantra is that everything is a file.
+Although that has become recently outdated, and moreover wrong, it is the convention we still use today.
+What this statement means is that everything is a file descriptor, which is an integer. For example, here is a file object, a network socket, and a kernel object. These are all references to records in the kernel's file descriptor table.
+
+\begin{lstlisting}[language=C]
+  int file_fd = open(...);
+  int network_fd = socket(...);
+  int kernel_fd = epoll_create1(...);
+\end{lstlisting}
+
+And operations on those objects are done through system calls.
+One last thing to note before we move on is that the file descriptors are merely \textit{pointers}.
+Imagine that each of the file descriptors in the example actually refer to an entry in a table of objects that the operating system picks and chooses from (that is, the file descriptor table).
+Objects can be allocated and deallocated, closed and opened, etc.
+The program interacts with these objects by using the API specified through system calls, and library functions.
+
+\subsection{System Calls}
+
+Before we dive into common C functions, we need to know what a system call is.
+If you are a student and have completed HW0, feel free to gloss over this section.
+
+A system call is an operation that the kernel carries out.
+First, the operating system prepares a system call. Next, the kernel executes the system call to the best of its ability in kernel space, and is a privileged operation.
+In the previous example, we got access to a file descriptor object.
+We can now also write some bytes to the file descriptor object that represents a file, and the operating system will do its best to get the bytes written to the disk.
+
+\begin{lstlisting}[language=C]
+write(file_fd, "Hello!", 6);
+\end{lstlisting}
+
+When we say the kernel tries its best, this includes the possibility that the operation could fail for a number of reasons. Some of them are: the file is no longer valid, the hard drive failed, the system was interrupted etc.
+The way that you communicate with the outside system is with system calls.
+An important thing to note is that system calls are expensive.
+Their cost in terms of time and CPU cycles has recently been decreased, but try to use them as sparingly as possible.
+
+\subsection{C System Calls}
+
+Many C functions that we will discuss in the next sections will be an abstraction that calls the correct underlying system call, based on the current platform. 
+Their Windows implementation may be entirely different from that of other operating systems.
+Nevertheless, we will be studying these in the context of their Linux implementation.
+
+

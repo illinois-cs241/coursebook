@@ -1,0 +1,580 @@
+\section{Language Facilities}
+
+\subsection{Keywords}
+
+C has an assortment of keywords.
+Here are some constructs that you should know briefly as of C99.
+
+\begin{enumerate}
+	\item \keyword{break} is a keyword that is used in case statements or looping statements. When used in a case statement, the program jumps to the end of the block.
+	      \\
+	      \begin{lstlisting}[language=C]
+switch(1) {
+  case 1: /* Goes to this switch */
+    puts("1");
+    break; /* Jumps to the end of the block */
+  case 2: /* Ignores this program */
+    puts("2");
+    break;
+} /* Continues here */
+\end{lstlisting}
+	      \\
+	      In the context of a loop, it breaks out of the inner-most loop. The loop can be either a \keyword{for}, \keyword{while}, or \keyword{do-while} construct
+	      \\
+	      \begin{lstlisting}[language=C]
+while(1) {
+  while(2) {
+    break; /* Breaks out of while(2) */
+  } /* Jumps here */
+  break; /* Breaks out of while(1) */
+} /* Continues here */
+\end{lstlisting}
+	    \item \keyword{const} is a language level construct that tells the compiler that this data should not be modified.
+        If one tries to change a const variable, the program will not even compile.
+        \keyword{const} works a little differently when put before the type, the compiler re-orders the first type and const.
+        Then the compiler uses a \href{https://en.wikipedia.org/wiki/Operator_associativity}{left associativity rule}.
+        Meaning that whatever is left of the pointer is constant.
+        This is known as const-correctness.
+	      \\
+	      \begin{lstlisting}[language=C]
+const int i = 0; // Same as "int const i = 0"
+char *str = ...; // Mutable pointer to a mutable string
+const char *const_str = ...; // Mutable pointer to a constant string
+char const *const_str2 = ...; // Same as above
+const char *const const_ptr_str = ...;
+// Constant pointer to a constant string
+\end{lstlisting}
+
+	      But, it is important to know that this is a compiler imposed restriction only.
+        There are ways of getting around this and the program will run fine with defined behavior.
+        In systems programming, the only type of memory that you can't write to is system write-protected memory.
+
+	      \begin{lstlisting}[language=C]
+const int i = 0; // Same as "int const i = 0"
+(*((int *)&i)) = 1; // i == 1 now
+const char *ptr = "hi";
+*ptr = '\0'; // Will cause a Segmentation Violation
+\end{lstlisting}
+
+	    \item \keyword{continue} is a control flow statement that exists only in loop constructions.
+        Continue will skip the rest of the loop body and set the program counter back to the start of the loop before.
+
+	      \begin{lstlisting}[language=C]
+int i = 10;
+while(i--) {
+  if(1) continue; /* This gets triggered */
+  *((int *)NULL) = 0;
+} /* Then reaches the end of the while loop */
+\end{lstlisting}
+
+	    \item \keyword{do \{\} while();} is another loop construct.
+        These loops execute the body and then check the condition at the bottom of the loop.
+        If the condition is zero, the loop body is not executed and the rest of the program is executed (the program counter is set to the first instruction after the loop).
+        Otherwise, the loop body is executed.
+
+	      \begin{lstlisting}[language=C]
+int i = 1;
+do {
+  printf("%d\n", i--);
+} while (i > 10) /* Only executed once */
+\end{lstlisting}
+
+	    \item \keyword{enum} is to declare an enumeration.
+        An enumeration is a type that can take on many, finite values.
+        If you have an enum and don't specify any numerics, the C compiler will generate a unique number for that enum (within the context of the current enum) and use that for comparisons.
+        The syntax to declare an instance of an enum is \keyword{enum <type> varname}.
+        The added benefit to this is that the compiler can type check these expressions to make sure that you are only comparing alike types.
+
+	      \begin{lstlisting}[language=C]
+enum day{ monday, tuesday, wednesday,
+  thursday, friday, saturday, sunday};
+
+void process_day(enum day foo) {
+  switch(foo) {
+    case monday:
+      printf("Go home!\n"); break;
+    // ...
+  }
+}
+\end{lstlisting}
+
+	      It is completely possible to assign enum values to either be different or the same.
+        It is not advisable to rely on the compiler for consistent numbering, if you do the above. If you are going to use this abstraction, try not to break it.
+
+	      \begin{lstlisting}[language=C]
+enum day{
+  monday = 0,
+  tuesday = 0,
+  wednesday = 0,
+  thursday = 1,
+  friday = 10,
+  saturday = 10,
+  sunday = 0};
+
+void process_day(enum day foo) {
+  switch(foo) {
+    case monday:
+      printf("Go home!\n"); break;
+    // ...
+  }
+}
+\end{lstlisting}
+
+	    \item \keyword{extern} is a special keyword that tells the compiler that the variable may be defined in another object file or a library, so the compiler doesn't throw an error when either the variable is not defined or if the variable is defined twice because the first file will really be referencing the variable in the other file.
+
+	      \begin{lstlisting}[language=C]
+// file1.c
+extern int panic;
+
+void foo() {
+  if (panic) {
+    printf("NONONONONO");
+  } else {
+    printf("This is fine");
+  }
+}
+
+//file2.c
+
+int panic = 1;
+\end{lstlisting}
+
+	    \item \keyword{for} is a keyword that allows you to iterate with an initialization condition, a loop invariant, and an update condition.
+        This is meant to be equivalent to a while loop, but with differing syntax.
+
+	      \begin{lstlisting}[language=C]
+for (initialization; check; update) {
+  //...
+}
+
+// Typically
+int i;
+for (i = 0; i < 10; i++) {
+  //...
+}
+\end{lstlisting}
+
+	      As of the C89 standard, you cannot declare variables inside the \keyword{for} loop.
+        This is because there was a disagreement in the standard for how the scoping rules of a variable defined in the loop would work.
+        It has since been resolved with more recent standards, so people can use the for loop that they know and love today
+
+	      \begin{lstlisting}[language=C]
+for(int i = 0; i < 10; ++i) {
+
+}
+\end{lstlisting}
+
+	      The order of evaluation for a \keyword{for} loop is as follows
+
+	      \begin{enumerate}
+		      \item Perform the initialization statement.
+		      \item Check the invariant. If false, terminate the loop and execute the next statement. If true, continue to the body of the loop.
+		      \item Perform the body of the loop.
+		      \item Perform the update statement.
+		      \item Jump to checking the invariant step.
+	      \end{enumerate}
+
+	    \item \keyword{goto} is a keyword that allows you to do conditional jumps.
+        Do not use \keyword{goto} in your programs.
+        The reason being is that it makes your code infinitely more hard to understand when strung together with multiple chains, which is called spaghetti code.
+        It is acceptable to use in some contexts though, for example, error checking code in the Linux kernel.
+        The keyword is usually used in kernel contexts when adding another stack frame for cleanup isn't a good idea.
+        The canonical example of kernel cleanup is as below.
+
+	      \begin{lstlisting}[language=C]
+void setup(void) {
+  Doe *deer;
+  Ray *drop;
+  Mi *myself;
+
+  if (!setupdoe(deer)) {
+    goto finish;
+  }
+
+  if (!setupray(drop)) {
+    goto cleanupdoe;
+  }
+
+  if (!setupmi(myself)) {
+    goto cleanupray;
+  }
+
+  perform_action(deer, drop, myself);
+
+cleanupray:
+  cleanup(drop);
+cleanupdoe:
+  cleanup(deer);
+finish:
+  return;
+}
+\end{lstlisting}
+	    \item \keyword{if else else-if} are control flow keywords.
+        There are a few ways to use these (1) A bare if (2) An if with an else (3) an if with an else-if (4) an if with an else if and else.
+        Note that an else is matched with the most recent if. A subtle bug related to a mismatched if and else statement, is the \href{dangling else problem}{https://en.wikipedia.org/wiki/Dangling_else}.
+        The statements are always executed from the if to the else.
+        If any of the intermediate conditions are true, the if block performs that action and goes to the end of that block.
+
+	      \begin{lstlisting}[language=C]
+// (1)
+
+if (connect(...))
+  return -1;
+
+// (2)
+if (connect(...)) {
+  exit(-1);
+} else {
+  printf("Connected!");
+}
+
+// (3)
+if (connect(...)) {
+  exit(-1);
+} else if (bind(..)) {
+  exit(-2);
+}
+
+// (1)
+if (connect(...)) {
+  exit(-1);
+} else if (bind(..)) {
+  exit(-2);
+} else {
+  printf("Successfully bound!");
+}
+\end{lstlisting}
+
+	    \item \keyword{inline} is a compiler keyword that tells the compiler it's okay not to create a new function in the assembly.
+        Instead, the compile is hinted at substituting the function body directly into the calling function.
+        This is not always recommended explicitly as the compiler is usually smart enough to know when to \keyword{inline} a function for you.
+
+	      \begin{lstlisting}[language=C]
+inline int max(int a, int b) {
+  return a < b ? a : b;
+}
+
+int main() {
+  printf("Max %d", max(a, b));
+  // printf("Max %d", a < b ? a : b);
+}
+\end{lstlisting}
+
+	    \item \keyword{restrict} is a keyword that tells the compiler that this particular memory region shouldn't overlap with all other memory regions.
+        The use case for this is to tell users of the program that it is undefined behavior if the memory regions overlap.
+        Note that memcpy has undefined behavior when memory regions overlap. If this might be the case in your program, consider using memmove.
+
+	      \begin{lstlisting}[language=C]
+memcpy(void * restrict dest, const void* restrict src, size_t bytes);
+
+void add_array(int *a, int * restrict c) {
+  *a += *c;
+}
+int *a = malloc(3*sizeof(*a));
+*a = 1; *a = 2; *a = 3;
+add_array(a + 1, a) // Well defined
+add_array(a, a) // Undefined
+\end{lstlisting}
+	    \item \keyword{return} is a control flow operator that exits the current function.
+        If the function is \keyword{void} then it simply exits the functions.
+        Otherwise another parameter follows as the return value.
+
+	      \begin{lstlisting}[language=C]
+void process() {
+  if (connect(...)) {
+    return -1;
+  } else if (bind(...)) {
+    return -2
+  }
+  return 0;
+}
+\end{lstlisting}
+
+	    \item \keyword{signed} is a modifier which is rarely used, but it forces an type to be signed instead of unsigned.
+        The reason that this is so rarely used is because types are signed by default and need to have the \keyword{unsigned} modifier to make them unsigned but it may be useful in cases where you want the compiler to default to a signed type such as below.
+
+	      \begin{lstlisting}[language=C]
+int count_bits_and_sign(signed representation) {
+  //...
+}
+\end{lstlisting}
+	    \item \keyword{sizeof} is an operator that is evaluated at compile time, which evaluates to the number of bytes that the expression contains.
+        When the compiler infers the type the following code changes as follows.
+	      \begin{lstlisting}[language=C]
+char a = 0;
+printf("%zu", sizeof(a++));
+\end{lstlisting}
+
+	      \begin{lstlisting}[language=C]
+char a = 0;
+printf("%zu", 1);
+\end{lstlisting}
+
+	      Which then the compiler is allowed to operate on further.
+        A note that you must have a complete definition of the type at compile time or else you may get an odd error.
+        Consider the following
+
+	      \begin{lstlisting}[language=C]
+// file.c
+struct person;
+
+printf("%zu", sizeof(person));
+
+// file2.c
+
+struct person {
+  // Declarations
+}
+\end{lstlisting}
+
+	      This code will not compile because sizeof is not able to compile \keyword{file.c} without knowing the full declaration of the \texttt{person} struct.
+        That is typically why programmers either put the full declaration in a header file or we abstract the creation and the interaction away so that users cannot access the internals of our struct.
+        Additionally, if the compiler knows the full length of an array object, it will use that in the expression instead of having it decay into a pointer.
+
+	      \begin{lstlisting}[language=C]
+char str1[] = "will be 11";
+char* str2 = "will be 8";
+sizeof(str1) //11 because it is an array
+sizeof(str2) //8 because it is a pointer
+\end{lstlisting}
+
+	      Be careful, using sizeof for the length of a string!
+
+	\item \keyword{static} is a type specifier with three meanings.
+
+	      \begin{enumerate}
+		      \item When used with a global variable or function declaration it means that the scope of the variable or the function is only limited to the file.
+		      \item When used with a function variable, that declares that the variable has static allocation -- meaning that the variable is allocated once at program start up not every time the program is run, and its lifetime is extended to that of the program.
+	      \end{enumerate}
+
+	      \begin{lstlisting}[language=C]
+static int i = 0;
+
+static int _perform_calculation(void) {
+  // ...
+}
+
+char *print_time(void) {
+  static char buffer[200]; // Shared every time a function is called
+  // ...
+}
+\end{lstlisting}
+
+	    \item \keyword{struct} is a keyword that allows you to pair multiple types together into a new structure.
+        C-structs are contiguous regions of memory that one can access specific elements of each memory as if they were separate variables. Note that there might be padding between elements, such that each variable is memory-aligned (starts at a memory address that is a multiple of its size).
+
+	      \begin{lstlisting}[language=C]
+struct hostname {
+  const char *port;
+  const char *name;
+  const char *resource;
+}; // You need the semicolon at the end
+// Assign each individually
+struct hostname facebook;
+facebook.port = "80";
+facebook.name = "www.google.com";
+facebook.resource = "/";
+
+// You can use static initialization in later versions of c
+struct hostname google = {"80", "www.google.com", "/"};
+\end{lstlisting}
+
+
+	    \item \keyword{switch case default} Switches are essentially glorified jump statements.
+        Meaning that you take either a byte or an integer and the control flow of the program jumps to that location.
+        Note that, the various cases of a switch statement fall through. It means that if execution starts at one case, flow of control will continue to all subsequent cases, until a break statement.
+	      \\
+	      \begin{lstlisting}[language=C]
+switch(/* char or int */) {
+  case INT1: puts("1");
+  case INT2: puts("2");
+  case INT3: puts("3");
+}
+\end{lstlisting}
+
+	      If we give a value of 2 then
+	      \\
+	      \begin{lstlisting}[language=C]
+switch(2) {
+  case 1: puts("1"); /* Doesn't run this */
+  case 2: puts("2"); /* Runs this */
+  case 3: puts("3"); /* Also runs this */
+}
+\end{lstlisting}
+
+        One of the more famous examples of this is Duff's device which allows for loop unrolling. You don't need to understand this code for the purposes of this class, but it is fun to look at \cite{duff}.
+
+        \begin{lstlisting}[language=C]
+send(to, from, count)
+register short *to, *from;
+register count;
+{
+  register n=(count+7)/8;
+  switch(count%8){
+  case 0:	do{	*to = *from++;
+  case 7:		*to = *from++;
+  case 6:		*to = *from++;
+  case 5:		*to = *from++;
+  case 4:		*to = *from++;
+  case 3:		*to = *from++;
+  case 2:		*to = *from++;
+  case 1:		*to = *from++;
+    }while(--n>0);
+  }
+}
+\end{lstlisting}
+        This piece of code highlights that switch statements are just goto statements, and you can put whatever other valid piece of code on the other end of a switch case. Most of the time it doesn't make sense, some of the time it just makes too much sense.
+
+	    \item \keyword{typedef} declares an alias for a type.
+        Often used with structs to reduce the visual clutter of having to write `struct' as part of the type.
+
+	      \begin{lstlisting}[language=C]
+typedef float real;
+real gravity = 10;
+// Also typedef gives us an abstraction over the underlying type used.
+// In the future, we only need to change this typedef if we
+// wanted our physics library to use doubles instead of floats.
+
+typedef struct link link_t;
+//With structs, include the keyword 'struct' as part of the original types
+\end{lstlisting}
+
+	      In this class, we regularly typedef functions.
+        A typedef for a function can be this for example
+
+	      \begin{lstlisting}[language=C]
+typedef int (*comparator)(void*,void*);
+
+int greater_than(void* a, void* b){
+    return a > b;
+}
+comparator gt = greater_than;
+\end{lstlisting}
+
+	      This declares a function type comparator that accepts two \keyword{void*} params and returns an integer.
+
+	    \item \keyword{union} is a new type specifier.
+        A union is one piece of memory that a many variables occupy.
+        It is used to maintain consistency while having the flexibility to switch between types without maintaining functions to keep track of the bits.
+        Consider an example where we have different pixel values.
+	      \begin{lstlisting}[language=C]
+union pixel {
+  struct values {
+    char red;
+    char blue;
+    char green;
+    char alpha;
+  } values;
+  uint32_t encoded;
+}; // Ending semicolon needed
+union pixel a;
+// When modifying or reading
+a.values.red;
+a.values.blue = 0x0;
+
+// When writing to a file
+fprintf(picture, "%d", a.encoded);
+\end{lstlisting}
+
+	    \item \keyword{unsigned} is a type modifier that forces \keyword{unsigned} behavior in the variables they modify.
+        Unsigned can only be used with primitive int types (like \keyword{int} and \keyword{long}).
+        There is a lot of behavior associated with unsigned arithmetic. For the most part, unless your code involves bit shifting, it isn't essential to know the difference in behavior with regards to unsigned and signed arithmetic.
+
+	    \item \keyword{void} is a two folded keyword.
+        When used in terms of function or parameter definition, it means that the function explicitly returns no value or accepts no parameter, respectively. The following declares a function that accepts no parameters and returns nothing.
+
+	      \begin{lstlisting}[language=C]
+void foo(void);
+\end{lstlisting}
+
+
+	      The other use of \keyword{void} is when you are defining an \keyword{lvalue}.
+        A \keyword{void *} pointer is just a memory address. It is specified as an incomplete type meaning that you cannot dereference it but it can be promoted to any time to any other type. Pointer arithmetic with these pointer is undefined behavior.
+
+	      \begin{lstlisting}[language=C]
+int *array = void_ptr; // No cast needed
+\end{lstlisting}
+
+	    \item \keyword{volatile} is a compiler keyword.
+        This means that the compiler should not optimize its value out.
+        Consider the following simple function.
+	      \\
+	      \begin{lstlisting}[language=C]
+int flag = 1;
+pass_flag(&flag);
+while(flag) {
+    // Do things unrelated to flag
+}
+\end{lstlisting}
+	      \\
+	      The compiler may, since the internals of the while loop have nothing to do with the flag, optimize it to the following even though a function may alter the data.
+	      \\
+	      \begin{lstlisting}[language=C]
+while(1) {
+    // Do things unrelated to flag
+}
+\end{lstlisting}
+	      If you use the volatile keyword, the compiler is forced to keep the variable in and perform that check. This is particularly useful for cases where you are doing multi-process or multi-threaded programs so that we can affect the running of one sequence of execution with another.
+	\item \keyword{while } represents the traditional \keyword{while} loop. There is a condition at the top of the loop, which is checked before every execution of the loop body. If the condition evaluates to a non-zero value, the loop body will be run.
+\end{enumerate}
+
+\subsection{C data types}
+
+There are many data types in C. As you may realize, all of them are either integers or floating point numbers and other types are variations of these.
+
+\begin{enumerate}
+	\item \keyword{char} Represents exactly one byte of data. The number of bits in a byte might vary. \keyword{unsigned char} and \keyword{signed char} mean the exact same thing. This must be aligned on a boundary (meaning you cannot use bits in between two addresses). The rest of the types will assume 8 bits in a byte.
+	\item \keyword{short (short int)} must be at least two bytes. This is aligned on a two byte boundary, meaning that the address must be divisible by two.
+	\item \keyword{int} must be at least two bytes. Again aligned to a two byte boundary \cite[P. 34]{ISON1124}. On most machines this will be 4 bytes.
+	\item \keyword{long (long int)} must be at least four bytes, which are aligned to a four byte boundary. On some machines this can be 8 bytes.
+	\item \keyword{long long} must be at least eight bytes, aligned to an eight byte boundary.
+	\item \keyword{float} represents an IEEE-754 single precision floating point number tightly specified by IEEE \cite{4610935}. This will be four bytes aligned to a four byte boundary on most machines.
+	\item \keyword{double} represents an IEEE-754 double precision floating point number specified by the same standard, which is aligned to the nearest eight byte boundary.
+\end{enumerate}
+
+If you want a fixed width integer type, for more portable code, you may use the types defined in stdint.h, which are of the form [u]int\emph{width}_t, where u (which is optional) represents the signedness, and width is any of 8, 16, 32, and 64.
+
+\subsection{Operators}
+
+Operators are language constructs in C that are defined as part of the grammar of the language.
+
+\begin{enumerate}
+	\item \keyword{[]} is the subscript operator. \texttt{a[n] == (a + n)*} where \texttt{n} is a number type and \texttt{a} is a pointer type.
+	\item \keyword{->} is the structure dereference (or arrow) operator. If you have a pointer to a struct \texttt{*p}, you can use this to access one of its elements. \texttt{p->element}.
+	\item \keyword{.} is the structure reference operator. If you have an object \texttt{a} then you can access an element \texttt{a.element}.
+	\item \keyword{+/-a} is the unary plus and minus operator. They either keep or negate the sign, respectively, of the integer or float type underneath.
+	\item \keyword{*a} is the dereference operator. If you have a pointer \texttt{*p}, you can use this to access the element located at this memory address. If you are reading, the return value will be the size of the underlying type. If you are writing, the value will be written with an offset.
+	\item \keyword{\&a} is the address-of operator. This takes an element and returns its address.
+	\item \keyword{++} is the increment operator. You can use it as a prefix or postfix, meaning that the variable that is being incremented can either be before or after the operator. \keyword{a = 0; ++a === 1} and \keyword{a = 1; a++ === 0}.
+	\item \keyword{--} is the decrement operator. This has the same semantics as the increment operator except that it decreases the value of the variable by one.
+	\item \keyword{sizeof} is the sizeof operator, that is evaluated at the time of compilation. This is also mentioned in the keywords section.
+	\item \keyword{a <mop> b} where \keyword{<mop>=+, -, *, \%, /} are the arithmetic binary operators. If the operands are both number types, then the operations are plus, minus, times, modulo, and division respectively. If the left operand is a pointer and the right operand is an integer type, then only plus or minus may be used and the rules for pointer arithmetic are invoked.
+	\item \keyword{>>/<<} are the bit shift operators. The operand on the right has to be an integer type whose signedness is ignored unless it is signed negative in which case the behavior is undefined. The operator on the left decides a lot of semantics. If we are left shifting, there will always be zeros introduced on the right. If we are right shifting there are a few different cases
+	      \begin{itemize}
+		      \item If the operand on the left is signed, then the integer is sign extended. This means that if the number has the sign bit set, then any shift right will introduce ones on the left. If the number does not have the sign bit set, any shift right will introduce zeros on the left.
+		      \item If the operand is unsigned, zeros will be introduced on the left either way.
+	      \end{itemize}
+
+	      \begin{lstlisting}[language=C]
+unsigned short uns = -127; // 1111111110000001
+short sig = 1; // 0000000000000001
+uns << 2; // 1111111000000100
+sig << 2; // 0000000000000100
+uns >> 2; // 1111111111100000
+sig >> 2; // 0000000000000000
+\end{lstlisting}
+    Note that shifting by the word size (e.g. by 64 in a 64-bit architecture) results in undefined behavior.
+	\item \keyword{<=/>=} are the greater than equal to/less than equal to, relational operators. They work as their name implies.
+	\item \keyword{</>} are the greater than/less than relational operators. They again do as the name implies.
+	\item \keyword{==/\!=} are the equal/not equal to relational operators. They once again do as the name implies.
+	\item \keyword{\&\&} is the logical AND operator. If the first operand is zero, the second won't be evaluated and the expression will evaluate to 0. Otherwise, it yields a 1-0 value of the second operand.
+	\item \keyword{||} is the logical OR operator. If the first operand is not zero, then second won't be evaluated and the expression will evaluate to 1. Otherwise, it yields a 1-0 value of the second operand.
+	\item \keyword{!} is the logical NOT operator. If the operand is zero, then this will return 1. Otherwise, it will return 0.
+	\item \keyword{\&} is the bitwise AND operator. If a bit is set in both operands, it is set in the output. Otherwise, it is not.
+	\item \keyword{|} is the bitwise OR operator. If a bit is set in either operand, it is set in the output. Otherwise, it is not.
+	\item \keyword{~~} is the bitwise NOT operator. If a bit is set in the input, it will not be set in the output and vice versa.
+	\item \keyword{?:} is the ternary / conditional operator. You put a boolean condition before the \? and if it evaluates to non-zero the element before the colon is returned otherwise the element after is. \keyword{1 ? a : b === a} and \keyword{0 ? a : b === b}.
+	\item \keyword{a, b} is the comma operator. \keyword{a} is evaluated and then \keyword{b} is evaluated and \keyword{b} is returned. In a sequence of multiple statements delimited by commas, all statements are evaluated from left to right, and the right-most expression is returned.
+\end{enumerate}
+
+

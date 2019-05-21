@@ -1,0 +1,19 @@
+\section{History of C}
+
+C was developed by Dennis Ritchie and Ken Thompson at Bell Labs back in 1973 \cite{Ritchie:1993:DCL:155360.155580}.
+Back then, we had gems of programming languages like Fortran, ALGOL, and LISP.
+The goal of C was two fold.
+Firstly, it was made to target the most popular computers at the time, such as the PDP-7.
+Secondly, to try to remove some of the lower level constructs (managing registers, and programming assembly for jumps), and create a language that had the power to express programs procedurally (as opposed to mathematically like LISP) with more readable code. All this while still having the ability to interface with the operating system.
+It sounded like a tough feat.
+At first, it was only used internally at Bell Labs along with the UNIX operating system.
+
+The first "real" standardization was with Brian Kernighan and Dennis Ritchie's book \cite{kernighan1988c}. It is still widely regarded today as the only \gls{portable} set of C instructions. The K\&R book is known as the de-facto standard for learning C.  There were different standards of C from ANSI to ISO after the Unix guides. The one that we will be mainly focusing on is the \gls{POSIX} C library. Now to get the elephant out of the room, the Linux kernel is not entirely POSIX compliant. Mostly, this is so because the C developers didn't want to pay the fee for compliance but also because they did not want to be fully compliant with a multiple different standards because that meant ensuing increased development costs to maintain compliance.
+
+Fast forward however many years, and we are at the current C standard put forth by ISO: C11.
+Not all the code that we will write and use in this class will follow this standard.
+We will aim to use C99, as it is the standard that most computers recognize.
+We will talk about some off-hand features like \keyword{getline} because they are so widely used with the GNU C library.
+We'll begin by providing a fairly comprehensive overview of the language with pairing facilities.
+
+
