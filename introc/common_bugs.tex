@@ -1,0 +1,147 @@
+\section{Common Bugs}
+
+\subsection{Null Bytes}
+
+What's wrong with this code?
+
+\begin{lstlisting}[language=C]
+void mystrcpy(char*dest, char* src) {
+  // void means no return value
+  while( *src ) { dest = src; src ++; dest++; }
+}
+\end{lstlisting}
+
+In the above code it simply changes the dest pointer to point to source string. Also the NULs bytes are not copied. Here's a better version -
+
+\begin{lstlisting}[language=C]
+  while( *src ) { *dest = *src; src ++; dest++; }
+  *dest = *src;
+\end{lstlisting}
+
+Note it's also usual to see the following kind of implementation, which does everything inside the expression test, including copying the NUL byte.
+
+\begin{lstlisting}[language=C]
+  while( (*dest++ = *src++ )) {};
+\end{lstlisting}
+
+\subsection{Double Frees}
+
+A double free error is when you accidentally attempt to free the same allocation twice.
+
+\begin{lstlisting}[language=C]
+int *p = malloc(sizeof(int));
+free(p);
+
+*p = 123; // Oops! - Dangling pointer! Writing to memory we don't own anymore
+
+free(p); // Oops! - Double free!
+\end{lstlisting}
+
+The fix is first to write correct programs!
+Secondly, it's good programming hygiene to reset pointers once the memory has been freed.
+This ensures the pointer can't be used incorrectly without the program crashing.
+
+\begin{lstlisting}[language=C]
+p = NULL; // Now you can't use this pointer by mistake
+\end{lstlisting}
+
+\subsection{Returning pointers to automatic variables}
+
+\begin{lstlisting}[language=C]
+int *f() {
+    int result = 42;
+    static int imok;
+    return &imok; // OK - static variables are not on the stack
+    return &result; // Not OK
+}
+\end{lstlisting}
+
+Automatic variables are bound to stack memory only for the lifetime of
+the function. After the function returns it is an error to continue to
+use the memory.
+
+\subsection{Insufficient memory allocation}
+
+\begin{lstlisting}[language=C]
+struct User {
+   char name[100];
+};
+typedef struct User user_t;
+
+user_t *user = (user_t *) malloc(sizeof(user));
+\end{lstlisting}
+
+In the above example, we needed to allocate enough bytes for the struct.
+Instead, we allocated enough bytes to hold a pointer.
+Once we start using the user pointer we will corrupt memory.
+The correct code is shown below.
+
+\begin{lstlisting}[language=C]
+struct User {
+   char name[100];
+};
+typedef struct User user_t;
+
+user_t * user = (user_t *) malloc(sizeof(user_t));
+\end{lstlisting}
+
+\subsection{Buffer overflow/ underflow}
+
+Famous example: Heart Bleed performed a memcpy into a buffer that was of insufficient size.
+Simple example: implement a strcpy and forget to add one to strlen, when determining the size of the memory required.
+
+\begin{lstlisting}[language=C]
+#define N (10)
+int i = N, array[N];
+for( ; i >= 0; i--) array[i] = i;
+\end{lstlisting}
+
+C does not check that pointers are valid. The above example writes into \keyword{array[10]} which is outside the array bounds. This can cause memory corruption because that memory location is probably being used for something else.
+In practice, this can be harder to spot because the overflow/underflow may occur in a library call.
+Here is our old friend gets.
+
+\begin{lstlisting}[language=C]
+gets(array); // Let's hope the input is shorter than my array!
+\end{lstlisting}
+
+
+\subsection{Strings require strlen(s)+1 bytes}
+
+Every string must have a null byte after the last characters. To store
+the string ``Hi'' it takes 3 bytes: [H] [i] [\backslash 0].
+
+\begin{lstlisting}[language=C]
+  char *strdup(const char *input) {  /* return a copy of 'input' */
+    char *copy;
+    copy = malloc(sizeof(char*));     /* nope! this allocates space for a pointer, not a string */
+    copy = malloc(strlen(input));     /* Almost...but what about the null terminator? */
+    copy = malloc(strlen(input) + 1); /* That's right. */
+    strcpy(copy, input);   /* strcpy will provide the null terminator */
+    return copy;
+}
+\end{lstlisting}
+
+\subsection{Using uninitialized variables}
+
+\begin{lstlisting}[language=C]
+int myfunction() {
+  int x;
+  int y = x + 2;
+...
+\end{lstlisting}
+
+Automatic variables hold garbage or bit pattern happened to be in memory or register.
+It is an error to assume that it will always be initialized to zero.
+
+\subsection{Assuming Uninitialized memory will be zeroed}
+
+\begin{lstlisting}[language=C]
+void myfunct() {
+   char array[10];
+   char *p = malloc(10);
+\end{lstlisting}
+
+Automatic (temporary variables) are not automatically initialized to zero.
+Heap allocations using malloc are not automatically initialized to zero.
+
+
