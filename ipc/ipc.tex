@@ -486,6 +486,56 @@ main(int argc, char *argv[])
 }
 \end{lstlisting}
 
+\subsection{MMAP Communication}
+
+So how would we use mmap to communicate across processes?
+Conceptually, it would be the same as using threading.
+Let's go through a complete example
+
+\begin{lstlisting}[language=C]
+#include <stdio.h>
+#include <stdlib.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <sys/mman.h> /* mmap() is defined in this header */
+#include <fcntl.h>
+#include <unistd.h>
+#include <errno.h>
+#include <string.h>
+
+int main() {
+
+  int size = 100 * sizeof(int);
+  void *addr = mmap(0, size, PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
+  printf("Mapped at %p\n", addr);
+
+  int *shared = addr;
+  pid_t mychild = fork();
+  if (mychild > 0) {
+    shared[0] = 10;
+    shared[1] = 20;
+  } else {
+    sleep(1); // We will talk about synchronization later
+    printf("%d\n", shared[1] + shared[0]);
+  }
+
+  munmap(addr,size);
+  return 0;
+}
+\end{lstlisting}
+
+This piece of code allocates space for a 100 integers and creates a piece of memory that is shared between all processes.
+The code then forks.
+The parent process writes two integers to the first to slots.
+To avoid a data race, the child sleeps for a second and then prints out the stored values.
+This is not a perfect way to protect against data races.
+We could use a mutex across processes mentioned in the synchronization section.
+But for this simple example, it works just fine.
+Note that each process should call munmap when done using the piece of memory.
+
+Sharing anonymous memory is a very efficient form of inter-process communication because there is no copying, system call, or disk-access overhead - the two processes literally share the same physical frame of main memory.
+On the other hand, shared memory, like multithreading, creates room for data races.
+Processes that share writable memory might need to use synchronization primitives like mutexes to prevent these from happening.
 
 \section{Pipes}
 
