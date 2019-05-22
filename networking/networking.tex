@@ -310,6 +310,13 @@ Possible output.
 212.58.244.71
 \end{lstlisting}
 
+In addition to specifying IPv4 or IPv6, one can specify either with \keyword{AF\_UNSPEC}.
+Just replace the ai\_family attribute in the above code with the following.
+
+\begin{lstlisting}
+hints.ai_family = AF_UNSPEC
+\end{lstlisting}
+
 If you are wondering how the the computer maps \gls{hostnames} to addresses, we will talk about that in Layer 7.
 Spoiler: It is a service called \gls{DNS}.
 Before we move onto the next section, it is important to note that a single website can have multiple IP addresses.
