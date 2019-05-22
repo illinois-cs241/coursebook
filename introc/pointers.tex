@@ -1,0 +1,149 @@
+\section{Pointers}
+
+Up until now, you may have not had a lot of work to do with pointers. Pointers are variables that hold addresses.
+These addresses have numeric value, but usually we care about the contents underneath.
+In this section, we will try to take you through a very basic introduction to pointers.
+
+\subsection{Pointer Basics}
+
+\subsubsection{Declaring a Pointer}
+
+A pointer refers to a memory address. The type of the pointer is useful -- it tells the compiler how many bytes need to be read/written and delineates the semantics for pointer arithmetic (addition and subtraction).
+
+\begin{lstlisting}[language=C]
+int *ptr1;
+char *ptr2;
+\end{lstlisting}
+
+Due to C's syntax, an \keyword{int*} or any pointer is not actually its own type. You have to precede each pointer variable with an asterisk. As a common gotcha, the following
+
+\begin{lstlisting}[language=C]
+int* ptr3, ptr4;
+\end{lstlisting}
+
+Will only declare \keyword{*ptr3} as a pointer.
+\keyword{ptr4} will actually be a regular int variable.
+To fix this declaration, ensure the \keyword{*} precedes the pointer.
+
+\begin{lstlisting}[language=C]
+int *ptr3, *ptr4;
+\end{lstlisting}
+
+Keep this in mind for structs as well.
+If one does not typedef them, then the pointer goes after the type.
+
+Example:
+
+\begin{lstlisting}[language=C]
+struct person *ptr3;
+\end{lstlisting}
+
+\subsubsection{Reading / Writing with pointers}
+
+Let's say that we declare a pointer \keyword{int\ *ptr}. For the sake of discussion, let us assume that \keyword{ptr} contains the memory address \keyword{0x1000}.
+If we want to write to a pointer, we can dereference and assign \keyword{*ptr}.
+
+\begin{lstlisting}[language=C]
+*ptr = 0; // Writes some memory.
+\end{lstlisting}
+
+What C does is take the type of the pointer which is an \keyword{int} and write \keyword{sizeof(int)} bytes from the start of the pointer, meaning that bytes \keyword{0x1000}, \keyword{0x1001}, \keyword{0x1002}, \keyword{0x1003} will all be zero.
+The number of bytes written depends on the pointer type.
+It is the same for all primitive types but structs are a little different.
+
+Reading works roughly the same way, except you put the variable in the spot that it needs the value.
+
+\begin{lstlisting}[language=C]
+  int double = *ptr * 2
+\end{lstlisting}
+
+Reading and writing to non-primitive types gets tricky.
+You can't assign a pointer to an integer; you need to have the same type.
+In addition to that, the compilation unit - usually the file or a header - needs to have the size of the data structure readily available. This means that opaque data structures can't be copied.
+Here is an example of assigning a struct pointer:
+
+\begin{lstlisting}[language=C]
+#include <stdio.h>
+
+typedef struct {
+    int a1;
+    int a2;
+} pair;
+
+int main() {
+    pair obj;
+    pair zeros;
+    zeros.a1 = 0;
+    zeros.a2 = 0;
+    pair *ptr = &obj;
+    obj.a1 = 1;
+    obj.a2 = 2;
+    *ptr = zeros;
+    printf("a1: %d, a2: %d\n", ptr->a1, ptr->a2);
+    return 0;
+}
+\end{lstlisting}
+
+As for reading structure pointers, it is not advised do it directly.
+
+\subsection{Pointer Arithmetic}
+
+In addition to adding to an integer, you can add an integer to a pointer.
+However, the pointer type is used to determine how much to increment the pointer.
+For char pointers, this is trivial because characters are always one byte.
+
+\begin{lstlisting}[language=C]
+char *ptr = "Hello"; // ptr holds the memory location of 'H'
+ptr += 2; // ptr now points to the first 'l''
+\end{lstlisting}
+
+If an int is 4 bytes then ptr+1 points to 4 bytes after whatever ptr is pointing at.
+
+\begin{lstlisting}[language=C]
+char *ptr = "ABCDEFGH";
+int *bna = (int *) ptr;
+bna +=1; // Would cause iterate by one integer space (i.e 4 bytes on some systems)
+ptr = (char *) bna;
+printf("%s", ptr);
+/* Notice how only 'EFGH' is printed. Why is that? Well as mentioned above, when performing 'bna+=1' we are increasing the **integer** pointer by 1, (translates to 4 bytes on most systems) which is equivalent to 4 characters (each character is only 1 byte)*/
+return 0;
+\end{lstlisting}
+
+Because pointer arithmetic in C is always automatically scaled by the size of the type that is pointed to, you can't perform pointer arithmetic on void pointers by POSIX standards. Having said that, compilers will often treat the underlying type as \keyword{char}.
+You can think of pointer arithmetic in C as essentially doing the following:
+
+\begin{lstlisting}[language=C]
+int *ptr1 = ...;
+int *offset = ptr1 + 4;
+\end{lstlisting}
+
+Think
+
+\begin{lstlisting}[language=C]
+int *ptr1 = ...;
+char *temp_ptr1 = (char*) ptr1;
+int *offset = (int*)(temp_ptr1 + sizeof(int)*4);
+\end{lstlisting}
+
+To get the value. \textbf{Every time you do pointer arithmetic, take a deep breath and make sure that you are shifting over the number of bytes you think you are shifting over.}
+
+\subsection{So what is a void pointer?}
+
+A void pointer is a pointer without a type.
+Void pointers are used when either a datatype you're dealing with is unknown or when you're interfacing C code with other programming languages.
+You can think of this as a raw pointer, or just a memory address.
+You cannot directly read or write to it because the void type does not have a size.
+malloc by default returns a void pointer that can be safely promoted to any other type.
+
+\begin{lstlisting}[language=C]
+void *give_me_space = malloc(10);
+char *string = give_me_space;
+\end{lstlisting}
+
+This does not require a cast because C automatically promotes \keyword{void*} to its appropriate type. \textbf{Note:}
+
+\keyword{gcc} and \keyword{clang} are not totally ISO C compliant, meaning that they will let you do arithmetic on a void pointer.
+They will treat it as a \keyword{char} pointer.
+Do not do this because it is not portable -- it is not guaranteed to work with all compilers!
+
+

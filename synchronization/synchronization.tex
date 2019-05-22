@@ -859,8 +859,8 @@ void push(stack_t *s, double v) {
     pthread_mutex_lock(&s->m);
     while(s->count == capacity) pthread_cond_wait(&s->cv, &s->m);
     s->values[(s->count)++] = v;
-    pthread_cond_signal(&s->cv);
     pthread_mutex_unlock(&s->m);
+    pthread_cond_signal(&s->cv);
 }
 
 double pop(stack_t *s) {
