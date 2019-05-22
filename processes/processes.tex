@@ -127,7 +127,7 @@ One can run out of heap memory if the system is constrained or if you run out of
 \item \textbf{A Data Segment}
 This segment contains two parts, an initialized data segment, and an uninitialized segment. Furthermore, the initialized data segment is divided into a read-only and writable section.
 
-\begin{itemize} {
+\begin{itemize}
     \item \textbf{Initialized Data Segment}
           This contains all of a program's globals and any other static variables.
 
@@ -155,8 +155,7 @@ This segment contains two parts, an initialized data segment, and an uninitializ
           They just get put in a different section to speed up process start up time.
 
           This section starts at the end of the data segment and is also static in size because the amount of globals is known at compile time.
-
-          }
+          
           Currently, both the initialized and BSS data segments are combined and referred to as the data segment \cite[P. 124]{van1994expert}, despite being somewhat different in purpose.
 
     \item \textbf{A Text Segment}.
@@ -176,6 +175,7 @@ This segment contains two parts, an initialized data segment, and an uninitializ
           The reasons for and explanation about this is outside the scope of this class, but it is good to know about its existence.
 
           Having said that, this address can be made constant, if a program is compiled with the DEBUG flag.
+\end{itemize}
 \end{itemize}
 
 \subsection{Other Contents}
