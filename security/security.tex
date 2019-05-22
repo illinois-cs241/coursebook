@@ -1,0 +1,328 @@
+\chapter{Security}
+
+\epigraph{Hackers Are Like Artists, Who Wake Up In A Good Mood \& Start Painting}{Vladimir Putin}
+
+Computer security is the protection of hardware and software from unauthorized access or modification.
+Even if you don't work directly in the computer security field, the concepts are important to learn because all systems will have attackers given enough time.
+Even though this is introduced as a different chapter, it is important to note that most of these concepts and code examples have already been introduced at different points in the course.
+We won't go in depth about all of the common ways of attack and defense nor will we go into how to perform all of these attacks in an arbitrary system.
+Our goal is to introduce you to the field of making programs do what you want to do.
+
+\section{Security Terminology and Ethics}
+
+There are various pieces of terminology needed to get someone who has little to no experiences on computer security up to speed
+
+\begin{lstlisting}
+\item Attacker is typically the user who is trying to break into the system. Breaking into the system is performing an action that the developer of the system didn't intend.
+\item Defender is typically the user who is preventing the attacker from breaking into the system. This may or may not be the developer of the system.
+\item There are different types of attackers. There are white hat hackers who attempt to hack a defender with their consent. This is commonly a form of pre-emptive testing -- in case a not-so-friendly attack comes along. The black hat hackers are hackers who hack without permission and the intent to use the information obtained for any purpose. Gray hat hacking differs because the intent of the hacker is to inform the defender of the vulnerability -- though this can be hard to judge at times.
+\end{lstlisting}
+
+\textbf{Danger Will Robinson} Before we let you go much further, it is important that we talk about ethics.
+Before you skip over this section, know that your career quite literally can be terminated over an unethical decision that you make.
+The computer fraud and security act is a very broad, and arguably terrible law, that casts any non-authorized use of a computer system of a computer as a felony.
+It is important to think about your actions and have some ladder of accountability before executing any program.
+
+First if at all possible, get written permission from one of your superiors.
+We do realize that this is a cop-out and this puts the blame up a level, but at the risk of sounding cynical organizations will often put blame on an individual employee to avoid damages \todo{Citation Needed}.
+If not possible, try to go through the engineering steps
+
+\begin{enumerate}
+\item Figure out what the problem is that you are trying to solve. You can't solve a problem that you don't fully understand.
+\item Determine whether or not you need to ``hack'' the system. A hack is defined generally as trying to use a system unintendedly. First you should determine if your use is intended or unintended or somewhere in the middle -- get a decision for them. If you can't get that, make a reasonable judgement as to what the intended use.
+\item Figure out a reasonable estimate of what the cost is to ``hacking'' the system. Get that reasonable estimate checked out with a few engineers so they can highlight things that you may've missed. Try to get someone to sign off on the plan.
+\item Execute the plan with caution. If at any point something seems wrong, weight the risks and execute.
+\end{enumerate}
+
+If there isn't a certain ethical guideline for the current application, then start some!
+This may seem like busy work and more ``business side'' that computer scientists are used to, but your career is at stake here.
+It is up to you as a computing profession to assess the risk and whether or not you should go through the motions to do this.
+Courts generally like sitting on precedent, but you can very easily say that you aren't a legal scholar.
+In lieu, you must be able to say that you reacted as a ``reasonable'' engineer would react.
+
+\todo{Link to some case studies of real engineers having to decide}
+
+\subsection{CIA Triad}
+
+The Central Intelligence Agency (CIA) have developed three different criteria for a piece of information to be secure.
+
+\begin{lstlisting}
+\item Information Confidentiality means that only authorized parties are allowed to see a piece of information
+\item Information Integrity means that only authorized parties are allowed the modify a piece of information, whether or not they are allowed to see it.
+\item Information Availability means information is available when it is needed
+\item The triad above forms the CIA or the Central Intelligence Agency's triad.
+\end{lstlisting}
+
+If any of these are broken, we have a hack going on.
+
+\section{Security in C Programs}
+
+\subsection{Stack Smashing}
+
+Consider the following code snippet
+
+\begin{lstlisting}[language=C]
+void greeting(const char *name) {
+  char buf[32];
+  strcpy(buf, name);
+  printf("Hello, %s!\n", buf);
+}
+
+int main(int argc, char *argv[]) {
+  if (argc < 2){
+    return 1;
+  }
+  greeting(argv[1]);
+  return 0;
+}
+\end{lstlisting}
+
+There is no checking on the bounds of strcpy!
+This means that we could potentially pass in a large string and get the program to do something unintended.
+Most strings will just cause the program to exit with a segmentation fault
+
+\begin{lstlisting}
+  $ ./a.out john
+  Hello, john!
+  $ ./a.out JohnAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA...
+  Program received signal SIGSEGV, Segmentation fault.
+  ...
+\end{lstlisting}
+
+If we manipulate the bytes correctly and the program was compiled with the correct flags, we can actually get access to a shell!
+Consider if that file is owned by root, and instead we put in some valid bytecode (x86 opcodes) as the string.
+What will happen is we'll try to execute \keyword{execve('/bin/sh', {'/bin/sh', NULL }, NULL)} that is compiled to the bytecode of the operating system and pass that it as part of our string.
+With some luck we will get access to a root shell.
+
+\begin{lstlisting}
+  $ ./a.out <payload>
+  root#
+\end{lstlisting}
+
+The question arises, which parts of the triad does this break?
+Try to answer that question yourself.
+
+\subsection{Buffer Overflow}
+
+Most of you are already familiar with Buffer Overflows!
+A lot of time they are fairly time, leading to simple program crashes or funny mistakes.
+Here is a complete example
+
+\begin{lstlisting}
+> cat main.c
+#include <stdio.h>
+
+int main() {
+    char out[10];
+    char in[10];
+    fscanf(stdin, "%s", in);
+    out[0] = 'a';
+    out[9] = '\0';
+    printf("%s\n", out);
+
+    return 0;
+}
+> gcc main.c -fno-stack-protector # need the special flag otherwise won't work
+> ./a.out
+hello
+a
+> ./a.out
+hellloooooooo
+aoo
+>
+\end{lstlisting}
+
+What happens here should be clear if you have recall the c memory model.
+Out and in are both next to each other in memory.
+If you read in a string from standard input that overflows in, then you end up printing aoo.
+It gets a little more serious if the snippet starts out as
+
+\begin{lstlisting}[language=C]
+int main() {
+    char pass_hash[10];
+    char in[10];
+    read_user_password(pass_hash, 10);
+    // ...
+}
+\end{lstlisting}
+
+\subsection{Out of order instructions \& Spectre}
+
+Out of order execution is an amazing development by processors recently.
+Processors now instead of executing a sequence of instructions (let's say assigning a variable and then another variable) execute instructions before the current one is done \cite[P. 45]{guide2011intel}.
+This is because modern processors spend a lot of time waiting for memory accesses and other I/O driven applications.
+This means that a processor while it is waiting for an operation to complete will execute the next few operations.
+If any of the operations would possibly alter the previous operation or there is a barrier, the processor will not reorder the instructions \cite[P. 296]{guide2011intel}.
+
+This naturally has allowed CPUs to become more energy efficient while executing more instructions in real time but naturally comes with security risks and more complex architectures.
+Where system programmers are worried is that, operation with mutex locks among threads are out of order -- meaning that a pure software implementation of a mutex will not work without copious memory barriers.
+Basically, the programmer has to adopt the mental model of updates may not be seen among a series of threads without a barrier on modern processors.
+
+One of the most prominent bugs with respect to this is Spectre \cite{kocher2018spectre}.
+Spectre is a bug where instructions that otherwise wouldn't be executed are due to out of order instruction execution.
+Here is an example
+\begin{lstlisting}[language=C]
+  char *a[10];
+  for (int i = 10; i != 1; --i) {
+    a[i] = calloc(1, 1);
+  }
+  a[0] = 0xCAFE;
+  int val;
+  int j = 10; // This will be in a register
+  int i = 10; // This will be in main memory
+  for (int i = 10; i != 0; --i, --j) {
+    if (i) {
+        val = *a[j];
+    }
+  }
+\end{lstlisting}
+
+Let's analyze this code.
+The first loop allocates 9 elements through a valid malloc.
+The last element is \keyword{0xCAFE}, meaning a dereference should result in a SEGFAULT.
+For the first 9 iterations, the branch is taken and the second branch in the dereference (the question mark) also returns the first value.
+The interesting part happens in the last iteration.
+The resulting behavior of the program is to skip the last iteration and \keyword{val} never gets assigned the last previous value.
+
+But under the right compilation conditions and compiler flags, the instructions will get out of order executed. The processor thinks that the branch will be taken -- it has been taken in the last 9 iterations.
+As such the processor will load that code up.
+Due to out of order instruction execution, while the value of i is being fetched from memory -- we have to force it not to be in a register -- the processor will try to dereference that address.
+Naturally that should result in a SEGFAULT, but since the address was never logically reached by the program the result is just discarded.
+
+Now here is the trick.
+Even though the value of the calculation would've resulted in a SEGFAULT, the bug doesn't clear the cache that refers to the physical memory where 0xCAFE is located. This not an exact explanation, but essentially how it works.
+Since it is still in the cache, if you again trick the processor to read form the cache using \keyword{val} then you will read a memory value that you wouldn't be able to read normally.
+This includes important information like passwords, payment info etc etc.
+
+\subsection{Operating Systems Security}
+
+\begin{enumerate}
+\item Permissions. In POSIX systems, we have permissions everywhere. There are directories that you can and can't access, files that you can and can't access. Each user account is given access to each file and directory through the read-write-execute bits. The user gets matched with either the owner, the group, or `everyone else', and their access to the file is limited from that.
+\item Capabilities. In addition to permissions on files, each user has a certain set of permissions that they can do. For a full list, you can check capabilities(7). In short, allowing a capability allows a user to perform a set of actions. Some examples include controlling networking devices, creating special files, controlling and peering into IPC.
+\item Address Space Layout Randomization. The operating system doesn't start your code's address space at a fixed value every time! This is so that an attacker with a running executable has to randomly guess where sensitive information could be hidden. For example, an attacker may use this to easily perform a return-to-libc attack.
+\item Stack Protectors. Let's say you've programmed a buffer overflow as above. In most cases, what happens? Unless specifically turned off, the compiler will put in stack protectors or stack canaries. This is a value that resides in the stack and must remain constant for the duration of the function call. If that protector is overwritten at the end of the function call, the run time will abort and report to the user that stack smashing was detected.
+\item Write or Executable. This is a protection that was covered in the IPC section. A page can either be written to or executed but not both. This is to prevent buffer overflows where attackers write arbitrary code and execute with the user's permissions.
+\item Firewall. The Linux kernel provides iptables as a way of deciding whether or not an incoming connection should be allowed and various other restrictions on connections. This can help with a DDOS attack.
+\item AppArmor. AppArmor is a suite of operating system tools at the userspace level to restrict applications to certain operations.
+\end{enumerate}
+
+OpenBSD is an arguably better system for security.
+It has many security oriented features.
+We've detailed some of them.
+Full list is at the link \href{https://www.openbsd.org/innovations.html}
+
+\begin{enumerate}
+\item pledge. Pledge is a powerful command that restricts system calls. This means if you have a simple program like \keyword{cat} which only reads to and from files, one can reasonably restrict all network access, pipe access, and write access to files. This is known as the process of ``hardening'' an executable or system, giving the smallest amount of permissions to the least number of executables needed to run a system. Pledge is also useful in case one tries to perform an injection attack.
+\item unveil. Unveil is a system call that restrict the access of a current program to a few directories. Those permissions apply to all forked programs as well. This means if you have a shady executable that you want to run which says it ``creates a new file and outputs random words'' one could use this call to restrict access to a safe subdirectory and watch it get SIGKILL'ed if it tries to access system files in let's say /etc. This could be useful for your program as well. If you want to ensure that no user data is lost during a update (like what happened with Steam's system update) then the system could only reveal the installation directory. If an attacker manages to find an exploit in the executable, it can only hurt the installation directory.
+\item sudo. Sudo is an openBSD project that runs everywhere! Before to run commands as root, one would have to drop to a root shell. Some times that would also mean giving users scary system capabilities. Sudo gives you the access to perform commands as root for one-offs without giving a long list of capabilities to all of your users.
+\end{enumerate}
+
+\subsection{Virtualization Security}
+
+To define virtualization: it is the act of creating a non-hardware environment for a program to run on.
+Though that definition might be bent a little with the advent of new-age bare metal Virtual Machines, the abstraction is still there.
+One can imagine a single Operating System per motherboard.
+Virtualization in the software sense is providing ``virtual'' mother board features like USB ports or monitors that another program (the bridge) communicates with the actual hardware to perform a task.
+A simple example is running a virtual machine on your host desktop!
+One can spin up an entirely different operating system whose instructions are fed through another program and executed on the host system.
+Another piece of terminology is there are two forms of virtualization that we use today.
+One form is virtual machines.
+These programs emulate \textit{all} forms of motherboard peripherals to create a full machine.
+Another form are containers.
+Virtual machines are good but are often bulky and programs only need a certain level of protection.
+Containers are virtual machines that don't emulate all motherboard peripherals and instead share with the host operating system, adding in additional layers of security.
+
+Now, you can't have proper virtualization without security.
+One of the reasons to have virtualization is to ensure that the virtualized environment doesn't maliciously leak back into the host environment.
+We say maliciously because there are intended ways of communication that we want to keep in check.
+Here are some simple examples of security provided through virtualization
+
+\begin{enumerate}
+\item chroot is a contrived way of creating a virtualization environment. chroot is short for change root. This changes where a program believes that (/) is mounted on the system. For example with chroot, one can make a hello world program believe \keyword{/home/bhuvan/} is actually the root directory. This is useful because no other files are exposed. This is contrived because linux still needs additional tools (think the c standard library) to come from different directories such as \keyword{/usr/lib} which means those could still be vulnerable.
+\item namespaces are linux's better way to create a virtualization environment. We won't go into this too much, just know that they exist.
+\item Hardware virtualization technology. Hardware vendors have become increasingly aware that physical protections are needed when emulating instructions. As such, there can be switches enabled by the user that allows the operating system to flip into a virtualization mode where instructions are run as normal, but are monitered for malicious activity. This helps the performance and increases security of virtualized environments.
+\end{enumerate}
+
+\subsection{Security through scrubbing}
+
+Security isn't just making sure that a program can be manipulated to your ends.
+Some times, security is making sure that the program can't be crashed or effectively timed with input.
+An example of the former is any attack where the attacker threatens to shut a system down due to a leak.
+This means that the system has a flaw where the user can input a value and cause the system to fail.
+One can imagine in mission critical systems -- power grids, medical devices, etc -- this isn't a lightly taken threat.
+
+In addition, a lot of novice programmers neglect trying the make a program look similar given all inputs.
+A common example of this is comparing two strings.
+Let's say that you are guessing the CSRF (cross site request forgery) token on a website.
+If the programmed server returns the request immediately after the token doesn't match the server's, that is a security bug.
+If the token matches none of the characters, an attacker now know that a quick response means that the first few characters were off.
+If the token matches some of the characters but not all, an attacker know that this request will take slightly longer.
+It is important to balance speed an security.
+We want to use a fast \keyword{memcmp} but it may not be secure.
+
+\section{Cyber Security}
+
+Cyber Security is arguably the most popular area of security.
+
+\subsection{Security at the TCP/UDP Level}
+
+\todo{Detail TCP/UDP Security}
+
+\subsection{Security at the RPC Level}
+
+\todo{Detail RPC Security}
+
+\subsection{Security at the DNS Level}
+
+As of 2019, the United States Department of Homeland Security released a directive to switch all services from DNS to DNSSec \url{https://cyber.dhs.gov/assets/report/ed-19-01.pdf}.
+This directive is an inherent flaw of the DNS system.
+First, DNS doesn't offer any sort of verification on domain name requests.
+That means if an attackers snags a plain-text request for a DNS server, that attacker can now send the result back to the requester.
+More commonly instead of just attacking one person, they will connect to a public wifi station and poison the cache of the router -- meaning that all who are connected will get a bad IP address when requesting a domain name.
+This can get into serious spoofing attacks if one tries to pretend they are a major bank.
+
+\section{Topics}
+
+\begin{lstlisting}
+\item Security Terminology
+\item Security in local C programs
+\item Security in Cyber Space
+\end{lstlisting}
+
+\section{Review}
+
+\begin{lstlisting}
+\item What is a chmod statement to break only the confidentiality of your data?
+
+\item What is a chmod statement to break only the confidentiality and availability of your data?
+
+\item An attacked gains root access on a Linux system that you use to store private information. Does this affect confidentiality, integrity, or availability of your information, or all three?
+
+\item Hackers bruteforce your git username and password. Who is affected?
+
+\item Why is privilege separation useful in RPC applications?
+
+\item Is it easier to forge a UDP or TCP packet and why? 
+
+\item Why are TCP sequence numbers initialized to a random number?
+
+\item What is the impact if the RAM used to hold a shared library (e.g. libc) was writable by any process?
+
+\item Is creating and implementing client-server protocols that are secure and invulnerable to malicious attackers is easy?
+
+\item Which is harder to defend against: Syn-Flooding or Distributed Denial of Server?
+
+\item Does deadlock in affects the availability of a service?
+
+\item Do buffer overflow / underflow affects the integrity of a data?
+
+\item Why is stack memory not executable? 
+
+\item HeartBleed is an example of what kind of security issue? Which one(s) of the triad does it break?
+
+\item Meltdown and Spectre is an example of what kind of security issue? Which one(s) of the triad does it break?
+
+\end{lstlisting}
+
+\bibliographystyle{plainnat}
+\bibliography{security/security}

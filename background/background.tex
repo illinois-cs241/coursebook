@@ -79,56 +79,6 @@ Then the operating system triggers an interrupt which the kernel catches and ser
 
 Operating system developers and instruction set developers alike didn't like the overhead of causing an interrupt on a system call. Now, systems use \texttt{SYSENTER} and \texttt{SYSEXIT} which has a cleaner way of transferring control safely to the kernel and safely back.
 What safely means is obvious out of the scope for this class, but it persists.
-
-\subsection{Extra: Out of order instructions}
-
-For those of you who have and haven't taken the systems architecture course, you may not have heard about out of order instruction execution.
-Out of order execution is an amazing development by processors recently.
-Processors now instead of executing a sequence of instructions (let's say assigning a variable and then another variable) execute instructions before the current one is done \cite[P. 45]{guide2011intel}.
-This is because modern processors spend a lot of time waiting for memory accesses and other I/O driven applications.
-This means that a processor while it is waiting for an operation to complete will execute the next few operations.
-If any of the operations would possibly alter the previous operation or there is a barrier, the processor will not reorder the instructions \cite[P. 296]{guide2011intel}.
-
-This naturally has allowed CPUs to become more energy efficient while executing more instructions in real time but naturally comes with security risks and more complex architectures.
-Where system programmers are worried is that, operation with mutex locks among threads are out of order -- meaning that a pure software implementation of a mutex will not work without copious memory barriers.
-Basically, the programmer has to adopt the mental model of updates may not be seen among a series of threads without a barrier on modern processors.
-
-One of the most prominent bugs with respect to this is Spectre \cite{kocher2018spectre}.
-Spectre is a bug where instructions that otherwise wouldn't be executed are due to out of order instruction execution.
-Here is an example
-\begin{lstlisting}[language=C]
-  char *a[10];
-  for (int i = 10; i != 1; --i) {
-    a[i] = calloc(1, 1);
-  }
-  a[0] = 0xCAFE;
-  int val;
-  int j = 10; // This will be in a register
-  int i = 10; // This will be in main memory
-  for (int i = 10; i != 0; --i, --j) {
-    if (i) {
-        val = *a[j];
-    }
-  }
-\end{lstlisting}
-
-Let's analyze this code.
-The first loop allocates 9 elements through a valid malloc.
-The last element is \keyword{0xCAFE}, meaning a dereference should result in a SEGFAULT.
-For the first 9 iterations, the branch is taken and the second branch in the dereference (the question mark) also returns the first value.
-The interesting part happens in the last iteration.
-The resulting behavior of the program is to skip the last iteration and \keyword{val} never gets assigned the last previous value.
-
-But under the right compilation conditions and compiler flags, the instructions will get out of order executed. The processor thinks that the branch will be taken -- it has been taken in the last 9 iterations.
-As such the processor will load that code up.
-Due to out of order instruction execution, while the value of i is being fetched from memory -- we have to force it not to be in a register -- the processor will try to dereference that address.
-Naturally that should result in a SEGFAULT, but since the address was never logically reached by the program the result is just discarded.
-
-Now here is the trick.
-Even though the value of the calculation would've resulted in a SEGFAULT, the bug doesn't clear the cache that refers to the physical memory where 0xCAFE is located. This not an exact explanation, but essentially how it works.
-Since it is still in the cache, if you again trick the processor to read form the cache using \keyword{val} then you will read a memory value that you wouldn't be able to read normally.
-This includes important information like passwords, payment info etc etc.
-
 \subsection{Optional: Hyperthreading}
 
 Hyperthreading is a new technology and is in no way shape or form multithreading.
