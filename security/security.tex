@@ -263,14 +263,17 @@ We want to use a fast \keyword{memcmp} but it may not be secure.
 \section{Cyber Security}
 
 Cyber Security is arguably the most popular area of security.
+More and more of our systems are hacked over the web, it is important to understand how we can protect against these attacks
 
-\subsection{Security at the TCP/UDP Level}
+\subsection{Security at the TCP Level}
 
-\todo{Detail TCP/UDP Security}
-
-\subsection{Security at the RPC Level}
-
-\todo{Detail RPC Security}
+\begin{enumerate}
+\item Encryption. \textbf{TCP is not encrypted!} This means any data that is sent over a TCP connection is in plain text. If one needs to send encrypted data, one needs to use a higher level protocol such as HTTPs or develop their own.
+\item Identity Verification. In TCP, there is no way to verify the identity of who the program is connecting to. There are no checks or federated databases in place. One just has to trust the the DNS server gave a resonable response which is almost always the incorrect answer. Apart from systems that have a approved white list or a ``secret'' connection protocol, there is little at the TCP level that one can do to stop.
+\item Syn-Ack Sequence Number. This is a security improvement. TCP features what we call sequence numbers. That means that during the SYN-SYN/ACK-ACK dance, a connection starts at a random integer. This is important because if an attacker is trying to spoof packets (pretend those packets are coming from your program) that means that the attacker must either correctly guess -- which is hard -- or be in the route that your packet takes to the destination -- much more likely. ISPs help out with the destination problem because it may send a connection through varying routers which makes it hard for an attacker to sit anywhere and be sure that they will receive your packets -- this is why security experts usually advise against using coffee shop wifi for sensitive tasks.
+\item Syn-Flood. Before the first synchronization packet is acknowledged, there is no connection. That means a malicious attacker can write a bad TCP implementation that sends out a flood of SYN packets to a hapless server. The SYN flood is easily mitigated by using IPTABLES or another netfilter module to drop all incoming connections from an IP address after a certain volume of traffic is reached for a certain period of time.
+\item Denial of Service, Distributed Denial of Service are the hardest form of attacks to stop. Companies today are still trying to find good ways to ease these attacks. This involves sending all sorts of network traffic forward to servers in the hopes that the traffic will clog them up and slow down the servers. In particularly big systems, this can lead to cascading failures. If a system is engineered poorly, one server's failure causes all the other servers to pick up more work which increases the probability that they will fail and so on and so forth.
+\end{enumerate}
 
 \subsection{Security at the DNS Level}
 
