@@ -26,3 +26,9 @@ The most recent version of the coursebook as a single pdf is here: [main.pdf](ht
 ## Contributing, Building, and Structure
 
 Read `CONTRIBUTING.md`
+
+## Credit Where Credit is Due
+
+* Title Page Idea - https://tex.stackexchange.com/questions/85904/showcase-of-beautiful-title-page-done-in-tex
+* Duck Image - https://pixabay.com/photos/toy-bath-rubber-duck-studio-1474138/
+* Chapter Style Inspiration - https://texblog.org/2012/07/03/fancy-latex-chapter-styles/
