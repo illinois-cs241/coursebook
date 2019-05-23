@@ -6,7 +6,7 @@
 
 ## Related Issues
 
-*Replace this paragraph with a list of issues related to this PR from the [issue database](https://github.com/flutter/flutter/issues). Indicate, which of these issues are resolved or fixed by this PR. Note that you'll have to prefix the issue numbers with flutter/flutter#.*
+*Replace this paragraph with a list of issues related to this PR from the [issue database](https://github.com/illinois-cs241/coursebook/issues). Indicate, which of these issues are resolved or fixed by this PR.*
 
 ## Checklist
 
