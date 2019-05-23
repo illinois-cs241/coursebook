@@ -1,6 +1,6 @@
 # Introduction
 
-Thanks for taking the time to help contribute to the coursebook. We Really appreciate it!
+Thanks for taking the time to help contribute to the coursebook. We really appreciate it!
 If any of the upcoming sections is confusing, feel free to open an issue, and we'll take a look at it.
 
 Following these guidelines helps accomplish a few things
@@ -10,15 +10,15 @@ Following these guidelines helps accomplish a few things
 
 What kind of contributions are we looking for
 * Anything in the issues is fair game!
-* Anything you think is an issue is fair game
+* Anything you think is an issue is fair game, please make an issue and have a bit of a disucssion before implementing though!
 * We are looking for pictures and other visual explanatory tools that help describe our topics
 * We are looking for additional topics as well. These won't be part of the core that students are required to read, but will help if we choose to either bring them in or if students are having trouble understanding without the intuition.
-* Additional explanations. Sometimes even though our explanations are
+* Additional explanations. Sometimes even though our explanations aren't enough.
 
 ## Philosophy
 
 We provide an open, accessible, first class systems programming textbook that will be free to use forever. Plain and simple.
-We want this information to be
+We want this information to be available to everyone without cost.
 
 * Easily understandable
 * In depth when need be
@@ -29,7 +29,7 @@ We want this information to be
 # Ground Rules
 
 Responsibilities
-* Add yourself to AUTHORS.md! We want your work to be recognized :D
+* Add yourself to `AUTHORS.md`! We want your work to be recognized :D
 * Ensure each piece of code compiles on both the site and the pdf according to our travis builds
 * Discuss major changes before implementing
 * Be welcoming to systems experts and newbies alike
@@ -85,6 +85,14 @@ $ make introc/introc.pdf
 ```
 
 For those of you unfamiliar to latex, feel free to peruse one of the many online resources. For a scenic tour, I recommend <https://learnxinyminutes.com/docs/latex/>
+
+### Optional Build dependecies
+
+If you'd like the project to automatically recompile as you make changes, run `./rebuilder.sh` instead. You need inotify tools.
+
+* inotify-tools (`sudo apt install inotify-tools` on recent debian/ubuntu distros)
+
+By default, `./rebuilder.sh` will create a new file in `/tmp/` and will re-use it every time it is ran for logging purposes. If a command line argument is specified, `./rebuilder.sh` will treat the argument as a path and will use that as its logging file instead.
 
 # Your First Contribution
 
@@ -161,3 +169,30 @@ Template
 
 After a feature and PR is made, add a contributor to the PR to review your contributions.
 Once we approve, we are good to merge.
+
+# Structure
+
+Since our wiki is used for the markdown version of the textbook for easy perusing, our high-level documentation is located here.
+
+- All files in the `order.yaml` file are a chapter in the coursebook
+  a chapter is a tex file with bib files and optional images
+- `github_redefinitions.tex` - Various redefinitions so that pandoc can convert latex files to markdown. These are just pasted before each of the chapter files
+- `glossary.tex` - Various glossary files
+- `latexmkrc` - Configuration file for latexmk. Currently, it only deals with glossary generation.
+- `LICENSE` - Licenses all the code in the book
+- `main.tex` - The top level tex files that compiles all the other files
+- `Makefile` Tried and true makefile for buildings. We don't need ya fancy build systems
+- `order.yaml` This file controls the ordering of the chapter. Changing this and typing make will cause `order.tex` to be reformatted.
+- `prelude.tex` contains all of the includes and definitions before the start of the document in main. This is a different file solely so that we can accurately convert each chapter with pandoc. More in the `_scripts/gen_wiki.py`
+- `rebuilder.sh` Efficiently autobuilds the files for maximum productivity
+- `requirements.txt` python requirements if you are building the `wiki` version of the coursebook
+- `_scripts` This folder contains various scripts to do different things like generate the wiki, spellcheck etc.
+
+The wiki version is built by travis using one of the scripts and is pushed to this site's wiki.
+It also generates a site build on our github pages site to build an HTML version free of access.
+
+The PDF version is also built by travis which generates a full book pdf and chapter by chapter pdf.
+
+# Versioning
+
+To version the repo you should use <term><year>-num . The term-year combo are simple way of denoting that this is the version of the book for the current semester. `num` is simply an incrementer for bug fixes, or material that was already covered in lecture and just needs to be added to the book. No `num` release will introduce no material that was not introduced in lecture or is not extra.

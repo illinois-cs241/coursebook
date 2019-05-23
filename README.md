@@ -5,6 +5,10 @@
 [![Current Wiki Link](https://img.shields.io/badge/current-wiki-blue.svg)](https://github.com/illinois-cs241/coursebook/wiki)
 [![Current HTML Link](https://img.shields.io/badge/current-html-blue.svg)](http://cs241.cs.illinois.edu/wikibook/Index.html)
 
+Welcome to the systems programming coursebook!
+This repository houses a high-quality, open-source introductory systems programming textbook used by the [CS 241 Systems Programming](http://cs241.cs.illinois.edu/) course at the [University of Illinois at Urbana-Champaign](https://illinois.edu/)
+The book assumes that you have taken a programming language course and are familiar with assembly instructions.
+All of the code and instruction will be in C, as it is the de-facto language of the Linux Kernel.
 
 The Coursebook is an aim to standardize and build upon Angrave's [original wikibook experiment](https://github.com/angrave/SystemProgramming/wiki).
 
@@ -14,25 +18,14 @@ The most recent version of the coursebook as a single pdf is here: [main.pdf](ht
 
 ### Goals
 
-* Improve the quality and rigour of the original wikibook
-* Keep the openness aspect.
-* Improve the factualness by including citations, footnotes, extended reading, and a glossary
-* Have exports in the form of pdf, md, and html
-* The content of the coursebook should be in between the current wikibook and an exhaustive survey of linux programming
-* Have ownership of the book in case it should go into syndication or something similar
-* Have Travis build, so people don't need to install a bunch of pre-reqs to get started.
+* Improve the quality and rigour of the original wikibook while maintaining openness.
+* Improve the factualness by including citations, footnotes, extended reading, and a glossary.
+* Have exports in the form of pdf, markdown, and html.
+* Automagically build so writers can focus on writing.
 
-## Contributing & Building
+## Contributing, Building, and Structure
 
 Read `CONTRIBUTING.md`
-
-### Optional Build dependecies
-
-If you'd like the project to automatically recompile as you make changes, run `./rebuilder.sh` instead. You need inotify tools.
-
-* inotify-tools (`sudo apt install inotify-tools` on recent debian/ubuntu distros)
-
-By default, `./rebuilder.sh` will create a new file in `/tmp/` and will re-use it every time it is ran for logging purposes. If a command line argument is specified, `./rebuilder.sh` will treat the argument as a path and will use that as its logging file instead.
 
 ### Scripts
 
@@ -52,10 +45,6 @@ By default, `./rebuilder.sh` will create a new file in `/tmp/` and will re-use i
 - `rebuilder.sh` Efficiently autobuilds the files for maximum productivity
 - `requirements.txt` python requirements if you are building the `wiki` version of the coursebook
 - `_scripts` This folder contains various scripts to do different things like generate the wiki, spellcheck etc.
-
-# Eject Button
-
-Let's say some time in the near future someone decides that it isn't worth to keep up all this infrastructure and man hours. That is entirely fine! There is a built-in eject button that is a one step fix: delete the travis file. Builds will not trigger automatically but you can clone the wiki part of the github repository and turn it back into a good old fashioned coursebook. No maintenance required
 
 # Versioning
 
