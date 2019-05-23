@@ -12,11 +12,11 @@ Our goal is to introduce you to the field of making programs do what you want to
 
 There is some terminology that needs to be explained to get someone who has little to no experiences in computer security up to speed
 
-\begin{lstlisting}
+\begin{enumerate}
 \item An \textbf{Attacker} is typically the user who is trying to break into the system. Breaking into the system means performing an action that the developer of the system didn't intend. It could also mean accessing a system you shouldn't have access to.
 \item An \textbf{Defender} is typically the user who is preventing the attacker from breaking into the system. This may or may not be the developer of the system.
 \item There are different types of attackers. There are \textbf{white hat} hackers who attempt to hack a defender with their consent. This is commonly a form of pre-emptive testing -- in case a not-so-friendly attack comes along. The \textbf{black hat} hackers are hackers who hack without permission and the intent to use the information obtained for any purpose. Gray hat hacking differs because the intent of the hacker is to inform the defender of the vulnerability -- though this can be hard to judge at times.
-\end{lstlisting}
+\end{enumerate}
 
 \textbf{Danger Will Robinson} Before we let you go much further, it is important that we talk about ethics.
 Before you skip over this section, know that your career quite literally can be terminated over an unethical decision that you might make.
@@ -56,13 +56,13 @@ In lieu, you must be able to say that you reacted as a ``reasonable'' engineer w
 
 There are three commonly accepted goals to help understand if a system is secure.
 
-\begin{lstlisting}
+\begin{enumerate}
 \item Information Confidentiality means that only authorized parties are allowed to see a piece of information
 \item Information Integrity means that only authorized parties are allowed the modify a piece of information, regardless of whether they are allowed to see it.
   It ensures that information has not been tampered with in transit.
 \item Information Availability means information, or a service, is available when it is needed.
 \item The triad above forms the Confidentiality, Integrity, and Availability (CIA) triad, often authenticity is added as well.
-\end{lstlisting}
+\end{enumerate}
 
 If any of these are broken, the security of a system (either a service or piece of information) has been compromised..
 
@@ -250,7 +250,7 @@ This could include important information such as passwords, payment information 
 OpenBSD is an arguably better system for security.
 It has many security oriented features.
 Some of these features have been touched upon earlier.
-An exhaustive list of features is at \href{https://www.openbsd.org/innovations.html}
+An exhaustive list of features is at \url{https://www.openbsd.org/innovations.html}
 
 \begin{enumerate}
 \item pledge.
@@ -371,15 +371,15 @@ This can get into serious spoofing attacks if one tries to pretend they are a ma
 
 \section{Topics}
 
-\begin{lstlisting}
+\begin{enumerate}
 \item Security Terminology
 \item Security in local C programs
 \item Security in Cyber Space
-\end{lstlisting}
+\end{enumerate}
 
 \section{Review}
 
-\begin{lstlisting}
+\begin{enumerate}
 \item What is a chmod statement to break only the confidentiality of your data?
 
 \item What is a chmod statement to break only the confidentiality and availability of your data?
@@ -410,7 +410,7 @@ This can get into serious spoofing attacks if one tries to pretend they are a ma
 
 \item Meltdown and Spectre is an example of what kind of security issue? Which one(s) of the triad does it break?
 
-\end{lstlisting}
+\end{enumerate}
 
 \bibliographystyle{plainnat}
 \bibliography{security/security}
