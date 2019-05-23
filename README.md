@@ -5,6 +5,10 @@
 [![Current Wiki Link](https://img.shields.io/badge/current-wiki-blue.svg)](https://github.com/illinois-cs241/coursebook/wiki)
 [![Current HTML Link](https://img.shields.io/badge/current-html-blue.svg)](http://cs241.cs.illinois.edu/wikibook/Index.html)
 
+<p align="center">
+    <img src="_images/duck-alpha-cropped.png" width="50%"/>
+</p>
+
 Welcome to the systems programming coursebook!
 This repository houses a high-quality, open-source introductory systems programming textbook used by the [CS 241 Systems Programming](http://cs241.cs.illinois.edu/) course at the [University of Illinois at Urbana-Champaign](https://illinois.edu/)
 The book assumes that you have taken a programming language course and are familiar with assembly instructions.
