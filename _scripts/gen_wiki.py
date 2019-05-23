@@ -64,7 +64,7 @@ jinja_templ = """
 # Coursebook
 
 <p align="center">
-    <img src="https://raw.githubusercontent.com/illinois-cs241/coursebook/master/_images/duck-alpha-cropped.png" width="50%"/>
+    <img src="https://raw.githubusercontent.com/illinois-cs241/coursebook/master/_images/duck-alpha-cropped.png" width="50%" class="emoji"/>
 </p>
 
 This coursebook is being built by students and faculty from the University of Illinois. It is based on a crowd-source authoring wikibook experiment by Lawrence Angrave from CS @ Illinois, but is now its own .tex based project. It's source is located at [the github link](https://github.com/illinois-cs241/coursebook) which you can find a pdf version of the book as well.
