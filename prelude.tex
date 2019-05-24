@@ -4,7 +4,6 @@
 \usepackage[margin=.75in]{geometry}
 \setlength{\columnsep}{.5in}
 \usepackage{fancyhdr}
-\usepackage[compact]{titlesec}
 \usepackage{xcolor}
 \usepackage{mdframed}
 \usepackage{setspace}
@@ -76,10 +75,20 @@ rulecolor=\color{shadecolor},}
 % set up quotes
 \usepackage{epigraph}
 
+\renewcommand{\epigraphrule}{0pt}
+\setlength{\epigraphwidth}{.6\textwidth}
+\renewcommand{\textflush}{flushepinormal}
+\makeatletter
+% Taken and updated from http://mirrors.ctan.org/macros/latex/contrib/epigraph/epigraph.dtx
+\renewcommand{\@epitext}[1]{%
+  \begin{minipage}{\epigraphwidth}\begin{\textflush} \hspace*{30pt}#1\\
+    \ifdim\epigraphrule>\z@ \@epirule \else \vspace*{-.5\baselineskip} \fi
+  \end{\textflush}\end{minipage}}
+\makeatother
+
 % Define titles and chapter
 \usepackage[Bjornstrup]{fncychap}
 \singlespacing
-\titleformat{\section}{\vspace{1em}\large\bfseries}{\thesection. }{0em}{}
 \title{\vspace{-15mm}\fontsize{24pt}{10pt}\selectfont\textbf{CS241 System Programming Coursebook}}
 \date{}
 
@@ -102,3 +111,32 @@ rulecolor=\color{shadecolor},}
 \definecolor{namecolor}{cmyk}{1,.50,0,.10}
 %-----------------------------------------------------------------
 \usepackage{csquotes}
+
+% this is a terrible hack, but pandoc sucks
+% we have to call any
+\lstnewenvironment{minted}{m}
+  {\noindent\minipage{\linewidth}\medskip 
+   \lstset{basicstyle=\ttfamily\footnotesize,frame=single,language=#1}}
+  {\endminipage}
+
+\usepackage{float}
+
+% title spacing
+
+\usepackage[compact]{titlesec}
+
+\titlespacing*{\section}
+{0pt}{5.5ex plus 1ex minus .2ex}{4.3ex plus .2ex}
+\titlespacing*{\subsection}
+{0pt}{5.5ex plus 1ex minus .2ex}{2.3ex plus .2ex}
+\titlespacing*{\subsubsection}
+{0pt}{5.5ex plus 1ex minus .2ex}{2.3ex plus .2ex}
+
+%% PDF Sizes
+\titleformat*{\section}{\LARGE\bfseries}
+\titleformat*{\subsection}{\Large\bfseries}
+\titleformat*{\subsubsection}{\large\bfseries}
+\titleformat*{\paragraph}{\large\bfseries}
+\titleformat*{\subparagraph}{\large\bfseries}
+
+\widowpenalties 3 10000 10000 0
