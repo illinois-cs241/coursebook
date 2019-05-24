@@ -40,9 +40,8 @@ printf("Debug: The string and int are stored at: %p and %p\n", name, &score );
 
 From the previous section,
 \keyword{printf} calls the system call \keyword{write}.
-\keyword{printf} includes an internal buffer so, to increase performance \keyword{printf} may not call \keyword{write} every time \keyword{printf} is called.
-Another quirk of printf is calling \keyword{write} on a newline character.
-If one wants \keyword{printf} to call write without a newline, they can use \keyword{fflush(\ FILE*\ inp\ )}.
+\keyword{printf} will use the buffer provided by the \keyword{FILE*} abstraction to store bytes until ready to write.
+One can force it to write by sending a newline, or by calling fflush() on the stream, which is stdout in this case.
 Lastly, \keyword{printf} is a C library function, while \keyword{write} is a system call system.
 
 To print strings and single characters, use \keyword{puts(char\ *name\ )} and \keyword{putchar(char\ c\ )}
@@ -55,7 +54,7 @@ putchar('1');
 \subsubsection{Other streams}
 
 To print to other file streams use \keyword{fprintf(\ \_file\_\ ,\ "Hello\ \%s,\ score:\ \%d",\ name,\ score);} Where \_file\_ is either predefined (`stdout' or `stderr') or a FILE pointer that was returned by \keyword{fopen} or \keyword{fdopen}.
-printf can also be used with file descriptors as well.
+There is a printf equivalent that works with file descriptors, called dprintf.
 Just use \keyword{dprintf(int\ fd,\ char*\ format\_string,\ ...);}.
 
 To print data into a C string, use \keyword{sprintf} or better \keyword{snprintf}.
@@ -95,7 +94,7 @@ char buffer[10];
 char *result = fgets(buffer, sizeof(buffer), stdin);
 \end{lstlisting}
 
-Note that, unlike \keyword{gets}, \keyword{fgets} copies the newline into the buffer, which may be discarded.
+Note that, unlike \keyword{gets}, \keyword{fgets} copies the newline into the buffer.
 On the other hand, one of the advantages of \keyword{getline} is that will automatically allocate and reallocate a buffer on the heap of sufficient size.
 
 \begin{lstlisting}[language=C]
@@ -258,7 +257,7 @@ int main(){
         Error handling is tricky because the function won't return an error code.
         If passed a string that is not a number it will return 0.
         The caller has to be careful from a valid 0 and an error.
-        This often involves and errno trampoline as shown below.
+        This often involves an errno trampoline as shown below.
 
 	      \begin{lstlisting}[language=C]
 int main(){
@@ -282,7 +281,6 @@ int main(){
 
 	    \item \keyword{void *memmove(void *dest, const void *src, size\_t n)} does the same thing as above, but if the memory regions overlap then it is guaranteed that all the bytes will get copied over correctly.
         \keyword{memcpy} and \keyword{memmove} both in \keyword{string.h}?
-        Because strings are essentially raw memory with a null byte at the end of them!
 \end{itemize}
 
 
