@@ -9,18 +9,13 @@ This is the piece of software that is loaded up before all other programs.
 The following is an brief overview on the tasks performed by the kernel.
 
 \begin{enumerate}
-    \item
-          The operating system executes code from read-only memory, called firmware.
-    \item
-          The operating system then executes a bootloader, which often conforms to the Extensible Firmware Interface (\keyword{EFI}), which is an interface between the system firmware and the operating system.
-    \item
-          The bootloader's boot manager loads the operating system kernels, based on the boot settings.
-    \item
-          Your kernel executes \keyword{init} to \href{https://en.wikipedia.org/wiki/Bootstrapping}{bootstrap} itself from nothing.
-    \item
-          The kernel executes startup scripts.
-    \item
-          The kernel executes userland scripts, and you get to use your computer!
+\item The operating system executes code from read-only memory, called firmware.
+\item The operating system then executes a bootloader, which often conforms to the Extensible Firmware Interface (\keyword{EFI}), which is an interface between the system firmware and the operating system.
+\item The bootloader's boot manager loads the operating system kernels, based on the boot settings.
+\item
+  Your kernel executes \keyword{init} to \href{https://en.wikipedia.org/wiki/Bootstrapping}{bootstrap} itself from nothing.
+\item The kernel executes startup scripts.
+\item The kernel executes userland scripts, and you get to use your computer!
 \end{enumerate}
 
 You don't need to know the specifics of the booting process, but there it is.
@@ -42,8 +37,7 @@ Kernel mode gets you greater power, such as the ability to execute extra CPU ins
 However, a single failure can crash your entire computer -- ouch.
 These services are what you will be interacting with in this class.
 
-The kernel creates the first process \keyword{init.d} (an alternative is system.d). \emph{init.d} boots up programs such as graphical user interfaces, terminals etc -- by default, this is the only process explicitly created by the system.
-All other processes are instantiated by using the system calls \keyword{fork} and \keyword{exec} from that single process.
+The kernel creates the first process \keyword{init.d} (an alternative is system.d). \emph{init.d} boots up programs such as graphical user interfaces, terminals etc -- by default, this is the only process explicitly created by the system. All other processes are instantiated by using the system calls \keyword{fork} and \keyword{exec} from that single process.
 
 \section{File Descriptors}
 
@@ -85,7 +79,8 @@ Processes are very powerful but they are isolated!
 
 That means that by default, no process can communicate with another process.
 
-This is very important because if you have a large system (let's say the University of Illinois Engineering Workstations (EWS)) then it is likely that you want some processes to have higher privileges than your average user. One certainly doesn't want the average user to be able to bring down the entire system, either on purpose or by accidentally by modifying a process.
+This is very important because if you have a large system (let's say the University of Illinois Engineering Workstations (EWS)) then it is likely that you want some processes to have higher privileges than your average user.
+One certainly doesn't want the average user to be able to bring down the entire system, either on purpose or by accidentally by modifying a process.
 As most of you have realized by now, if you stuck the following code snippet into a program, the variables would not be shared between two parallel invocations of the program.
 
 \begin{lstlisting}[language=C]
@@ -102,14 +97,15 @@ However, there are other intentional ways to change the program states of other 
 
 \subsection{Memory Layout}
 
-When a process starts, it gets its own address space. Each process gets the following:
+When a process starts, it gets its own address space.
+Each process gets the following.
 
 \begin{itemize}
 \item \textbf{A Stack}.
 The stack is the place where automatically allocated variables and function call return addresses are stored.
 Every time a new variable is declared, the program moves the stack pointer down to reserve space for the variable.
 This segment of the stack is writable but not executable.
-This behavior is controlled by the no-execute (NX) bit, sometimes called the W^X (write XOR execute) bit, which helps prevent malicious code, such as \keyword{shellcode} from being run on the stack.
+This behavior is controlled by the no-execute (NX) bit, sometimes called the W\^X (write XOR execute) bit, which helps prevent malicious code, such as \keyword{shellcode} from being run on the stack.
 
 If the stack grows too far -- meaning that it either grows beyond a preset boundary or intersects the heap -- you will get a stack overflow error, most likely resulting in a SEGFAULT.
 \textbf{The stack is statically allocated by default; there is only a certain amount of space to which one can write.}
@@ -125,7 +121,9 @@ This area is also writable but not executable.
 One can run out of heap memory if the system is constrained or if you run out of addresses, a phenomenon that is more common on a 32-bit system.
 
 \item \textbf{A Data Segment}
-This segment contains two parts, an initialized data segment, and an uninitialized segment. Furthermore, the initialized data segment is divided into a read-only and writable section.
+
+  This segment contains two parts, an initialized data segment, and an uninitialized segment.
+  Furthermore, the initialized data segment is divided into a read-only and writable section.
 
 \begin{itemize}
     \item \textbf{Initialized Data Segment}
@@ -177,6 +175,15 @@ This segment contains two parts, an initialized data segment, and an uninitializ
           Having said that, this address can be made constant, if a program is compiled with the DEBUG flag.
 \end{itemize}
 \end{itemize}
+
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=.3\textwidth]{processes/drawings/address_space.png}
+\caption{Process address space}
+\end{figure}
+
+
 
 \subsection{Other Contents}
 
