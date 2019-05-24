@@ -10,7 +10,9 @@ There are a number of things to that philosophy that makes the rest of this easi
 
 One POSIX mantra is that everything is a file.
 Although that has become recently outdated, and moreover wrong, it is the convention we still use today.
-What this statement means is that everything is a file descriptor, which is an integer. For example, here is a file object, a network socket, and a kernel object. These are all references to records in the kernel's file descriptor table.
+What this statement means is that everything is a file descriptor, which is an integer.
+For example, here is a file object, a network socket, and a kernel object.
+These are all references to records in the kernel's file descriptor table.
 
 \begin{lstlisting}[language=C]
   int file_fd = open(...);
@@ -30,7 +32,8 @@ Before we dive into common C functions, we need to know what a system call is.
 If you are a student and have completed HW0, feel free to gloss over this section.
 
 A system call is an operation that the kernel carries out.
-First, the operating system prepares a system call. Next, the kernel executes the system call to the best of its ability in kernel space, and is a privileged operation.
+First, the operating system prepares a system call.
+Next, the kernel executes the system call to the best of its ability in kernel space, and is a privileged operation.
 In the previous example, we got access to a file descriptor object.
 We can now also write some bytes to the file descriptor object that represents a file, and the operating system will do its best to get the bytes written to the disk.
 
@@ -38,15 +41,15 @@ We can now also write some bytes to the file descriptor object that represents a
 write(file_fd, "Hello!", 6);
 \end{lstlisting}
 
-When we say the kernel tries its best, this includes the possibility that the operation could fail for a number of reasons. Some of them are: the file is no longer valid, the hard drive failed, the system was interrupted etc.
-The way that you communicate with the outside system is with system calls.
+When we say the kernel tries its best, this includes the possibility that the operation could fail for a number of reasons.
+Some of them are: the file is no longer valid, the hard drive failed, the system was interrupted etc.
+The way that a programmer communicates with the outside system is with system calls.
 An important thing to note is that system calls are expensive.
 Their cost in terms of time and CPU cycles has recently been decreased, but try to use them as sparingly as possible.
 
 \subsection{C System Calls}
 
-Many C functions that we will discuss in the next sections will be an abstraction that calls the correct underlying system call, based on the current platform. 
-Their Windows implementation may be entirely different from that of other operating systems.
+Many C functions that will be discuss in the next sections are abstractions that call the correct underlying system call, based on the current platform. 
+Their Windows implementation, for example, may be entirely different from that of other operating systems.
 Nevertheless, we will be studying these in the context of their Linux implementation.
-
 

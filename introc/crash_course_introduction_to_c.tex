@@ -1,6 +1,7 @@
 \section{Crash course introduction to C}
 
-The only way to start learning C is by starting with the \emph{hello world} program. As per the original example that Kernighan and Ritchie proposed way back when, this program hasn't changed that much.
+The only way to start learning C is by starting with the \emph{hello world} program.
+The original example that Kernighan and Ritchie proposed way back when hasn't changed that much.
 
 \begin{lstlisting}[language=C]
 #include <stdio.h>
@@ -12,21 +13,158 @@ int main(void) {
 
 \begin{enumerate}
 	\item The \keyword{\#include} directive takes the file \keyword{stdio.h} (which stands for \textbf{st}an\textbf{d}ard \textbf{i}nput and \textbf{o}utput) located somewhere in your operating system, copies the text, and substitutes it where the \keyword{\#include} was.
-	\item The \keyword{int main(void)} is a function declaration. The first word \keyword{int} tells the compiler what the return type of the function is. The part before the parenthesis (\keyword{main}) is the function name. In C, no two functions can have the same name in a single compiled program, although shared libraries are a different touchy subject. Then, what comes after is the parameter list. When we provide the parameter list for regular functions \keyword{(void)} that means that the compiler should produce an error if the function is called with a non-zero number of arguments. For regular functions having a declaration like \keyword{void func()} means that you are allowed to call the function in a manner similar to \keyword{func(1, 2, 3)}, because there is no delimiter. \keyword{main} is a special function. There are many ways of declaring \keyword{main} but the ones that you will likely be familiar with are \keyword{int main(void)}, \keyword{int main()}, and \keyword{int main(int argc, char *argv[])}.
-	\item \keyword{printf("Hello World\n");} is what we call a function call. \keyword{printf} is defined as a part of \keyword{stdio.h}. The function has been compiled and lives somewhere else on our machine (the location of the C standard library). All we need to do is include the header and call the function with the appropriate parameters (a string literal \keyword{"Hello World\n"}). If you don't include a newline, the buffer will not be flushed (i.e. the write will not complete immediately). It is by convention that buffered IO is not flushed until a newline.
-	\item \keyword{return 0;}. \keyword{main} has to return an integer. By convention, \keyword{return 0} means success and anything else means failure. Here are some exit codes / statuses with special meaning: \link{http://tldp.org/LDP/abs/html/exitcodes.html}. Note that all of CS 241's assignments require an exit code to be 0 to indicate successful execution, and normal exit. 
+	\item The \keyword{int main(void)} is a function declaration.
+    The first word \keyword{int} tells the compiler the return type of the function.
+    The part before the parenthesis (\keyword{main}) is the function name.
+    In C, no two functions can have the same name in a single compiled program, although shared libraries may be able.
+    Then, the parameter list comes after.
+    When we provide the parameter list for regular functions \keyword{(void)} that means that the compiler should produce an error if the function is called with a non-zero number of arguments.
+    For regular functions having a declaration like \keyword{void func()} means that you are allowed to call the function in a manner similar to \keyword{func(1, 2, 3)}, because there is no delimiter.
+    \keyword{main} is a special function.
+    There are many ways of declaring \keyword{main} but the ones that you will likely be familiar with are \keyword{int main(void)}, \keyword{int main()}, and \keyword{int main(int argc, char *argv[])}.
+	\item \keyword{printf("Hello World\n");} is what we call a function call.
+    \keyword{printf} is defined as a part of \keyword{stdio.h}.
+    The function has been compiled and lives somewhere else on our machine - the location of the C standard library.
+    Just remember include the header and call the function with the appropriate parameters (a string literal \keyword{"Hello World\n"}).
+    If the newline isn't included, the buffer will not be flushed (i.e. the write will not complete immediately).
+    It is by convention that buffered IO is not flushed until a newline.
+	\item \keyword{return 0}.
+    \keyword{main} has to return an integer.
+    By convention, \keyword{return 0} means success and anything else means failure.
+    Here are some exit codes / statuses with special meaning: \link{http://tldp.org/LDP/abs/html/exitcodes.html}.
 \end{enumerate}
 
-\begin{verbatim}
-$ gcc main.c -o main
-$ ./main
+Now that we have the source code, here is how we would compile and run the program from the command line.
+
+\begin{lstlisting}
+$ gcc main.c -o main # compile
+$ ./main # run
 Hello World
 $
-\end{verbatim}
+\end{lstlisting}
 
 \begin{enumerate}
-	\item \keyword{gcc} is short for the GNU Compiler Collection which has a host of compilers ready for use. The compiler infers from the extension that you are trying to compile a .c file.
-	\item \keyword{./main} tells your shell to execute the program in the current directory called main. The program then prints out "hello world".
+\item \keyword{gcc} is short for the GNU Compiler Collection which has a host of compilers ready for use.
+  The compiler infers from the extension that you are trying to compile a .c file.
+\item \keyword{./main} tells your shell to execute the program in the current directory called main.
+  The program then prints out "hello world".
 \end{enumerate}
 
+If systems programming was as easy as writing hello world though, our jobs would be much easier.
+
+\subsection{Preprocessor}
+
+What is the preprocessor?
+Preprocessing is a copy and paste operation that the compiler performs \textbf{before} actually compiling the program.
+The following is an example of substitution
+
+\begin{lstlisting}[language=C]
+// Before preprocessing
+#define MAX_LENGTH 10
+char buffer[MAX_LENGTH]
+
+// After preprocessing
+char buffer[10]
+\end{lstlisting}
+
+There are side effects to the preprocessor though.
+One problem is that the preprocessor needs to be able to tokenize properly, meaning trying to redefine the internals of the C language with a preprocessor may be impossible.
+Another problem is that they can't be nested infinitely - there is a bounded depth where they need to stop.
+Macros are also just simple text substitutions, without semantics.
+For example, look at what can happen if a macro tries to perform an inline modification.
+
+\begin{lstlisting}[language=C]
+#define min(a,b) ((a)<(b) ? (a) : (b))
+int main() {
+  int x = 4;
+  if(min(x++, 5)) printf("%d is six", x);
+  return 0;
+}
+\end{lstlisting}
+
+Macros are simple text substitution so the above example expands to \keyword{x++\ \textless{}\ 100\ ?\ x++\ :\ 100} (parenthesis omitted for clarity).
+In this case, it is opaque what gets printed out, but it will be 6.
+Can you try to figure out why?
+Also, consider the edge case when operator precedence comes into play.
+
+\begin{lstlisting}[language=C]
+#define min(a,b) a < b ? a : b
+int x = 99;
+int r = 10 + min(99, 100); // r is 100!
+// This is what it is expanded to
+int r = 10 + 99 < 100 ? 99 : 100
+// Which means
+int r = (10 + 99) < 100 ? 99 : 100
+\end{lstlisting}
+
+You can also have logical problems with the flexibility of certain parameters.
+One common source of confusion is with static arrays and the \keyword{sizeof} operator.
+
+\begin{lstlisting}[language=C]
+#define ARRAY_LENGTH(A) (sizeof((A)) / sizeof((A)[0]))
+int static_array[10]; // ARRAY_LENGTH(static_array) = 10
+int* dynamic_array = malloc(10); // ARRAY_LENGTH(dynamic_array) = 2 or 1 consistently
+\end{lstlisting}
+
+What is wrong with the macro?
+Well, it works if a static array is passed in because \keyword{sizeof} a static array returns the number of bytes that array takes up, and dividing it by the \keyword{sizeof(an\_element)} would give you the number of entries.
+But if passed a pointer to a piece of memory, taking the sizeof the pointer and dividing it by the size of the first entry won't always give us the size of the array.
+
+\subsection{Extra: Includes and conditionals}
+
+The other preprocessor include is the \keyword{\#include} directive and conditionals.
+The include directive is explained by example.
+
+\begin{lstlisting}[language=C]
+// foo.h
+int bar();
+\end{lstlisting}
+
+This is our file \keyword{bar.c} unpreprocessed.
+
+\begin{lstlisting}[language=C]
+#include "foo.h"
+int bar() {
+}
+\end{lstlisting}
+
+After preprocessing, the compiler sees this
+
+\begin{lstlisting}[language=C]
+// foo.c unpreprocessed
+int bar();
+
+int bar() {
+
+}
+\end{lstlisting}
+
+The other tool is preprocessor conditionals.
+If a macro is defined or equal to zeros, that branch is not taken.
+
+\begin{lstlisting}[language=C]
+int main() {
+#ifdef __GNUC__
+    return 1;
+#else
+    return 0;
+#endif
+}
+\end{lstlisting}
+
+Using \keyword{gcc} your compiler would preprocess the source to the following.
+
+\begin{lstlisting}[language=C]
+int main() {
+    return 1;
+}
+\end{lstlisting}
+
+Using \keyword{clang} your compiler would preprocess to this.
+
+\begin{lstlisting}[language=C]
+int main() {
+    return 0;
+}
+\end{lstlisting}
 
