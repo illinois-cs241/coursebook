@@ -102,7 +102,7 @@ rulecolor=\color{shadecolor},}
 \date{}
 
 % define custom environments, so we can change global style at will
-\newcommand{\keyword}[1]{\texttt{#1}}
+\newcommand{\keyword}[1]{\underline{\smash{\textbf{\texttt{#1}}}}}
 \newcommand{\todo}[1]{}
 \renewcommand{\todo}[1]{{\color{red} TODO: {#1}}}
 \lstnewenvironment{lstlisting}[1][]%
@@ -148,4 +148,7 @@ rulecolor=\color{shadecolor},}
 \titleformat*{\paragraph}{\large\bfseries}
 \titleformat*{\subparagraph}{\large\bfseries}
 
+%% Go to the next page if a section only has 3 lines
 \widowpenalties 3 10000 10000 0
+
+\renewcommand{\baselinestretch}{1.15}
