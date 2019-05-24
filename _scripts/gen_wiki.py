@@ -79,7 +79,7 @@ This book is an introduction to programming in C, and system programming (proces
 
 
 {% for chapter in chapters %}
-## {{loop.index}}. [{{chapter.meta['name']}}](./{{chapter.bare_title}}) [<img src="https://raw.githubusercontent.com/illinois-cs241/coursebook/master/_images/pdf_icon.png" style="width:10vh;height:10vh;" />](https://github.com/illinois-cs241/coursebook/blob/pdf_deploy/{{chapter.pdf_path}}) {% for section_name in (chapter.meta['subsections'] or []) %}
+## {{loop.index}}. [{{chapter.meta['name']}}](./{{chapter.bare_title}}) [<img src="https://raw.githubusercontent.com/illinois-cs241/coursebook/master/_images/pdf_icon.png" width="10vh" height="10vh" style="width:10vh;height:10vh;" />](https://github.com/illinois-cs241/coursebook/blob/pdf_deploy/{{chapter.pdf_path}}) {% for section_name in (chapter.meta['subsections'] or []) %}
 {{loop.index}}. [{{section_name}}](./{{chapter.bare_title}}#{{section_name.lower().replace(' ', '-')}}){% endfor %}
 {% endfor %}
 """
