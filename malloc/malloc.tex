@@ -312,31 +312,29 @@ Some additional notes we make
 A memory allocator needs to keep track of which bytes are currently allocated and which are available for use.
 This section introduces the implementation and conceptual details of building an allocator, or the actual code that implements \keyword{malloc} and \keyword{free}.
 
-Conceptually we are thinking about creating linked lists and lists of blocks!
+Conceptually, we are thinking about creating linked lists and lists of blocks!
 Please enjoy the following ASCII art.
 bt is short for boundary tag.
 
-\begin{verbatim}
-| I am one block  | I am another   | Tiny block  |
-|-----------------|----------------|-------------|
-| meta | space |bt| meta | space|bt| meta |spc|bt|
-|-----------------|----------------|-------------|
-\end{verbatim}
+
+\begin{figure}[H]
+\centering
+%%\includegraphics[width=.7\textwidth]{malloc/drawings/malloc_patching.eps}
+\includegraphics[width=.7\textwidth]{malloc/drawings/malloc_patching.png}
+\caption{3 Adjacent Memory blocks}
+\end{figure}
 
 We will have implicit pointers in our next block, meaning that we can get from one block to another using addition.
 This is in contrast to an explicit \texttt{metadata *next} field in our meta block.
 
-\begin{verbatim}
-|-----------------|
-p                 |
-|-----------------|----------------|-------------|
-| meta | space |bt| meta | space|bt| meta |spc|bt|
-|-----------------|----------------|-------------|
+\begin{figure}[H]
+\centering
+\includegraphics[width=.5\textwidth]{malloc/drawings/malloc_addition.png}
+\caption{Malloc addition}
+\end{figure}
 
-If p is char pointer to the start of our block, to get to the next block would be
-
-p + sizeof(meta) + p->space + sizeof(boundary_tag)
-\end{verbatim}
+One can grab the next block by finding the end of the current one.
+That is what we mean by ``implicit list''.
 
 The actual spacing may be different.
 The metadata can contain different things.
@@ -355,14 +353,14 @@ Let's think of it in terms of a simple implementation.
     char data[0];
   } block;
   block *p = sbrk(100);
-  p->size = 100 - sizeof(*p) - sizeof(boundary_tag);
+  p->size = 100 - sizeof(*p) - sizeof(BTag);
   // Other block allocations
 \end{lstlisting}
 
 We could navigate from one block to the next block just by adding the block's size.
 
 \begin{lstlisting}[language=C]
-p + sizeof(meta) + p->block_size + sizeof(boundary_tag)
+p + sizeof(metadata) + p->block_size + sizeof(BTag)
 \end{lstlisting}
 
 Make sure to get your casting right!
@@ -422,21 +420,13 @@ After setting up your fields then it becomes simply looping through each of the 
 
 Here is a visual representation of what happens.
 As for some more ascii art, if we assume that we have a block that looks like this, we want to spit if the allocation is let's say 16 bytes
-\begin{verbatim}
-Check if this block is free
+The split we'll have to do is the following.
 
-|-------------------------------------------------|
-| meta | 40 bytes ---------------------------->|bt|
-|-------------------------------------------------|
-\end{verbatim}
-
-Here is what the heap will look like after
-
-\begin{verbatim}
-|-------------------------|-----------------------|
-| meta | 16 bytes ---->|bt| meta | 12 bytes -->|bt|
-|-------------------------|-----------------------|
-\end{verbatim}
+\begin{figure}[H]
+\centering
+\includegraphics[width=.7\textwidth]{malloc/drawings/malloc_split.png}
+\caption{Malloc split}
+\end{figure}
 
 This is before alignment concerns as well.
 
@@ -451,6 +441,7 @@ Most of you experienced this in your architecture classes if there was no memory
 As \keyword{malloc} does not know how the user will use the allocated memory, the pointer returned to the program needs to be aligned for the worst case, which is architecture dependent.
 
 From glibc documentation, the glibc \keyword{malloc} uses the following heuristic \cite{vma_paging}
+
 \begin{quote}
 The block that malloc gives you is guaranteed to be aligned so that it can hold any type of data. On GNU systems, the address is always a multiple of eight on most systems, and a multiple of 16 on 64-bit systems." For example, if you need to calculate how many 16 byte units are required, don't forget to round up.
 \end{quote}
