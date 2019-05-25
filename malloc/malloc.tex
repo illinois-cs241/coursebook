@@ -487,19 +487,11 @@ With this information you can now jump backwards!
 Take for example a double coalesce.
 If we wanted to free the middle block we need to turn the surrounding blocks into one big blocks
 
-\begin{verbatim}
-|-----------------|----------------|-------------|
-| free | space |bt| meta | space|bt| free |spc|bt|
-|-----------------|----------------|-------------|
-\end{verbatim}
-
-Becomes a single free block as below
-
-\begin{verbatim}
-|------------------------------------------------|
-| free | space ------------------------------>|bt|
-|------------------------------------------------|
-\end{verbatim}
+\begin{figure}[H]
+\centering
+\includegraphics[width=.9\textwidth]{malloc/drawings/malloc_double_coalesce.png}
+\caption{Free double coalesce}
+\end{figure}
 
 \subsection{Performance}
 
@@ -533,19 +525,11 @@ typedef struct {
 
 Here is what that would look like along with our implicit linked list
 
-\begin{verbatim}
-Free list pointers above and below
-
->--++                                ++---------->
-   \/                                /\
-|-----------------|----------------|-------------|
-| free | space |bt| meta | space|bt| free |spc|bt|
-|-----------------|----------------|-------------|
-   \/                                /\
-   ++--------------------------------++
-\end{verbatim}
-
-Again apologies for the ascii art, we are really system programmers not computer graphics people.
+\begin{figure}[H]
+\centering
+\includegraphics[width=.7\textwidth]{malloc/drawings/free_list.png}
+\caption{Free list}
+\end{figure}
 
 
 Where do we store the pointers of our linked list?
@@ -555,6 +539,17 @@ Consequently, explicit free lists require more code and complexity.
 With explicit linked lists a fast and simple `Find-First' algorithm is used to find the first sufficiently large link.
 However, since the link order can be modified, this corresponds to different placement strategies.
 For example if the links are maintained from largest to smallest, then this produces a `Worst-Fit' placement strategy.
+
+There are edge cases though, consider how you'd maintain your free list if you also have to perform a double coalesce.
+We've included a figure with a common mistake.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=.7\textwidth]{malloc/drawings/free_list_ptrs.png}
+\caption{Free list good and bad coalesce}
+\end{figure}
+
+We recommend when trying to implement malloc that you draw out all the cases conceptually and then write the code.
 
 \subsubsection{Explicit linked list insertion policy}
 
