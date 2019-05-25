@@ -764,20 +764,27 @@ And then use as appropriately.
 char q[] = "Do you wanna build a C99 program?";
 #define or "go debugging with gdb?"
 static unsigned int i = sizeof(or) != strlen(or);
-char* ptr = "lathe"; size_t come = fprintf(stdout,"%s door", ptr+2);
+char* ptr = "lathe";
+size_t come = fprintf(stdout,"%s door", ptr+2);
 int away = ! (int) * "";
 
 int* shared = mmap(NULL, sizeof(int*), PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
 munmap(shared,sizeof(int*));
 
-if(!fork()) { execlp("man","man","-3","ftell", (char*)0); perror("failed"); }
-if(!fork()) { execlp("make","make", "snowman", (char*)0); execlp("make","make", (char*)0)); }
+if(!fork()) {
+    execlp("man","man","-3","ftell", (char*)0); perror("failed");
+}
+
+if(!fork()) {
+    execlp("make","make", "snowman", (char*)0); execlp("make","make", (char*)0));
+}
 
 exit(0);
 \end{lstlisting}
 
 \subsection{So you want to master System Programming? And get a better grade than B?}
-\begin{lstlisting}[language=C]
+
+\begin{minted}{C}
 int main(int argc, char** argv) {
 	puts("Great! We have plenty of useful resources for you, but it's up to you to");
 	puts(" be an active learner and learn how to solve problems and debug code.");
@@ -797,7 +804,7 @@ int main(int argc, char** argv) {
 	read(0, buffer, sizeof(buffer));
 	return 0;
 }
-\end{lstlisting}
+\end{minted}
 
 \subsection{Watch the videos and write up your answers to the following questions}
 
