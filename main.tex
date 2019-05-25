@@ -47,6 +47,12 @@
 %% Go to the next page if a section only has 3 lines
 \widowpenalties 3 10000 10000 0
 
+% this is a terrible hack, but pandoc sucks
+% we have to call any
+\lstnewenvironment{minted}{m}
+  {\noindent\minipage{\linewidth}\medskip 
+   \lstset{basicstyle=\ttfamily\footnotesize,frame=single,language=#1}}
+  {\endminipage}
 
 
 \begin{document}
