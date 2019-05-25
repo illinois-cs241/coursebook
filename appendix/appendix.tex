@@ -8,7 +8,7 @@ A shell is actually how you are going to be interacting with the system. Before 
 (Stuff) $
 \end{verbatim}
 
-It is ready for your next command! You can type in a lot of Unix utilities like \texttt{ls}, \texttt{echo\ Hello} and the shell will execute them and give you the result. Some of these are what are known as \texttt{shell-builtins} meaning that the code is in the shell program itself. Some of these are compiled programs that you run. The shell only looks through a special variable called path which contains a list of \texttt{:} separated paths to search for an executable with your name, here is an example path.
+It is ready for your next command! You can type in a lot of Unix utilities like \keyword{ls}, \keyword{echo\ Hello} and the shell will execute them and give you the result. Some of these are what are known as \keyword{shell-builtins} meaning that the code is in the shell program itself. Some of these are compiled programs that you run. The shell only looks through a special variable called path which contains a list of \keyword{:} separated paths to search for an executable with your name, here is an example path.
 
 \begin{verbatim}
 $ echo $PATH
@@ -16,7 +16,7 @@ $ echo $PATH
 /usr/bin:/sbin:/bin:/usr/games:/usr/local/games
 \end{verbatim}
 
-So when the shell executes \texttt{ls}, it looks through all of those directories, finds \texttt{/bin/ls} and executes that.
+So when the shell executes \keyword{ls}, it looks through all of those directories, finds \keyword{/bin/ls} and executes that.
 
 \begin{verbatim}
 $ ls
@@ -24,23 +24,23 @@ $ ls
 $ /bin/ls
 \end{verbatim}
 
-You can always call through the full path. That is always why in past classes if you want to run something on the terminal you've had to do \texttt{./exe} because typically the directory that you are working in is not in the \texttt{PATH} variable. The \texttt{.} expands to your current directory and your shell executes \texttt{\textless{}current\_dir\textgreater{}/exe} which is a valid command.
+You can always call through the full path. That is always why in past classes if you want to run something on the terminal you've had to do \keyword{./exe} because typically the directory that you are working in is not in the \keyword{PATH} variable. The \keyword{.} expands to your current directory and your shell executes \keyword{\textless{}current\_dir\textgreater{}/exe} which is a valid command.
 
 \subsection{Shell tricks and tips}
 
 \begin{itemize}
 \item The up arrow will get you your most recent command
-\item \texttt{ctrl-r} will search commands that you previously ran
-\item \texttt{ctrl-c} will interrupt your shell's process
-\item \texttt{!!} will execute the last command
-\item \texttt{!<num>} goes back that many commands and runs that
-\item \texttt{!<prefix>} runs the last command that has that prefix
-\item \texttt{!\$} is the last arg of the previous command
-\item \texttt{!*} is all args of the previous command
-\item \texttt{\^pat\^sub} takes the last command and substitutes the pattern pat for the substitution sub
-\item \texttt{cd -} goes to the previous directory
-\item \texttt{pushd <dir>} pushes the current directory on a stack and cds
-\item \texttt{popd} cds to the directory at the top of the stack
+\item \keyword{ctrl-r} will search commands that you previously ran
+\item \keyword{ctrl-c} will interrupt your shell's process
+\item \keyword{!!} will execute the last command
+\item \keyword{!<num>} goes back that many commands and runs that
+\item \keyword{!<prefix>} runs the last command that has that prefix
+\item \keyword{!\$} is the last arg of the previous command
+\item \keyword{!*} is all args of the previous command
+\item \keyword{\^pat\^sub} takes the last command and substitutes the pattern pat for the substitution sub
+\item \keyword{cd -} goes to the previous directory
+\item \keyword{pushd <dir>} pushes the current directory on a stack and cds
+\item \keyword{popd} cds to the directory at the top of the stack
 \end{itemize}
 
 \subsection{Alright then what's a terminal?}
@@ -174,7 +174,7 @@ There are \href{https://en.wikipedia.org/wiki/Stack_buffer_overflow}{a lot} of w
 
 \section{System Programming Jokes}
 
-\texttt{0x43\ 0x61\ 0x74\ 0xe0\ 0xf9\ 0xbf\ 0x5f\ 0xff\ 0x7f\ 0x00}
+\keyword{0x43\ 0x61\ 0x74\ 0xe0\ 0xf9\ 0xbf\ 0x5f\ 0xff\ 0x7f\ 0x00}
 
 Warning: Authors are not responsible for any neuro-apoptosis caused by these ``jokes.'' - Groaners are allowed.
 
@@ -202,7 +202,7 @@ Why are C programmers so messy? They store everything in one big heap.
 
 A system programmer is\ldots{}
 
-Someone who knows \texttt{sleepsort} is a bad idea but still dreams of an excuse to use it.
+Someone who knows \keyword{sleepsort} is a bad idea but still dreams of an excuse to use it.
 
 Someone who never lets their code deadlock\ldots{} but when it does, causes more problems than everyone else combined.
 

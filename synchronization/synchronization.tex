@@ -883,7 +883,7 @@ Let's discuss it in the next section.
 \subsection{Using semaphores}
 
 Let's use a counting semaphore to keep track of how many spaces remain and another semaphore to keep to track the number of items in the stack.
-We will call these two semaphores \texttt{sremain} and \texttt{sitems}.
+We will call these two semaphores \keyword{sremain} and \keyword{sitems}.
 Remember \keyword{sem\_wait} will wait if the semaphore's count has been decremented to zero (by another thread calling sem\_post).
 
 \begin{lstlisting}[language=C]
