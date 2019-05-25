@@ -40,9 +40,21 @@ printf("Debug: The string and int are stored at: %p and %p\n", name, &score );
 
 From the previous section,
 \keyword{printf} calls the system call \keyword{write}.
-\keyword{printf} will use the buffer provided by the \keyword{FILE*} abstraction to store bytes until ready to write.
-One can force it to write by sending a newline, or by calling fflush() on the stream, which is stdout in this case.
-Lastly, \keyword{printf} is a C library function, while \keyword{write} is a system call system.
+\keyword{printf} is a C library function, while \keyword{write} is a system call system.
+
+The buffering semantics of printf are a little complicated.
+ISO defines three types of streams \cite[P. 278]{ISON1124}
+\begin{itemize}
+\item Unbuffered, where the contents of the stream reach their destination as soon as possible.
+\item Line Buffered, where the contents of the stream reach their destination as soon as a newline is provided.
+\item Fully Buffered, where the contents of the stream reach their destination as soon as the buffer is full
+\end{itemize}
+
+Standard Error is defined as ``not fully buffered'' \cite[P. 279]{ISON1124}.
+Standard Output and Input are merely defined fully buffered if and only if the stream destination is an interactive device.
+Usually, standard error will usually be unbuffered, standard input and output will be line buffered if the output is a terminal otherwise fully buffered.
+This relates to printf because printf merely uses the abstraction provided by the FILE interface and uses the above semantics to determine when to write.
+One can force a write by calling fflush() on the stream.
 
 To print strings and single characters, use \keyword{puts(char\ *name\ )} and \keyword{putchar(char\ c\ )}
 
