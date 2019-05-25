@@ -126,6 +126,10 @@ def generate_tex_meta(order, outdir, meta_file_name):
                     '--quiet',
                     tex_name,
                     '-o',
+                    '-B',
+                    prelude_file,
+                    '-B',
+                    github_shim,
                     '/dev/null']
         subprocess.check_call(command)
 

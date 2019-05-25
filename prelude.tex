@@ -1,10 +1,18 @@
 \usepackage[T1]{fontenc}
 \usepackage{microtype}
 \usepackage[charter]{mathdesign}
-\usepackage[margin=.75in]{geometry}
+\usepackage{geometry}
+ \geometry{
+ a4paper,
+ total={170mm,257mm},
+ left=.9in,
+ top=1.0in,
+ bottom=1.5in,
+ right=.9in,
+ }
 \setlength{\columnsep}{.5in}
+
 \usepackage{fancyhdr}
-\usepackage[compact]{titlesec}
 \usepackage{xcolor}
 \usepackage{mdframed}
 \usepackage{setspace}
@@ -76,15 +84,25 @@ rulecolor=\color{shadecolor},}
 % set up quotes
 \usepackage{epigraph}
 
+\renewcommand{\epigraphrule}{0pt}
+\setlength{\epigraphwidth}{.6\textwidth}
+\renewcommand{\textflush}{flushepinormal}
+\makeatletter
+% Taken and updated from http://mirrors.ctan.org/macros/latex/contrib/epigraph/epigraph.dtx
+\renewcommand{\@epitext}[1]{%
+  \begin{minipage}{\epigraphwidth}\begin{\textflush} \hspace*{30pt}#1\\
+    \ifdim\epigraphrule>\z@ \@epirule \else \vspace*{-.5\baselineskip} \fi
+  \end{\textflush}\end{minipage}}
+\makeatother
+
 % Define titles and chapter
 \usepackage[Bjornstrup]{fncychap}
 \singlespacing
-\titleformat{\section}{\vspace{1em}\large\bfseries}{\thesection. }{0em}{}
 \title{\vspace{-15mm}\fontsize{24pt}{10pt}\selectfont\textbf{CS241 System Programming Coursebook}}
 \date{}
 
 % define custom environments, so we can change global style at will
-\newcommand{\keyword}[1]{\texttt{#1}}
+\newcommand{\keyword}[1]{\underline{\smash{\textbf{\texttt{#1}}}}}
 \newcommand{\todo}[1]{}
 \renewcommand{\todo}[1]{{\color{red} TODO: {#1}}}
 \lstnewenvironment{lstlisting}[1][]%
@@ -102,3 +120,35 @@ rulecolor=\color{shadecolor},}
 \definecolor{namecolor}{cmyk}{1,.50,0,.10}
 %-----------------------------------------------------------------
 \usepackage{csquotes}
+
+% this is a terrible hack, but pandoc sucks
+% we have to call any
+\lstnewenvironment{minted}{m}
+  {\noindent\minipage{\linewidth}\medskip 
+   \lstset{basicstyle=\ttfamily\footnotesize,frame=single,language=#1}}
+  {\endminipage}
+
+\usepackage{float}
+
+% title spacing
+
+\usepackage[compact]{titlesec}
+
+\titlespacing*{\section}
+{0pt}{5.5ex plus 1ex minus .2ex}{4.3ex plus .2ex}
+\titlespacing*{\subsection}
+{0pt}{5.5ex plus 1ex minus .2ex}{2.3ex plus .2ex}
+\titlespacing*{\subsubsection}
+{0pt}{5.5ex plus 1ex minus .2ex}{2.3ex plus .2ex}
+
+%% PDF Sizes
+\titleformat*{\section}{\LARGE\bfseries}
+\titleformat*{\subsection}{\Large\bfseries}
+\titleformat*{\subsubsection}{\large\bfseries}
+\titleformat*{\paragraph}{\large\bfseries}
+\titleformat*{\subparagraph}{\large\bfseries}
+
+%% Go to the next page if a section only has 3 lines
+\widowpenalties 3 10000 10000 0
+
+\renewcommand{\baselinestretch}{1.15}
