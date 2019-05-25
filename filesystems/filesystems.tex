@@ -1,6 +1,6 @@
 \chapter{Filesystems}
 
-\epigraph{\texttt{/home} is where the heart is}{Bhuvy}
+\epigraph{\keyword{/home} is where the heart is}{Bhuvy}
 
 Filesystems are important because they allow you to persist data after a computer is shut down, crashes, or has memory corruption.
 Back in the day, filesystems were expensive to use.
@@ -253,7 +253,7 @@ In standard Unix file systems the following entries are specially added on reque
 
 Unintuitively, \keyword{...} does not refer to the `grandparent' directory (parent of the parent).
 Only the current directory and the parent directory have special aliases involving \keyword{.} (namely , \keyword{.} and \keyword{..}).
-However, \keyword{...} \emph{could} however be the name of a file or directory on disk (You can try this with \texttt{mkdir ...}).
+However, \keyword{...} \emph{could} however be the name of a file or directory on disk (You can try this with \keyword{mkdir ...}).
 Confusingly, the shell \keyword{zsh} does interpret \keyword{...} as a handy shortcut to the grandparent directory (should it exist) while expanding shell commands.
 
 Additional facts about name-related conventions:
@@ -475,12 +475,12 @@ Apple's ``Time Machine'' software does this.
 
 Now that we have definitions talk about directories, we come across the concept of a path.
 A path is a sequence of directories that provide one with a "path" in the filesystem graph.
-However, there are some nuances. It is possible to have a path called \texttt{a/b/../c/./}.
-Since \keyword{..} and \keyword{.} are special entries in directories, this is a valid path that actually refers to \texttt{a/c}.
+However, there are some nuances. It is possible to have a path called \keyword{a/b/../c/./}.
+Since \keyword{..} and \keyword{.} are special entries in directories, this is a valid path that actually refers to \keyword{a/c}.
 Most filesystem functions will allow uncompressed paths to be passed in.
 The C library provides a function \keyword{realpath} to compress the path or get the realpath.
 To simplify by hand remember that \keyword{..} means `parent folder' and that \keyword{.} means `current folder'.
-Below is an example that illustrates the simplification of the \texttt{a/b/../c/.} by using \keyword{cd} in a shell to navigate a filesystem.
+Below is an example that illustrates the simplification of the \keyword{a/b/../c/.} by using \keyword{cd} in a shell to navigate a filesystem.
 
 \begin{enumerate}
   \item \keyword{cd a} (in a)
