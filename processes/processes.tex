@@ -9,18 +9,13 @@ This is the piece of software that is loaded up before all other programs.
 The following is an brief overview on the tasks performed by the kernel.
 
 \begin{enumerate}
-    \item
-          The operating system executes code from read-only memory, called firmware.
-    \item
-          The operating system then executes a bootloader, which often conforms to the Extensible Firmware Interface (\keyword{EFI}), which is an interface between the system firmware and the operating system.
-    \item
-          The bootloader's boot manager loads the operating system kernels, based on the boot settings.
-    \item
-          Your kernel executes \keyword{init} to \href{https://en.wikipedia.org/wiki/Bootstrapping}{bootstrap} itself from nothing.
-    \item
-          The kernel executes startup scripts.
-    \item
-          The kernel executes userland scripts, and you get to use your computer!
+\item The operating system executes code from read-only memory, called firmware.
+\item The operating system then executes a bootloader, which often conforms to the Extensible Firmware Interface (\keyword{EFI}), which is an interface between the system firmware and the operating system.
+\item The bootloader's boot manager loads the operating system kernels, based on the boot settings.
+\item
+  Your kernel executes \keyword{init} to \href{https://en.wikipedia.org/wiki/Bootstrapping}{bootstrap} itself from nothing.
+\item The kernel executes startup scripts.
+\item The kernel executes userland scripts, and you get to use your computer!
 \end{enumerate}
 
 You don't need to know the specifics of the booting process, but there it is.
@@ -42,8 +37,7 @@ Kernel mode gets you greater power, such as the ability to execute extra CPU ins
 However, a single failure can crash your entire computer -- ouch.
 These services are what you will be interacting with in this class.
 
-The kernel creates the first process \keyword{init.d} (an alternative is system.d). \emph{init.d} boots up programs such as graphical user interfaces, terminals etc -- by default, this is the only process explicitly created by the system.
-All other processes are instantiated by using the system calls \keyword{fork} and \keyword{exec} from that single process.
+The kernel creates the first process \keyword{init.d} (an alternative is system.d). \emph{init.d} boots up programs such as graphical user interfaces, terminals etc -- by default, this is the only process explicitly created by the system. All other processes are instantiated by using the system calls \keyword{fork} and \keyword{exec} from that single process.
 
 \section{File Descriptors}
 
@@ -85,7 +79,8 @@ Processes are very powerful but they are isolated!
 
 That means that by default, no process can communicate with another process.
 
-This is very important because if you have a large system (let's say the University of Illinois Engineering Workstations (EWS)) then it is likely that you want some processes to have higher privileges than your average user. One certainly doesn't want the average user to be able to bring down the entire system, either on purpose or by accidentally by modifying a process.
+This is very important because if you have a large system (let's say the University of Illinois Engineering Workstations (EWS)) then it is likely that you want some processes to have higher privileges than your average user.
+One certainly doesn't want the average user to be able to bring down the entire system, either on purpose or accidentally by modifying a process.
 As most of you have realized by now, if you stuck the following code snippet into a program, the variables would not be shared between two parallel invocations of the program.
 
 \begin{lstlisting}[language=C]
@@ -102,14 +97,15 @@ However, there are other intentional ways to change the program states of other 
 
 \subsection{Memory Layout}
 
-When a process starts, it gets its own address space. Each process gets the following:
+When a process starts, it gets its own address space.
+Each process gets the following.
 
 \begin{itemize}
 \item \textbf{A Stack}.
 The stack is the place where automatically allocated variables and function call return addresses are stored.
 Every time a new variable is declared, the program moves the stack pointer down to reserve space for the variable.
 This segment of the stack is writable but not executable.
-This behavior is controlled by the no-execute (NX) bit, sometimes called the W^X (write XOR execute) bit, which helps prevent malicious code, such as \keyword{shellcode} from being run on the stack.
+This behavior is controlled by the no-execute (NX) bit, sometimes called the W\^X (write XOR execute) bit, which helps prevent malicious code, such as \keyword{shellcode} from being run on the stack.
 
 If the stack grows too far -- meaning that it either grows beyond a preset boundary or intersects the heap -- you will get a stack overflow error, most likely resulting in a SEGFAULT.
 \textbf{The stack is statically allocated by default; there is only a certain amount of space to which one can write.}
@@ -125,7 +121,9 @@ This area is also writable but not executable.
 One can run out of heap memory if the system is constrained or if you run out of addresses, a phenomenon that is more common on a 32-bit system.
 
 \item \textbf{A Data Segment}
-This segment contains two parts, an initialized data segment, and an uninitialized segment. Furthermore, the initialized data segment is divided into a read-only and writable section.
+
+  This segment contains two parts, an initialized data segment, and an uninitialized segment.
+  Furthermore, the initialized data segment is divided into a readable and writable section.
 
 \begin{itemize}
     \item \textbf{Initialized Data Segment}
@@ -146,9 +144,9 @@ This segment contains two parts, an initialized data segment, and an uninitializ
           This contains all of your globals and any other static duration variables that are implicitly zeroed out.
 
           Example:
-          \begin{lstlisting}[language=C]
-            int assumed_to_be_zero;
-            \end{lstlisting}
+\begin{lstlisting}[language=C]
+int assumed_to_be_zero;
+\end{lstlisting}
 
           It is not an error to assume that this will be zero because otherwise we would have a security risk involving isolation from other processes.
 
@@ -177,6 +175,15 @@ This segment contains two parts, an initialized data segment, and an uninitializ
           Having said that, this address can be made constant, if a program is compiled with the DEBUG flag.
 \end{itemize}
 \end{itemize}
+
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=.3\textwidth]{processes/drawings/address_space.png}
+\caption{Process address space}
+\end{figure}
+
+
 
 \subsection{Other Contents}
 
@@ -229,27 +236,27 @@ This occurs by duplicating the state of the existing process with a few minor di
 
 Here is a very simple example:
 
-\begin{lstlisting}[language=C]
-  printf("I'm printed once!\n");
-  fork();
-  // Now there are two processes running if fork succeeded
-  // and each process will print out the next line.
-  printf("You see this line twice!\n");
-\end{lstlisting}
+\begin{minted}{C}
+printf("I'm printed once!\n");
+fork();
+// Now there are two processes running if fork succeeded
+// and each process will print out the next line.
+printf("You see this line twice!\n");
+\end{minted}
 
 Here is a simple example of this address space cloning.
 The following program may print out 42 twice - but the \keyword{fork()} is after the \keyword{printf}!? Why?
 
-\begin{lstlisting}[language=C]
-  #include <unistd.h> /*fork declared here*/
-  #include <stdio.h> /* printf declared here*/
-  int main() {
-    int answer = 84 >> 1;
-    printf("Answer: %d", answer);
-    fork();
-    return 0;
-  }
-\end{lstlisting}
+\begin{minted}{C}
+#include <unistd.h> /*fork declared here*/
+#include <stdio.h> /* printf declared here*/
+int main() {
+  int answer = 84 >> 1;
+  printf("Answer: %d", answer);
+  fork();
+  return 0;
+}
+\end{minted}
 
 The \keyword{printf} line \emph{is} executed only once however notice that the printed contents is not flushed to standard out.
 There's no newline printed, we didn't call \keyword{fflush}, or change the buffering mode.
@@ -273,48 +280,66 @@ According to the POSIX standard, every process only has a single parent process.
 
 The parent process can only know the PID of the new child process from the return value of \keyword{fork}:
 
-\begin{lstlisting}[language=C]
-  pid_t id = fork();
-  if (id == -1) exit(1); // fork failed
-  if (id > 0) {
-    // I'm the original parent and
-    // I just created a child process with id 'id'
-    // Use waitpid to wait for the child to finish
-  } else { // returned zero
-    // I must be the newly made child process
-  }
-\end{lstlisting}
+\begin{minted}{C}
+pid_t id = fork();
+if (id == -1) exit(1); // fork failed
+if (id > 0) {
+  // I'm the original parent and
+  // I just created a child process with id 'id'
+  // Use waitpid to wait for the child to finish
+} else { // returned zero
+  // I must be the newly made child process
+}
+\end{minted}
 
-A slightly silly example is shown below. What will it print? Try running this program with multiple arguments.
+A slightly silly example is shown below.
+What will it print?
+Try running this program with multiple arguments.
 
-\begin{lstlisting}[language=C]
-  #include <unistd.h>
-  #include <stdio.h>
-  int main(int argc, char **argv) {
-    pid_t id;
-    int status;
-    while (--argc && (id=fork())) {
-      waitpid(id,&status,0); /* Wait for child*/
-    }
-    printf("%d:%s\n", argc, argv[argc]);
-    return 0;
+\begin{minted}{C}
+#include <unistd.h>
+#include <stdio.h>
+int main(int argc, char **argv) {
+  pid_t id;
+  int status;
+  while (--argc && (id=fork())) {
+    waitpid(id,&status,0); /* Wait for child*/
   }
-\end{lstlisting}
+  printf("%d:%s\n", argc, argv[argc]);
+  return 0;
+}
+\end{minted}
 
 Another example is below.
-This is the amazing parallel apparent-O(N) \emph{sleepsort} is today's silly winner. First published on \href{https://dis.4chan.org/read/prog/1295544154}{4chan in 2011}. A version of this awful but amusing sorting algorithm is shown below. This sorting algorithm is not guaranteed to produce the correct output.
+This is the amazing parallel apparent-O(N) \emph{sleepsort} is today's silly winner.
+First published on \href{https://dis.4chan.org/read/prog/1295544154}{4chan in 2011}.
+A version of this awful but amusing sorting algorithm is shown below.
+This sorting algorithm is not guaranteed to produce the correct output.
 
 \begin{lstlisting}[language=C]
-  int main(int c, char **v) {
-    while (--c > 1 && !fork());
-    int val  = atoi(v[c]);
-    sleep(val);
-    printf("%d\n", val);
-    return 0;
-  }
+int main(int c, char **v) {
+  while (--c > 1 && !fork());
+  int val  = atoi(v[c]);
+  sleep(val);
+  printf("%d\n", val);
+  return 0;
+}
 \end{lstlisting}
 
-The algorithm isn't actually O(N) because of how the system scheduler works. In essence, this program outsources the actual sorting to the operating system (particularly the scheduler).
+Imagine that we ran this program like so
+
+\begin{lstlisting}
+$ ./ssort 1 3 2 4
+\end{lstlisting}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=.3\textwidth]{processes/drawings/sleepsort_timing.png}
+\caption{Timing of sorting 1, 3, 2, 4}
+\end{figure}
+
+The algorithm isn't actually O(N) because of how the system scheduler works.
+In essence, this program outsources the actual sorting to the operating system.
 
 \subsection{What is a fork bomb?}
 
@@ -377,17 +402,17 @@ There are various signals defined by the operating system, two of which you may 
 Here is an example of a simple user defined signal handler:
 
 \begin{lstlisting}[language=C]
-  void handler(int signum) {
-    write(1, "signaled!", 9);
-    // we don't need the signum because we are only catching SIGINT
-    // if you want to use the same piece of code for multiple
-    // signals, check the signum
-  }
-  int main() {
-    signal(SIGINT, handler);
-    while(1) ;
-    return 0;
-  }
+void handler(int signum) {
+  write(1, "signaled!", 9);
+  // we don't need the signum because we are only catching SIGINT
+  // if you want to use the same piece of code for multiple
+  // signals, check the signum
+}
+int main() {
+  signal(SIGINT, handler);
+  while(1) ;
+  return 0;
+}
 \end{lstlisting}
 
 A signal has four states in its life cycle: generated, sent, pending, and received state. These refer to when a process generates a signal, the kernel sends a signal, the kernel is about to deliver a signal, and when the kernel delivers a signal, each of which take some time to do.
@@ -436,45 +461,43 @@ Key differences between the parent and the child include:
 If the parent process wants to wait for the child to finish, it must use \keyword{waitpid} (or \keyword{wait}), both of which wait for a child to change process states, which can be one of the following:
 
 \begin{enumerate}
-    \item the child terminated
-    \item the child was stopped by a signal
-    \item the child was resumed by a signal
+\item The child terminated
+\item The child was stopped by a signal
+\item The child was resumed by a signal
 \end{enumerate}
 
-Note: These can be set to be non-blocking, which means they will return immediately, letting you know if the child has exited.
+Note that waitpid can be set to be non-blocking, which means they will return immediately, letting you know if the child has exited.
 
 \begin{lstlisting}[language=C]
-  pid_t child_id = fork();
-  if (child_id == -1) { perror("fork"); exit(EXIT_FAILURE);}
-  if (child_id > 0) {
-    // We have a child! Get their exit code
-    int status;
-    waitpid( child_id, &status, 0 );
-    // code not shown to get exit status from child
-  } else { // In child ...
-    // start calculation
-    exit(123);
-  }
+pid_t child_id = fork();
+if (child_id == -1) { perror("fork"); exit(EXIT_FAILURE);}
+if (child_id > 0) {
+  // We have a child! Get their exit code
+  int status;
+  waitpid( child_id, &status, 0 );
+  // code not shown to get exit status from child
+} else { // In child ...
+  // start calculation
+  exit(123);
+}
 \end{lstlisting}
 
 \keyword{wait} is a simpler version of \keyword{waitpid}.
 \keyword{wait} accepts a pointer to an integer and waits on any child process.
 After the first one changes state, \keyword{wait} returns.
 Here is the behavior of \keyword{waitpid}:
-\begin{enumerate}
-    \item 
-        You \emph{can} wait on a specific process, or you can pass in special values for the \keyword{pid} to do different things (check the man pages).
 
-    \item 
-        The last parameter to waitpid is an option parameter.
-        The options are listed below:
-            \begin{enunmerate}
-                \item WNOHANG - Return whether or not the searched process has exited
-                \item WNOWAIT - Wait, but leave the child wait-able by another wait call
-                \item WEXITED - Wait for exited children
-                \item WSTOPPED - Wait for stopped children
-                \item WCONTINUED - Wait for continued children
-            \end{enunmerate}
+\begin{enumerate}
+\item You \emph{can} wait on a specific process, or you can pass in special values for the \keyword{pid} to do different things (check the man pages).
+\item The last parameter to waitpid is an option parameter.
+The options are listed below:
+  \begin{enunmerate}
+      \item WNOHANG - Return whether or not the searched process has exited
+      \item WNOWAIT - Wait, but leave the child wait-able by another wait call
+      \item WEXITED - Wait for exited children
+      \item WSTOPPED - Wait for stopped children
+      \item WCONTINUED - Wait for continued children
+  \end{enunmerate}
 \end{enumerate}
 
 Exit statuses or the value stored in the integer pointer for both of the calls above are explained below.
@@ -485,19 +508,21 @@ To find the return value of \keyword{main()} or value included in \keyword{exit(
 See \keyword{wait}/\keyword{waitpid} man page for more information.
 
 \begin{lstlisting}[language=C]
-  int status;
-  pid_t child = fork();
-  if (child == -1) return 1; //Failed
-  if (child > 0) { /* I am the parent - wait for the child to finish */
-    pid_t pid = waitpid(child, &status, 0);
-    if (pid != -1 && WIFEXITED(status)) {
-      int low8bits = WEXITSTATUS(status);
-      printf("Process %d returned %d" , pid, low8bits);
-    }
-  } else { /* I am the child */
-    // do something interesting
-    execl("/bin/ls", "/bin/ls", ".", (char *) NULL); // "ls ."
+int status;
+pid_t child = fork();
+if (child == -1) {
+    return 1; //Failed
+}
+if (child > 0) { /* I am the parent - wait for the child to finish */
+  pid_t pid = waitpid(child, &status, 0);
+  if (pid != -1 && WIFEXITED(status)) {
+    int exit_status = WEXITSTATUS(status);
+    printf("Process %d returned %d" , pid, exit_status);
   }
+} else { /* I am the child */
+  // do something interesting
+  execl("/bin/ls", "/bin/ls", ".", (char *) NULL); // "ls ."
+}
 \end{lstlisting}
 
 A process can only have 256 return values, the rest of the bits are informational, and the information is extracted with bit shifting.
@@ -510,14 +535,14 @@ As an example above, you should use the \keyword{WIFSTOPPED} to check if a proce
 As such there is no need to memorize the following. This is just a high level overview of how information is stored inside the status variables. From the \keyword{sys/wait.h} of an old Berkeley Standard Distribution(BSD) kernel \cite{sys/wait.h}:
 
 \begin{lstlisting}[language=C]
-  /* If WIFEXITED(STATUS), the low-order 8 bits of the status. */
-  #define _WSTATUS(x) (_W_INT(x) & 0177)
-  #define _WSTOPPED 0177    /* _WSTATUS if process is stopped */
-  #define WIFSTOPPED(x) (_WSTATUS(x) == _WSTOPPED)
-  #define WSTOPSIG(x) (_W_INT(x) >> 8)
-  #define WIFSIGNALED(x)  (_WSTATUS(x) != _WSTOPPED && _WSTATUS(x) != 0)
-  #define WTERMSIG(x) (_WSTATUS(x))
-  #define WIFEXITED(x)  (_WSTATUS(x) == 0)
+/* If WIFEXITED(STATUS), the low-order 8 bits of the status. */
+#define _WSTATUS(x) (_W_INT(x) & 0177)
+#define _WSTOPPED 0177    /* _WSTATUS if process is stopped */
+#define WIFSTOPPED(x) (_WSTATUS(x) == _WSTOPPED)
+#define WSTOPSIG(x) (_W_INT(x) >> 8)
+#define WIFSIGNALED(x)  (_WSTATUS(x) != _WSTOPPED && _WSTATUS(x) != 0)
+#define WTERMSIG(x) (_WSTATUS(x))
+#define WIFEXITED(x)  (_WSTATUS(x) == 0)
 \end{lstlisting}
 
 There is a convention about exit codes.
@@ -552,27 +577,27 @@ The parent gets the signal SIGCHLD when a child completes, so the signal handler
 A slightly simplified version is shown below.
 
 \begin{lstlisting}[language=C]
-  pid_t child;
+pid_t child;
 
-  void cleanup(int signal) {
-    int status;
-    waitpid(child, &status, 0);
-    write(1,"cleanup!\n",9);
-  }
-  int main() {
-    // Register signal handler BEFORE the child can finish
-    signal(SIGCHLD, cleanup); // or better - sigaction
-    child = fork();
-    if (child == -1) { exit(EXIT_FAILURE);}
+void cleanup(int signal) {
+  int status;
+  waitpid(child, &status, 0);
+  write(1,"cleanup!\n",9);
+}
+int main() {
+  // Register signal handler BEFORE the child can finish
+  signal(SIGCHLD, cleanup); // or better - sigaction
+  child = fork();
+  if (child == -1) { exit(EXIT_FAILURE);}
 
-    if (child == 0) { /* I am the child!*/
-      // Do background stuff e.g. call exec
-    } else { /* I'm the parent! */
-      sleep(4); // so we can see the cleanup
-      puts("Parent is done");
-    }
-    return 0;
+  if (child == 0) { /* I am the child!*/
+    // Do background stuff e.g. call exec
+  } else { /* I'm the parent! */
+    sleep(4); // so we can see the cleanup
+    puts("Parent is done");
   }
+  return 0;
+}
 \end{lstlisting}
 
 The above example however misses a couple of subtle points.
@@ -585,12 +610,12 @@ The above example however misses a couple of subtle points.
 A more robust code to reap zombies is shown below.
 
 \begin{lstlisting}[language=C]
-  void cleanup(int signal) {
-    int status;
-    while (waitpid((pid_t) (-1), 0, WNOHANG) > 0) {
+void cleanup(int signal) {
+  int status;
+  while (waitpid((pid_t) (-1), 0, WNOHANG) > 0) {
 
-    }
   }
+}
 \end{lstlisting}
 
 \section{exec}
@@ -613,50 +638,50 @@ Note that if you pass information via an array, the last element must be followe
 An example of this code is below. This code executes \keyword{ls}
 
 \begin{lstlisting}[language=C]
-  #include <unistd.h>
-  #include <sys/types.h>
-  #include <sys/wait.h>
-  #include <stdlib.h>
-  #include <stdio.h>
+#include <unistd.h>
+#include <sys/types.h>
+#include <sys/wait.h>
+#include <stdlib.h>
+#include <stdio.h>
 
-  int main(int argc, char**argv) {
-    pid_t child = fork();
-    if (child == -1) return EXIT_FAILURE;
-    if (child) { /* I have a child! */
-      int status;
-      waitpid(child , &status ,0);
-      return EXIT_SUCCESS;
+int main(int argc, char**argv) {
+  pid_t child = fork();
+  if (child == -1) return EXIT_FAILURE;
+  if (child) { /* I have a child! */
+    int status;
+    waitpid(child , &status ,0);
+    return EXIT_SUCCESS;
 
-    } else { /* I am the child */
-      // Other versions of exec pass in arguments as arrays
-      // Remember first arg is the program name
-      // Last arg must be a char pointer to NULL
+  } else { /* I am the child */
+    // Other versions of exec pass in arguments as arrays
+    // Remember first arg is the program name
+    // Last arg must be a char pointer to NULL
 
-      execl("/bin/ls", "/bin/ls", "-alh", (char *) NULL);
+    execl("/bin/ls", "/bin/ls", "-alh", (char *) NULL);
 
-      // If we get to this line, something went wrong!
-      perror("exec failed!");
-    }
+    // If we get to this line, something went wrong!
+    perror("exec failed!");
   }
+}
 \end{lstlisting}
 
 Try to decode the following example
 
 \begin{lstlisting}[language=C]
-  #include <unistd.h>
-  #include <fcntl.h> // O_CREAT, O_APPEND etc. defined here
+#include <unistd.h>
+#include <fcntl.h> // O_CREAT, O_APPEND etc. defined here
 
-  int main() {
-    close(1); // close standard out
-    open("log.txt", O_RDWR | O_CREAT | O_APPEND, S_IRUSR | S_IWUSR);
-    puts("Captain's log");
-    chdir("/usr/include");
-    // execl( executable,  arguments for executable including program name and NULL at the end)
+int main() {
+  close(1); // close standard out
+  open("log.txt", O_RDWR | O_CREAT | O_APPEND, S_IRUSR | S_IWUSR);
+  puts("Captain's log");
+  chdir("/usr/include");
+  // execl( executable,  arguments for executable including program name and NULL at the end)
 
-    execl("/bin/ls", /* Remaining items sent to ls*/ "/bin/ls", ".", (char *) NULL); // "ls ."
-    perror("exec failed");
-    return 0;
-  }
+  execl("/bin/ls", /* Remaining items sent to ls*/ "/bin/ls", ".", (char *) NULL); // "ls ."
+  perror("exec failed");
+  return 0;
+}
 \end{lstlisting}
 
 The example writes "Captain's Log" to a file then prints everything in /usr/include to the same file.
@@ -676,29 +701,29 @@ POSIX details all of the semantics that exec needs to cover \cite{exec_2018}.
 What you need to know is the following bullet points.
 
 \begin{enumerate}
-    \item File descriptors are preserved after an exec. That means if you open a file, and you forget to close it, it remains open in the child.
-          This is a problem because usually the child doesn't know about those file descriptors. Nevertheless, they take up a slot in the file descriptor table and could possible prevent other processes from accessing the file.
-          The one exception to this is if the file descriptor has the Close-On-Exec flag set (O\_CLOEXEC) -- we will go over setting flags later.
-    \item Various signal semantics. The exec'd processes preserve the signal mask and the pending signal set, but does not preserve the signal handlers because it is a different program.
-    \item Environment variables are preserved unless using an environ version of exec
-    \item The operating system may open up 0, 1, 2 -- stdin, stdout, stderr, if they are closed after exec, most of the time they leave them closed.
-    \item The exec'ed process runs as the same PID and has the same parent and process group as the previous process.
-    \item The exec'ed process is run on the same user and group with the same working directory
+\item File descriptors are preserved after an exec. That means if you open a file, and you forget to close it, it remains open in the child.
+  This is a problem because usually the child doesn't know about those file descriptors. Nevertheless, they take up a slot in the file descriptor table and could possible prevent other processes from accessing the file.
+  The one exception to this is if the file descriptor has the Close-On-Exec flag set (O\_CLOEXEC) -- we will go over setting flags later.
+\item Various signal semantics. The exec'd processes preserve the signal mask and the pending signal set, but does not preserve the signal handlers because it is a different program.
+\item Environment variables are preserved unless using an environ version of exec
+\item The operating system may open up 0, 1, 2 -- stdin, stdout, stderr, if they are closed after exec, most of the time they leave them closed.
+\item The exec'ed process runs as the same PID and has the same parent and process group as the previous process.
+\item The exec'ed process is run on the same user and group with the same working directory
 \end{enumerate}
 
 \subsection{Shortcuts}
 
-\keyword{system} pre-packs the above code \cite[P. 371]{jones2010wg14}. Here is how to use it:
+\keyword{system} pre-packs the above code \cite[P. 371]{jones2010wg14}.
+The following is a snippet of how to use system..
 
 \begin{lstlisting}[language=C]
+#include <unistd.h>
+#include <stdlib.h>
 
-  #include <unistd.h>
-  #include <stdlib.h>
-
-  int main(int argc, char**argv) {
-    system("ls"); // execl("/bin/sh", "/bin/sh", "-c", "\\"ls\\"")
-    return 0;
-  }
+int main(int argc, char**argv) {
+  system("ls"); // execl("/bin/sh", "/bin/sh", "-c", "\\"ls\\"")
+  return 0;
+}
 \end{lstlisting}
 
 The \keyword{system} call will fork, execute the command passed by parameter and the original parent process will wait for this to finish.
@@ -711,10 +736,10 @@ It also tends to be a huge security risk.
 By allowing someone to access a shell version of the environment, you can run into all sorts of problems:
 
 \begin{lstlisting}[language=C]
-  int main(int argc, char**argv) {
-    char *to_exec = asprintf("ls %s", argv[1]);
-    system(to_exec);
-  }
+int main(int argc, char**argv) {
+  char *to_exec = asprintf("ls %s", argv[1]);
+  system(to_exec);
+}
 \end{lstlisting}
 
 Passing something along the lines of argv[1] = "; sudo su" is a huge security risk called \href{https://en.wikipedia.org/wiki/Privilege\_escalation}{privilege escalation}.
@@ -726,21 +751,27 @@ The original process calls fork, which creates a child process.
 The child process then uses exec to start execution of a new program.
 Meanwhile the parent uses \keyword{wait} (or \keyword{waitpid}) to wait for the child process to finish.
 
-\begin{lstlisting}[language=C][language=C]
-  #include <unistd.h>
+\begin{figure}[H]
+\centering
+\includegraphics[width=.7\textwidth]{processes/drawings/fork_exec_wait.png}
+\caption{Fork, exec, wait diagram}
+\end{figure}
 
-  int main() {
-    pid_t pid = fork();
-    if (pid < 0) { // fork failure
-      exit(1);
-    } else if (pid > 0) { // I am the parent
-      int status;
-      waitpid(pid, &status, 0);
-    } else { // I am the child
-      execl("/bin/ls", "/bin/ls", NULL);
-      exit(1); // For safety.
-    }
+\begin{lstlisting}[language=C][language=C]
+#include <unistd.h>
+
+int main() {
+  pid_t pid = fork();
+  if (pid < 0) { // fork failure
+    exit(1);
+  } else if (pid > 0) { // I am the parent
+    int status;
+    waitpid(pid, &status, 0);
+  } else { // I am the child
+    execl("/bin/ls", "/bin/ls", NULL);
+    exit(1); // For safety.
   }
+}
 \end{lstlisting}
 
 You may ask why we didn't just execute ls directly.
@@ -763,8 +794,8 @@ $ echo $PATH
 How would you get and set these in C/C++? You can use the \keyword{getenv} and \keyword{setenv} function respectively.
 
 \begin{lstlisting}[language=C]
-  char* home = getenv("HOME"); // Will return /home/bhuvy
-  setenv("HOME", "/home/bhuvan", 1 /*set overwrite to true*/ );
+char* home = getenv("HOME"); // Will return /home/bhuvy
+setenv("HOME", "/home/bhuvan", 1 /*set overwrite to true*/ );
 \end{lstlisting}
 
 Environment variables are important because they are inherited between processes and can be used the specify a standard set of behaviors \cite{env_std_2018}, although you don't need to memorize the options.
@@ -775,36 +806,25 @@ Another security related concern is that environment variables cannot be read by
 Read the man pages and the POSIX groups above!
 
 \begin{itemize}
-    \item \href{http://man7.org/linux/man-pages/man2/fork.2.html}{fork}
-    \item \href{http://man7.org/linux/man-pages/man3/exec.3.html}{exec}
-    \item \href{http://man7.org/linux/man-pages/man2/wait.2.html}{wait}
+\item \href{http://man7.org/linux/man-pages/man2/fork.2.html}{fork}
+\item \href{http://man7.org/linux/man-pages/man3/exec.3.html}{exec}
+\item \href{http://man7.org/linux/man-pages/man2/wait.2.html}{wait}
 \end{itemize}
 
 \subsection{Topics}
 
 \begin{itemize}
-    \item
-          Correct use of fork, exec and waitpid
-    \item
-          Using exec with a path
-    \item
-          Understanding what fork and exec and waitpid do. E.g. how to use their return values.
-    \item
-          SIGKILL vs SIGSTOP vs SIGINT.
-    \item
-          What signal is sent when you press CTRL-C
-    \item
-          Using kill from the shell or the kill POSIX call.
-    \item
-          Process memory isolation.
-    \item
-          Process memory layout (where is the heap, stack etc; invalid memory addresses).
-    \item
-          What is a fork bomb, zombie and orphan? How to create/remove them.
-    \item
-          getpid vs getppid
-    \item
-          How to use the WAIT exit status macros WIFEXITED etc.
+\item Correct use of fork, exec and waitpid
+\item Using exec with a path
+\item Understanding what fork and exec and waitpid do. E.g. how to use their return values.
+\item SIGKILL vs SIGSTOP vs SIGINT.
+\item What signal is sent when you press CTRL-C
+\item Using kill from the shell or the kill POSIX call.
+\item Process memory isolation.
+\item Process memory layout (where is the heap, stack etc; invalid memory addresses).
+\item What is a fork bomb, zombie and orphan? How to create/remove them.
+\item getpid vs getppid
+\item How to use the WAIT exit status macros WIFEXITED etc.
 \end{itemize}
 
 \section{Questions/Exercises}
