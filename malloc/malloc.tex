@@ -193,16 +193,13 @@ During program execution, memory is allocated and de-allocated, so there will be
 The memory allocator needs to keep track of which parts of the heap are currently allocated and which are parts are available.
 Suppose our current heap size is 64K, though not all of it is in use because some earlier malloc'd memory has already been freed by the program.
 Let's say that our heap looks like the following table.
-\\
-\begin{center}
-\begin{tabular}{ | c | c | c | c | c | c | c | }
-\hline
-16KiB & 10KiB & 1KiB & 1KiB & 30KiB & 4KiB & 2KiB \\ \hline
-free & allocated & free & allocated & free & allocated & free \\
-\hline
-\end{tabular}
-\end{center}
-\\
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=.9\textwidth]{malloc/drawings/heap_empty.png}
+\caption{Empty heap blocks}
+\end{figure}
+
 If a new malloc request for 2KiB is executed (\keyword{malloc(2048)}), where should \keyword{malloc} reserve the memory?
 It could use the last 2KiB hole, which happens to be the perfect size!
 Or it could split one of the other two free holes.
@@ -210,54 +207,41 @@ These choices represent different placement strategies.
 Whichever hole is chosen, the allocator will need to split the hole into two.
 The newly allocated space, which will be returned to the program and a smaller hole if there is spare space left over.
 A perfect-fit strategy finds the smallest hole that is of sufficient size (at least 2KiB):
-\\
-\begin{center}
-\begin{tabular}{ | c | c | c | c | c | c | c | }
-\hline
-16KiB & 10KiB & 1KiB & 1KiB & 30KiB & 4KiB & 2KiB \\ \hline
-free & allocated & free & allocated & free & allocated & \keyword{HERE!} \\
-\hline
-\end{tabular}
-\end{center}
-\\
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=.9\textwidth]{malloc/drawings/heap_best_fit.png}
+\caption{Best fit finds an exact match}
+\end{figure}
+
 A worst-fit strategy finds the largest hole that is of sufficient size so break the 30KiB hole into two:
-\\
-\begin{center}
-\begin{tabular}{ | c | c | c | c | c | c | c | c | }
-\hline
-16KiB & 10KiB & 1KiB & 1KiB & 2KiB & 28KiB & 4KiB & 2KiB \\ \hline
-free & allocated & free & allocated & \keyword{HERE!} & free & allocated & free \\
-\hline
-\end{tabular}
-\end{center}
-\\
-A first-fit strategy finds the first available hole that is of sufficient size so break the 16KiB hole into two:
-\\
-\begin{center}
-\begin{tabular}{ | c | c | c | c | c | c | c | c | }
-\hline
-2KiB & 14KiB & 10KiB & 1KiB & 1KiB & 30KiB & 4KiB & 2KiB \\ \hline
-\keyword{HERE!} & free & allocated & free & allocated & free & allocated & free \\
-\hline
-\end{tabular}
-\end{center}
-\\
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=.9\textwidth]{malloc/drawings/heap_worst_fit.png}
+\caption{Worst fit finds the worst match}
+\end{figure}
+
+
+A first-fit strategy finds the first available hole that is of sufficient size so break the 16KiB hole into two.
+We don't even have to look through the entire heap!
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=.5\textwidth]{malloc/drawings/heap_first_fit.png}
+\caption{First fit finds the first match}
+\end{figure}
+
+One thing to keep in mind is that placement strategies don't need to replace the block.
+For example, our first fit allocator could've just returned the original block unbroken.
+Notice that this would lead to about 14KiB of space to be unused by the user and the allocator.
+We call this internal fragmentation.
 
 To introduce another concept, external fragmentation is that even though we have enough memory in the heap, it may be divided up in a way that wear are not able to give the full amount.
-In the example below, of the 64KiB of heap memory, 17KiB is allocated, and 47KiB is free.
-However the largest available block is only 30KiB because our available unallocated heap memory is fragmented into smaller pieces.
-\\
-\begin{center}
-\begin{tabular}{ | c | c | c | c | c | c | c | }
-\hline
-16KiB & 10KiB & 1KiB & 1KiB & 30KiB & 4KiB & 2KiB \\ \hline
-free & allocated & free & allocated & free & allocated & free \\
-\hline
-\end{tabular}
-\end{center}
-\\
+In our previous example, of the 64KiB of heap memory, 17KiB is allocated, and 47KiB is free.
+However, the largest available block is only 30KiB because our available unallocated heap memory is fragmented into smaller pieces.
 
-\subsection{Placement Strategy pros and cons}
+\subsection{Placement Strategy Pros and Cons}
 
 The challenges of writing a heap allocator are
 \begin{itemize}
@@ -270,7 +254,6 @@ The challenges of writing a heap allocator are
 
 Different strategies affect the fragmentation of heap memory in non-obvious ways, which only are discovered by mathematical analysis or careful simulations under real-world conditions (for example simulating the memory allocation requests of a database or web server).
 
-
 First we will have a more mathematical, one-shot approach to each of these algorithms \cite{Garey:1972:WAM:800152.804907}. The paper describes a scenario where you have a certain number of bins, and a certain number of allocations, and you are trying to fit the allocations in as few bins as possible, hence using as little memory as possible.
 The paper discusses theoretical implications and puts a nice limit on the ratios in the long run between the ideal memory usage and the actual memory usage.
 For those who are interested, the paper concludes that actual memory usage over ideal memory usage as the number of bins increases -- the bins can have any distribution -- is about 1.7 for first fit and lower bounded by 1.7 for best fit.
@@ -278,7 +261,7 @@ The problem with this analysis is that very few real world applications need thi
 Video game object allocations will typically designate a different subheap for each level and fill up that subheap if they need a quick memory allocation scheme that they can throw away.
 
 In practice, we'll be using the result from a more rigorous survey conducted in 2005 \cite{10.1007/3-540-60368-9_19}.
-The paper makes sure to note that memory allocation is a moving target.
+The survey makes sure to note that memory allocation is a moving target.
 A good allocation scheme to one program may not be a good allocation scheme to another program.
 Programs don't uniformly follow the distribution of allocations, so very.
 The survey talks about all the allocation schemes that we have introduced as well as a few extra ones.
@@ -289,11 +272,11 @@ Here are some summarized takeaways
   A way to get around this could be to set a threshold for splitting.
   This small splitting isn't observed as frequently under regular work load.
   In addition, the worst case behavior of best fit is bad, but doesn't usually happen p. 43.
-\item The paper also talks about an important distinction of first fit.
+\item The survey also talks about an important distinction of first fit.
   There are multiple notions of first.
   First could be ordered in terms of time of free, or it could be ordered through the addresses of the start of the block, or it could be ordered by the time of last free -- first being least recently used.
   The survey didn't go too in depth into the performance of each, but did make a note that address ordered and least recently used lists ended up with better performance than the most recently used first.
-\item The paper concludes by first saying that under simulated random (assuming uniform at random) work loads, best fit and first fit do as well. Even in practice, both best and address ordered first fit do about as equally as well with a splitting threshold and coalescing. The reasons why aren't entirely known.
+\item The survey concludes by first saying that under simulated random (assuming uniform at random) work loads, best fit and first fit do as well. Even in practice, both best and address ordered first fit do about as equally as well with a splitting threshold and coalescing. The reasons why aren't entirely known.
 \end{enumerate}
 
 Some additional notes we make
@@ -312,31 +295,28 @@ Some additional notes we make
 A memory allocator needs to keep track of which bytes are currently allocated and which are available for use.
 This section introduces the implementation and conceptual details of building an allocator, or the actual code that implements \keyword{malloc} and \keyword{free}.
 
-Conceptually we are thinking about creating linked lists and lists of blocks!
+Conceptually, we are thinking about creating linked lists and lists of blocks!
 Please enjoy the following ASCII art.
 bt is short for boundary tag.
 
-\begin{verbatim}
-| I am one block  | I am another   | Tiny block  |
-|-----------------|----------------|-------------|
-| meta | space |bt| meta | space|bt| meta |spc|bt|
-|-----------------|----------------|-------------|
-\end{verbatim}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=.7\textwidth]{malloc/drawings/malloc_patching.png}
+\caption{3 Adjacent Memory blocks}
+\end{figure}
 
 We will have implicit pointers in our next block, meaning that we can get from one block to another using addition.
 This is in contrast to an explicit \keyword{metadata *next} field in our meta block.
 
-\begin{verbatim}
-|-----------------|
-p                 |
-|-----------------|----------------|-------------|
-| meta | space |bt| meta | space|bt| meta |spc|bt|
-|-----------------|----------------|-------------|
+\begin{figure}[H]
+\centering
+\includegraphics[width=.5\textwidth]{malloc/drawings/malloc_addition.png}
+\caption{Malloc addition}
+\end{figure}
 
-If p is char pointer to the start of our block, to get to the next block would be
-
-p + sizeof(meta) + p->space + sizeof(boundary_tag)
-\end{verbatim}
+One can grab the next block by finding the end of the current one.
+That is what we mean by ``implicit list''.
 
 The actual spacing may be different.
 The metadata can contain different things.
@@ -355,14 +335,14 @@ Let's think of it in terms of a simple implementation.
     char data[0];
   } block;
   block *p = sbrk(100);
-  p->size = 100 - sizeof(*p) - sizeof(boundary_tag);
+  p->size = 100 - sizeof(*p) - sizeof(BTag);
   // Other block allocations
 \end{lstlisting}
 
 We could navigate from one block to the next block just by adding the block's size.
 
 \begin{lstlisting}[language=C]
-p + sizeof(meta) + p->block_size + sizeof(boundary_tag)
+p + sizeof(metadata) + p->block_size + sizeof(BTag)
 \end{lstlisting}
 
 Make sure to get your casting right!
@@ -422,21 +402,13 @@ After setting up your fields then it becomes simply looping through each of the 
 
 Here is a visual representation of what happens.
 As for some more ascii art, if we assume that we have a block that looks like this, we want to spit if the allocation is let's say 16 bytes
-\begin{verbatim}
-Check if this block is free
+The split we'll have to do is the following.
 
-|-------------------------------------------------|
-| meta | 40 bytes ---------------------------->|bt|
-|-------------------------------------------------|
-\end{verbatim}
-
-Here is what the heap will look like after
-
-\begin{verbatim}
-|-------------------------|-----------------------|
-| meta | 16 bytes ---->|bt| meta | 12 bytes -->|bt|
-|-------------------------|-----------------------|
-\end{verbatim}
+\begin{figure}[H]
+\centering
+\includegraphics[width=.7\textwidth]{malloc/drawings/malloc_split.png}
+\caption{Malloc split}
+\end{figure}
 
 This is before alignment concerns as well.
 
@@ -451,6 +423,7 @@ Most of you experienced this in your architecture classes if there was no memory
 As \keyword{malloc} does not know how the user will use the allocated memory, the pointer returned to the program needs to be aligned for the worst case, which is architecture dependent.
 
 From glibc documentation, the glibc \keyword{malloc} uses the following heuristic \cite{vma_paging}
+
 \begin{quote}
 The block that malloc gives you is guaranteed to be aligned so that it can hold any type of data. On GNU systems, the address is always a multiple of eight on most systems, and a multiple of 16 on 64-bit systems." For example, if you need to calculate how many 16 byte units are required, don't forget to round up.
 \end{quote}
@@ -496,19 +469,11 @@ With this information you can now jump backwards!
 Take for example a double coalesce.
 If we wanted to free the middle block we need to turn the surrounding blocks into one big blocks
 
-\begin{verbatim}
-|-----------------|----------------|-------------|
-| free | space |bt| meta | space|bt| free |spc|bt|
-|-----------------|----------------|-------------|
-\end{verbatim}
-
-Becomes a single free block as below
-
-\begin{verbatim}
-|------------------------------------------------|
-| free | space ------------------------------>|bt|
-|------------------------------------------------|
-\end{verbatim}
+\begin{figure}[H]
+\centering
+\includegraphics[width=.9\textwidth]{malloc/drawings/malloc_double_coalesce.png}
+\caption{Free double coalesce}
+\end{figure}
 
 \subsection{Performance}
 
@@ -542,19 +507,11 @@ typedef struct {
 
 Here is what that would look like along with our implicit linked list
 
-\begin{verbatim}
-Free list pointers above and below
-
->--++                                ++---------->
-   \/                                /\
-|-----------------|----------------|-------------|
-| free | space |bt| meta | space|bt| free |spc|bt|
-|-----------------|----------------|-------------|
-   \/                                /\
-   ++--------------------------------++
-\end{verbatim}
-
-Again apologies for the ascii art, we are really system programmers not computer graphics people.
+\begin{figure}[H]
+\centering
+\includegraphics[width=.7\textwidth]{malloc/drawings/free_list.png}
+\caption{Free list}
+\end{figure}
 
 
 Where do we store the pointers of our linked list?
@@ -564,6 +521,17 @@ Consequently, explicit free lists require more code and complexity.
 With explicit linked lists a fast and simple `Find-First' algorithm is used to find the first sufficiently large link.
 However, since the link order can be modified, this corresponds to different placement strategies.
 For example if the links are maintained from largest to smallest, then this produces a `Worst-Fit' placement strategy.
+
+There are edge cases though, consider how you'd maintain your free list if you also have to perform a double coalesce.
+We've included a figure with a common mistake.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=.7\textwidth]{malloc/drawings/free_list_ptrs.png}
+\caption{Free list good and bad coalesce}
+\end{figure}
+
+We recommend when trying to implement malloc that you draw out all the cases conceptually and then write the code.
 
 \subsubsection{Explicit linked list insertion policy}
 
