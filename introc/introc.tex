@@ -4,17 +4,13 @@
 
 \gls{C} is the de-facto programming language to do serious system serious programming.
 Why? Most kernels are written in largely in C.
-The \gls{Linux kernel} \cite{Love} and the XNU kernel \citet{xnukernel} of which Mac OS X is based off.
-The Windows Kernel uses C++, but doing system programming on that is much harder on windows that UNIX for beginner system programmers.
-Most of you have some experience with C++, but C is a different beast entirely.
-You don't have nice abstractions like classes and Resource Acquisition Is Initialization (RAII) to clean up memory.
-You are going to have to do that yourself.
-C gives you much more of an opportunity to shoot yourself in the foot, but it lets you do things at a much more fine-grained level.
+The \gls{Linux kernel} \cite{Love} and the XNU kernel \citet{xnukernel} of which Mac OS X is based are written in C and have C API - Application Programming Interface.
+The Windows Kernel uses C++, but doing system programming on that is much harder on windows that UNIX for novice system programmers.
+C doesn't have nice abstractions like classes and Resource Acquisition Is Initialization (RAII) to clean up memory.
+C also gives you much more of an opportunity to shoot yourself in the foot, but it lets you do things at a much more fine-grained level.
 
 \input{introc/history_of_c.tex}
-\input{introc/features.tex}
 \input{introc/crash_course_introduction_to_c.tex}
-\input{introc/preprocessor.tex}
 \input{introc/language_facilities.tex}
 \input{introc/the_c_and_linux.tex}
 \input{introc/common_c_functions.tex}

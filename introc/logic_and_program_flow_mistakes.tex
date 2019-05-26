@@ -4,34 +4,39 @@ These are a set of mistakes that may or may not make sense within the context of
 
 \subsection{Equal vs. Equality}
 
-Confusingly in C the assignment operator also returns the assigned value. Most of the time it is ignored. We can use it to initialize multiple things on the same line.
-
+Confusingly in C, the assignment operator also returns the assigned value.
+Most of the time it is ignored.
+We can use it to initialize multiple things on the same line.
 
 \begin{lstlisting}[language=C]
   int p1, p2;
   p1 = p2 = 0;
 \end{lstlisting}
 
-More confusingly, if we forget an equals sign in the equality operator we will end up assigning that variable. Most of the time this isn't what we want to do.
+More confusingly, if we forget an equals sign in the equality operator we will end up assigning that variable.
+Most of the time this isn't what we want to do.
 
 \begin{lstlisting}[language=C]
 int answer = 3; // Will print out the answer.
 if (answer = 42) { printf("I've solved the answer! It's %d", answer);}
 \end{lstlisting}
 
-The quick way to fix that is to get in the habit of putting constants first. This mistake is common enough in while loop conditions, that most modern programming languages do not let you assign in a while loop without some kind of warning, and some do not allow it at all.
+The quick way to fix that is to get in the habit of putting constants first.
+This mistake is common enough in while loop conditions, that most modern programming languages do not let you assign in a while loop without some kind of warning, and some do not allow it at all.
 
 \begin{lstlisting}[language=C]
 if (42 = answer) { printf("I've solved the answer! It's %d", answer);}
 \end{lstlisting}
 
-There are cases where we want to do it. A common example is getline.
+There are cases where we want to do it.
+A common example is getline.
 
 \begin{lstlisting}[language=C]
 while ((nread = getline(&line, &len, stream)) != -1)
 \end{lstlisting}
 
-This piece of code calls getline, and assigns the return value or the number of bytes read to nread. It also in the same line checks if that value is -1 and if so terminates the loop.
+This piece of code calls getline, and assigns the return value or the number of bytes read to nread.
+It also in the same line checks if that value is -1 and if so terminates the loop.
 It is always good practice to put parenthesis around any assignment condition.
 
 \subsection{Undeclared or incorrectly prototyped functions}
@@ -45,8 +50,9 @@ time_t start = time();
 The system function `time' actually takes a parameter a pointer to some memory that can receive the time\_t structure or NULL.
 The compiler did not catch this error because the programmer did not provide a valid function prototype by including \keyword{time.h}.
 
-More confusingly this could compile, work for decades and then crash. The reason for that is that time would be found at link time, not compile time in the C standard library which almost surely is already in memory.
-Since we aren't passing a parameter in, we are hoping the arguments on the stack (any garbage) is zeroed out because if it isn't, time will try to write the result of the function to that garbage which will cause the program to SEGFAULT.
+More confusingly this could compile, work for decades and then crash.
+The reason for that is that time would be found at link time, not compile time in the C standard library which almost surely is already in memory.
+Since a parameter isn't being passed, we are hoping the arguments on the stack (any garbage) is zeroed out because if it isn't, time will try to write the result of the function to that garbage which will cause the program to SEGFAULT.
 
 \subsection{Extra Semicolons}
 
@@ -65,9 +71,8 @@ for(int i = 0; i < 5; i++){
 }
 \end{lstlisting}
 
-It is OK to have this kind of code, because the C language uses
-semicolons (;) to separate statements. If there is no statement in
-between semicolons, then there is nothing to do and the compiler moves on to the next statement
+It is OK to have this kind of code, because the C language uses semicolons (;) to separate statements.
+If there is no statement in between semicolons, then there is nothing to do and the compiler moves on to the next statement
 To save a lot of confusion, \textbf{always using braces.}
 It increases the number of lines of code, which is a great productivity metric.
 

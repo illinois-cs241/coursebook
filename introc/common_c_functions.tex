@@ -1,11 +1,18 @@
 \section{Common C Functions}
 
-To find more information about any functions, use the man pages. Note the man pages are organized into sections. Section 2 are System calls. Section 3 are C libraries. On the web, Google \keyword{man 7 open}. In the shell, \keyword{man -S2 open} or \keyword{man -S3 printf}
+To find more information about any functions, please use the man pages.
+Note the man pages are organized into sections.
+Section 2 are System calls.
+Section 3 are C libraries.
+On the web, Google \keyword{man 7 open}.
+In the shell, \keyword{man -S2 open} or \keyword{man -S3 printf}
 
 \subsection{Input / Output}
 
 In this section we will cover all the basic input and output functions in the standard library with references to system calls.
-Every process has three streams of data when it starts execution: standard in (for input to the program), standard out (for output from the program), and standard error (for error and debug messages). Usually, standard in is sourced from the terminal in which the program is being run in, and standard out is the same terminal. However, you can use redirection such that your program can send output and/or receive input, to and from a file, or other programs.
+Every process has three streams of data when it starts execution: standard input (for program input), standard output (for program output), and standard error (for error and debug messages).
+Usually, standard input is sourced from the terminal in which the program is being run in, and standard out is the same terminal.
+However, a programmer can use redirection such that their program can send output and/or receive input, to and from a file, or other programs.
 
 They are designated by the file descriptors 0 and 1 respectively. 2 is reserved for standard error which by library convention is unbuffered (i.e. IO operations are performed immediately).
 
@@ -33,14 +40,23 @@ printf("Debug: The string and int are stored at: %p and %p\n", name, &score );
 
 From the previous section,
 \keyword{printf} calls the system call \keyword{write}.
-\keyword{printf} includes an internal buffer so, to increase performance \keyword{printf} may not call \keyword{write} every time you call \keyword{printf}.
-Another quirk of printf it is forced to call \keyword{write} on a newline character.
-If one wants to \keyword{printf} to call write without a newline \keyword{fflush(\ FILE*\ inp\ )}.
-Lastly, \keyword{printf} is a C library function, while \keyword{write} is a system call system.
+\keyword{printf} is a C library function, while \keyword{write} is a system call system.
 
-There is no need over-optimize about using printf even if system calls are expensive- programs do it all the time.
+The buffering semantics of printf are a little complicated.
+ISO defines three types of streams \cite[P. 278]{ISON1124}
+\begin{itemize}
+\item Unbuffered, where the contents of the stream reach their destination as soon as possible.
+\item Line Buffered, where the contents of the stream reach their destination as soon as a newline is provided.
+\item Fully Buffered, where the contents of the stream reach their destination as soon as the buffer is full.
+\end{itemize}
 
-To print strings and single characters use \keyword{puts(\ name\ )} and \keyword{putchar(\ c\ )} where name is a pointer to a C string and c is just a \keyword{char}
+Standard Error is defined as ``not fully buffered'' \cite[P. 279]{ISON1124}.
+Standard Output and Input are merely defined to be fully buffered if and only if the stream destination is an interactive device.
+Usually, standard error will be unbuffered, standard input and output will be line buffered if the output is a terminal otherwise fully buffered.
+This relates to printf because printf merely uses the abstraction provided by the FILE interface and uses the above semantics to determine when to write.
+One can force a write by calling fflush() on the stream.
+
+To print strings and single characters, use \keyword{puts(char\ *name\ )} and \keyword{putchar(char\ c\ )}
 
 \begin{lstlisting}[language=C]
 puts("Current selection: ");
@@ -49,15 +65,14 @@ putchar('1');
 
 \subsubsection{Other streams}
 
-To print to other file streams use \keyword{fprintf(\ \_file\_\ ,\ "Hello\ \%s,\ score:\ \%d",\ name,\ score);} Where \_file\_ is either predefined `stdout' `stderr' or a FILE pointer that was returned by \keyword{fopen} or \keyword{fdopen}.
-You can also use file descriptors in the printf family of functions!
+To print to other file streams use \keyword{fprintf(\ \_file\_\ ,\ "Hello\ \%s,\ score:\ \%d",\ name,\ score);} Where \_file\_ is either predefined (`stdout' or `stderr') or a FILE pointer that was returned by \keyword{fopen} or \keyword{fdopen}.
+There is a printf equivalent that works with file descriptors, called dprintf.
 Just use \keyword{dprintf(int\ fd,\ char*\ format\_string,\ ...);}.
-Just remember the stream may be buffered through internal buffering, so you will need to assure that the data is written to the file descriptor.
 
 To print data into a C string, use \keyword{sprintf} or better \keyword{snprintf}.
 \keyword{snprintf} returns the number of characters written excluding the terminating byte.
-In the following, this would be a maximum of 199.
 We would use \keyword{sprintf} in cases where we know that the size of the string will not be anything more than a certain fixed amount -- think about printing an integer, it will never be more than 11 characters with the null byte.
+If printf is dealing with variadic input, it is safer to use the former function as shown in the following snippet.
 
 \begin{lstlisting}[language=C]
 // Fixed
@@ -75,10 +90,11 @@ Standard input or stdin oriented functions read from stdin directly.
 Most of these functions have been deprecated due to them being poorly designed. These functions treat stdin as a file from which we can read bytes.
 One of the most notorious offenders is \keyword{gets}.
 \keyword{gets} is deprecated in C99 standard and has been removed from the latest C standard (C11).
-The reason that it was deprecated was that there is no way to control the length being read, therefore buffers could get overrun very easily. When this is done maliciously to hijack program control flow, this is known as a buffer overflow attack.
+The reason that it was deprecated was that there is no way to control the length being read, therefore buffers could get overrun very easily.
+When this is done maliciously to hijack program control flow, this is known as a buffer overflow.
 
 Programs should use \keyword{fgets} or \keyword{getline} instead.
-Here is a quick example of reading at most 10 characters from stdin.
+Here is a quick example of reading at most 10 characters from standard input.
 
 \begin{lstlisting}[language=C]
 char *fgets (char *str, int num, FILE *stream);
@@ -90,8 +106,7 @@ char buffer[10];
 char *result = fgets(buffer, sizeof(buffer), stdin);
 \end{lstlisting}
 
-The result is NULL if there was an error or the end of the file is reached.
-Note, unlike \keyword{gets}, \keyword{fgets} copies the newline into the buffer, which you may want to discard.
+Note that, unlike \keyword{gets}, \keyword{fgets} copies the newline into the buffer.
 On the other hand, one of the advantages of \keyword{getline} is that will automatically allocate and reallocate a buffer on the heap of sufficient size.
 
 \begin{lstlisting}[language=C]
@@ -132,8 +147,10 @@ int main(){
 \end{lstlisting}
 
 To have a library function parse input in addition to reading it, use \keyword{scanf} (or \keyword{fscanf} or \keyword{sscanf}) to get input from the default input stream, an arbitrary file stream or a C string, respectively.
-All of those functions will return how many items were parsed; it is a good idea to check if the number is equal to the amount expected.
-Also naturally like \keyword{printf}, \keyword{scanf} functions require valid pointers. Instead of just pointing to valid memory, they need to also be writable.
+All of those functions will return how many items were parsed.
+It is a good idea to check if the number is equal to the amount expected.
+Also naturally like \keyword{printf}, \keyword{scanf} functions require valid pointers.
+Instead of just pointing to valid memory, they need to also be writable.
 It's a common source of error to pass in an incorrect pointer value.
 For example,
 
@@ -146,7 +163,8 @@ int ok = 2 == sscanf(line, "%c %d", &type, &data); // pointer error
 \end{lstlisting}
 
 We wanted to write the character value into c and the integer value into the malloc'd memory.
-However, we passed the address of the data pointer, not what the pointer is pointing to! So \keyword{sscanf} will change the pointer itself.
+However, we passed the address of the data pointer, not what the pointer is pointing to!
+So \keyword{sscanf} will change the pointer itself.
 The pointer will now point to address 10 so this code will later fail when free(data) is called.
 
 Now, scanf will just keep reading characters until the string ends.
@@ -158,14 +176,15 @@ char buffer[10];
 scanf("%9s", buffer); // reads up to 9 characters from input (leave room for the 10th byte to be the terminating byte)
 \end{lstlisting}
 
-One last thing to note is if you thought system calls were expensive, the \keyword{scanf} family is much more expensive due to compatibility reasons. Since it needs to be able to process all of the printf specifiers correctly, the code isn't very efficient.
-Most of the time, if you are writing a stand-alone program, it is a good idea to write the parser yourself.
+One last thing to note is if system calls are expensive, the \keyword{scanf} family is much more expensive due to compatibility reasons.
+Since it needs to be able to process all of the printf specifiers correctly, the code isn't very efficient \todo{citation needed}.
+For highly performant programs, one should write the parsing themselves.
 If it is a one-off program or script, feel free to use scanf.
 
 \subsection{string.h}
 
 String.h functions are a series of functions that deal with how to manipulate and check pieces of memory.
-Most of them deal with C-strings
+Most of them deal with C-strings.
 A C-string is a series of bytes delimited by a NUL character which is equal to the byte 0x00.
 \href{https://linux.die.net/man/3/string}{More information about all of these functions}.
 Any behavior not in the documentation, such as the result of \keyword{strlen(NULL)} is considered undefined behavior.
@@ -174,15 +193,21 @@ Any behavior not in the documentation, such as the result of \keyword{strlen(NUL
 
 	\item \keyword{int strlen(const char *s)} returns the length of the string not including the null byte
 
-	\item \keyword{int strcmp(const char *s1, const char *s2)} returns an integer determining the lexicographic order of the strings. If s1 where to come before s2 in a dictionary, then a -1 is returned. If the two strings are equal, then 0. Else, 1.
+	\item \keyword{int strcmp(const char *s1, const char *s2)} returns an integer determining the lexicographic order of the strings.
+    If s1 where to come before s2 in a dictionary, then a -1 is returned.
+    If the two strings are equal, then 0.
+    Else, 1.
 
-	\item \keyword{char *strcpy(char *dest, const char *src)} Copies the string at \keyword{src} to \keyword{dest}. \textbf{assumes dest has enough space for src}
+	\item \keyword{char *strcpy(char *dest, const char *src)} Copies the string at \keyword{src} to \keyword{dest}.
+    \textbf{This function assumes dest has enough space for src otherwise undefined behavior}
 
-	\item \keyword{char *strcat(char *dest, const char *src)} Concatenates the string at \keyword{src} to the end of destination. \textbf{This function assumes that there is enough space for \keyword{src} at the end of destination including the NULL byte}
+	\item \keyword{char *strcat(char *dest, const char *src)} Concatenates the string at \keyword{src} to the end of destination.
+    \textbf{This function assumes that there is enough space for \keyword{src} at the end of destination including the NULL byte}
 
 	\item \keyword{char *strdup(const char *dest)} Returns a \keyword{malloc}'d copy of the string.
 
-	\item \keyword{char *strchr(const char *haystack, int needle)} Returns a pointer to the first occurrence of \keyword{needle} in the \keyword{haystack}. If none found, \keyword{NULL} is returned.
+	\item \keyword{char *strchr(const char *haystack, int needle)} Returns a pointer to the first occurrence of \keyword{needle} in the \keyword{haystack}.
+    If none found, \keyword{NULL} is returned.
 
 	\item \keyword{char *strstr(const char *haystack, const char *needle)} Same as above but this time a string!
 
@@ -240,21 +265,23 @@ int main(){
 }
 \end{lstlisting}
 
-	      Be careful though! Error handling is tricky because the function won't return an error code.
-        If you give it a string that is not a number it will return 0.
-        This means you can't differentiate between a valid ``0'' and an invalid string.
-        See the man page for more details on strtol behavior with invalid and out of bounds values.
-        A safer alternative is use to \keyword{sscanf} (and check the return value).
+	      Be careful though!
+        Error handling is tricky because the function won't return an error code.
+        If passed a string that is not a number it will return 0.
+        The caller has to be careful from a valid 0 and an error.
+        This often involves an errno trampoline as shown below.
 
 	      \begin{lstlisting}[language=C]
 int main(){
     const char *input = "0"; // or "!##@" or ""
     char* endptr;
+    int saved_errno = errno;
+    errno = 0
     long int parsed = strtol(input, &endptr, 10);
-    if(parsed == 0){
-        // Either the input string was not a valid base-10 number or it really was zero!
-
+    if(parsed == 0 && errno != 0){
+      // Definitely an error
     }
+    errno = saved_errno;
     return 0;
 }
 \end{lstlisting}
@@ -262,12 +289,10 @@ int main(){
 	    \item \keyword{void *memcpy(void *dest, const void *src, size\_t n)} moves \keyword{n} bytes starting at \keyword{src} to \keyword{dest}.
         \textbf{Be careful}, there is undefined behavior when the memory regions overlap.
         This is one of the classic "This works on my machine!" examples because many times Valgrind won't be able to pick it up because it will look like it works on your machine.
-        When the autograder hits, it might mysteriously fail.
-        Consider the safer version below.
+        Consider the safer version \keyword{memmove}.
 
 	    \item \keyword{void *memmove(void *dest, const void *src, size\_t n)} does the same thing as above, but if the memory regions overlap then it is guaranteed that all the bytes will get copied over correctly.
-        \keyword{memcpy} and \keyword{memmove} both in \keyword{string.h}? Because strings are essentially raw memory with a null byte at the end of them!
-
+        \keyword{memcpy} and \keyword{memmove} both in \keyword{string.h}?
 \end{itemize}
 
 
