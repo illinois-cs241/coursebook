@@ -10,9 +10,9 @@ Required: Appendix/Shell
 
 This was a back door into most shells. The bug allowed an attacher to exploit an environment variable to execute arbitrary code.
 
-\begin{lstlisting}[language=console]
-  > env x='() { :;}; echo vulnerable' bash -c "echo this is a test"
-  vulnerable...
+\begin{lstlisting}[language=bash]
+> env x='() { :;}; echo vulnerable' bash -c "echo this is a test"
+vulnerable...
 \end{lstlisting}
 
 This meant that in any system that uses environment variables and doesn't sanitize their input (hint no one sanitized environment variable input because they saw it as safe) you can execute whatever code you want on others machines including setting up a web server.

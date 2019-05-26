@@ -52,26 +52,26 @@ int main() {
 
 We will first start the process in the background (notice the \& at the end). Then send it a signal from the shell process by using the kill command.
 
-\begin{verbatim}
->./program &
+\begin{lstlisting}[language=bash]
+$ ./program &
 My pid is 403
 ...
->kill -SIGSTOP 403
->kill -SIGCONT 403
-\end{verbatim}
+$ kill -SIGSTOP 403
+$ kill -SIGCONT 403
+\end{lstlisting}
 
 In C, you can send a signal to the child using \keyword{kill} POSIX call,
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 kill(child, SIGUSR1); // Send a user-defined signal
 kill(child, SIGSTOP); // Stop the child process (the child cannot prevent this)
 kill(child, SIGTERM); // Terminate the child process (the child can prevent this)
 kill(child, SIGINT); // Equivalent to CTRL-C (by default closes the process)
-\end{verbatim}
+\end{lstlisting}
 
 As we saw above there is also a \keyword{kill} command available in the shell. Another command \keyword{killall} works the exact same way but instead of looking up by PID, it tries to match the name of the process. \keyword{ps} is an important utility that can help you find the pid of a process.
 
-\begin{verbatim}
+\begin{lstlisting}[language=bash]
 # First let's use ps and grep to find the process we want to send a signal to
 $ ps au | grep myprogram
 angrave  4409   0.0  0.0  2434892    512 s004  R+    2:42PM   0:00.00 myprogram 1 2 3
@@ -84,7 +84,7 @@ $ kill -SIGKILL 4409
 $ kill -9 4409
 # Use kill all instead
 $ killall -l firefox
-\end{verbatim}
+\end{lstlisting}
 
 In order to send a signal to the current, use \keyword{raise} or \keyword{kill} with \keyword{getpid()}
 
@@ -255,15 +255,15 @@ To block signals use \keyword{sigprocmask}! With sigprocmask you can set the new
 int sigprocmask(int how, const sigset_t *set, sigset_t *oldset);`
 \end{lstlisting}
 
-From the Linux man page of sigprocmask,
+From the Linux man page of sigprocmask, here are the how parameters
 
-\begin{verbatim}
-SIG_BLOCK: The set of blocked signals is the union of the current set and the
+\begin{itemize}
+\item \keyword{SIG\_BLOCK}. The set of blocked signals is the union of the current set and the
   set argument.
-SIG_UNBLOCK: The signals in set are removed from the current set of blocked
+\item \keyword{SIG\_UNBLOCK}. The signals in set are removed from the current set of blocked
   signals. It is permissible to attempt to unblock a signal which is not blocked.
-SIG_SETMASK: The set of blocked signals is set to the argument set.
-\end{verbatim}
+\item \keyword{SIG\_SETMASK}. The set of blocked signals is set to the argument set.
+\end{itemize}
 
 The sigset type behaves as a bitmap, except functions are used rather than explicitly setting and unsetting bits using \& and \textbar{}. It is a common error to forget to initialize the signal set before modifying one bit. For example,
 

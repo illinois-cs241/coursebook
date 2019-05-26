@@ -328,38 +328,38 @@ Fork bombs are not necessarily malicious - they occasionally occur due to progra
 Below is a simple example that is malicious.
 
 \begin{lstlisting}[language=C]
-  while (1) fork();
+while (1) fork();
 \end{lstlisting}
 
 It is easy to cause one, if you are careless while calling fork, especially in a loop.
 Can you spot the fork bomb here?
 
 \begin{lstlisting}[language=C]
-  #include <unistd.h>
-  #define HELLO_NUMBER 10
+#include <unistd.h>
+#define HELLO_NUMBER 10
 
-  int main(){
-    pid_t children[HELLO_NUMBER];
-    int i;
-    for(i = 0; i < HELLO_NUMBER; i++){
-      pid_t child = fork();
-      if(child == -1){
-        break;
-      }
-      if(child == 0){ //I am the child
-        execlp("ehco", "echo", "hello", NULL);
-      }
-      else{
-        children[i] = child;
-      }
+int main(){
+  pid_t children[HELLO_NUMBER];
+  int i;
+  for(i = 0; i < HELLO_NUMBER; i++){
+    pid_t child = fork();
+    if(child == -1){
+      break;
     }
-
-    int j;
-    for(j = 0; j < i; j++){
-      waitpid(children[j], NULL, 0);
+    if(child == 0){ //I am the child
+      execlp("ehco", "echo", "hello", NULL);
     }
-    return 0;
+    else{
+      children[i] = child;
+    }
   }
+
+  int j;
+  for(j = 0; j < i; j++){
+    waitpid(children[j], NULL, 0);
+  }
+  return 0;
+}
 \end{lstlisting}
 
 We misspelled \keyword{ehco}, so the \keyword{exec} call fails.
@@ -484,7 +484,7 @@ Exit statuses or the value stored in the integer pointer for both of the calls a
 To find the return value of \keyword{main()} or value included in \keyword{exit()}), Use the \keyword{Wait macros} - typically you will use \keyword{WIFEXITED} and \keyword{WEXITSTATUS} .
 See \keyword{wait}/\keyword{waitpid} man page for more information.
 
-\begin{lstlisting}[language=C][language=C]
+\begin{lstlisting}[language=C]
   int status;
   pid_t child = fork();
   if (child == -1) return 1; //Failed
@@ -509,7 +509,7 @@ The macros will not do the checking for you, so it's up to the programmer to mak
 As an example above, you should use the \keyword{WIFSTOPPED} to check if a process was stopped and then the \keyword{WSTOPSIG} to find the signal that stopped it.
 As such there is no need to memorize the following. This is just a high level overview of how information is stored inside the status variables. From the \keyword{sys/wait.h} of an old Berkeley Standard Distribution(BSD) kernel \cite{sys/wait.h}:
 
-\begin{lstlisting}[language=C][language=C]
+\begin{lstlisting}[language=C]
   /* If WIFEXITED(STATUS), the low-order 8 bits of the status. */
   #define _WSTATUS(x) (_W_INT(x) & 0177)
   #define _WSTOPPED 0177    /* _WSTATUS if process is stopped */
@@ -753,12 +753,12 @@ Environment variables are variables that the system keeps for all processes to u
 Your system has these set up right now!
 In Bash, you can check some of these
 
-\begin{verbatim}
+\begin{lstlisting}
 $ echo $HOME
 /home/bhuvy
 $ echo $PATH
 /usr/local/sbin:/usr/bin:...
-\end{verbatim}
+\end{lstlisting}
 
 How would you get and set these in C/C++? You can use the \keyword{getenv} and \keyword{setenv} function respectively.
 

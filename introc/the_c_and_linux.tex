@@ -15,9 +15,9 @@ For example, here is a file object, a network socket, and a kernel object.
 These are all references to records in the kernel's file descriptor table.
 
 \begin{lstlisting}[language=C]
-  int file_fd = open(...);
-  int network_fd = socket(...);
-  int kernel_fd = epoll_create1(...);
+int file_fd = open(...);
+int network_fd = socket(...);
+int kernel_fd = epoll_create1(...);
 \end{lstlisting}
 
 And operations on those objects are done through system calls.

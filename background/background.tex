@@ -13,9 +13,9 @@ Each computer has an architecture, and that architecture has an associated assem
 Each assembly command has a 1:1 mapping to a set of 1's and 0's that tell the computer exactly what to do.
 For example the following in the widely used x86 Assembly language add one to the memory address 20 \cite{wiki:xxx} -- you can also look in \cite{guide2011intel} Section 2A under the add instruction though it is more verbose.
 
-\begin{verbatim}
+\begin{lstlisting}
 add BYTE PTR [0x20], 1
-\end{verbatim}
+\end{lstlisting}
 
 Why do we mention this? Because it is important that although you are going to be doing most of this class in C.
 That this is what the code is translated into.
@@ -34,9 +34,9 @@ That is why we have a special set of instructions on modern systems called atomi
 If an instruction is atomic, it makes sure that only one processor or thread performs any intermediate step at a time.
 With x86 this is done by the \keyword{lock} prefix \cite[p. 1120]{guide2011intel}.
 
-\begin{verbatim}
+\begin{lstlisting}
 lock add BYTE PTR [0x20], 1
-\end{verbatim}
+\end{lstlisting}
 
 Why don't we do this for everything?
 It makes commands slower! If every time a computer does something it has to make sure that the other cores or processors aren't doing anything, it'll be much slower.
@@ -107,50 +107,50 @@ Let's go through some of the common tools that you'll be working on and need to 
 It is a network protocol that allows you to spawn a shell on a remote machine.
 Most of the times in this class you will need to ssh into your VM like this
 
-\begin{verbatim}
-> ssh netid@sem-cs241-VM.cs.illinois.edu
-\end{verbatim}
+\begin{lstlisting}[language=bash]
+$ ssh netid@sem-cs241-VM.cs.illinois.edu
+\end{lstlisting}
 
 If you don't want to type your password out every time, you can generate an ssh key that uniquely identifies your machine. If you already have a key pair, you can skip to the copy id stage.
 
-\begin{verbatim}
-  > ssh-keygen -t rsa -b 4096
-  # Do whatever keygen tells you
-  # Don't feel like you need a passcode if your login password is secure
-  > ssh-copy-id netid@sem-cs241-VM.cs.illinois.edu
-  # Enter your password for maybe the final time
-  > ssh  netid@sem-cs241-VM.cs.illinois.edu
-\end{verbatim}
+\begin{lstlisting}[language=bash]
+> ssh-keygen -t rsa -b 4096
+# Do whatever keygen tells you
+# Don't feel like you need a passcode if your login password is secure
+> ssh-copy-id netid@sem-cs241-VM.cs.illinois.edu
+# Enter your password for maybe the final time
+> ssh  netid@sem-cs241-VM.cs.illinois.edu
+\end{lstlisting}
 
 If you still think that that is too much typing, you can always alias hosts.
 You may need to restart your VM or reload sshd for this to take effect.
 The config file is available on Linux and Mac distros.
 For windows you'll have to use the Windows Linux Subsystem or configure any aliases in PuTTY
 
-\begin{verbatim}
+\begin{lstlisting}[language=bash]
 > cat ~/.ssh/config
 Host vm
   User          netid
   HostName      sem-cs241-VM.cs.illinois.edu
 > ssh vm
-\end{verbatim}
+\end{lstlisting}
 
 \subsection{git}
 
 What is `git`? Git is a version control system. What that means is git stores the entire history of a directory. We refer to the directory as a repository. So what do you need to know is a few things. First, create your repository with the repo creator. If you haven't already signed into enterprise GitHub, make sure to do so otherwise your repository won't be created for you. After that, that means your repository is created on the server. Git is a decentralized version control system, meaning that you'll need to get a repository onto your VM. We can do this with a clone. Whatever you do, \textbf{do not go through the README.md tutorial}.
 
-\begin{verbatim}
+\begin{lstlisting}[language=bash]
 $ git clone https://github-dev.cs.illinois.edu/cs241-fa18/<netid>.git
-\end{verbatim}
+\end{lstlisting}
 
 This will create a local repository. The workflow is you make a change on your local repository, add the changes to a current commit, actually commit, and push the changes to the server.
 
-\begin{verbatim}
+\begin{lstlisting}[language=bash]
 $ # edit the file, maybe using vim
 $ git add <file>
 $ git commit -m "Committing my file"
 $ git push origin master
-\end{verbatim}
+\end{lstlisting}
 
 Now to explain git well, you need to understand that git for our purposes will look like a linked list.
 You will always be at the head of master, and you will do the edit-add-commit-push loop. We have a separate branch on github that we push feedback to under a specific branch which you can view on github website. The markdown file will have information on the test cases and results (like standard out).
@@ -169,16 +169,16 @@ Every so often git can break. Here are a list of commands you probably won't nee
 
 In addition if you are currently on a branch, and you don't see either
 
-\begin{verbatim}
+\begin{lstlisting}[language=bash]
 $ git status
 On branch master
 Your branch is up-to-date with 'origin/master'.
 nothing to commit, working directory clean
-\end{verbatim}
+\end{lstlisting}
 
 or
 
-\begin{verbatim}
+\begin{lstlisting}[language=bash]
 $ git status
 On branch master
 Your branch is up-to-date with 'origin/master'.
@@ -190,15 +190,15 @@ Changes not staged for commit:
         ...
 
 no changes added to commit (use "git add" and/or "git commit -a")
-\end{verbatim}
+\end{lstlisting}
 
 And something like
 
-\begin{verbatim}
+\begin{lstlisting}[language=bash]
 $ git status
 HEAD detached at 4bc4426
 nothing to commit, working directory clean
-\end{verbatim}
+\end{lstlisting}
 
 Don't panic, but your repository may be in an unworkable state. If you aren't nearing a deadline, come in to office hours or ask your question on Piazza, and we'd be happy to help. In an emergency scenario, delete your repository and re-clone (you'll have to add the \keyword{release} as above). \textbf{This will lose any local uncommitted changes. Make sure to copy any files you were working on outside the directory, remove and copy them back in}
 
@@ -387,7 +387,7 @@ int main() {
 
 We can see that there is a race condition on the variable \keyword{global}. Both the main thread and the thread created with \textt{pthread\_create} will try to change the value at the same time. But, does ThreadSantizer catch it?
 
-\begin{verbatim}
+\begin{lstlisting}[language=bash]
 $ ./a.out
 ==================
 WARNING: ThreadSanitizer: data race (pid=28888)
@@ -405,7 +405,7 @@ WARNING: ThreadSanitizer: data race (pid=28888)
 SUMMARY: ThreadSanitizer: data race /home/zmick2/simple_race.c:7 Thread1
 ==================
 ThreadSanitizer: reported 1 warnings
-\end{verbatim}
+\end{lstlisting}
 
 If we compiled with the debug flag, then it would give us the variable name as well.
 
@@ -427,7 +427,7 @@ int main() {
 }
 \end{lstlisting}
 
-\begin{verbatim}
+\begin{lstlisting}[language=bash]
 $ gcc main.c -g -o main
 $ gdb --args ./main
 (gdb) r
@@ -437,29 +437,29 @@ main () at main.c:6
 6     val = 7;
 (gdb) p val
 $1 = 42
-\end{verbatim}
+\end{lstlisting}
 
 You can also set breakpoints programmatically.
 Assume that we have no optimization and the line numbers are as follows
 
-\begin{verbatim}
+\begin{lstlisting}[language=bash]
 1. int main() {
 2.     int val = 1;
 3.     val = 42;
 4.     val = 7;
 5. }
-\end{verbatim}
+\end{lstlisting}
 
 We can now set the breakpoint before the program starts.
 
-\begin{verbatim}
+\begin{lstlisting}[language=bash]
 $ gcc main.c -g -o main
 $ gdb --args ./main
 (gdb) break main.c:4
 [...]
 (gdb) p val
 $1 = 42
-\end{verbatim}
+\end{lstlisting}
 
 \paragraph{Checking memory content}
 
@@ -476,15 +476,15 @@ int main() {
 
 Compiled we get
 
-\begin{verbatim}
+\begin{lstlisting}[language=bash]
 $ gcc main.c -g -o main && ./main
 $ Cat ZVQ� $
-\end{verbatim}
+\end{lstlisting}
 
 
 We can now use gdb to look at specific bytes of the string and reason about when the program should've stopped running
 
-\begin{verbatim}
+\begin{lstlisting}[language=bash]
 (gdb) l
 1 #include <stdio.h>
 2 int main() {
@@ -501,7 +501,7 @@ Breakpoint 1, main () at main.c:4
 0x7fff5fbff9cd: 0x63  0x61  0x74  0xe0  0xf9  0xbf  0x5f  0xff
 0x7fff5fbff9d5: 0x7f  0x00  0x00  0xfd  0xb5  0x23  0x89  0xff
 (gdb)
-\end{verbatim}
+\end{lstlisting}
 
 Here, by using the \keyword{x} command with parameters \keyword{16xb}, we can see that starting at memory address \keyword{0x7fff5fbff9c} (value of \keyword{bad\_string}), \keyword{printf} would actually see the following sequence of bytes as a string because we provided a malformed string without a null terminator.
 
@@ -531,16 +531,16 @@ double convert_to_radians(int deg){
 
 How can we use gdb to debug? First we ought to load GDB.
 
-\begin{verbatim}
+\begin{lstlisting}[language=bash]
 $ gdb --args ./main
 (gdb) layout src; #if you want an GUI type
 (gdb) run
 (gdb)
-\end{verbatim}
+\end{lstlisting}
 
 Want to take a look at the source?
 
-\begin{verbatim}
+\begin{lstlisting}[language=bash]
 (gdb) l
 1	#include <stdio.h>
 2	
@@ -555,11 +555,11 @@ Want to take a look at the source?
 (gdb) break 7 # break <file>:line or break <file>:function
 (gdb) run
 (gdb)
-\end{verbatim}
+\end{lstlisting}
 
 From running the code, the breakpoint didn't even trigger, meaning the code never got to that point. That’s because of the comparison! Okay flip the sign it should work now right?
 
-\begin{verbatim}
+\begin{lstlisting}[language=bash]
 (gdb) run
 350. 60.000000
 351. 60.000000
@@ -572,9 +572,9 @@ From running the code, the breakpoint didn't even trigger, meaning the code neve
 358. 61.000000
 359. 61.000000
 
-\end{verbatim}
+\end{lstlisting}
 
-\begin{verbatim}
+\begin{lstlisting}[language=bash]
 (gdb) break 14 if deg == 359 # Let's check the last iteration only
 (gdb) run
 ...
@@ -587,7 +587,7 @@ $3 = 201.749
 (gdb) print (31415.0/10000.0)
 $4 = 3.1414999999999999
 
-\end{verbatim}
+\end{lstlisting}
 
 That was only the bare minimum, though most of you will get by with that.
 There is a whole load more resources on the web, here are a few specific ones that can help you get started.
@@ -620,9 +620,9 @@ Also please please read Chris Lattner's 3 Part blog post on undefined behavior. 
 
 Clang provides great drop in replacement tools for compiling programs. If you want to see if there is an error that may cause a race condition, casting error, etc, all you need to do is type
 
-\begin{verbatim}
+\begin{lstlisting}[language=bash]
 $ scan-build make
-\end{verbatim}
+\end{lstlisting}
 
 And in addition to the make output, you will get static build warnings.
 
@@ -631,9 +631,9 @@ And in addition to the make output, you will get static build warnings.
 strace and ltrace are two programs that trace the system calls and library calls respectively of a running program or command.
 These may not be installed on your system already so to install feel free to do so
 
-\begin{verbatim}
-sudo apt install strace ltrace
-\end{verbatim}
+\begin{lstlisting}[language=bash]
+$ sudo apt install strace ltrace
+\end{lstlisting}
 
 Debugging with ltrace can be as simple as figuring out what was the return call of the last library call that failed.
 
@@ -646,7 +646,7 @@ int main() {
 }
 \end{lstlisting}
 
-\begin{verbatim}
+\begin{lstlisting}[language=bash]
 > ltrace ./a.out
  __libc_start_main(0x8048454, 1, 0xbfc19db4, 0x80484c0, 0x8048530 <unfinished ...>
  fopen("I don't exist", "r")                          = 0x0
@@ -654,7 +654,7 @@ int main() {
  --- SIGSEGV (Segmentation fault) ---
  +++ killed by SIGSEGV +++
 
-\end{verbatim}
+\end{lstlisting}
 
 ltrace output can clue you in to weird things your program is doing live.
 Unfortunately ltrace can’t be used to inject faults, meaning that ltrace can tell you what is happening, but it can't tamper with what is already happening.
@@ -663,8 +663,8 @@ strace on the other hand could modify your program.
 Debugging with strace is amazing.
 A basic usage is just run strace with a program, and it’ll get you a complete list of system call parameters.
 
-\begin{verbatim}
-> strace head README.md
+\begin{lstlisting}[language=bash]
+$ strace head README.md
 execve("/usr/bin/head", ["head", "README.md"], 0x7ffff28c8fa8 /* 60 vars */) = 0
 brk(NULL)                               = 0x7ffff5719000
 access("/etc/ld.so.nohwcap", F_OK)      = -1 ENOENT (No such file or directory)
@@ -672,28 +672,27 @@ access("/etc/ld.so.preload", R_OK)      = -1 ENOENT (No such file or directory)
 openat(AT_FDCWD, "/etc/ld.so.cache", O_RDONLY|O_CLOEXEC) = 3
 fstat(3, {st_mode=S_IFREG|0644, st_size=32804, ...}) = 0
 ...
-\end{verbatim}
+\end{lstlisting}
 
 If the output is too verbose, you can use trace= with a command delimited list of syscalls to filter all but those calls.
 
-\begin{verbatim}
-> strace -e trace=read,write head README.md
+\begin{lstlisting}[language=bash]
+$ strace -e trace=read,write head README.md
 read(3, "\177ELF\2\1\1\3\0\0\0\0\0\0\0\0\3\0>\0\1\0\0\0\260\34\2\0\0\0\0\0"..., 832) = 832
 read(3, "# Locale name alias data base.\n#"..., 4096) = 2995
 read(3, "", 4096)                       = 0
 read(3, "# C Datastructures\n\n[![Build Sta"..., 8192) = 1250
 write(1, "# C Datastructures\n", 19# C Datastructures
-
-\end{verbatim}
+\end{lstlisting}
 
 You can also trace files or targets.
 
-\begin{verbatim}
-> strace -e trace=read,write -P README.md head README.md
+\begin{lstlisting}[language=bash]
+$ strace -e trace=read,write -P README.md head README.md
 strace: Requested path 'README.md' resolved into '/mnt/c/Users/bhuvy/personal/libds/README.md'
 read(3, "# C Datastructures\n\n[![Build Sta"..., 8192) = 1250
 
-\end{verbatim}
+\end{lstlisting}
 
 Newer versions of strace can actually inject faults into your program.
 This is useful when you want to occasionally make reads and writes fail for example in a networking application, which your program should handle.
@@ -765,20 +764,27 @@ And then use as appropriately.
 char q[] = "Do you wanna build a C99 program?";
 #define or "go debugging with gdb?"
 static unsigned int i = sizeof(or) != strlen(or);
-char* ptr = "lathe"; size_t come = fprintf(stdout,"%s door", ptr+2);
+char* ptr = "lathe";
+size_t come = fprintf(stdout,"%s door", ptr+2);
 int away = ! (int) * "";
 
 int* shared = mmap(NULL, sizeof(int*), PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
 munmap(shared,sizeof(int*));
 
-if(!fork()) { execlp("man","man","-3","ftell", (char*)0); perror("failed"); }
-if(!fork()) { execlp("make","make", "snowman", (char*)0); execlp("make","make", (char*)0)); }
+if(!fork()) {
+    execlp("man","man","-3","ftell", (char*)0); perror("failed");
+}
+
+if(!fork()) {
+    execlp("make","make", "snowman", (char*)0); execlp("make","make", (char*)0));
+}
 
 exit(0);
 \end{lstlisting}
 
 \subsection{So you want to master System Programming? And get a better grade than B?}
-\begin{lstlisting}[language=C]
+
+\begin{minted}{C}
 int main(int argc, char** argv) {
 	puts("Great! We have plenty of useful resources for you, but it's up to you to");
 	puts(" be an active learner and learn how to solve problems and debug code.");
@@ -798,7 +804,7 @@ int main(int argc, char** argv) {
 	read(0, buffer, sizeof(buffer));
 	return 0;
 }
-\end{lstlisting}
+\end{minted}
 
 \subsection{Watch the videos and write up your answers to the following questions}
 
@@ -978,15 +984,15 @@ Oh, and did I mention that this is an easy way to score points with your interns
 
 The biggest tip that we can give you when asking a question on piazza if you want a swift answer is to \textbf{ask your question like you were trying to answer it}. Like before you ask a question, try to answer it yourself. If you are thinking about posting
 
-\begin{verbatim}
+\begin{quote}
 Hi, My code got a 50% on the autograder. I tried testing it a lot, but couldn't get it to fail. Can you give me some hints as to the test cases
-\end{verbatim}
+\end{quote}
 
 Sounds good and courteous, but course staff would much much prefer a post resembling the following
 
-\begin{verbatim}
+\begin{quote}
 Hi, I recently failed test X, Y, Z which is about half the tests on this current assignments. I noticed that they all have something to do with networking and epoll, but couldn't really figure out what was linking them together, or I may be completely off track. So to test my idea, I tried spawning 1000 clients with various get and put requests and verifying the files matched their originals. I couldn't really get it to fail while running normally, the debug build, or valgrind or tsan. I have no warnings and none of the pre-syntax checks showed me anything. Could you tell me if my understanding of the failure is correct and what I could do to modify my tests to better reflect X, Y, Z? netid: bvenkat2
-\end{verbatim}
+\end{quote}
 
 You don't need to be as courteous, though we'd appreciate it, but this will get a faster response time hand over foot. If you were trying to answer this question, you'd have everything you need in the question body.
 
