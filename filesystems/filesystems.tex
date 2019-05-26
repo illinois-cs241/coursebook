@@ -1,6 +1,6 @@
 \chapter{Filesystems}
 
-\epigraph{\texttt{/home} is where the heart is}{Bhuvy}
+\epigraph{\keyword{/home} is where the heart is}{Bhuvy}
 
 Filesystems are important because they allow you to persist data after a computer is shut down, crashes, or has memory corruption.
 Back in the day, filesystems were expensive to use.
@@ -21,21 +21,21 @@ This filesystem tells the operating system how to organize the 1s and 0s to stor
 \textbf{The last piece of background is an important one.} In this chapter, we will refer to sizes of files in the ISO-compliant KiB or Kibibyte. The *iB family is short for power of two storage.
 That means the following
 
-\begin{verbatim}
-KiB = 1024B
-MiB = 1024 * 1024 B
-GiB = 1024^3 B
-...
-\end{verbatim}
+\begin{tabular}{ | c | c | }
+Prefix & Byte Value \\ \hline
+KiB & 1024B \\
+MiB & 1024 * 1024 B \\
+GiB & 1024\^3 B
+\end{tabular}
 
 And the standard notational prefixes mean the following.
 
-\begin{verbatim}
-KB = 1000B
-MB = 1000 * 1000 B
-GB = 1000^3 B
-...
-\end{verbatim}
+\begin{tabular}{ | c | c | }
+Prefx & Byte Value \\ \hline
+KB & 1000B \\
+MB & 1000 * 1000 B \\
+GB & 1000\^3 B
+\end{tabular}
 
 We will do this in the book and in the networking chapter to keep consistency and not to confuse anyone.
 What will be confusing is that in the real world there is a convention.
@@ -233,10 +233,10 @@ Each directory entry could either be a fixed size, or a variable c-string.
 It depends on how the particular filesystem implements it at the lower level.
 To see a mapping of filenames to inode numbers on a POSIX system, from a shell, use \keyword{ls} with the \keyword{-i} option
 
-\begin{verbatim}
+\begin{lstlisting}[language=bash]
 # ls -i
 12983989 dirlist.c      12984068 sandwich.c
-\end{verbatim}
+\end{lstlisting}
 
 You can see later that this is a powerful abstraction.
 One can have a file be multiple different names in a directory, or exist in multiple directories.
@@ -253,7 +253,7 @@ In standard Unix file systems the following entries are specially added on reque
 
 Unintuitively, \keyword{...} does not refer to the `grandparent' directory (parent of the parent).
 Only the current directory and the parent directory have special aliases involving \keyword{.} (namely , \keyword{.} and \keyword{..}).
-However, \keyword{...} \emph{could} however be the name of a file or directory on disk (You can try this with \texttt{mkdir ...}).
+However, \keyword{...} \emph{could} however be the name of a file or directory on disk (You can try this with \keyword{mkdir ...}).
 Confusingly, the shell \keyword{zsh} does interpret \keyword{...} as a handy shortcut to the grandparent directory (should it exist) while expanding shell commands.
 
 Additional facts about name-related conventions:
@@ -367,19 +367,19 @@ The first kind of link is a hard link.
 A hard link is simply an entry in a directory assigning some name to an inode number that already has a different name and mapping in either the same directory or a different one.
 If we already have a file on a file system we can create another link to the same inode using the `ln' command:
 
-\begin{verbatim}
+\begin{lstlisting}[language=bash]
 $ ln file1.txt blip.txt
-\end{verbatim}
+\end{lstlisting}
 
 However, blip.txt \emph{is} the same file.
 If I edit blip, I'm editing the same file as `file1.txt!'.
 We can prove this by showing that both file names refer to the same inode.
 
-\begin{verbatim}
+\begin{lstlisting}[language=bash]
 $ ls -i file1.txt blip.txt
 134235 file1.txt
 134235 blip.txt
-\end{verbatim}
+\end{lstlisting}
 
 The equivalent C call is \keyword{link}
 
@@ -403,7 +403,7 @@ To create a symbolic link in the shell use \keyword{ln -s}.
 To read the contents of the link as just a file use \keyword{readlink}.
 These are both demonstrated below.
 
-\begin{verbatim}
+\begin{lstlisting}[language=bash]
 $ ln -s file1.txt file2.txt
 $ ls -i file1.txt blip.txt
 134235 file1.txt
@@ -427,7 +427,7 @@ file1!
 edited file2
 $ readlink myfile.txt
 file2.txt
-\end{verbatim}
+\end{lstlisting}
 
 Note that \keyword{file2.txt} and \keyword{file1.txt} have different inode numbers, unlike the hard link, \keyword{blip.txt}.
 
@@ -475,12 +475,12 @@ Apple's ``Time Machine'' software does this.
 
 Now that we have definitions talk about directories, we come across the concept of a path.
 A path is a sequence of directories that provide one with a "path" in the filesystem graph.
-However, there are some nuances. It is possible to have a path called \texttt{a/b/../c/./}.
-Since \keyword{..} and \keyword{.} are special entries in directories, this is a valid path that actually refers to \texttt{a/c}.
+However, there are some nuances. It is possible to have a path called \keyword{a/b/../c/./}.
+Since \keyword{..} and \keyword{.} are special entries in directories, this is a valid path that actually refers to \keyword{a/c}.
 Most filesystem functions will allow uncompressed paths to be passed in.
 The C library provides a function \keyword{realpath} to compress the path or get the realpath.
 To simplify by hand remember that \keyword{..} means `parent folder' and that \keyword{.} means `current folder'.
-Below is an example that illustrates the simplification of the \texttt{a/b/../c/.} by using \keyword{cd} in a shell to navigate a filesystem.
+Below is an example that illustrates the simplification of the \keyword{a/b/../c/.} by using \keyword{cd} in a shell to navigate a filesystem.
 
 \begin{enumerate}
   \item \keyword{cd a} (in a)
@@ -650,13 +650,13 @@ To change the permission bits, there is a system call, \keyword{int chmod(const 
 In order to simplify our examples, we will be using the command line utility of the same name \keyword{chmod} short of ``change mode''.
 There are two common ways to use \keyword{chmod}, with either an octal value or with a symbolic string.
 
-\begin{verbatim}
+\begin{lstlisting}[language=bash]
 $ chmod 644 file1
 $ chmod 755 file2
 $ chmod 700 file3
 $ chmod ugo-w file4
 $ chmod o-rx file4
-\end{verbatim}
+\end{lstlisting}
 
 The base-8 (`octal') digits describe the permissions for each role: The user who owns the file, the group and everyone else.
 The octal number is the sum of three values given to the three types of permission: read(4), write(2), execute(1)
@@ -678,10 +678,10 @@ When forking, the child inherits the parent's umask value.
 
 For example, by setting the umask to \keyword{077} in the shell, ensures that future file and directory creation will only be accessible to the current user,
 
-\begin{verbatim}
+\begin{lstlisting}[language=bash]
 $ umask 077
 $ mkdir secretdir
-\end{verbatim}
+\end{lstlisting}
 
 As a code example, suppose a new file is created with \keyword{open()} and mode bits \keyword{666} (write and read bits for user,group and other):
 
@@ -708,12 +708,12 @@ By using \keyword{sudo} an otherwise unprivileged user can gain access to most p
 This is useful for running programs that may require elevated privileges, such as using \keyword{chown} to change ownership of a file, or to use \keyword{mount} to mount or unmount filesystems (an action we will discuss later in this chapter).
 Here are some examples:
 
-\begin{verbatim}
+\begin{lstlisting}[language=bash]
 $ sudo mount /dev/sda2 /stuff/mydisk
 $ sudo adduser fred
 $ ls -l /usr/bin/sudo
 -r-s--x--x  1 root  wheel  327920 Oct 24 09:04 /usr/bin/sudo
-\end{verbatim}
+\end{lstlisting}
 
 When executing a process with the setuid bit, it is still possible to determine a user's original uid with \keyword{getuid}.
 The real action of the \keyword{setuid} bit is to set the effective user id (\keyword{euid}) which can be determined with \keyword{geteuid}.
@@ -742,7 +742,7 @@ A common use of the sticky bit is for the shared and writable \keyword{/tmp} dir
 
 To set the sticky bit, use \keyword{chmod +t}.
 
-\begin{verbatim}
+\begin{lstlisting}[language=bash]
 aneesh$ mkdir sticky
 aneesh$ chmod +t sticky
 aneesh$ ls -l
@@ -757,7 +757,7 @@ aneesh$ rm -rf sticky
 aneesh$ ls -l
 drwxr-xr-x  7 aneesh aneesh    4096 Nov  1 14:19 .
 drwxr-xr-x 53 aneesh aneesh    4096 Nov  1 14:19 ..
-\end{verbatim}
+\end{lstlisting}
 
 Note that in the example above, the username is prepended to the prompt, and the command \keyword{su} is used to switch users.
 
@@ -768,11 +768,12 @@ Files inside these virtual filesystems do not exist on the disk.
 They are generated dynamically by the kernel when a process requests a directory listing.
 Linux provides 3 main virtual filesystems.
 
-\begin{verbatim}
-/dev  - A list of physical and virtual devices (for example network card, cdrom, random number generator)
-/proc - A list of resources used by each process and (by tradition) set of system information
-/sys - An organized list of internal kernel entities
-\end{verbatim}
+\begin{tabular}{ | c | c | }
+Device & Use Case \\ \hline
+\keyword{/dev} & A list of physical and virtual devices (for example network card, cdrom, random number generator \\
+\keyword{/proc} & A list of resources used by each process and (by tradition) set of system information \\
+\keyword{/sys} & An organized list of internal kernel entities
+\end{tabular}
 
 For example if I want a continuous stream of 0s, I can \keyword{cat /dev/zero}.
 
@@ -782,9 +783,9 @@ They are simply discarded.
 A common use of \keyword{/dev/null} is to discard standard output.
 For example,
 
-\begin{verbatim}
+\begin{lstlisting}[language=bash]
 $ ls . >/dev/null
-\end{verbatim}
+\end{lstlisting}
 
 \subsection{Managing files and filesystems}
 
@@ -794,10 +795,10 @@ One example is creating a secure directory.
 Suppose you created your own directory in /tmp and then set the permissions so that only you can use the directory (see below).
 Is this secure?
 
-\begin{verbatim}
+\begin{lstlisting}[language=bash]
 $ mkdir /tmp/mystuff
 $ chmod 700 /tmp/mystuff
-\end{verbatim}
+\end{lstlisting}
 
 There is a window of opportunity between when the directory is created and when it's permissions are changed.
 This leads to several vulnerabilities that are based on a race condition.
@@ -809,9 +810,9 @@ However in this specific example, the \keyword{/tmp} directory has the sticky bi
 This does not mean that creating the directory and then later making the directory private is secure!
 A better version is to atomically create the directory with the correct permissions from its inception.
 
-\begin{verbatim}
+\begin{lstlisting}[language=bash]
 $ mkdir -m 700 /tmp/mystuff
-\end{verbatim}
+\end{lstlisting}
 
 \subsection{Obtaining random data}
 
@@ -827,9 +828,9 @@ Use the versatile \keyword{dd} command.
 For example, the following command copies 1 MiB of data from the file \keyword{/dev/urandom} to the file \keyword{/dev/null}.
 The data is copied as 1024 blocks of block size 1024 bytes.
 
-\begin{verbatim}
+\begin{lstlisting}[language=bash]
 $ dd if=/dev/urandom of=/dev/null bs=1k count=1024
-\end{verbatim}
+\end{lstlisting}
 
 Both the input and output files in the example above are virtual - they don't exist on a disk.
 This means the speed of the transfer is unaffected by hardware power.
@@ -840,7 +841,7 @@ This means the speed of the transfer is unaffected by hardware power.
 
 The \keyword{touch} executable creates file if it does not exist and also updates the file's last modified time to be the current time. For example, we can make a new private file with the current time:
 
-\begin{verbatim}
+\begin{lstlisting}[language=bash]
 $ umask 077       # all future new files will mask out all r,w,x bits for group and other access
 $ touch file123   # create a file if it does not exist, and update its modified time
 $ stat file123
@@ -851,15 +852,15 @@ Access: (0600/-rw-------)  Uid: (395606/ angrave)   Gid: (61019/     ews)
 Access: 2014-11-12 13:42:06.000000000 -0600
 Modify: 2014-11-12 13:42:06.001787000 -0600
 Change: 2014-11-12 13:42:06.001787000 -0600
-\end{verbatim}
+\end{lstlisting}
 
 An example use of touch is to force make to recompile a file that is unchanged after modifying the compiler options inside the makefile.
 Remember that make is `lazy' - it will compare the modified time of the source file with the corresponding output file to see if the file needs to be recompiled.
 
-\begin{verbatim}
+\begin{lstlisting}[language=bash]
 $ touch myprogram.c   # force my source file to be recompiled
 $ make
-\end{verbatim}
+\end{lstlisting}
 
 \subsection{Managing Filesystems}
 
@@ -867,7 +868,7 @@ To manage filesystems on your machine, use \keyword{mount}.
 Using mount without any options generates a list (one filesystem per line) of mounted filesystems including networked, virtual and local (spinning disk / SSD-based) filesystems.
 Here is a typical output of mount
 
-\begin{verbatim}
+\begin{lstlisting}[language=bash]
 $ mount
 /dev/mapper/cs241--server_sys-root on / type ext4 (rw)
 proc on /proc type proc (rw)
@@ -880,33 +881,33 @@ tmpfs on /dev/shm type tmpfs (rw,rootcontext="system_u:object_r:tmpfs_t:s0")
 /dev/mapper/cs241--server_sys-var on /var type ext4 (rw)rw,bind)
 /srv/software/Mathematica-8.0 on /software/Mathematica-8.0 type none (rw,bind)
 engr-ews-homes.engr.illinois.edu:/fs1-homes/angrave/linux on /home/angrave type nfs (rw,soft,intr,tcp,noacl,acregmin=30,vers=3,sec=sys,sloppy,addr=128.174.252.102)
-\end{verbatim}
+\end{lstlisting}
 
 Notice that each line includes the filesystem type source of the filesystem and mount point.
 To reduce this output, we can pipe it into \keyword{grep} and only see lines that match a regular expression.
 
-\begin{verbatim}
+\begin{lstlisting}[language=bash]
 >mount | grep proc  # only see lines that contain 'proc'
 proc on /proc type proc (rw)
 none on /proc/sys/fs/binfmt_misc type binfmt_misc (rw)
-\end{verbatim}
+\end{lstlisting}
 
 \subsubsection{Filesystem Mounting}
 
 Suppose you had downloaded a bootable linux disk image from the \href{http://cosmos.cites.illinois.edu/pub/archlinux/iso/2015.04.01/archlinux-2015.04.01-dual.iso}{URL}
 
-\begin{verbatim}
-wget $URL
-\end{verbatim}
+\begin{lstlisting}[language=bash]
+$ wget $URL
+\end{lstlisting}
 
 Before putting the filesystem on a CD, we can mount the file as a filesystem and explore its contents.
 Note, mount requires root access, so let's run it using sudo
 
-\begin{verbatim}
+\begin{lstlisting}[language=bash]
 $ mkdir arch
 $ sudo mount -o loop archlinux-2015.04.01-dual.iso ./arch
 $ cd arch
-\end{verbatim}
+\end{lstlisting}
 
 Before the mount command, the arch directory is new and obviously empty.
 After mounting, the contents of \keyword{arch/} will be drawn from the files and directories stored in the filesystem stored inside the \keyword{archlinux-2014.11.01-dual.iso} file.
@@ -917,18 +918,18 @@ In this example, we will find out below that the file system is provided under \
 We can check the filesystem type and mount options by running the mount command without any parameters.
 We will pipe the output into \keyword{grep} so that we only see the relevant output line(s) that contain `arch'.
 
-\begin{verbatim}
+\begin{lstlisting}[language=bash]
 $ mount | grep arch
 /home/demo/archlinux-2014.11.01-dual.iso on /home/demo/arch type iso9660 (rw,loop=/dev/loop0)
-\end{verbatim}
+\end{lstlisting}
 
 The iso9660 filesystem is a read-only filesystem originally designed for optical storage media (i.e.~CDRoms).
 Attempting to change the contents of the filesystem will fail
 
-\begin{verbatim}
+\begin{lstlisting}[language=bash]
 $ touch arch/nocando
 touch: cannot touch `/home/demo/arch/nocando': Read-only file system
-\end{verbatim}
+\end{lstlisting}
 
 \section{Memory Mapped IO}
 

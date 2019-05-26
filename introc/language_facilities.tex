@@ -327,7 +327,7 @@ struct person {
 }
 \end{lstlisting}
 
-	      This code will not compile because sizeof is not able to compile \keyword{file.c} without knowing the full declaration of the \texttt{person} struct.
+	      This code will not compile because sizeof is not able to compile \keyword{file.c} without knowing the full declaration of the \keyword{person} struct.
         That is typically why programmers either put the full declaration in a header file or we abstract the creation and the interaction away so that users cannot access the internals of our struct.
         Additionally, if the compiler knows the full length of an array object, it will use that in the expression instead of having it decay into a pointer.
 
@@ -539,11 +539,11 @@ If you want a fixed width integer type, for more portable code, you may use the 
 Operators are language constructs in C that are defined as part of the grammar of the language.
 
 \begin{enumerate}
-	\item \keyword{[]} is the subscript operator. \texttt{a[n] == (a + n)*} where \texttt{n} is a number type and \texttt{a} is a pointer type.
-	\item \keyword{->} is the structure dereference (or arrow) operator. If you have a pointer to a struct \texttt{*p}, you can use this to access one of its elements. \texttt{p->element}.
-	\item \keyword{.} is the structure reference operator. If you have an object \texttt{a} then you can access an element \texttt{a.element}.
+	\item \keyword{[]} is the subscript operator. \keyword{a[n] == (a + n)*} where \keyword{n} is a number type and \keyword{a} is a pointer type.
+	\item \keyword{->} is the structure dereference (or arrow) operator. If you have a pointer to a struct \keyword{*p}, you can use this to access one of its elements. \keyword{p->element}.
+	\item \keyword{.} is the structure reference operator. If you have an object \keyword{a} then you can access an element \keyword{a.element}.
 	\item \keyword{+/-a} is the unary plus and minus operator. They either keep or negate the sign, respectively, of the integer or float type underneath.
-	\item \keyword{*a} is the dereference operator. If you have a pointer \texttt{*p}, you can use this to access the element located at this memory address. If you are reading, the return value will be the size of the underlying type. If you are writing, the value will be written with an offset.
+	\item \keyword{*a} is the dereference operator. If you have a pointer \keyword{*p}, you can use this to access the element located at this memory address. If you are reading, the return value will be the size of the underlying type. If you are writing, the value will be written with an offset.
 	\item \keyword{\&a} is the address-of operator. This takes an element and returns its address.
 	\item \keyword{++} is the increment operator. You can use it as a prefix or postfix, meaning that the variable that is being incremented can either be before or after the operator. \keyword{a = 0; ++a === 1} and \keyword{a = 1; a++ === 0}.
 	\item \keyword{--} is the decrement operator. This has the same semantics as the increment operator except that it decreases the value of the variable by one.

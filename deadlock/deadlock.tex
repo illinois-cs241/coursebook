@@ -75,7 +75,7 @@ int isCyclic(Graph *G, int* is_visited) {
 Assume that the processes ask for exclusive access to the file.
 If you have a bunch of processes running and they request resources and the operating system ends up in this state, you deadlock!
 You may not see this because the operating system may \textbf{preempt} some processes breaking the cycle but there is still a change that your three lonely processes could deadlock.
-You can also make these kind of graphs with \texttt{make} and rule dependencies with our Parallel Make MP for example.
+You can also make these kind of graphs with \keyword{make} and rule dependencies with our Parallel Make MP for example.
 
 There are four \emph{necessary} and \emph{sufficient} conditions for deadlock -- meaning if these conditions hold then there is a non-zero probability that the system will deadlock at any given iteration.
 These are known as the \gls{Coffman Conditions} \cite{coffman1971system}.
@@ -490,7 +490,7 @@ pthread_mutex_lock(m1) // blocks
 \end{lstlisting}
 
   What happens and why? What happens if a third thread calls
-  \texttt{pthread\_mutex\_lock(m1)} ?
+  \keyword{pthread\_mutex\_lock(m1)} ?
 \item
   How many processes are blocked? As usual assume that a process is able
   to complete if it is able to acquire all of the resources listed

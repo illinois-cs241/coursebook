@@ -11,7 +11,7 @@ POSIX also lets you peer underneath the hood and optimize all the little parts o
 As an addendum that you'll read more about in the next chapter, we will be very strict in our notation for sizes.
 That means that when we refer to the SI prefixes of Kilo- Mega- etc etc, then we are always referring to a power of 10.
 A kilobyte is one thousand bytes, megabyte is thousand kilobytes etc etc.
-If we need to refer to \texttt{1024} bytes, we will use the more accurate term Kibibyte. Mibibyte and Gibibyte are the analogues of Megabyte and Gigabyte respectively.
+If we need to refer to \keyword{1024} bytes, we will use the more accurate term Kibibyte. Mibibyte and Gibibyte are the analogues of Megabyte and Gigabyte respectively.
 We make this distinction in order to make sure that we aren't off by 24.
 The reasons for this misnomer will be explained in the filesystems chapter.
 
@@ -462,7 +462,7 @@ hints.ai_family = AF_INET6; // Only want IPv6 (use AF_INET for IPv4)
 hints.ai_socktype = SOCK_STREAM; // Only want stream-based connection
 \end{lstlisting}
 
-The other modes for family are \texttt{AF\_INET4} and \texttt{AF\_UNSPEC} which mean IPv4 and unspecified respectively.
+The other modes for family are \keyword{AF\_INET4} and \keyword{AF\_UNSPEC} which mean IPv4 and unspecified respectively.
 This could be useful if you are searching for a service that you aren't entirely sure which IP version.
 Naturally, you get the version in the field back if you specified UNSPEC.
 
@@ -730,7 +730,7 @@ In General, there are six parts
 \item The method. GET,POST,\ldots{}
 \item The resource. ``/'' ``/index.html'' ``/image.png''
 \item The protocol ``HTTP/1.0''
-\item A New lines (\texttt{\\r\\n}). Requests always have a carriage return.
+\item A New lines (\keyword{\\r\\n}). Requests always have a carriage return.
 \item Any other knobs or switch parameters
 \item The actual body of the request delimited by two new lines. The body of the request is either if the size is specified or until the receiver closes their connection.
 \end{enumerate}
@@ -1244,10 +1244,10 @@ Digression aside, DNS works like this in a nutshell
 If you want the full bits and pieces, feel free to look at the wikipedia page.
 In essence there is a hierarchy of DNS servers.
 First there is the dot hierarchy.
-This hierarchy first resolves top level domains \texttt{.edu} \texttt{.gov} etc.
-Then resolves the next level \texttt{illinois.edu}.
+This hierarchy first resolves top level domains \keyword{.edu} \keyword{.gov} etc.
+Then resolves the next level \keyword{illinois.edu}.
 Then the local resolvers can resolve any number of urls.
-For example, the Illinois DNS server handles both \texttt{cs.illinois.edu} and \texttt{cs241.cs.illinois.edu}. There is a limit on how many subdomains you can have, but this is often used to route requests to different servers to avoid having to buy many high performant servers to route requests.
+For example, the Illinois DNS server handles both \keyword{cs.illinois.edu} and \keyword{cs241.cs.illinois.edu}. There is a limit on how many subdomains you can have, but this is often used to route requests to different servers to avoid having to buy many high performant servers to route requests.
 
 \section{Non Blocking IO}
 
@@ -1494,7 +1494,7 @@ for (;;) {
 
 \end{lstlisting}
 
-Please read through most of \texttt{man 7 epoll} before starting to program. There are many gotchas with epoll. Some of the more common ones will be detailed below.
+Please read through most of \keyword{man 7 epoll} before starting to program. There are many gotchas with epoll. Some of the more common ones will be detailed below.
 
 \subsection{Assorted Epoll Gotchas}
 
