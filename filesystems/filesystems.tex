@@ -45,7 +45,7 @@ That convention is that when a file is stored on a traditional file system, \tex
 When we are talking about computer networks \textbf{KB is not the same as KiB} and is the ISO / Metric Definition above.
 This is a historical quirk was brought by a clash between network developers and memory/hard storage developers.
 Hard storage and memory developers found that if a bit could take one of two states, it would be naturally to call a Kilo- prefix 1024 because it was about 1000.
-Network developers had to deal with bits, real time signal processing, and various other factors so they went with the already accepted convention that Kilo- means a 1000 of something \todo{citation needed}.
+Network developers had to deal with bits, real time signal processing, and various other factors, so they went with the already accepted convention that Kilo- means a 1000 of something \todo{citation needed}.
 What you need to know is if you see KB in the wild, that it may be 1024 based on the context.
 If any time in this class (CS 241 @ Illinois) you see KB or any of the family refer to a filesystems question, you can safely infer that they are referring to 1024 as the base unit.
 
@@ -75,6 +75,7 @@ Here are some common features of a filesystem:
 \end{enumerate}
 
 Before we dive into the details of a filesystem, let's take a look at some examples.
+To clarify, a mount point is simply a mapping of a directory to a filesystem represented in the kernel.
 
 \begin{enumerate}
   \item \keyword{ext4} Usually mounted at / on Linux systems, this is the filesystem that usually provides disk access as you're used to.
@@ -84,7 +85,6 @@ Before we dive into the details of a filesystem, let's take a look at some examp
   \item \keyword{sshfs} This syncs files across the \keyword{ssh} protocol.
 \end{enumerate}
 
-To clarify, a mount point is simply a mapping of a directory to a filesystem represented in the kernel.
 It tells you what filesystem directory-based system calls resolve to.
 For example, \keyword{/} is resolved by the \keyword{ext4} filesystem in our case, but \keyword{/proc/2} is resolved by the \keyword{procfs} system even though it contains \keyword{/} as a subsystem.
 
@@ -141,7 +141,7 @@ In order to reason about data on some form of storage -- spinning disks, solid s
 A block can be thought of as a contiguous region on disk.
 While its size is sometimes determined by some property of the underlying hardware, it is more frequently determined based on the size of a page of memory for a given system, so that data from the disk can be cached in memory for faster access -- a very important feature of many filesystems.
 
-Usually, a filesystem has a special block denoted as a \emph{superblock} which stores metadata about the filesystem such as a journal (which logs changes to the filesystem), a table of inodes and the location of the first inode on disk etc.
+A filesystem has a special block denoted as a \emph{superblock} which stores metadata about the filesystem such as a journal (which logs changes to the filesystem), a table of inodes and the location of the first inode on disk etc.
 The important thing about a superblock is that it is in a known location on disk.
 If not, your computer may not be able to boot up!
 Consider a simple ROM programmed into your motherboard.
@@ -309,7 +309,8 @@ If a matching filename is found then `closedir' is never called as part of the e
 Any file descriptors opened, and any memory allocated, by opendir are never released.
 This means eventually the process will run out of resources and an \keyword{open} or \keyword{opendir} call will fail.
 
-The fix is to ensure we free up resources in every possible code-path (often why kernel error handlers use \keyword{goto}s extensively).
+The fix is to ensure we free up resources in every possible code path.
+
 In the above code, this means calling \keyword{closedir} before \keyword{return 1}.
 Forgetting to release resources is a common C programming bug because there is no support in the C language to ensure resources are always released with all code paths.
 
@@ -380,11 +381,11 @@ There are two kinds of links:
 \begin{enumerate}
     \item \keyword{Hard Links}
         A hard link is simply an entry in a directory assigning some name to an inode number that already has a different name and mapping in either the same directory or a different one.
-        If we already have a file on a file system we can create another link to the same inode using the `ln' command:
+        If we already have a file on a file system we can create another link to the same inode using the \keyword{`ln'} command:
 
-        \begin{verbatim}
-        $ ln file1.txt blip.txt
-        \end{verbatim}
+        \begin{lstlisting}[language=bash]
+            $ ln file1.txt blip.txt
+        \end{lstlisting}
 
         However, blip.txt \emph{is} the same file.
         If I edit blip, I'm editing the same file as `file1.txt!'.
@@ -415,8 +416,8 @@ There are two kinds of links:
         Quite simply, without the special bit, it is nothing more than a text file with a file path inside.
         Note when people generally talk about a link without specifying hard or soft, they are referring to a hard link.
 
-        To create a symbolic link in the shell use \keyword{ln -s}.
-        To read the contents of the link as just a file use \keyword{readlink}.
+        To create a symbolic link in the shell, use \keyword{ln -s}.
+        To read the contents of the link as just a file, use \keyword{readlink}.
         These are both demonstrated below.
 
         \begin{verbatim}
@@ -495,7 +496,7 @@ It is possible to have a path called \texttt{a/b/../c/./}.
 Since \keyword{..} and \keyword{.} are special entries in directories, this is a valid path that actually refers to \texttt{a/c}.
 Most filesystem functions will allow uncompressed paths to be passed in.
 The C library provides a function \keyword{realpath} to compress the path or get the absolute path.
-To simplify by hand remember that \keyword{..} means `parent folder' and that \keyword{.} means `current folder'.
+To simplify by hand, remember that \keyword{..} means `parent folder' and that \keyword{.} means `current folder'.
 Below is an example that illustrates the simplification of the \texttt{a/b/../c/.} by using \keyword{cd} in a shell to navigate a filesystem.
 
 \begin{enumerate}
@@ -536,11 +537,11 @@ int lstat(const char *path, struct stat *buf);
 For example, you can use \keyword{fstat} to learn about file metadata if you already have a file descriptor associated with that file.
 
 \begin{lstlisting}[language=C]
-    FILE *file = fopen("notes.txt", "r");
-    int fd = fileno(file); /* Just for fun - extract the file descriptor from a C FILE struct */
-    struct stat s;
-    fstat(fd, & s);
-    printf("Last accessed %s", ctime(&s.st_atime));
+FILE *file = fopen("notes.txt", "r");
+int fd = fileno(file); /* Just for fun - extract the file descriptor from a C FILE struct */
+struct stat s;
+fstat(fd, & s);
+printf("Last accessed %s", ctime(&s.st_atime));
 \end{lstlisting}
 
 \keyword{lstat} is almost the same as \keyword{stat} but handles symbolic links differently.
@@ -761,22 +762,22 @@ A common use of the sticky bit is for the shared and writable \keyword{/tmp} dir
 
 To set the sticky bit, use \keyword{chmod +t}.
 
-\begin{verbatim}
-    aneesh$ mkdir sticky
-    aneesh$ chmod +t sticky
-    aneesh$ ls -l
-    drwxr-xr-x  7 aneesh aneesh    4096 Nov  1 14:19 .
-    drwxr-xr-x 53 aneesh aneesh    4096 Nov  1 14:19 ..
-    drwxr-xr-t  2 aneesh aneesh    4096 Nov  1 14:19 sticky
-    aneesh$ su newuser
-    newuser$ rm -rf sticky
-    rm: cannot remove 'sticky': Permission denied
-    newuser$ exit
-    aneesh$ rm -rf sticky
-    aneesh$ ls -l
-    drwxr-xr-x  7 aneesh aneesh    4096 Nov  1 14:19 .
-    drwxr-xr-x 53 aneesh aneesh    4096 Nov  1 14:19 ..
-\end{verbatim}
+\begin{lstlisting}[language=bash]
+aneesh$ mkdir sticky
+aneesh$ chmod +t sticky
+aneesh$ ls -l
+drwxr-xr-x  7 aneesh aneesh    4096 Nov  1 14:19 .
+drwxr-xr-x 53 aneesh aneesh    4096 Nov  1 14:19 ..
+drwxr-xr-t  2 aneesh aneesh    4096 Nov  1 14:19 sticky
+aneesh$ su newuser
+newuser$ rm -rf sticky
+rm: cannot remove 'sticky': Permission denied
+newuser$ exit
+aneesh$ rm -rf sticky
+aneesh$ ls -l
+drwxr-xr-x  7 aneesh aneesh    4096 Nov  1 14:19 .
+drwxr-xr-x 53 aneesh aneesh    4096 Nov  1 14:19 ..
+\end{lstlisting}
 
 Note that in the example above, the username is prepended to the prompt, and the command \keyword{su} is used to switch users.
 
@@ -787,11 +788,11 @@ Files inside these virtual filesystems do not exist on the disk.
 They are generated dynamically by the kernel when a process requests a directory listing.
 Linux provides 3 main virtual filesystems:
 
-\begin{verbatim}
-    /dev  - A list of physical and virtual devices (for example network card, cdrom, random number generator)
-    /proc - A list of resources used by each process and (by tradition) set of system information
-    /sys - An organized list of internal kernel entities
-\end{verbatim}
+\begin{enumerate}
+    \item /dev  - A list of physical and virtual devices (for example network card, cdrom, random number generator)
+    \item /proc - A list of resources used by each process and (by tradition) set of system information
+    \item /sys - An organized list of internal kernel entities
+\end{enumerate}
 
 For example if I want a continuous stream of 0s, I can run \keyword{cat /dev/zero}.
 
@@ -827,9 +828,9 @@ However in this specific example, the \keyword{/tmp} directory has the sticky bi
 This does not mean that creating the directory and then later making the directory private is secure!
 A better version is to atomically create the directory with the correct permissions from its inception.
 
-\begin{verbatim}
-    $ mkdir -m 700 /tmp/mystuff
-\end{verbatim}
+\begin{lstlisting}[language=bash]
+$ mkdir -m 700 /tmp/mystuff
+\end{lstlisting}
 
 \subsection{Obtaining random data}
 
@@ -1133,13 +1134,13 @@ More efficient redundancy (analogous to RAID 3++) e.g., \href{http://goo.gl/LwFI
 \section{Simple Filesystem Model}
 
 Software developers need to implement filesystems all the time.
-Don't believe me? Take a look at Hadoop, GlusterFS, Qumulo, etc.
+If that is surprising to you, we encourage you to take a look at Hadoop, GlusterFS, Qumulo, etc.
 Filesystems are hot areas of research at the time of writing, because people have realized that the software models that we have devised don't take full advantage of our current hardware.
 Additionally, the hardware that we use for storing information is getting better all the time.
 As such, you may end up designing a filesystem yourself someday.
-In this section we will go over one of our fake filesystems that we talk about in class and ``walk through'' some examples of how things work.
+In this section, we will go over one of our fake filesystems that we talk about in class and ``walk through'' some examples of how things work.
 
-So what does our hypothetical filesystem look like? 
+So, what does our hypothetical filesystem look like? 
 We will base it off of the \textt{minixfs}, a very simple filesystem that happens to be the first filesystem that Linux ran on.
 It is laid out sequentially on disk, and the first section is the superblock.
 The superblock stores important metadata about the entire filesystem.
@@ -1266,7 +1267,7 @@ These are edge cases you have to think about for a filesystem that really get yo
 
 \subsection{Adding Deletes}
 
-Although this wasn't part of the CS 241 assignment originally, if you were to ask what happens when a file gets deleted, it is actually quite simple.
+If you were to ask what happens when a file gets deleted, it is actually quite simple.
 If the inode is a file, then remove the directory entry in the parent directory by marking it as invalid (maybe making it point to inode -1) and skip it in your reads.
 You need to make sure to decrease the hard link count of the inode and if the count reaches zero, free the inode in the inode map and free all associated data blocks so they are reclaimed by the filesystem.
 In many operating systems, several fields in the inode get overwritten.
