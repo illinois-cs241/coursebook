@@ -6,7 +6,7 @@ The C memory model is probably unlike most that you've seen before. Instead of a
 
 In low-level terms, a struct is just a piece of contiguous memory, nothing more.
 Just like an array, a struct has enough space to keep all of its members.
-But unlike an array, it can store different types. Consider the contact struct declared above:
+But unlike an array, it can store different types. Consider the contact struct declared above.
 
 \begin{lstlisting}[language=C]
 struct contact {
@@ -18,15 +18,11 @@ struct contact {
 struct contact bhuvan;
 \end{lstlisting}
 
+We will often use the following typedef so we can just write contact contact1. One can also declare it in a single statement. 
 \begin{lstlisting}[language=C]
-/* We will often use the following typedef
- so we can just write contact contact1 */
-
 typedef struct contact contact;
 contact bhuvan;
 
-/* You can also declare the struct like this to get
- it done in one statement */
 typedef struct optional_name {
     ...
 } contact;
@@ -41,7 +37,10 @@ If you compile the code without any optimizations and reordering, you can expect
 &bhuvan.phone     // 0x128 = 0x100+0x28
 \end{lstlisting}
 
-All your compiler does is say "reserve this much space, and I will calculate the offsets of whatever variables you want to write to'. The offsets are where the variable starts at. The phone variables starts at the \keyword{0x128}th bytes and continues for sizeof(int) bytes, but not always. \textbf{Offsets don't determine where the variable ends though}. Consider the following hack that you see in a lot of kernel code.
+All your compiler does is say "reserve this much space, and I will calculate the offsets of whatever variables you want to write to'.
+The offsets are where the variable starts at.
+The phone variables starts at the \keyword{0x128}th bytes and continues for sizeof(int) bytes, but not always.
+\textbf{Offsets don't determine where the variable ends though}. Consider the following hack that you see in a lot of kernel code.
 
 \begin{lstlisting}[language=C]
 
@@ -56,37 +55,53 @@ int length = strlen(to_convert);
 // Let's convert to a c string
 string* bhuvan_name;
 bhuvan_name = malloc(sizeof(string) + length+1);
-/*
-Currently, our memory looks like this with junk in those black spaces
-                ___ ___ ___ ___ ___ ___ ___ ___ ___ ___ ___
- bhuvan_name = |___|___|___|___|___|___|___|___|___|___|___|
-
-*/
-
-
-bhuvan_name->length = length;
-/*
-This writes the following values to the first four bytes
-The rest is still garbage
-                ___ ___ ___ ___ ___ ___ ___ ___ ___ ___ ___
- bhuvan_name = | 0 | 0 | 0 | 6 |___|___|___|___|___|___|___|
-
-*/
-
-
-strcpy(bhuvan_name->c_str, to_convert);
-/*
-Now our string is filled in correctly at the end of the struct
-
-                ___ ___ ___ ___ ___ ___ ___ ___ ___ ___ ____
- bhuvan_name = | 0 | 0 | 0 | 6 | b | h | u | v | a | n | \0 |
-                                                           ‾
-*/
-
-strcmp(bhuvan_name->c_str, "bhuvan") == 0 //The strings are equal!
 \end{lstlisting}
 
-What that zero length array does is point to the \textbf{end of the struct} this means that the compiler will leave room for all of the elements calculated with respect to their size on the operating system (ints, chars, etc). The zero length array will take up no bytes of space.
+Currently, our memory looks like the following image.
+There is nothing in those boxes
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=.7\textwidth]{introc/drawings/memory_model_empty.png}
+\caption{Struct pointing to 11 empty boxes}
+\end{figure}
+
+So what happens when we assign length?
+The first four boxes are filled with the value of the variable at length.
+The rest of the space is left untouched.
+We will assume that our machine is big endian.
+This means that the least significant byte is last.
+
+\begin{lstlisting}[language=C]
+bhuvan_name->length = length;
+\end{lstlisting}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=.7\textwidth]{introc/drawings/memory_model_length.png}
+\caption{Struct pointing to 11 boxes, 4 filled with 0006, 7 junk}
+\end{figure}
+
+Now, we can write a string to the end of our struct with the following call.
+
+\begin{minted}{C}
+strcpy(bhuvan_name->c_str, to_convert);
+\end{minted}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=.7\textwidth]{introc/drawings/memory_model_full.png}
+\caption{Struct pointing to 11 boxes, 4 filled with 0006, 7 the stirng ``bhuvan''}
+\end{figure}
+
+We can even do a sanity check to make sure that the strings are equal.
+
+\begin{minted}{C}
+strcmp(bhuvan_name->c_str, "bhuvan") == 0 //The strings are equal!
+\end{minted}
+
+What that zero length array does is point to the \textbf{end of the struct} this means that the compiler will leave room for all of the elements calculated with respect to their size on the operating system (ints, chars, etc).
+The zero length array will take up no bytes of space.
 Since structs are just continuous pieces of memory, we can allocate \textbf{more} space than required and use the extra space as a place to store extra bytes.
 Although this seems like a parlor trick, it is an important optimization because to have a variable length string any other way, one would need to have two different memory allocation calls.
 This is highly inefficient for doing something as common in programming as is string manipulation.
@@ -94,7 +109,7 @@ This is highly inefficient for doing something as common in programming as is st
 \subsubsection{Extra: Struct packing}
 
 Structs may require something called \href{http://www.catb.org/esr/structure-packing/}{padding} (tutorial).
-\textbf{We do not expect you to pack structs in this course, just know that it is there} This is because in the early days (and even now) when you have to an address from memory you have to do it in 32-bit or 64-bit blocks.
+\textbf{We do not expect you to pack structs in this course, just know that it is there} This is because in the early days (and even now) when you have to load an address from memory you have to do it in 32-bit or 64-bit blocks.
 This also meant that you could only request addresses that were multiples of block sizes.
 Meaning that
 
@@ -106,13 +121,16 @@ struct picture{
     char* encoding;
 }
 \end{lstlisting}
-You think the picture looks like this. One box is four bytes.
 
-\begin{verbatim}
-| h |  data | w | encod |
-|---+-------+---+-------|
-|___|___|___|___|___|___|
-\end{verbatim}
+You think the picture looks like this.
+One box is four bytes.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=.7\textwidth]{introc/drawings/struct_clean.png}
+\caption{Six box struct}
+\label{fig:clean_struct}
+\end{figure}
 
 However, with struct packing, it would conceptually look like this:
 
@@ -127,15 +145,21 @@ struct picture{
 }
 \end{lstlisting}
 
-Here is some more ASCII art for you
+Visually, we'd add two extra boxes to our diagram
 
-\begin{verbatim}
-| h | ? | data  | w | ? | encod |
-|---+---+-------+---+---+-------|
-|___|___|___ ___|___|___|___ ___|
-\end{verbatim}
+\begin{figure}[H]
+\centering
+\includegraphics[width=.7\textwidth]{introc/drawings/struct_slop.png}
+\caption{Eight box struct, two boxes of slop}
+\label{fig:sloppy_struct}
+\end{figure}
 
-This is on a 64-bit system. This is not always the case because sometimes your processor supports unaligned access. What does this mean? Well there are two options you can set an attribute:
+This padding is common on a 64-bit system.
+This is not always the case because sometimes your processor supports unaligned access.
+What does this mean?
+We can have a variable start at a non-64-bit boundary.
+The processor will figure out the rest.
+To enable this, set an attribute.
 
 \begin{lstlisting}[language=C]
 struct __attribute__((packed, aligned(4))) picture{
@@ -146,14 +170,9 @@ struct __attribute__((packed, aligned(4))) picture{
 }
 \end{lstlisting}
 
-\begin{verbatim}
-| h |  data | w | encod |
-|---+-------+---+-------|
-|___|___|___|___|___|___|
-\end{verbatim}
-
-But now, every time I want to access \keyword{data} or \keyword{encoding},
-I have to do two memory accesses.
+Now our figure will look like the clean struct as in figure  \ref{fig:clean_struct}
+But now, every time the processor needs to access \keyword{data} or \keyword{encoding},
+two memory accesses are required.
 The other thing you can do is reorder the struct, although this is not always possible
 
 \begin{lstlisting}[language=C]
@@ -165,11 +184,7 @@ struct picture{
 }
 \end{lstlisting}
 
-\begin{verbatim}
-| h | w | data  | encod |
-|---+---+---+---+-------|
-|___|___|___|___|___|___|
-\end{verbatim}
+Which will get you the same output.
 
 \subsection{Strings in C}
 

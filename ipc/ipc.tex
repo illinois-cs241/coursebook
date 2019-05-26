@@ -135,7 +135,7 @@ Frame number 101 in memory
 And if we were reading from it, 'return' that value.
 This sounds like a perfect solution.
 Take each address and map it to a virtual address in sequential order.
-The process will believe that the address look continuous, but the top 20 bits are used to figure out \texttt{page\_num},
+The process will believe that the address look continuous, but the top 20 bits are used to figure out \keyword{page\_num},
 which will allow us to find the frame number, find the frame, add the \textbf{offset} -- derived from the last 12 bits -- and do the read or write.
 
 There are other ways to split it as well.
@@ -165,9 +165,9 @@ VirtualAddress = 11110000111111110000000010101010 (binary)
 \end{verbatim}
 
 So what is the intuition for dereferencing an address?
-First, you take the top level page table and find the \texttt{Index1}'th entry.
+First, you take the top level page table and find the \keyword{Index1}'th entry.
 That will contain a number that will lead you to the appropriate sub-table
-Then go to the \texttt{Index2}'th entry of that table.
+Then go to the \keyword{Index2}'th entry of that table.
 That will contain a frame number.
 This is the good old fashioned 4KiB RAM that we were talking about earlier.
 Then you add the offset and do the read or write.
@@ -214,7 +214,7 @@ Frame number #703
 \subsubsection{Calculating Size Concerns}
 
 Now some calculations on size.
-Each \keyword{page\_table\_num} index is 10 bits wide because there are only $2^{10}$ possible \texttt{sub-tables}, so we need 10 bits to store each directory index.
+Each \keyword{page\_table\_num} index is 10 bits wide because there are only $2^{10}$ possible \keyword{sub-tables}, so we need 10 bits to store each directory index.
 We'll round up to 2 bytes for the sake of reasoning.
 If 2 bytes are used for each entry in the top level table and there are only $2^{10}$ entries, we only need 2KiB to store this entire first level page table.
 Each subtable will point to physical frames, and each of their entries need to be the required 4 bytes to be able to address all the frames as mentioned earlier.
@@ -287,7 +287,7 @@ Meaning that if you try to write to a read-only page in memory you will get a \k
 That is why sometimes memory accesses SEGFAULT and sometimes they don't, it all depends on if your hardware says that you can access.
 
 In addition, processes can share a page with a child process using the \keyword{mmap} system call.
-\keyword{mmap} is an interesting call because instead of tying each virtual address to a physical frame, it ties it to something else. It is an important distinction that we are talking about mmap and not memory-mapped IO in general. The \texttt{mmap} system call can't reliably be used to do other memory mapped operations like communicate with GPUs and write pixels to the screen -- this is mainly hardware dependent.
+\keyword{mmap} is an interesting call because instead of tying each virtual address to a physical frame, it ties it to something else. It is an important distinction that we are talking about mmap and not memory-mapped IO in general. The \keyword{mmap} system call can't reliably be used to do other memory mapped operations like communicate with GPUs and write pixels to the screen -- this is mainly hardware dependent.
 
 \subsubsection{Bits on Pages}
 
@@ -367,13 +367,13 @@ They let the operating system take control of how much you use your files.
 
 \subsection{mmap Definitions}
 
-\texttt{mmap} does more than just take a file and map it to memory.
+\keyword{mmap} does more than just take a file and map it to memory.
 It is the general interface for creating shared memory among processes.
 Currently it only supports regular files and POSIX \keyword{shmem} \cite{mmap_2018}.
 Naturally, you can read all about it in the citation above, which references the current working group POSIX standard.
 Some other options to note in the page will follow.
 
-The first option is that the \texttt{flags} argument of mmap can take many options.
+The first option is that the \keyword{flags} argument of mmap can take many options.
 
 \begin{enumerate}
 \item \keyword{PROT\_READ} This means the process can read the memory. This isn't the only flag that gives the process read permission however! The underlying file descriptor in this case must be opened with read privileges.
@@ -548,15 +548,15 @@ As such, pipes were invented to take the output of one program
 and feed it to the input of another program though they have other uses today -- you can read more \href{https://en.wikipedia.org/wiki/Pipeline\_\%28Unix\%29}{At the wikipedia page}
 Consider if you type the following into your terminal.
 
-\begin{verbatim}
+\begin{lstlisting}[language=bash]
 $ ls -1 | cut -d'.' -f1 | sort | uniq | tee dir_contents
-\end{verbatim}
+\end{lstlisting}
 
 What does the following code do? Well it \keyword{ls}'s the current directory.
 The -1 means that it outputs one entry per line.
 The \keyword{cut} command then takes everything before the first period.
-\texttt{sort} sorts all the input lines, \texttt{uniq} makes sure all the lines are uniq.
-Finally \texttt{tee} outputs the contents to the file \texttt{dir\_contents} and the terminal for your perusal.
+\keyword{sort} sorts all the input lines, \keyword{uniq} makes sure all the lines are uniq.
+Finally \keyword{tee} outputs the contents to the file \keyword{dir\_contents} and the terminal for your perusal.
 The important part is that bash creates \textbf{5 separate processes} and connects their standard outs/stdins with pipes the trail looks something like this.
 
 \begin{verbatim}
@@ -583,8 +583,8 @@ if (child > 0) { /* I must be the parent */
 \end{lstlisting}
 
 There are two file descriptors that pipe creates.
-\texttt{filedes[0]} contains the read end.
-\texttt{filedes[1]} contains the write end.
+\keyword{filedes[0]} contains the read end.
+\keyword{filedes[1]} contains the write end.
 How your friendly neighborhood TA Bhuvan remembered it is you have to \textit{read before you can write, or reading comes before writing}.
 You can groan all you want at it, but it is helpful to remember what is the read end and what is the write end.
 
@@ -741,11 +741,11 @@ The last addendum is that you can actually set the file descriptor to return whe
 The reason that this is default behavior is it makes the pipe example above work.
 Consider this useless use of cat
 
-\begin{verbatim}
+\begin{lstlisting}[language=bash]
 $ cat /dev/urandom | head -n 20
-\end{verbatim}
-Which grabs 20 lines of input from urandom. \texttt{head} will terminate after 20 newline characters have been read. Well what about \texttt{cat}?
-\texttt{cat} needs to receive a SIGPIPE informing it that the program just tried to write to a pipe that no one is listening on.
+\end{lstlisting}
+Which grabs 20 lines of input from urandom. \keyword{head} will terminate after 20 newline characters have been read. Well what about \keyword{cat}?
+\keyword{cat} needs to receive a SIGPIPE informing it that the program just tried to write to a pipe that no one is listening on.
 
 \subsection{Other pipe facts}
 
@@ -759,13 +759,13 @@ It is also common design for a pipe to be one way -- meaning one process should 
 
 \subsection{Pipes and Dup}
 
-A lot of time, you'll want to use \texttt{pipe2} in combination with dup. Take for example the simple program in the command line.
+A lot of time, you'll want to use \keyword{pipe2} in combination with dup. Take for example the simple program in the command line.
 
-\begin{verbatim}
-ls -1 | cut -f1 -d.
-\end{verbatim}
+\begin{lstlisting}[language=bash]
+$ ls -1 | cut -f1 -d.
+\end{lstlisting}
 
-This command take the output of \texttt{ls -1} which lists the content of the current directory on one line each and pipes it to cut.
+This command take the output of \keyword{ls -1} which lists the content of the current directory on one line each and pipes it to cut.
 Cut take a delimiter in this case a dot and a field position in our case 1 and outputs per line the nth field by each delimiter.
 At a high level, this grabs the file names without the extension of our current directory.
 
@@ -872,7 +872,7 @@ At the beginning of this course we assumed that file streams are always \emph{li
 Actually this is only true for terminal streams - for other file streams the C library attempts to improve performance by only flushing when it's internal buffer is full or the file is closed.
 
 \textbf{Even though we have a section on it, it is highly not recommended to fdopen() anything that doesn't point to an underlying file descriptor}. The reason being is that while we get conveniences we also get annoyances like the buffering example we mentioned, caching, etc etc.
-The basic UNIX motto is that anything that you can \texttt{fseek} or move to an arbitrary position in, you should be able to \texttt{fdopen}. Files satisfy this behavior, shared memory also, terminals, etc.
+The basic UNIX motto is that anything that you can \keyword{fseek} or move to an arbitrary position in, you should be able to \keyword{fdopen}. Files satisfy this behavior, shared memory also, terminals, etc.
 When it comes to pipes, sockets, epoll objects, etc, don't do it.
 
 \section{Named Pipes}
@@ -889,19 +889,19 @@ This is just for programming convenience if processes are started without forkin
 
 \subsection{Why is my named pipe hanging?}
 
-A named pipe \texttt{mkfifo} is simply a pipe that you call \texttt{open(2)} on with read and/or write permissions.
+A named pipe \keyword{mkfifo} is simply a pipe that you call \keyword{open(2)} on with read and/or write permissions.
 This is useful if you want to have a pipe between two processes without one processing having to fork the other process.
 There are some gotchas with named pipes.
 There is more down below, but we'll introduce it here for a simple example.
 Reads and writes hang on Named Pipes until there is at least one reader and one writer, take this.
 
-\begin{verbatim}
+\begin{lstlisting}[language=bash]
 1$ mkfifo fifo
 1$ echo Hello > fifo
 # This will hang until I do this on another terminal or another process
 2$ cat fifo
 Hello
-\end{verbatim}
+\end{lstlisting}
 
 Any \keyword{open} is called on a named pipe the kernel blocks until another process calls the opposite open. Meaning, echo calls \keyword{open(..,\ O\_RDONLY)} but that blocks until cat calls \keyword{open(..,\ O\_WRONLY)}, then the programs are allowed to continue.
 
@@ -981,7 +981,7 @@ On different operating systems, C uses the low level functions to create a wrapp
 
 But you don't get the expressiveness that Linux gives you with system calls you can convert back and forth between them with \keyword{int\ fileno(FILE*\ stream)} and \keyword{FILE*\ fdopen(int\ fd...)} Another important aspect to note is the C files are \textbf{buffered} meaning that their contents may not be written right away by default. You can can change that with C options.
 
-\textbf{Danger} With portability you lose something important, the ability to tell an error. Take for example the advice that we gave you above. You can \texttt{fopen} a file descriptor and get a \texttt{FILE*} object but \textbf{it won't be the same as a file} meaning that certain calls will fail or act weirdly.
+\textbf{Danger} With portability you lose something important, the ability to tell an error. Take for example the advice that we gave you above. You can \keyword{fopen} a file descriptor and get a \keyword{FILE*} object but \textbf{it won't be the same as a file} meaning that certain calls will fail or act weirdly.
 The C API reduces this weirdness, but for example you cannot \keyword{fseek} to a part of the file, or perform any operations with its buffering.
 The problem is the API won't give a lot of warning because C needs to maintain compatibility with other operating systems.
 To keep things simple for you, use the C API of files when you are dealing with a file on disk, which will work fine. Otherwise, be in for a rough ride for portability sake.
@@ -1030,7 +1030,7 @@ return (ssize_t)buf.st_size;
 
 What happens when file streams are closed by two different processes?
 Closing a file stream is unique to each process.
-Other processes can continue to use their own file-handle. Remember, everything is copied over when a child is created, even the relative positions of the files. As you might have observed with using \texttt{fork}, there is a quirk of the implementation of files and their caches on Ubuntu that will rewind a file descriptor once a file has closed. As such, make sure to close before forking or at least don't trigger a cache inconsistency which is much harder.
+Other processes can continue to use their own file-handle. Remember, everything is copied over when a child is created, even the relative positions of the files. As you might have observed with using \keyword{fork}, there is a quirk of the implementation of files and their caches on Ubuntu that will rewind a file descriptor once a file has closed. As such, make sure to close before forking or at least don't trigger a cache inconsistency which is much harder.
 
 \section{So Many IPC Options}
 
@@ -1040,7 +1040,7 @@ There really is no hard answer, though this is the most interesting question. Ge
 
 Files are used almost all the time as a form of IPC. Hadoop is a great example where processes will write to append only tables and then other processes will read from those tables. We generally use files under a few cases. One case is if we want to save the intermediate results of an operation to a file for future use. Another case is if putting it in memory would cause an out of memory error. On Linux, file operations are generally pretty cheap, so most programmers use it as a larger intermediate storage.
 
-mmap is used for two scenarios. One is a \texttt{linear} or \texttt{near-linear} read through of the file. Meaning, you read the file front to back or back to front. The key is that you don't jump around too much. Jumping around too much causes thrashing and loses all the benefits of using mmap. The other case of mmap is a direct memory inter-process communication. This means that you can store structures in a piece of mmap'ed memory and share them between two processes. Python and ruby use this mapping all the time to utilize copy on write semantics.
+mmap is used for two scenarios. One is a \keyword{linear} or \keyword{near-linear} read through of the file. Meaning, you read the file front to back or back to front. The key is that you don't jump around too much. Jumping around too much causes thrashing and loses all the benefits of using mmap. The other case of mmap is a direct memory inter-process communication. This means that you can store structures in a piece of mmap'ed memory and share them between two processes. Python and ruby use this mapping all the time to utilize copy on write semantics.
 
 \section{Topics}
 

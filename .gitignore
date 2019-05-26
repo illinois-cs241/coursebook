@@ -225,6 +225,6 @@ TSWLatexianTemp*
 
 # Don't commit the wikibook
 main.pdf
-out/*
+_out/*
 *pdf
 order.tex

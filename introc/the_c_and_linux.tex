@@ -1,9 +1,10 @@
 \section{The C and Linux}
 
 So up until this point we've covered C's language fundamentals.
-What starts diverging from all forms of C is the functions we use and how we interact with the operating system.
-We'll now be focusing our attention to C and the POSIX variety of functions available to us.
-We will talk about portable functions, for example \texttt{fwrite} \texttt{printf} etc etc, but we will be evaluating the internals and scrutinizing them under the POSIX models and more specifically GNU/Linux. There are a number of things to that philosophy that makes the rest of this easier to know, so we'll put those things here.
+We'll now be focusing our attention to C and the POSIX variety of functions available to us to interact with the operating systems.
+We will talk about portable functions, for example \keyword{fwrite} \keyword{printf}.
+We will be evaluating the internals and scrutinizing them under the POSIX models and more specifically GNU/Linux.
+There are a number of things to that philosophy that makes the rest of this easier to know, so we'll put those things here.
 
 \subsection{Everything is a file}
 
@@ -12,9 +13,9 @@ Although that has become recently outdated, and moreover wrong, it is the conven
 What this statement means is that everything is a file descriptor, which is an integer. For example, here is a file object, a network socket, and a kernel object. These are all references to records in the kernel's file descriptor table.
 
 \begin{lstlisting}[language=C]
-  int file_fd = open(...);
-  int network_fd = socket(...);
-  int kernel_fd = epoll_create1(...);
+int file_fd = open(...);
+int network_fd = socket(...);
+int kernel_fd = epoll_create1(...);
 \end{lstlisting}
 
 And operations on those objects are done through system calls.

@@ -145,7 +145,7 @@ typedef ______________________;
 
 \item In addition to the function arguments what else is stored on a thread's stack?
 
-\item Implement a version of \texttt{char*\ strcat(char*dest,\ const\ char*src)} using only \texttt{strcpy} \texttt{strlen} and pointer arithmetic
+\item Implement a version of \keyword{char*\ strcat(char*dest,\ const\ char*src)} using only \keyword{strcpy} \keyword{strlen} and pointer arithmetic
 
 \begin{lstlisting}[language=C]
 char* mystrcat(char*dest, const char*src) {
@@ -164,7 +164,7 @@ size_t mystrlen(const char*s) {
 }
 \end{lstlisting}
 
-\item Identify the three bugs in the following implementation of \texttt{strcpy}.
+\item Identify the three bugs in the following implementation of \keyword{strcpy}.
 
 \begin{lstlisting}[language=C]
 char* strcpy(const char* dest, const char* src) {
@@ -214,7 +214,7 @@ char* toString(int a, char*mesg, double val, void* ptr) {
 \begin{enumerate}
 \item Why should you check the return value of sscanf and scanf? \#\# Q 5.2 Why is `gets' dangerous?
 
-\item Write a complete program that uses \texttt{getline}. Ensure your program has no memory leaks.
+\item Write a complete program that uses \keyword{getline}. Ensure your program has no memory leaks.
 
 \item When would you use calloc not malloc? When would realloc be useful?
 
@@ -260,8 +260,8 @@ void *format(int v) {
 \item Returning from the pthread's starting function in the last running thread.
 \item The original thread returning from main.
 \item Any thread causing a segmentation fault.
-\item Any thread calling \texttt{exit}.
-\item Calling \texttt{pthread\_exit} in the main thread with other threads still running.
+\item Any thread calling \keyword{exit}.
+\item Calling \keyword{pthread\_exit} in the main thread with other threads still running.
 \end{enumerate}
 
 \item Write a mathematical expression for the number of ``W'' characters that will be printed by the following program. Assume a,b,c,d are small positive integers. Your answer may use a `min' function that returns its lowest valued argument.
@@ -287,7 +287,7 @@ int main(int argv, char** argc) {
 }
 \end{lstlisting}
 
-\item Complete the following code. The following code is supposed to print alternating \texttt{A} and \texttt{B}. It represents two threads that take turns to execute. Add condition variable calls to \texttt{func} so that the waiting thread does not need to continually check the \texttt{turn} variable. Q: Is pthread\_cond\_broadcast necessary or is pthread\_cond\_signal sufficient?
+\item Complete the following code. The following code is supposed to print alternating \keyword{A} and \keyword{B}. It represents two threads that take turns to execute. Add condition variable calls to \keyword{func} so that the waiting thread does not need to continually check the \keyword{turn} variable. Q: Is pthread\_cond\_broadcast necessary or is pthread\_cond\_signal sufficient?
 
 \begin{lstlisting}[language=C]
 pthread_cond_t cv = PTHREAD_COND_INITIALIZER;
@@ -319,7 +319,7 @@ int main(int argc, char** argv){
 }
 \end{lstlisting}
 
-\item Identify the critical sections in the given code. Add mutex locking to make the code thread safe. Add condition variable calls so that \texttt{total} never becomes negative or above 1000. Instead the call should block until it is safe to proceed. Explain why \texttt{pthread\_cond\_broadcast} is necessary.
+\item Identify the critical sections in the given code. Add mutex locking to make the code thread safe. Add condition variable calls so that \keyword{total} never becomes negative or above 1000. Instead the call should block until it is safe to proceed. Explain why \keyword{pthread\_cond\_broadcast} is necessary.
 
 \begin{lstlisting}[language=C]
 int total;
@@ -333,7 +333,7 @@ void sub(int value) {
 }
 \end{lstlisting}
 
-\item A non-threadsafe data structure has \texttt{size()} \texttt{enq} and \texttt{deq} methods. Use condition variable and mutex lock to complete the thread-safe, blocking versions.
+\item A non-threadsafe data structure has \keyword{size()} \keyword{enq} and \keyword{deq} methods. Use condition variable and mutex lock to complete the thread-safe, blocking versions.
 
 \begin{lstlisting}[language=C]
 void enqueue(void* data) {
@@ -346,7 +346,7 @@ void* dequeue() {
 }
 \end{lstlisting}
 
-\item Your startup offers path planning using latest traffic information. Your overpaid intern has created a non-threadsafe data structure with two functions: \texttt{shortest} (which uses but does not modify the graph) and \texttt{set\_edge} (which modifies the graph).
+\item Your startup offers path planning using latest traffic information. Your overpaid intern has created a non-threadsafe data structure with two functions: \keyword{shortest} (which uses but does not modify the graph) and \keyword{set\_edge} (which modifies the graph).
 
 \begin{lstlisting}[language=C]
 graph_t* create_graph(char* filename); // called once
@@ -359,9 +359,9 @@ void set_edge(graph_t* graph, int i, int j, double time);
 
 \end{lstlisting}
 
-For performance, multiple threads must be able to call \texttt{shortest} at the same time but the graph can only be modified by one thread when no threads other are executing inside \texttt{shortest} or \texttt{set\_edge}.
+For performance, multiple threads must be able to call \keyword{shortest} at the same time but the graph can only be modified by one thread when no threads other are executing inside \keyword{shortest} or \keyword{set\_edge}.
 
-\item Use mutex lock and condition variables to implement a reader-writer solution. An incomplete attempt is shown below. Though this attempt is threadsafe (thus sufficient for demo day!), it does not allow multiple threads to calculate \texttt{shortest} path at the same time and will not have sufficient throughput.
+\item Use mutex lock and condition variables to implement a reader-writer solution. An incomplete attempt is shown below. Though this attempt is threadsafe (thus sufficient for demo day!), it does not allow multiple threads to calculate \keyword{shortest} path at the same time and will not have sufficient throughput.
 
 \begin{lstlisting}[language=C]
 path_t* shortest_safe(graph_t* graph, int i, int j) {
@@ -465,7 +465,7 @@ if( pthread_mutex_trylock( b ) ) { /*failed*/
 
 \item Explain why the TLB must be flushed when a context switch occurs (i.e.~the CPU is assigned to work on a different process).
 
-\item Fill in the blanks to make the following program print 123456789. If \texttt{cat} is given no arguments it simply prints its input until EOF. Bonus: Explain why the \texttt{close} call below is necessary.
+\item Fill in the blanks to make the following program print 123456789. If \keyword{cat} is given no arguments it simply prints its input until EOF. Bonus: Explain why the \keyword{close} call below is necessary.
 
 \begin{lstlisting}[language=C]
 int main() {
@@ -489,9 +489,9 @@ int main() {
 }
 \end{lstlisting}
 
-\item Use POSIX calls \texttt{fork} \texttt{pipe} \texttt{dup2} and \texttt{close} to implement an autograding program. Capture the standard output of a child process into a pipe. The child process should \texttt{exec} the program \texttt{./test} with no additional arguments (other than the process name). In the parent process read from the pipe: Exit the parent process as soon as the captured output contains the ! character. Before exiting the parent process send SIGKILL to the child process. Exit 0 if the output contained a !. Otherwise if the child process exits causing the pipe write end to be closed, then exit with a value of 1. Be sure to close the unused ends of the pipe in the parent and child process
+\item Use POSIX calls \keyword{fork} \keyword{pipe} \keyword{dup2} and \keyword{close} to implement an autograding program. Capture the standard output of a child process into a pipe. The child process should \keyword{exec} the program \keyword{./test} with no additional arguments (other than the process name). In the parent process read from the pipe: Exit the parent process as soon as the captured output contains the ! character. Before exiting the parent process send SIGKILL to the child process. Exit 0 if the output contained a !. Otherwise if the child process exits causing the pipe write end to be closed, then exit with a value of 1. Be sure to close the unused ends of the pipe in the parent and child process
 
-\item This advanced challenge uses pipes to get an ``AI player'' to play itself until the game is complete. The program \texttt{tictactoe} accepts a line of input - the sequence of turns made so far, prints the same sequence followed by another turn, and then exits. A turn is specified using two characters. For example ``A1'' and ``C3'' are two opposite corner positions. The string \texttt{B2A1A3} is a game of 3 turns/plys. A valid response is \texttt{B2A1A3C1} (the C1 response blocks the diagonal B2 A3 threat). The output line may also include a suffix \texttt{-I\ win} \texttt{-You\ win} \texttt{-invalid} or \texttt{-draw} Use pipes to control the input and output of each child process created. When the output contains a \texttt{-}, print the final output line (the entire game sequence and the result) and exit.
+\item This advanced challenge uses pipes to get an ``AI player'' to play itself until the game is complete. The program \keyword{tictactoe} accepts a line of input - the sequence of turns made so far, prints the same sequence followed by another turn, and then exits. A turn is specified using two characters. For example ``A1'' and ``C3'' are two opposite corner positions. The string \keyword{B2A1A3} is a game of 3 turns/plys. A valid response is \keyword{B2A1A3C1} (the C1 response blocks the diagonal B2 A3 threat). The output line may also include a suffix \keyword{-I\ win} \keyword{-You\ win} \keyword{-invalid} or \keyword{-draw} Use pipes to control the input and output of each child process created. When the output contains a \keyword{-}, print the final output line (the entire game sequence and the result) and exit.
 
 \item Write a function that uses fseek and ftell to replace the middle character of a file with an `X'
 
@@ -509,17 +509,17 @@ void xout(char* filename) {
 
 \begin{enumerate}
 
-\item In an \texttt{ext2} filesystem how many inodes are read from disk to access the first byte of the file \texttt{/dir1/subdirA/notes.txt} ? Assume the directory names and inode numbers in the root directory (but not the inodes themselves) are already in memory.
+\item In an \keyword{ext2} filesystem how many inodes are read from disk to access the first byte of the file \keyword{/dir1/subdirA/notes.txt} ? Assume the directory names and inode numbers in the root directory (but not the inodes themselves) are already in memory.
 
-\item In an \texttt{ext2} filesystem what is the minimum number of disk blocks that must be read from disk to access the first byte of the file \texttt{/dir1/subdirA/notes.txt} ? Assume the directory names and inode numbers in the root directory and all inodes are already in memory.
+\item In an \keyword{ext2} filesystem what is the minimum number of disk blocks that must be read from disk to access the first byte of the file \keyword{/dir1/subdirA/notes.txt} ? Assume the directory names and inode numbers in the root directory and all inodes are already in memory.
 
-\item In an \texttt{ext2} filesystem with 32 bit addresses and 4KiB disk blocks, an inodes that can store 10 direct disk block numbers. What is the minimum file size required to require an single indirection table? ii) a double direction table?
+\item In an \keyword{ext2} filesystem with 32 bit addresses and 4KiB disk blocks, an inodes that can store 10 direct disk block numbers. What is the minimum file size required to require an single indirection table? ii) a double direction table?
 
-\item Fix the shell command \texttt{chmod} below to set the permission of a file \texttt{secret.txt} so that the owner can read,write,and execute permissions the group can read and everyone else has no access.
+\item Fix the shell command \keyword{chmod} below to set the permission of a file \keyword{secret.txt} so that the owner can read,write,and execute permissions the group can read and everyone else has no access.
 
-\begin{verbatim}
+\begin{lstlisting}[language=bash]
 $ chmod 000 secret.txt
-\end{verbatim}
+\end{lstlisting}
 
 \end{enumerate}
 
@@ -590,7 +590,7 @@ $ chmod 000 secret.txt
 
 \item When is epoll a better choice than select? When is select a better choice than epoll?
 
-\item Will \texttt{write(fd,\ data,\ 5000)} always send 5000 bytes of data? When can it fail?
+\item Will \keyword{write(fd,\ data,\ 5000)} always send 5000 bytes of data? When can it fail?
 
 \item How does Network Address Translation (NAT) work?
 
@@ -604,7 +604,7 @@ $ chmod 000 secret.txt
 
 \item What are some of the differences between HTTP 1.0 and HTTP 1.1? How many ms will it take to transmit 3 files from server to client if the network has a 20ms transmit time? How does the time taken differ between HTTP 1.0 and HTTP 1.1?
 
-\item Writing to a network socket may not send all of the bytes and may be interrupted due to a signal. Check the return value of \texttt{write} to implement \texttt{write\_all} that will repeatedly call \texttt{write} with any remaining data. If \texttt{write} returns -1 then immediately return -1 unless the \texttt{errno} is \texttt{EINTR} - in which case repeat the last \texttt{write} attempt. You will need to use pointer arithmetic.
+\item Writing to a network socket may not send all of the bytes and may be interrupted due to a signal. Check the return value of \keyword{write} to implement \keyword{write\_all} that will repeatedly call \keyword{write} with any remaining data. If \keyword{write} returns -1 then immediately return -1 unless the \keyword{errno} is \keyword{EINTR} - in which case repeat the last \keyword{write} attempt. You will need to use pointer arithmetic.
 
 \begin{lstlisting}[language=C]
 // Returns -1 if write fails (unless EINTR in which case it recalls write

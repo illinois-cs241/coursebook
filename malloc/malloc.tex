@@ -12,7 +12,7 @@ We use \keyword{sbrk} to move the system break.
 Most programs don't interact directly with this call, they use a memory allocation system around it to handle chunking up and keeping track of which memory is allocated and which is freed.
 
 We will mainly be looking into simple allocators.
-Just know that there are other ways of dividing up memory like with \texttt{mmap} or other allocation schemes and methods like \keyword{jemalloc}.
+Just know that there are other ways of dividing up memory like with \keyword{mmap} or other allocation schemes and methods like \keyword{jemalloc}.
 
 \section{C Memory Allocation API}
 
@@ -20,7 +20,7 @@ Just know that there are other ways of dividing up memory like with \texttt{mmap
 
 \item \keyword{malloc(size\_t bytes)} is a C library call and is used to reserve a contiguous block of memory that may be uninitialized \cite[P. 348]{jones2010wg14}.
 Unlike stack memory, the memory remains allocated until \keyword{free} is called with the same pointer.
-If \keyword{malloc} can either return a pointer to at least that much free space requested or \texttt{NULL}.
+If \keyword{malloc} can either return a pointer to at least that much free space requested or \keyword{NULL}.
 That means that malloc can return NULL even if there is some spaces.
 Robust programs should check the return value.
 If your code assumes \keyword{malloc} succeeds, and it does not, then your program will likely crash (segfault) when it tries to write to address 0.
@@ -128,7 +128,7 @@ Nowadays, Modern operating system memory allocators no longer need \keyword{sbrk
 For example, gibibyte requests may be placed in a different memory region than small allocation requests.
 However this detail is an unwanted complexity.
 
-Programs don't need to call \texttt{brk} or \texttt{sbrk} typically, though calling \keyword{sbrk(0)} can be interesting because it tells you where your heap currently ends.
+Programs don't need to call \keyword{brk} or \keyword{sbrk} typically, though calling \keyword{sbrk(0)} can be interesting because it tells you where your heap currently ends.
 Instead programs use \keyword{malloc},\keyword{calloc},\keyword{realloc} and \keyword{free} which are part of the C library.
 The internal implementation of these functions may call \keyword{sbrk} when additional heap memory is required.
 
@@ -215,7 +215,7 @@ A perfect-fit strategy finds the smallest hole that is of sufficient size (at le
 \begin{tabular}{ | c | c | c | c | c | c | c | }
 \hline
 16KiB & 10KiB & 1KiB & 1KiB & 30KiB & 4KiB & 2KiB \\ \hline
-free & allocated & free & allocated & free & allocated & \texttt{HERE!} \\
+free & allocated & free & allocated & free & allocated & \keyword{HERE!} \\
 \hline
 \end{tabular}
 \end{center}
@@ -226,7 +226,7 @@ A worst-fit strategy finds the largest hole that is of sufficient size so break 
 \begin{tabular}{ | c | c | c | c | c | c | c | c | }
 \hline
 16KiB & 10KiB & 1KiB & 1KiB & 2KiB & 28KiB & 4KiB & 2KiB \\ \hline
-free & allocated & free & allocated & \texttt{HERE!} & free & allocated & free \\
+free & allocated & free & allocated & \keyword{HERE!} & free & allocated & free \\
 \hline
 \end{tabular}
 \end{center}
@@ -237,7 +237,7 @@ A first-fit strategy finds the first available hole that is of sufficient size s
 \begin{tabular}{ | c | c | c | c | c | c | c | c | }
 \hline
 2KiB & 14KiB & 10KiB & 1KiB & 1KiB & 30KiB & 4KiB & 2KiB \\ \hline
-\texttt{HERE!} & free & allocated & free & allocated & free & allocated & free \\
+\keyword{HERE!} & free & allocated & free & allocated & free & allocated & free \\
 \hline
 \end{tabular}
 \end{center}
@@ -324,7 +324,7 @@ bt is short for boundary tag.
 \end{verbatim}
 
 We will have implicit pointers in our next block, meaning that we can get from one block to another using addition.
-This is in contrast to an explicit \texttt{metadata *next} field in our meta block.
+This is in contrast to an explicit \keyword{metadata *next} field in our meta block.
 
 \begin{verbatim}
 |-----------------|

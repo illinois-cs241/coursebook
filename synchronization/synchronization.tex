@@ -883,7 +883,7 @@ Let's discuss it in the next section.
 \subsection{Using semaphores}
 
 Let's use a counting semaphore to keep track of how many spaces remain and another semaphore to keep to track the number of items in the stack.
-We will call these two semaphores \texttt{sremain} and \texttt{sitems}.
+We will call these two semaphores \keyword{sremain} and \keyword{sitems}.
 Remember \keyword{sem\_wait} will wait if the semaphore's count has been decremented to zero (by another thread calling sem\_post).
 
 \begin{lstlisting}[language=C]
@@ -1612,20 +1612,19 @@ int main() {
 \end{lstlisting}
 
 Now let's implement our own barrier and use it to keep all the threads in sync in a large calculation.
+Here is our thought process,
 
-\begin{verbatim}
-double data[256][8192]
-
-1 Threads do first calculation (use and change values in data)
-
-2 Barrier! Wait for all threads to finish first calculation before continuing
-
-3 Threads do second calculation (use and change values in data)
-\end{verbatim}
+\begin{enumerate}
+\item Threads do first calculation (use and change values in data)
+\item Barrier! Wait for all threads to finish first calculation before continuing
+\item Threads do second calculation (use and change values in data)
+\end{enumerate}
 
 The thread function has four main parts-
 
 \begin{lstlisting}[language=C]
+// double data[256][8192]
+
 void *calc(void *arg) {
   /* Do my part of the first calculation */
   /* Am I the last thread to finish? If so wake up all the other threads! */
