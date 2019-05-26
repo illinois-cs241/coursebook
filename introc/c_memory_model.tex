@@ -57,7 +57,8 @@ string* bhuvan_name;
 bhuvan_name = malloc(sizeof(string) + length+1);
 \end{lstlisting}
 
-Currently, our memory looks like the following image. There is nothing in those boxes
+Currently, our memory looks like the following image.
+There is nothing in those boxes
 
 \begin{figure}[H]
 \centering
@@ -68,6 +69,8 @@ Currently, our memory looks like the following image. There is nothing in those 
 So what happens when we assign length?
 The first four boxes are filled with the value of the variable at length.
 The rest of the space is left untouched.
+We will assume that our machine is big endian.
+This means that the least significant byte is last.
 
 \begin{lstlisting}[language=C]
 bhuvan_name->length = length;
@@ -106,7 +109,7 @@ This is highly inefficient for doing something as common in programming as is st
 \subsubsection{Extra: Struct packing}
 
 Structs may require something called \href{http://www.catb.org/esr/structure-packing/}{padding} (tutorial).
-\textbf{We do not expect you to pack structs in this course, just know that it is there} This is because in the early days (and even now) when you have to an address from memory you have to do it in 32-bit or 64-bit blocks.
+\textbf{We do not expect you to pack structs in this course, just know that it is there} This is because in the early days (and even now) when you have to load an address from memory you have to do it in 32-bit or 64-bit blocks.
 This also meant that you could only request addresses that were multiples of block sizes.
 Meaning that
 

@@ -504,18 +504,20 @@ Exit statuses or the value stored in the integer pointer for both of the calls a
 
 \subsection{Exit statuses}
 
-To find the return value of \keyword{main()} or value included in \keyword{exit()}), Use the \texttt{Wait macros} - typically you will use \keyword{WIFEXITED} and \keyword{WEXITSTATUS} .
+To find the return value of \keyword{main()} or value included in \keyword{exit()}), Use the \keyword{Wait macros} - typically you will use \keyword{WIFEXITED} and \keyword{WEXITSTATUS} .
 See \keyword{wait}/\keyword{waitpid} man page for more information.
 
-\begin{lstlisting}[language=C][language=C]
+\begin{lstlisting}[language=C]
 int status;
 pid_t child = fork();
-if (child == -1) return 1; //Failed
+if (child == -1) {
+    return 1; //Failed
+}
 if (child > 0) { /* I am the parent - wait for the child to finish */
   pid_t pid = waitpid(child, &status, 0);
   if (pid != -1 && WIFEXITED(status)) {
-    int low8bits = WEXITSTATUS(status);
-    printf("Process %d returned %d" , pid, low8bits);
+    int exit_status = WEXITSTATUS(status);
+    printf("Process %d returned %d" , pid, exit_status);
   }
 } else { /* I am the child */
   // do something interesting
@@ -547,7 +549,7 @@ There is a convention about exit codes.
 If the process exited normally and everything was successful, then a zero should be returned.
 Beyond that, there aren't too many conventions except the ones that you place on yourself.
 If you know how the program you spawn is going to interact, you may be able to make more sense of the 256 error codes.
-You could for example, write your program to return \texttt{1} if the program went to stage 1 (like writing to a file) \texttt{2} if it did something else etc... 
+You could for example, write your program to return \keyword{1} if the program went to stage 1 (like writing to a file) \keyword{2} if it did something else etc... 
 Usually, UNIX programs are not designed to follow this policy, for the sake of simplicity.
 
 

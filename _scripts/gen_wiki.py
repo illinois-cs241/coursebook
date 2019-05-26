@@ -73,10 +73,13 @@ This book is an introduction to programming in C, and system programming (proces
 
 -- Bhuvy
 
-<a href="https://github.com/illinois-cs241/coursebook/tree/pdf_deploy/main.pdf" alt="PDF Versions">🗎 One Big File</a>
+### One Big File
+
+<a href="https://github.com/illinois-cs241/coursebook/tree/pdf_deploy/main.pdf" alt="PDF Versions"><img src="https://raw.githubusercontent.com/illinois-cs241/coursebook/master/_images/pdf_icon.png" width="50px" style="width: 10vh;" /> </a>
+
 
 {% for chapter in chapters %}
-## {{loop.index}}. [{{chapter.meta['name']}}](./{{chapter.bare_title}}) [🗎](https://github.com/illinois-cs241/coursebook/blob/pdf_deploy/{{chapter.pdf_path}}) {% for section_name in (chapter.meta['subsections'] or []) %}
+## {{loop.index}}. [{{chapter.meta['name']}}](./{{chapter.bare_title}}) [<img src="https://raw.githubusercontent.com/illinois-cs241/coursebook/master/_images/pdf_icon.png" width="50px" style="width:10vh;height:10vh;" />](https://github.com/illinois-cs241/coursebook/blob/pdf_deploy/{{chapter.pdf_path}}) {% for section_name in (chapter.meta['subsections'] or []) %}
 {{loop.index}}. [{{section_name}}](./{{chapter.bare_title}}#{{section_name.lower().replace(' ', '-')}}){% endfor %}
 {% endfor %}
 """

@@ -4,43 +4,43 @@
 
 A shell is actually how you are going to be interacting with the system. Before user friendly operating systems, when a computer started up all you had access to was a shell. This meant that all of your commands and editing had to be done this way. Nowadays, our computers start up in desktop mode, but one can still access a shell using a terminal.
 
-\begin{verbatim}
+\begin{lstlisting}[language=bash]
 (Stuff) $
-\end{verbatim}
+\end{lstlisting}
 
-It is ready for your next command! You can type in a lot of Unix utilities like \texttt{ls}, \texttt{echo\ Hello} and the shell will execute them and give you the result. Some of these are what are known as \texttt{shell-builtins} meaning that the code is in the shell program itself. Some of these are compiled programs that you run. The shell only looks through a special variable called path which contains a list of \texttt{:} separated paths to search for an executable with your name, here is an example path.
+It is ready for your next command! You can type in a lot of Unix utilities like \keyword{ls}, \keyword{echo\ Hello} and the shell will execute them and give you the result. Some of these are what are known as \keyword{shell-builtins} meaning that the code is in the shell program itself. Some of these are compiled programs that you run. The shell only looks through a special variable called path which contains a list of \keyword{:} separated paths to search for an executable with your name, here is an example path.
 
-\begin{verbatim}
+\begin{lstlisting}[language=bash]
 $ echo $PATH
 /usr/local/sbin:/usr/local/bin:/usr/sbin:
 /usr/bin:/sbin:/bin:/usr/games:/usr/local/games
-\end{verbatim}
+\end{lstlisting}
 
-So when the shell executes \texttt{ls}, it looks through all of those directories, finds \texttt{/bin/ls} and executes that.
+So when the shell executes \keyword{ls}, it looks through all of those directories, finds \keyword{/bin/ls} and executes that.
 
-\begin{verbatim}
+\begin{lstlisting}[language=bash]
 $ ls
 ...
 $ /bin/ls
-\end{verbatim}
+\end{lstlisting}
 
-You can always call through the full path. That is always why in past classes if you want to run something on the terminal you've had to do \texttt{./exe} because typically the directory that you are working in is not in the \texttt{PATH} variable. The \texttt{.} expands to your current directory and your shell executes \texttt{\textless{}current\_dir\textgreater{}/exe} which is a valid command.
+You can always call through the full path. That is always why in past classes if you want to run something on the terminal you've had to do \keyword{./exe} because typically the directory that you are working in is not in the \keyword{PATH} variable. The \keyword{.} expands to your current directory and your shell executes \keyword{\textless{}current\_dir\textgreater{}/exe} which is a valid command.
 
 \subsection{Shell tricks and tips}
 
 \begin{itemize}
 \item The up arrow will get you your most recent command
-\item \texttt{ctrl-r} will search commands that you previously ran
-\item \texttt{ctrl-c} will interrupt your shell's process
-\item \texttt{!!} will execute the last command
-\item \texttt{!<num>} goes back that many commands and runs that
-\item \texttt{!<prefix>} runs the last command that has that prefix
-\item \texttt{!\$} is the last arg of the previous command
-\item \texttt{!*} is all args of the previous command
-\item \texttt{\^pat\^sub} takes the last command and substitutes the pattern pat for the substitution sub
-\item \texttt{cd -} goes to the previous directory
-\item \texttt{pushd <dir>} pushes the current directory on a stack and cds
-\item \texttt{popd} cds to the directory at the top of the stack
+\item \keyword{ctrl-r} will search commands that you previously ran
+\item \keyword{ctrl-c} will interrupt your shell's process
+\item \keyword{!!} will execute the last command
+\item \keyword{!<num>} goes back that many commands and runs that
+\item \keyword{!<prefix>} runs the last command that has that prefix
+\item \keyword{!\$} is the last arg of the previous command
+\item \keyword{!*} is all args of the previous command
+\item \keyword{\^pat\^sub} takes the last command and substitutes the pattern pat for the substitution sub
+\item \keyword{cd -} goes to the previous directory
+\item \keyword{pushd <dir>} pushes the current directory on a stack and cds
+\item \keyword{popd} cds to the directory at the top of the stack
 \end{itemize}
 
 \subsection{Alright then what's a terminal?}
@@ -52,7 +52,7 @@ A terminal is just an application that displays the output form the shell. You c
 \begin{enumerate}
 \item \keyword{cat} concatenate multiple files. It is regularly used to print out the contents of a file to the terminal but the original use was concatenation.
 
-\begin{lstlisting}[language=console]
+\begin{lstlisting}[language=bash]
 $ cat file.txt
 ...
 $ cat shakespeare.txt shakespeare.txt > two_shakes.txt
@@ -60,7 +60,7 @@ $ cat shakespeare.txt shakespeare.txt > two_shakes.txt
 
 \item \keyword{diff} tells you the difference of the two files. If nothing is printed, then zero is returned meaning the files are the same byte for byte. Otherwise, the longest common subsequence difference is printed
 
-\begin{lstlisting}[language=console]
+\begin{lstlisting}[language=bash]
 $ cat prog.txt
 hello
 world
@@ -77,7 +77,7 @@ $ diff shakespeare.txt shakespeare.txt
 
 \item \keyword{grep} tells you which lines in a file or standard in match a POSIX pattern.
 
-\begin{lstlisting}[language=console]
+\begin{lstlisting}[language=bash]
 $ grep it adele.txt
 it's me
 \end{lstlisting}
@@ -85,7 +85,7 @@ it's me
 \item \keyword{ls} tells you which files are in the current directory.
 \item \keyword{cd} this is a shell builtin but it changes to a relative or absolute directory
 
-\begin{lstlisting}[language=console]
+\begin{lstlisting}[language=bash]
 $ cd /usr
 $ cd lib/
 $ cd -
@@ -102,7 +102,7 @@ $ pwd
 
 Shells have many useful utilities like saving output to a file using redirection \keyword{>}. This overwrites the file from the beginning. If you only meant to append to the file, you can use \keyword{>>}. Unix also allows file descriptor swapping. This means that you can take the output going to one file descriptor and make it seem like its coming out of another. The most common one is \keyword{2>&1} which means take the stderr and make it seem like it is coming out of standard out. This is important because when you use \keyword{>} and \keyword{>>} they only write the standard output of the file. There are some examples below.
 
-\begin{lstlisting}[language=console]
+\begin{lstlisting}[language=bash]
 $ ./program > output.txt # To overwrite
 $ ./program >> output.txt # To append
 $ ./program 2>&1 > output_all.txt # stderr & stdout
@@ -111,7 +111,7 @@ $ ./program 2>&1 > /dev/null # don't care about any output
 
 The pipe operator has a fascinating history. The UNIX philosophy is writing small programs and chaining them together to do new and interesting things. Back in the early days, hard disk space was limited and write times were slow. Brian Kernighan wanted to maintain the philosophy while also not having to write a bunch of intermediate files that take up hard drive space. So, the UNIX pipe was born. A pipe take the \keyword{stdout} of the program on its left and feeds it to the \keyword{stdin} of the program on its write. Consider the command \keyword{tee}. It can be used as a replacement for the redirection operators because tee will both write to a file and output to standard out. It also has the added benefit that it doesn't need to be the last command in the list. Meaning, that you can write an intermediate result and continue your piping.
 
-\begin{lstlisting}[language=console]
+\begin{lstlisting}[language=bash]
 $ ./program | tee output.txt # Overwrite
 $ ./program | tee -a output.txt # Append
 $ head output.txt | wc | head -n 1 # Multi pipes
@@ -121,7 +121,7 @@ $ ./program | tee intermediate.txt | wc
 
 The \keyword{&&} and \keyword{||} operator are operators that execute a command sequentially. \keyword{&&} only executes a command if the previous command succeeds, and \keyword{||} always executes the next command.
 
-\begin{lstlisting}[language=console]
+\begin{lstlisting}[language=bash]
 $ false && echo "Hello!"
 $ true && echo "Hello!"
 $ false || echo "Hello!"
@@ -174,7 +174,7 @@ There are \href{https://en.wikipedia.org/wiki/Stack_buffer_overflow}{a lot} of w
 
 \section{System Programming Jokes}
 
-\texttt{0x43\ 0x61\ 0x74\ 0xe0\ 0xf9\ 0xbf\ 0x5f\ 0xff\ 0x7f\ 0x00}
+\keyword{0x43\ 0x61\ 0x74\ 0xe0\ 0xf9\ 0xbf\ 0x5f\ 0xff\ 0x7f\ 0x00}
 
 Warning: Authors are not responsible for any neuro-apoptosis caused by these ``jokes.'' - Groaners are allowed.
 
@@ -202,7 +202,7 @@ Why are C programmers so messy? They store everything in one big heap.
 
 A system programmer is\ldots{}
 
-Someone who knows \texttt{sleepsort} is a bad idea but still dreams of an excuse to use it.
+Someone who knows \keyword{sleepsort} is a bad idea but still dreams of an excuse to use it.
 
 Someone who never lets their code deadlock\ldots{} but when it does, causes more problems than everyone else combined.
 

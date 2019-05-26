@@ -17,12 +17,12 @@ int main(void) {
 	\item \keyword{return 0;}. \keyword{main} has to return an integer. By convention, \keyword{return 0} means success and anything else means failure. Here are some exit codes / statuses with special meaning: \link{http://tldp.org/LDP/abs/html/exitcodes.html}. Note that all of CS 241's assignments require an exit code to be 0 to indicate successful execution, and normal exit. 
 \end{enumerate}
 
-\begin{verbatim}
+\begin{lstlisting}[language=bash]
 $ gcc main.c -o main
 $ ./main
 Hello World
 $
-\end{verbatim}
+\end{lstlisting}
 
 \begin{enumerate}
 	\item \keyword{gcc} is short for the GNU Compiler Collection which has a host of compilers ready for use. The compiler infers from the extension that you are trying to compile a .c file.
