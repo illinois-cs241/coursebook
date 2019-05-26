@@ -80,7 +80,7 @@ Processes are very powerful but they are isolated!
 That means that by default, no process can communicate with another process.
 
 This is very important because if you have a large system (let's say the University of Illinois Engineering Workstations (EWS)) then it is likely that you want some processes to have higher privileges than your average user.
-One certainly doesn't want the average user to be able to bring down the entire system, either on purpose or by accidentally by modifying a process.
+One certainly doesn't want the average user to be able to bring down the entire system, either on purpose or accidentally by modifying a process.
 As most of you have realized by now, if you stuck the following code snippet into a program, the variables would not be shared between two parallel invocations of the program.
 
 \begin{lstlisting}[language=C]
@@ -123,7 +123,7 @@ One can run out of heap memory if the system is constrained or if you run out of
 \item \textbf{A Data Segment}
 
   This segment contains two parts, an initialized data segment, and an uninitialized segment.
-  Furthermore, the initialized data segment is divided into a read-only and writable section.
+  Furthermore, the initialized data segment is divided into a readable and writable section.
 
 \begin{itemize}
     \item \textbf{Initialized Data Segment}
@@ -534,7 +534,7 @@ The macros will not do the checking for you, so it's up to the programmer to mak
 As an example above, you should use the \keyword{WIFSTOPPED} to check if a process was stopped and then the \keyword{WSTOPSIG} to find the signal that stopped it.
 As such there is no need to memorize the following. This is just a high level overview of how information is stored inside the status variables. From the \keyword{sys/wait.h} of an old Berkeley Standard Distribution(BSD) kernel \cite{sys/wait.h}:
 
-\begin{lstlisting}[language=C][language=C]
+\begin{lstlisting}[language=C]
 /* If WIFEXITED(STATUS), the low-order 8 bits of the status. */
 #define _WSTATUS(x) (_W_INT(x) & 0177)
 #define _WSTOPPED 0177    /* _WSTATUS if process is stopped */
