@@ -10,8 +10,9 @@
 We define a system for the rest of the chapter as a set of rules by which a set of processes can move from one state to another, where a state is either working or waiting for a particular resource.
 Forward progress is defined as if there is at least one process working or we can award a process waiting for a resource that resource.
 In a lot of systems, Deadlock is just avoided by ignore the entire concept \cite[P.237]{silberschatz2006operating}.
-Have you heard about turn it on and off again? For products where the stakes are low (User Operating Systems, Phones), it may be more efficient not prevent deadlock.
-But in the cases where "failure is not an option" - Apollo 13, you need a system that tracks deadlock and breaks it or better yet prevents it entirely.
+Have you heard about turn it on and off again?
+For products where the stakes are low (User Operating Systems, Phones), it may be more efficient not prevent deadlock.
+But in the cases where ``failure is not an option'' - Apollo 13, you need a system that tracks and breaks deadlock or better yet prevents it entirely.
 Apollo 13 may have not failed because of deadlock, but probably wouldn't be good to restart the system on liftoff.
 
 Mission critical operating systems need this guarantee formally because playing the odds with people's lives isn't a good idea.
@@ -20,13 +21,12 @@ Even though it is a common statistical phrase that all models are wrong, the mor
 
 \section{Resource Allocation Graphs}
 
-\begin{wrapfigure}[13]{r}{.35\textwidth}
-  \begin{center}
-\includegraphics[width=.25\textwidth]{deadlock/images/resource_allocation.png}
-\end{center}
-  \caption{Resource allocation graph}
-  \label{ragfigure}
-\end{wrapfigure}
+\begin{figure}
+\centering
+\includegraphics[width=.6\textwidth]{deadlock/drawings/rag.png}
+\caption{Resource allocation graph}
+\label{ragfigure}
+\end{figure}
 
 
 One such way is modeling the system with a resource allocation graph (\gls{RAG}).
@@ -38,7 +38,6 @@ If there is a cycle in the Resource Allocation Graph and each resource in the cy
 For example, if process 1 holds resource A, process 2 holds resource B and process 1 is waiting for B and process 2 is waiting for A, then process 1 and 2 process will be deadlocked \ref{ragfigure}.
 We can detect a deadlock by traversing the graph and searching for a cycle using graph traversal algorithm, such as the Depth First Search (DFS).
 This graph is considered as a directed graph and we can treat both the processes and resources as nodes.
-
 
 \begin{lstlisting}[language=C]
 typedef struct {
