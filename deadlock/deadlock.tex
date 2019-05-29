@@ -21,7 +21,7 @@ Even though it is a common statistical phrase that all models are wrong, the mor
 
 \section{Resource Allocation Graphs}
 
-\begin{figure}
+\begin{figure}[H]
 \centering
 \includegraphics[width=.6\textwidth]{deadlock/drawings/rag.png}
 \caption{Resource allocation graph}
@@ -39,7 +39,7 @@ For example, if process 1 holds resource A, process 2 holds resource B and proce
 We can detect a deadlock by traversing the graph and searching for a cycle using graph traversal algorithm, such as the Depth First Search (DFS).
 This graph is considered as a directed graph and we can treat both the processes and resources as nodes.
 
-\begin{lstlisting}[language=C]
+\begin{minted}{C}
 typedef struct {
 	int node_id; // Node in this particular graph
 	Graph **reachable_nodes; // List of nodes that can be reached from this node
@@ -62,12 +62,14 @@ int isCyclic(Graph *G, int* is_visited) {
 	}
 	// Nope, this graph does not have any cycle
 	return false;
-}\end{lstlisting}
+}
+\end{minted}
 
-\begin{center}
-\includegraphics[width=.25\textwidth]{deadlock/images/colorful.png}
-  \caption{Graph based Deadlock}
-\end{center}
+\begin{figure}[H]
+\centering
+\includegraphics[width=.5\textwidth]{deadlock/drawings/deadlock.png}
+\caption{Graph based Deadlock}
+\end{figure}
 
 \section{Coffman conditions}
 
@@ -269,12 +271,11 @@ To eat the philosopher must pick up the two chopsticks either side of their posi
 The original problem required each philosopher to have two forks, but one can eat with a single fork so we rule this out.
 However these chopsticks are shared with his neighbor.
 
-\begin{wrapfigure}[10]{r}{.3\textwidth}
-  \begin{center}
-\includegraphics[width=.2\textwidth]{deadlock/images/5DiningPhilosophers.png}
-\end{center}
-  \caption{Dining Philosophers}
-\end{wrapfigure}
+\begin{figure}[H]
+\centering
+\includegraphics[width=.5\textwidth]{deadlock/drawings/dining.png}
+\caption{Dining Philosophers}
+\end{figure}
 
 Is it possible to design an efficient solution such that all philosophers get to eat? Or, will some philosophers starve, never obtaining a second chopstick? Or will all of them deadlock? For example, imagine each guest picks up the chopstick on their left and then waits for the chopstick on their right to be free.
 Oops - our philosophers have deadlocked! Each of the philosophers are essentially the same, meaning that each philosopher has the same instruction set based on the other philosopher i.e. you can't tell every even philosopher to do one thing and every odd philosopher to do another thing.
@@ -301,6 +302,15 @@ This looks good but.
 What if everyone picks up their left fork and is waiting on their right fork? We have deadlocked the program.
 It is important to note that deadlock doesn't happen all the time and the probability that this solution deadlocks goes down as the number of philosophers goes up.
 What is really important to note is that eventually that this solution will deadlock, letting threads starve which is bad.
+Here is a simple resource allocation graph that shows how the system could be deadlocked
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=.9\textwidth]{deadlock/drawings/dining_naive.png}
+\caption{Left right dining philosopher cycle}
+\end{figure}
+
+
 So now you are thinking about breaking one of the Coffman conditions.
 Let's break Hold and Wait!
 
@@ -333,6 +343,14 @@ If it's available, they eat.
 If it's not available, they put the left fork down and try again.
 No deadlock! But, there is a problem.
 What if all the philosophers pick up their left at the same time, try to grab their right, put their left down, pick up their left, try to grab their right\ldots{}.
+Here is what a time evolution of the system would look like.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=.9\textwidth]{deadlock/drawings/dining_livelock.png}
+\caption{Livelock Failure}
+\end{figure}
+
 We have now livelocked our solution! Our poor philosopher are still starving, so let's give them some proper solutions.
 
 \section{Viable Solutions}
