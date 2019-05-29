@@ -474,13 +474,21 @@ Since we can't reach deadlock in either case, this solution cannot deadlock whic
 
 \subsection{Extra: Clean/Dirty Forks (Chandy/Misra Solution)}
 
-There are many more advanced solutions. One such solution is by Chandy and Misra \cite{Chandy:1984:DPP:1780.1804}. This is not a true solution to the dining philosophers problem because it has the requirement the philosophers can speak to each other. Basically though, it is a solution that ensures fairness. It in essence defines a series of rounds that a philosopher must eat in a given round before going to the next one.
+There are many more advanced solutions.
+One such solution is by Chandy and Misra \cite{Chandy:1984:DPP:1780.1804}.
+This is not a true solution to the dining philosophers problem because it has the requirement the philosophers can speak to each other.
+Basically though, it is a solution that ensures fairness.
+It in essence defines a series of rounds that a philosopher must eat in a given round before going to the next one.
 
 We won't detail the proof here because it is a little more involved, but feel free to read at the citation.
 
 \subsection{Advanced Solutions: Actor Model (other Message passing models)}
 
-The actor model is another form of synchronization that doesn't have to do anything with negotiating locks or waiting. The idea is very simple. Each actor can either perform work, create more actors, send messages, or respond to messages. Any time an actor needs something from another actor, it sends a message. Most importantly, an actor is only responsible for one things.
+The actor model is another form of synchronization that doesn't have to do anything with negotiating locks or waiting.
+The idea is very simple.
+Each actor can either perform work, create more actors, send messages, or respond to messages.
+Any time an actor needs something from another actor, it sends a message.
+Most importantly, an actor is only responsible for one things.
 If we were implementing a real world application, we may have an actor that handles the database, one that handles the incoming connections, one that services the connections, etc etc.
 These actors would pass messages to each other like ``there is a new connection'' from the incoming connection actor to the servicing actor.
 The servicing actor may send a data request message the database actor and a data response message comes back.
