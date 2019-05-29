@@ -264,8 +264,8 @@ There are a fair bit of downsides to this though
 \section{Dining Philosophers}
 
 The Dining Philosophers problem is a classic synchronization problem.
-Imagine I invite $n$ (let's say 5) philosophers to a meal.
-We will sit them at a table with 5 chopsticks, one between each philosopher.
+Imagine I invite $n$ (let's say 6) philosophers to a meal.
+We will sit them at a table with 6 chopsticks, one between each philosopher.
 A philosopher alternates between wanting to eat or think.
 To eat the philosopher must pick up the two chopsticks either side of their position.
 The original problem required each philosopher to have two forks, but one can eat with a single fork so we rule this out.
@@ -277,8 +277,12 @@ However these chopsticks are shared with his neighbor.
 \caption{Dining Philosophers}
 \end{figure}
 
-Is it possible to design an efficient solution such that all philosophers get to eat? Or, will some philosophers starve, never obtaining a second chopstick? Or will all of them deadlock? For example, imagine each guest picks up the chopstick on their left and then waits for the chopstick on their right to be free.
-Oops - our philosophers have deadlocked! Each of the philosophers are essentially the same, meaning that each philosopher has the same instruction set based on the other philosopher i.e. you can't tell every even philosopher to do one thing and every odd philosopher to do another thing.
+Is it possible to design an efficient solution such that all philosophers get to eat?
+Or, will some philosophers starve, never obtaining a second chopstick?
+Or will all of them deadlock?
+For example, imagine each guest picks up the chopstick on their left and then waits for the chopstick on their right to be free.
+Oops - our philosophers have deadlocked!
+Each of the philosophers are essentially the same, meaning that each philosopher has the same instruction set based on the other philosopher i.e. you can't tell every even philosopher to do one thing and every odd philosopher to do another thing.
 
 
 \subsection{Failed Solutions}
