@@ -384,11 +384,21 @@ The proof is about as simple as it gets. For number of philosophers $n >= 2$ onl
 
 \end{proof}
 
+\begin{figure}[H]
+\centering
+\includegraphics[width=.9\textwidth]{deadlock/drawings/dining_arbitrator.png}
+\caption{Arbitrator Diagram}
+\end{figure}
+
 \subsection{Leaving the Table (Stallings' Solution)}
 
-Why does the first solution deadlock? Well there are $n$ philosophers and $n$ chopsticks.
-What if there is only 1 philosopher at the table? Can we deadlock? No.
-How about 2 philosophers? 3? \ldots{} You can see where this is going.
+Why does the first solution deadlock?
+Well there are $n$ philosophers and $n$ chopsticks.
+What if there is only 1 philosopher at the table?
+Can we deadlock?
+No.
+How about 2 philosophers?
+3? \ldots{} You can see where this is going.
 Stallings' \cite[P. 280]{stalling} solutions says to remove philosophers from the table until deadlock is not possible -- think about what the magic number of philosophers at the table.
 The way to do this in actual system is through semaphores and letting a certain number of philosopher through.
 This has the benefit that multiple philosophers can be eating.
@@ -402,10 +412,24 @@ A philosopher can eat for as long as they want and the system will continue to f
 This works best with timeouts or forced context switches in order to ensure bounded wait times.
 
 \begin{proof} Stallings' Solution Doesn't Deadlock.
-
-Let's number the philosophers $\{p_0, p_1, .., p_{n-1}\}$ and the resources $\{r_0, r_1, .., r_{n-1}\}$. A philosopher $p_i$ needs resource $r_{i-1 \mod n}$ and $r_{i + 1 \mod n}$. Without loss of generality, let us take $p_i$ out of the picture. Each resource had exactly two philosophers that could use it. Now resources $r_{i-1 \mod n}$ and $r_{i + 1 \mod n}$ only have on philosopher waiting on it. Even if hold and wait, no preemption, and mutual exclusion or present, the resources can never enter a state where one philosopher requests them and they are held by another philosopher because only one philosopher can request them. Since there is no way to generate a cycle otherwise, circular wait cannot hold. Since circular wait cannot hold, deadlock cannot happen.
-
+  Let's number the philosophers $\{p_0, p_1, .., p_{n-1}\}$ and the resources $\{r_0, r_1, .., r_{n-1}\}$.
+  A philosopher $p_i$ needs resource $r_{i-1 \mod n}$ and $r_{i + 1 \mod n}$.
+  Without loss of generality, let us take $p_i$ out of the picture.
+  Each resource had exactly two philosophers that could use it.
+  Now resources $r_{i-1 \mod n}$ and $r_{i + 1 \mod n}$ only have on philosopher waiting on it.
+  Even if hold and wait, no preemption, and mutual exclusion or present, the resources can never enter a state where one philosopher requests them and they are held by another philosopher because only one philosopher can request them.
+  Since there is no way to generate a cycle otherwise, circular wait cannot hold.
+  Since circular wait cannot hold, deadlock cannot happen.
 \end{proof}
+
+Here is a visualization of the worst-case.
+The system is about to deadlock, but the approach resolves it.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=.9\textwidth]{deadlock/drawings/dining_stalling.png}
+\caption{Stalling solution almost deadlock}
+\end{figure}
 
 
 \subsection{Partial Ordering (Dijkstra's Solution)}
@@ -442,11 +466,17 @@ Since we can't reach deadlock in either case, this solution cannot deadlock whic
 
 \end{proof}
 
+\begin{figure}[H]
+\centering
+\includegraphics[width=.9\textwidth]{deadlock/drawings/dining_partial.png}
+\caption{Stalling solution partial deadlock}
+\end{figure}
+
 \subsection{Extra: Clean/Dirty Forks (Chandy/Misra Solution)}
 
 There are many more advanced solutions. One such solution is by Chandy and Misra \cite{Chandy:1984:DPP:1780.1804}. This is not a true solution to the dining philosophers problem because it has the requirement the philosophers can speak to each other. Basically though, it is a solution that ensures fairness. It in essence defines a series of rounds that a philosopher must eat in a given round before going to the next one.
 
-We won't detain the proof here because it is a little more involved, but feel free to read at the citation.
+We won't detail the proof here because it is a little more involved, but feel free to read at the citation.
 
 \subsection{Advanced Solutions: Actor Model (other Message passing models)}
 
