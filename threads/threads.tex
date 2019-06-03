@@ -45,22 +45,12 @@ This is why returning from a function is very quick - it's easy to `free' the me
 
 In a multi threaded program, there are multiple stack but only one address space. The pthread library allocates some stack space and uses the \keyword{clone} function call to start the thread at that stack address.
 
-\begin{verbatim}
-+-------+
-|       | <- Maybe some reserved space
-+-------+
-|       | <- The first stack is the main thread stack
-| Stack |
-|   1   |
-|       |
-+-------+
-|       | <- This is the first additional thread stack
-| Stack |
-|   2   |
-|       |
-+-------+
-|  ...  |
-\end{verbatim}
+\begin{figure}[H]
+\centering
+\includegraphics[width=.5\textwidth]{threads/drawings/thread_stack.png}
+\caption{Thread stack visualization}
+\end{figure}
+
 
 You can have more than one thread running inside a process.
 You get the first thread for free! It runs the code you write inside `main'.
@@ -69,28 +59,11 @@ If you need more threads you can call \keyword{pthread\_create} to create a new 
 The threads you create all live inside the same virtual memory because they are part of the same process.
 Thus they can all see the heap, the global variables and the program code etc.
 
-\begin{verbatim}
-+-------+
-|       |
-+-------+
-|       | # Stack 1
-|int *a2|-----------+
-|       |           |
-|       |           |
-+-------+           |
-|       | # Stack 2 |
-|int *a1|--+        |
-|       |  |        |
-|       |  |        |
-+-------+  |        |
-|  ...  |  |        |
-+-------+  |        |
-|       |  |        |
-|   1   |<-+--------+
-|       |
-|       | # Heap
-\end{verbatim}
-
+\begin{figure}[H]
+\centering
+\includegraphics[width=.5\textwidth]{threads/drawings/thread_stack_pointer.png}
+\caption{Threads pointing to same place in heap}
+\end{figure}
 
 Thus you can have two (or more) CPUs working on your program at the same time and inside the same process.
 It's up to the operating system to assign the threads to CPUs.
@@ -232,9 +205,10 @@ Meaning that the same program can run multiple times and depending on how the ke
 The following is the canonical race condition.
 
 \begin{lstlisting}[language=C]
-void *thread_main(void *data) {
-  int *int_ptr = data;
-  *int_ptr += *int_ptr;
+void *thread_main(void *p) {
+  int x = *p;
+  x += x;
+  *p = x;
   return NULL;
 }
 
@@ -254,33 +228,28 @@ Breaking down the assembly there are many different accesses of the code.
 We will assume that data is stored in the \keyword{eax} register.
 The code to increment is the following with no optimization (assume int\_ptr contains eax).
 
-\begin{verbatim}
-mov     eax, DWORD PTR [rbp-4]    # Loads int_ptr
-add     eax, eax                  # Does the addition
-mov     DWORD PTR [rbp-4], eax    # Stores it back
-\end{verbatim}
+\begin{lstlisting}[language={[x86masm]Assembler}]
+mov eax, DWORD PTR [rbp-4]    ;Loads int_ptr
+add eax, eax                  ;Does the addition
+mov DWORD PTR [rbp-4], eax    ;Stores it back
+\end{lstlisting}
 
-This is a fine access pattern
+Consider this access pattern.
 
-\begin{tabular}{| c | c |}
-  Thread 1 & Thread 2 \\ \hline
-mov     eax, DWORD PTR [rbp-4] & \\
-add     eax, eax & \\
-mov     DWORD PTR [rbp-4], eax & \\ \hline
-& mov     eax, DWORD PTR [rbp-4] \\
-& add     eax, eax \\
-& mov     DWORD PTR [rbp-4], eax \\ \hline
-\end{tabular}
+\begin{figure}[H]
+\centering
+\includegraphics[width=.7\textwidth]{threads/drawings/thread_nonrace_timing.png}
+\caption{Thread access - not a race condition}
+\end{figure}
 
 This access pattern will cause the variable \keyword{data} to be 4.
 The problem is when the instructions are executed in parallel.
 
-\begin{tabular}{| c | c |}
-  Thread 1 & Thread 2 \\ \hline
-mov     eax, DWORD PTR [rbp-4] & mov     eax, DWORD PTR [rbp-4] \\
-add     eax, eax & add     eax, eax \\
-mov     DWORD PTR [rbp-4], eax & mov     DWORD PTR [rbp-4], eax \\
-\end{tabular}
+\begin{figure}[H]
+\centering
+\includegraphics[width=.5\textwidth]{threads/drawings/thread_race_timing.png}
+\caption{Thread access - race condition}
+\end{figure}
 
 This access pattern will cause the variable \keyword{data} to be 2.
 This is undefined behavior and a race condition.
@@ -288,9 +257,9 @@ What we want is one thread to access the part of the code at a time.
 
 You may also ask, well when I compile the code with \keyword{-O2} then I get
 
-\begin{verbatim}
-shl     dword ptr [rdi]   # Optimized way of doing the add
-\end{verbatim}
+\begin{lstlisting}[language={[x86masm]Assembler}]
+shl dword ptr [rdi]   # Optimized way of doing the add
+\end{lstlisting}
 
 Shouldn't that fix it? It is a single assembly instructions so no interleaving?
 Well it doesn't fix the problems that the \textit{hardware itself} may experience a race condition because we as programmers didn't tell the hardware to check for it.
@@ -463,7 +432,7 @@ void merge_sort(int *arr, size_t len){
 With your new understanding of threads, all you need to do is create a thread for the left half, and one for the right half.
 Given that your CPU has multiple real cores, you will see a speedup in accordance with \href{https://en.wikipedia.org/wiki/Amdahl's_law}{Amdahl's Law}.
 The time complexity analysis gets interesting here as well.
-The parallel algorithm runs in $O(\log^3(n))$ running time because we the analysis assumes that we have a lot of cores.
+The parallel algorithm runs in $O(\log^3(n))$ running time because we have the analysis assumes that we have a lot of cores.
 
 In practice though, we typically do two changes.
 One, once the array gets small enough, we ditch the parallel Mergesort algorithm and do a quicksort or other algorithm that works fast on small arrays, usually cache coherency rules at this level.
