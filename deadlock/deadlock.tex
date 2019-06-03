@@ -10,8 +10,9 @@
 We define a system for the rest of the chapter as a set of rules by which a set of processes can move from one state to another, where a state is either working or waiting for a particular resource.
 Forward progress is defined as if there is at least one process working or we can award a process waiting for a resource that resource.
 In a lot of systems, Deadlock is just avoided by ignore the entire concept \cite[P.237]{silberschatz2006operating}.
-Have you heard about turn it on and off again? For products where the stakes are low (User Operating Systems, Phones), it may be more efficient not prevent deadlock.
-But in the cases where "failure is not an option" - Apollo 13, you need a system that tracks deadlock and breaks it or better yet prevents it entirely.
+Have you heard about turn it on and off again?
+For products where the stakes are low (User Operating Systems, Phones), it may be more efficient not prevent deadlock.
+But in the cases where ``failure is not an option'' - Apollo 13, you need a system that tracks and breaks deadlock or better yet prevents it entirely.
 Apollo 13 may have not failed because of deadlock, but probably wouldn't be good to restart the system on liftoff.
 
 Mission critical operating systems need this guarantee formally because playing the odds with people's lives isn't a good idea.
@@ -20,13 +21,12 @@ Even though it is a common statistical phrase that all models are wrong, the mor
 
 \section{Resource Allocation Graphs}
 
-\begin{wrapfigure}[13]{r}{.35\textwidth}
-  \begin{center}
-\includegraphics[width=.25\textwidth]{deadlock/images/resource_allocation.png}
-\end{center}
-  \caption{Resource allocation graph}
-  \label{ragfigure}
-\end{wrapfigure}
+\begin{figure}[H]
+\centering
+\includegraphics[width=.6\textwidth]{deadlock/drawings/rag.png}
+\caption{Resource allocation graph}
+\label{ragfigure}
+\end{figure}
 
 
 One such way is modeling the system with a resource allocation graph (\gls{RAG}).
@@ -39,8 +39,7 @@ For example, if process 1 holds resource A, process 2 holds resource B and proce
 We can detect a deadlock by traversing the graph and searching for a cycle using graph traversal algorithm, such as the Depth First Search (DFS).
 This graph is considered as a directed graph and we can treat both the processes and resources as nodes.
 
-
-\begin{lstlisting}[language=C]
+\begin{minted}{C}
 typedef struct {
 	int node_id; // Node in this particular graph
 	Graph **reachable_nodes; // List of nodes that can be reached from this node
@@ -63,12 +62,14 @@ int isCyclic(Graph *G, int* is_visited) {
 	}
 	// Nope, this graph does not have any cycle
 	return false;
-}\end{lstlisting}
+}
+\end{minted}
 
-\begin{center}
-\includegraphics[width=.25\textwidth]{deadlock/images/colorful.png}
-  \caption{Graph based Deadlock}
-\end{center}
+\begin{figure}[H]
+\centering
+\includegraphics[width=.5\textwidth]{deadlock/drawings/deadlock.png}
+\caption{Graph based Deadlock}
+\end{figure}
 
 \section{Coffman conditions}
 
@@ -263,22 +264,25 @@ There are a fair bit of downsides to this though
 \section{Dining Philosophers}
 
 The Dining Philosophers problem is a classic synchronization problem.
-Imagine I invite $n$ (let's say 5) philosophers to a meal.
-We will sit them at a table with 5 chopsticks, one between each philosopher.
+Imagine I invite $n$ (let's say 6) philosophers to a meal.
+We will sit them at a table with 6 chopsticks, one between each philosopher.
 A philosopher alternates between wanting to eat or think.
 To eat the philosopher must pick up the two chopsticks either side of their position.
 The original problem required each philosopher to have two forks, but one can eat with a single fork so we rule this out.
 However these chopsticks are shared with his neighbor.
 
-\begin{wrapfigure}[10]{r}{.3\textwidth}
-  \begin{center}
-\includegraphics[width=.2\textwidth]{deadlock/images/5DiningPhilosophers.png}
-\end{center}
-  \caption{Dining Philosophers}
-\end{wrapfigure}
+\begin{figure}[H]
+\centering
+\includegraphics[width=.5\textwidth]{deadlock/drawings/dining.png}
+\caption{Dining Philosophers}
+\end{figure}
 
-Is it possible to design an efficient solution such that all philosophers get to eat? Or, will some philosophers starve, never obtaining a second chopstick? Or will all of them deadlock? For example, imagine each guest picks up the chopstick on their left and then waits for the chopstick on their right to be free.
-Oops - our philosophers have deadlocked! Each of the philosophers are essentially the same, meaning that each philosopher has the same instruction set based on the other philosopher i.e. you can't tell every even philosopher to do one thing and every odd philosopher to do another thing.
+Is it possible to design an efficient solution such that all philosophers get to eat?
+Or, will some philosophers starve, never obtaining a second chopstick?
+Or will all of them deadlock?
+For example, imagine each guest picks up the chopstick on their left and then waits for the chopstick on their right to be free.
+Oops - our philosophers have deadlocked!
+Each of the philosophers are essentially the same, meaning that each philosopher has the same instruction set based on the other philosopher i.e. you can't tell every even philosopher to do one thing and every odd philosopher to do another thing.
 
 
 \subsection{Failed Solutions}
@@ -302,6 +306,15 @@ This looks good but.
 What if everyone picks up their left fork and is waiting on their right fork? We have deadlocked the program.
 It is important to note that deadlock doesn't happen all the time and the probability that this solution deadlocks goes down as the number of philosophers goes up.
 What is really important to note is that eventually that this solution will deadlock, letting threads starve which is bad.
+Here is a simple resource allocation graph that shows how the system could be deadlocked
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=.9\textwidth]{deadlock/drawings/dining_naive.png}
+\caption{Left right dining philosopher cycle}
+\end{figure}
+
+
 So now you are thinking about breaking one of the Coffman conditions.
 Let's break Hold and Wait!
 
@@ -334,6 +347,14 @@ If it's available, they eat.
 If it's not available, they put the left fork down and try again.
 No deadlock! But, there is a problem.
 What if all the philosophers pick up their left at the same time, try to grab their right, put their left down, pick up their left, try to grab their right\ldots{}.
+Here is what a time evolution of the system would look like.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=.9\textwidth]{deadlock/drawings/dining_livelock.png}
+\caption{Livelock Failure}
+\end{figure}
+
 We have now livelocked our solution! Our poor philosopher are still starving, so let's give them some proper solutions.
 
 \section{Viable Solutions}
@@ -363,11 +384,21 @@ The proof is about as simple as it gets. For number of philosophers $n >= 2$ onl
 
 \end{proof}
 
+\begin{figure}[H]
+\centering
+\includegraphics[width=.9\textwidth]{deadlock/drawings/dining_arbitrator.png}
+\caption{Arbitrator Diagram}
+\end{figure}
+
 \subsection{Leaving the Table (Stallings' Solution)}
 
-Why does the first solution deadlock? Well there are $n$ philosophers and $n$ chopsticks.
-What if there is only 1 philosopher at the table? Can we deadlock? No.
-How about 2 philosophers? 3? \ldots{} You can see where this is going.
+Why does the first solution deadlock?
+Well there are $n$ philosophers and $n$ chopsticks.
+What if there is only 1 philosopher at the table?
+Can we deadlock?
+No.
+How about 2 philosophers?
+3? \ldots{} You can see where this is going.
 Stallings' \cite[P. 280]{stalling} solutions says to remove philosophers from the table until deadlock is not possible -- think about what the magic number of philosophers at the table.
 The way to do this in actual system is through semaphores and letting a certain number of philosopher through.
 This has the benefit that multiple philosophers can be eating.
@@ -381,10 +412,24 @@ A philosopher can eat for as long as they want and the system will continue to f
 This works best with timeouts or forced context switches in order to ensure bounded wait times.
 
 \begin{proof} Stallings' Solution Doesn't Deadlock.
-
-Let's number the philosophers $\{p_0, p_1, .., p_{n-1}\}$ and the resources $\{r_0, r_1, .., r_{n-1}\}$. A philosopher $p_i$ needs resource $r_{i-1 \mod n}$ and $r_{i + 1 \mod n}$. Without loss of generality, let us take $p_i$ out of the picture. Each resource had exactly two philosophers that could use it. Now resources $r_{i-1 \mod n}$ and $r_{i + 1 \mod n}$ only have on philosopher waiting on it. Even if hold and wait, no preemption, and mutual exclusion or present, the resources can never enter a state where one philosopher requests them and they are held by another philosopher because only one philosopher can request them. Since there is no way to generate a cycle otherwise, circular wait cannot hold. Since circular wait cannot hold, deadlock cannot happen.
-
+  Let's number the philosophers $\{p_0, p_1, .., p_{n-1}\}$ and the resources $\{r_0, r_1, .., r_{n-1}\}$.
+  A philosopher $p_i$ needs resource $r_{i-1 \mod n}$ and $r_{i + 1 \mod n}$.
+  Without loss of generality, let us take $p_i$ out of the picture.
+  Each resource had exactly two philosophers that could use it.
+  Now resources $r_{i-1 \mod n}$ and $r_{i + 1 \mod n}$ only have on philosopher waiting on it.
+  Even if hold and wait, no preemption, and mutual exclusion or present, the resources can never enter a state where one philosopher requests them and they are held by another philosopher because only one philosopher can request them.
+  Since there is no way to generate a cycle otherwise, circular wait cannot hold.
+  Since circular wait cannot hold, deadlock cannot happen.
 \end{proof}
+
+Here is a visualization of the worst-case.
+The system is about to deadlock, but the approach resolves it.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=.9\textwidth]{deadlock/drawings/dining_stalling.png}
+\caption{Stalling solution almost deadlock}
+\end{figure}
 
 
 \subsection{Partial Ordering (Dijkstra's Solution)}
@@ -421,15 +466,29 @@ Since we can't reach deadlock in either case, this solution cannot deadlock whic
 
 \end{proof}
 
+\begin{figure}[H]
+\centering
+\includegraphics[width=.9\textwidth]{deadlock/drawings/dining_partial.png}
+\caption{Stalling solution partial deadlock}
+\end{figure}
+
 \subsection{Extra: Clean/Dirty Forks (Chandy/Misra Solution)}
 
-There are many more advanced solutions. One such solution is by Chandy and Misra \cite{Chandy:1984:DPP:1780.1804}. This is not a true solution to the dining philosophers problem because it has the requirement the philosophers can speak to each other. Basically though, it is a solution that ensures fairness. It in essence defines a series of rounds that a philosopher must eat in a given round before going to the next one.
+There are many more advanced solutions.
+One such solution is by Chandy and Misra \cite{Chandy:1984:DPP:1780.1804}.
+This is not a true solution to the dining philosophers problem because it has the requirement the philosophers can speak to each other.
+Basically though, it is a solution that ensures fairness.
+It in essence defines a series of rounds that a philosopher must eat in a given round before going to the next one.
 
-We won't detain the proof here because it is a little more involved, but feel free to read at the citation.
+We won't detail the proof here because it is a little more involved, but feel free to read at the citation.
 
 \subsection{Advanced Solutions: Actor Model (other Message passing models)}
 
-The actor model is another form of synchronization that doesn't have to do anything with negotiating locks or waiting. The idea is very simple. Each actor can either perform work, create more actors, send messages, or respond to messages. Any time an actor needs something from another actor, it sends a message. Most importantly, an actor is only responsible for one things.
+The actor model is another form of synchronization that doesn't have to do anything with negotiating locks or waiting.
+The idea is very simple.
+Each actor can either perform work, create more actors, send messages, or respond to messages.
+Any time an actor needs something from another actor, it sends a message.
+Most importantly, an actor is only responsible for one things.
 If we were implementing a real world application, we may have an actor that handles the database, one that handles the incoming connections, one that services the connections, etc etc.
 These actors would pass messages to each other like ``there is a new connection'' from the incoming connection actor to the servicing actor.
 The servicing actor may send a data request message the database actor and a data response message comes back.
