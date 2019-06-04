@@ -47,7 +47,6 @@ The 7 layer model is as follows
   For example, portability between different operating systems like translating newlines to windows newlines.
 
 \item Layer 7: The application layer.
-  The application layer is where many different protocols live.
   \gls{HTTP} and \gls{FTP} are both defined at this level.
   This is typically where we define protocols across the internet.
   As programmers, we only go lower when we think we can create algorithms that are more suited to our needs than all of the below.
@@ -57,7 +56,6 @@ The 7 layer model is as follows
 This book won't cover networking in depth.
 We will focus on some aspects of layers 3, 4, and 7 because they are essential to know if you are going to be doing something with the internet, which at some point in your career you will be.
 As for another definition, a protocol is a set of specifications put forward by the \gls{Internet Engineering Task Force} that govern how implementers of protocol have their program or circuit behave under specific circumstances.
-
 
 \section{Layer 3: The Internet Protocol}
 
@@ -87,9 +85,11 @@ For the purposes of the class, you need to know at this layer that IP deals with
 The internet protocol deals with routing, fragmentation, and reassembly of fragments.
 Datagrams are formatted as such
 
-\begin{center}
-\includegraphics[width=.8\textwidth]{networking/images/ipv4_header.png}
-\end{center}
+\begin{figure}[H]
+  \centering
+\includegraphics[width=.8\textwidth]{networking/drawings/ip_datagram.png}
+\caption{IP Datagram divisibility}
+\end{figure}
 
 \begin{enumerate}
   \item The first octet is the version number, either 4 or 6
@@ -120,11 +120,10 @@ Datagrams are formatted as such
     There is no verification of this, so one host can pretend to be any IP address possible
   \item Destination address is where you want the packet to be sent to.
     This is crucial in the routing process as you need that to route.
-  \item After: Your data! All layer of higher order protocols are put in there
-  \item Additional options: Hosts of additional options
-  \item Footer: A bit of padding to make sure your data is a multiple of 8
+  \item Additional options: Hosts of additional options, this is variadic in size.
+  \item Footer: A bit of padding to make sure your data is a multiple of 4 octets.
+  \item After: Your data! All data of higher order protocols are put following the header.
 \end{enumerate}
-
 
 \subsection{Extra: Routing}
 
@@ -184,6 +183,12 @@ Note that this will cause undue stress on the network, so a series of multicasts
 
 \subsection{What's the deal with IPv6?}
 
+\begin{figure}[H]
+  \centering
+\includegraphics[width=.8\textwidth]{networking/drawings/ipv6_datagram.png}
+\caption{IPv6 Datagram divisibility}
+\end{figure}
+
 One of the big features of IPv6 is the address space.
 The world ran out of IP addresses a while ago and has been using hacks to get around that.
 With IPv6 there are enough internal and external addresses, so that unless we discover alien civilizations, we probably won't run out.
@@ -208,7 +213,7 @@ The \keyword{ifaddrs} struct includes the family but does not include the sizeof
 Therefore we need to manually determine the struct sized based on the family.
 
 \begin{lstlisting}[language=C]
- (family == AF_INET) ? sizeof(struct sockaddr_in) : sizeof(struct sockaddr_in6)
+(family == AF_INET) ? sizeof(struct sockaddr_in) : sizeof(struct sockaddr_in6)
 \end{lstlisting}
 
 The complete code is shown below.
@@ -328,6 +333,13 @@ You may just get slower loading times.
 
 \section{Layer 4: TCP and Client}
 
+
+\begin{figure}[H]
+  \centering
+\includegraphics[width=.8\textwidth]{networking/drawings/tcp_header.png}
+\caption{Extra: TCP Header Specification}
+\end{figure}
+
 Most services on the Internet today use \gls{TCP} because it efficiently hides the complexity of lower, packet-level nature of the Internet.
 TCP or Transport Control Protocol is a connection-based protocol that is built on top of IPv4 and IPv6 and therefore can be described as ``TCP/IP'' or ``TCP over IP''.
 TCP creates a \emph{pipe} between two machines and abstracts away the low level packet-nature of the Internet. Thus, under most conditions, bytes sent over a TCP connection will not be lost or corrupted.
@@ -410,7 +422,7 @@ There are a list of things that TCP doesn't provide though
 
 Integers can be represented in least significant byte first or most-significant byte first.
 Either approach is reasonable as long as the machine itself is internally consistent.
-For network communications we need to standardize on agreed format.
+For network communications, we need to standardize on agreed format.
 
 \keyword{htons(xyz)} returns the 16 bit unsigned integer `short' value xyz in network byte order.
 \keyword{htonl(xyz)} returns the 32 bit unsigned integer `long' value xyz in network byte order.
@@ -431,8 +443,8 @@ This doesn't apply to protocols that negotiate the endianness before-hand.
 If two computers are CPU bound by converting the messages between network orders -- this happens with RPCs in high performance systems -- it may be worth it to negotiate if they are on similar endians to send in little endian order.
 
 Why is network order defined to be big endian?
-The simple answer is that \link{https://tools.ietf.org/html/rfc1700} RFC1700 says so.
-If you want more information, we'll cite the famous article located \link{https://www.ietf.org/rfc/ien/ien137.txt} that argued for a particular version.
+The simple answer is that \url{https://tools.ietf.org/html/rfc1700} RFC1700 says so.
+If you want more information, we'll cite the famous article located \url{https://www.ietf.org/rfc/ien/ien137.txt} that argued for a particular version.
 The most important part is that it is standard.
 What happens when we don't have one standard?
 We have 4 different USB plug types (Regular, Micro, Mini, and USB-C) that don't interact well with each other.
@@ -531,6 +543,7 @@ There are libraries to do this, usually you don't connect at the socket level.
 The number of bytes read or written may be smaller than expected.
 Thus it is important to check the return value of read and write.
 A simple HTTP client that sends a request to compliant URL is below.
+First, we'll start with the boring stuff and the parsing code.
 
 \begin{lstlisting}[language=C]
 #include <stdio.h>
@@ -553,14 +566,6 @@ typedef struct _host_info {
 	char *port;
 	char *resource;
 } host_info;
-
-host_info *get_info(char *uri);
-void free_info(host_info *info);
-host_info *send_request(host_info *info);
-
-ssize_t min(ssize_t a, ssize_t b) {
-	return a < b ? a : b;
-}
 
 host_info *get_info(char *uri) {
 
@@ -636,7 +641,7 @@ int main(int argc, char *argv[]) {
 }
 \end{lstlisting}
 
-The above is all set up or helper code. The actual code that sends the request is below.
+The actual code that sends the request is below.
 The first thing that we have to do is connect to an address.
 We'll write up a nice helper function that does the error checking for us.
 
@@ -662,10 +667,10 @@ static void connect_to_address(int sock_fd, host_info *info) {
 The next piece of code actually sends the request. Here is what each header means.
 
 \begin{enumerate}
-  \item "GET \%s HTTP/1.0\r\n" This is the request verb interpolated with the path. This means perform the GET verb on the path using the HTTP/1.0 method.
-  \item "Connection: close\r\n" Means that as soon as the connection is over, please close the connection. This line won't be used for any other connections.
+  \item "GET \%s HTTP/1.0" This is the request verb interpolated with the path. This means perform the GET verb on the path using the HTTP/1.0 method.
+  \item "Connection: close" Means that as soon as the request is over, please close the connection. This line won't be used for any other connections.
     This is a little redundant given that HTTP 1.0 doesn't allow you to send multiple requests, but it is better to be explicit given there are non-conformant technologies.
-  \item "Accept: */*\r\n\r\n" This means that the client is willing to accept anything.
+  \item "Accept: */*" This means that the client is willing to accept anything.
 \end{enumerate}
 
 A more robust piece of code would also check if write fails or if the call was interrupted.
@@ -842,7 +847,7 @@ Each has a specific purpose and should be called in roughly the above order
         NI_NUMERICHOST | NI_NUMERICSERV);
   \end{lstlisting}
 
-  One can use the macros \keyword{NI\_MAXHOST} to denote the maximum length of a hostname, and \keywrod{NI\_MAXSERV} to denote the maximum length of a port.
+  One can use the macros \keyword{NI\_MAXHOST} to denote the maximum length of a hostname, and \keyword{NI\_MAXSERV} to denote the maximum length of a port.
   \keyword{NI\_NUMERICHOST} gets the hostname as a numeric IP address and similarly for \keyword{NI\_NUMERICSERV} though the port is usually numeric to begin with.
   The \href{https://man.openbsd.org/getnameinfo.3#NI\_NUMERICHOST}{Open BSD man pages have more information}
 
@@ -967,7 +972,9 @@ while bytes_read isn't count {
 }
 \end{lstlisting}
 
-We can assure you that the following code \textit{will not work}. Can you see why? At the surface level it does restart a call after a read or write.
+We can assure you that the following code \textit{will not work}.
+Can you see why?
+At the surface level it does restart a call after a read or write.
 But what else happens when the error is EINTR?
 Is the contents of the buffer correct?
 What other problems can you spot?
@@ -988,7 +995,6 @@ A streaming video signal may send picture updates using UDP
 \subsection{UDP Attributes}
 
 \begin{itemize}
-  \tightlist
 \item Unreliable Datagram Protocol
   Packets sent through UDP are not guaranteed to reach their destination.
   The probability that the packet gets delivered goes down over time.
@@ -1039,17 +1045,15 @@ Even though this isn't portable, it definitely gets the job done.
 The full example follows.
 
 \begin{lstlisting}[language=C]
-  // Relevant headers ..
+// Relevant headers ..
 
 int connect_to_udp(int port, char *hostname, struct sockaddr_in *ipaddr) {
-
   int sockfd = socket(AF_INET, SOCK_DGRAM, 0);
   if (sockfd < 0) {
     perror("socket");
     exit(1);
   }
   int optval = 1;
-  // Let them reuse
 	setsockopt(sockfd, SOL_SOCKET, SO_REUSEPORT, &optval, sizeof(optval));
 
   // Get host by name TODO: Refactor to getaddrinfo
@@ -1081,21 +1085,16 @@ int connect_to_udp(int port, char *hostname, struct sockaddr_in *ipaddr) {
 	return sockfd;
 }
 
-int main(int argc, char **argv) {
-  char *hostname = argv[1];
-  int port = strtoll(argv[2], NULL, 10);
-  struct sock_addr_in ipaddr;
+// later
 
-  int port_fd = connect_to_udp(port, hostname, &ipaddr, 0)
-  char *to_send = "Hello!"
+int port_fd = connect_to_udp(port, hostname, &ipaddr, 0)
+char *to_send = "Hello!"
 
-  // sendto may error, but that isn't because the packet wasn't
-  // delivered. There could be bad addresses, bad port sends etc
-  int send_ret = sendto(port_fd, to_send, packet_size, 0,
-			(struct sockaddr *)&ipaddr,
-			sizeof(ipaddr));
-  return 0;
-}
+// sendto may error, but that isn't because the packet wasn't
+// delivered. There could be bad addresses, bad port sends etc
+int send_ret = sendto(port_fd, to_send, packet_size, 0,
+    (struct sockaddr *)&ipaddr,
+    sizeof(ipaddr));
 \end{lstlisting}
 
 The above code simply sends ``Hello'' through a UDP. There is no idea of if the packet arrives, is processed etc.
@@ -1649,7 +1648,6 @@ If your application ever becomes CPU bound parsing XML, Json or YAML, switch to 
 \section{Topics}
 
 \begin{itemize}
-\tightlist
 \item
   IPv4 vs IPv6
 \item
@@ -1677,7 +1675,6 @@ If your application ever becomes CPU bound parsing XML, Json or YAML, switch to 
 \section{Questions}
 
 \begin{itemize}
-\tightlist
 \item
   What is IPv4? IPv6? What are the differences between them?
 \item
