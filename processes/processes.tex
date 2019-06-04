@@ -44,13 +44,7 @@ The kernel creates the first process \keyword{init.d} (an alternative is system.
 Although these were mentioned in the last chapter, we are going to give you a quick reminder about file descriptors.
 Here is a zine from Julia Evans that gives some details: \cite{evans_2018}.
 
-\begin{figure}[htbp]
-    \centering
-    \includegraphics[width=.8\textwidth]{processes/images/file-descriptors.png}
-    \caption{File Descriptors}
-\end{figure}
-
-As the little zine shows, the kernel keeps track of the file descriptors and what they point to.
+The kernel keeps track of the file descriptors and what they point to.
 Later we will learn two things: that file descriptors need not point to actual files and that the operating system keeps track of them for you.
 
 Notice that file descriptors may be reused between processes, but inside of a process, they are unique.

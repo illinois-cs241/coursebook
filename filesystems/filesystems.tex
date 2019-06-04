@@ -127,14 +127,6 @@ In order to understand how a filesystem interacts with data on disk, there are t
     This tends to help with fragmentation.
 \end{enumerate}
 
-These structures all are presented in the diagram below.
-
-\begin{figure}[htbp]
-\centering
-\includegraphics[width=.8\textwidth]{filesystems/images/disk.gif}
-\caption{Disk block diagram}
-\end{figure}
-
 It may seem overwhelming, but by the end of this chapter, we will be able to make sense of every part of the filesystem.
 
 In order to reason about data on some form of storage -- spinning disks, solid state drives, magnetic tape -- it is common practice to first consider the medium of storage as a collection of \emph{blocks}.
@@ -162,12 +154,6 @@ Before we explore it in depth, let's list out the key information we need to hav
 \end{itemize}
 
 \subsection{File Contents}
-
-\begin{figure}[htbp]
-\centering
-\includegraphics[width=.8\textwidth]{filesystems/images/inode_with_signatures.jpg}
-\caption{Inode with contents}
-\end{figure}
 
 From \href{http://en.wikipedia.org/wiki/Inode}{Wikipedia}:
 
@@ -1085,12 +1071,6 @@ For each N-bits written, we will write one extra bit, the `Parity bit' that ensu
 The parity bit is written to an additional disk.
 If any one disk including the parity disk is lost, then its contents can still be computed using the contents of the other disks.
 
-\begin{figure}[htbp]
-\centering
-\includegraphics{filesystems/images/raid.gif}
-\caption{Raid diagram}
-\end{figure}
-
 One disadvantage of RAID-3 is that whenever a disk block is written, the parity block will always be written too.
 This means that there is effectively a bottleneck in a separate disk.
 In practice, this is more likely to cause a failure because one disk is being used 100\% of the time and once that disk fails then the other disks are more prone to failure.
@@ -1117,12 +1097,6 @@ RAID-5 is similar to RAID-3 except that the check block (parity information) is 
 The check-block is `rotated' through the disk array.
 RAID-5 provides better read and write performance than RAID-3 because there is no longer the bottleneck of the single parity disk.
 The one drawback is that you need more disks to have this setup and there are more complicated algorithms need to be used.
-
-\begin{figure}[htbp]
-\centering
-\includegraphics[width=.8\textwidth]{filesystems/images/raid_5.png}
-\caption{Raid 5 striping}
-\end{figure}
 
 Failure is the common case.
 Google reports 2-10\% of disks fail per year.
@@ -1157,6 +1131,7 @@ Thinking about the disk as an array of data blocks is simply something we do so 
 Below, we have an example of how an inode that describes a file may look.
 Note that for the sake of simplicity, we have drawn arrows mapping data block numbers in the inode to their locations on disk.
 These aren't pointers so much as indices into an array.
+
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=.8\textwidth]{filesystems/images/sample_file.png}
