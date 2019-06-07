@@ -165,11 +165,11 @@ Here is a first attempt at it -- the naive version.
 void* malloc(size_t size)
 // Ask the system for more bytes by extending the heap space.
 // sbrk Returns -1 on failure
-   void *p = sbrk(size);
-   if(p == (void *) -1) return NULL; // No space left
-   return p;
+void *p = sbrk(size);
+if(p == (void *) -1) return NULL; // No space left
+return p;
 }
-void free() {/* Do nothing */}
+  void free() {/* Do nothing */}
 \end{lstlisting}
 
 Above is the simplest implementation of malloc, there are a few drawbacks though.
@@ -330,13 +330,13 @@ Our heap memory is a list of blocks where each block is either allocated or unal
 Thus there is conceptually a list of free blocks, but it is implicit in the form of block size information that we store as part of each block.
 Let's think of it in terms of a simple implementation.
 \begin{lstlisting}[language=C]
-  typedef struct {
-    size_t block_size;
-    char data[0];
-  } block;
-  block *p = sbrk(100);
-  p->size = 100 - sizeof(*p) - sizeof(BTag);
-  // Other block allocations
+typedef struct {
+  size_t block_size;
+  char data[0];
+} block;
+block *p = sbrk(100);
+p->size = 100 - sizeof(*p) - sizeof(BTag);
+// Other block allocations
 \end{lstlisting}
 
 We could navigate from one block to the next block just by adding the block's size.
@@ -373,27 +373,27 @@ There are ways to do this if you want to keep the overhead small.
 We recommend first for going with readability.
 
 \begin{lstlisting}[language=C]
-  typedef struct {
-    size_t block_size;
-    int is_free;
-    char data[0];
-  } block;
-  block *p = sbrk(100);
-  p->size = 100 - sizeof(*p) - sizeof(boundary_tag);
-  // Other block allocations
+typedef struct {
+  size_t block_size;
+  int is_free;
+  char data[0];
+} block;
+block *p = sbrk(100);
+p->size = 100 - sizeof(*p) - sizeof(boundary_tag);
+// Other block allocations
 \end{lstlisting}
 
 If you want certain bits to hold different pieces of information, use bit fields!
 
 \begin{lstlisting}[language=C]
 typedef struct {
-   unsigned int block_size : 7;
-   unsigned int is_free : 1;
+  unsigned int block_size : 7;
+  unsigned int is_free : 1;
 } size_free;
 
 typedef struct {
-    size_free info;
-    char data[0];
+  size_free info;
+  char data[0];
 } block;
 \end{lstlisting}
 
@@ -499,9 +499,9 @@ We may update our struct to look like this
 
 \begin{lstlisting}[language=C]
 typedef struct {
-    size_t info;
-    struct block *next;
-    char data[0];
+  size_t info;
+  struct block *next;
+  char data[0];
 } block;
 \end{lstlisting}
 

@@ -80,9 +80,9 @@ int a;
 static int b;
 
 void func() {
-   static int c;
-   int d;
-   printf("%d %d %d %d\n",a,b,c,d);
+  static int c;
+  int d;
+  printf("%d %d %d %d\n",a,b,c,d);
 }
 \end{lstlisting}
 
@@ -90,12 +90,12 @@ void func() {
 
 \begin{lstlisting}[language=C]
 void func() {
-   int* ptr1 = malloc( sizeof(int) );
-   int* ptr2 = realloc(NULL, sizeof(int) );
-   int* ptr3 = calloc( 1, sizeof(int) );
-   int* ptr4 = calloc( sizeof(int) , 1);
+  int* ptr1 = malloc( sizeof(int) );
+  int* ptr2 = realloc(NULL, sizeof(int) );
+  int* ptr3 = calloc( 1, sizeof(int) );
+  int* ptr4 = calloc( sizeof(int) , 1);
 
-   printf("%d %d %d %d\n",*ptr1,*ptr2,*ptr3,*ptr4);
+  printf("%d %d %d %d\n",*ptr1,*ptr2,*ptr3,*ptr4);
 }
 \end{lstlisting}
 
@@ -103,9 +103,9 @@ void func() {
 
 \begin{lstlisting}[language=C]
 char* copy(char*src) {
- char*result = malloc( strlen(src) );
- strcpy(result, src);
- return result;
+  char*result = malloc( strlen(src) );
+  strcpy(result, src);
+  return result;
 }
 \end{lstlisting}
 
@@ -113,9 +113,9 @@ char* copy(char*src) {
 
 \begin{lstlisting}[language=C]
 char* copy(char*src) {
- char*result = malloc( strlen(src) +1 );
- strcat(result, src);
- return result;
+  char*result = malloc( strlen(src) +1 );
+  strcat(result, src);
+  return result;
 }
 \end{lstlisting}
 
@@ -123,9 +123,9 @@ char* copy(char*src) {
 
 \begin{lstlisting}[language=C]
 char* copy(char*src) {
- char result[sizeof(src)];
- strcpy(result, src);
- return result;
+  char result[sizeof(src)];
+  strcpy(result, src);
+  return result;
 }
 \end{lstlisting}
 
@@ -192,7 +192,7 @@ char* name = .....;
 int score = ......
 FILE *f = fopen("result.txt",_____);
 if(f) {
-    _____
+  _____
 }
 fclose(f);
 \end{lstlisting}
@@ -201,9 +201,9 @@ fclose(f);
 
 \begin{lstlisting}[language=C]
 char* toString(int a, char*mesg, double val, void* ptr) {
-   char* result = malloc( strlen(mesg) + 50);
-    _____
-   return result;
+  char* result = malloc( strlen(mesg) + 50);
+  _____
+  return result;
 }
 \end{lstlisting}
 
@@ -297,10 +297,10 @@ void* turn;
 
 void* func(void* mesg) {
   while(1) {
-// Add mutex lock and condition variable calls ...
+    // Add mutex lock and condition variable calls ...
 
     while(turn == mesg) {
-        /* poll again ... Change me - This busy loop burns CPU time! */
+      /* poll again ... Change me - This busy loop burns CPU time! */
     }
 
     /* Do stuff on this thread */
@@ -324,12 +324,12 @@ int main(int argc, char** argv){
 \begin{lstlisting}[language=C]
 int total;
 void add(int value) {
- if(value < 1) return;
- total += value;
+  if(value < 1) return;
+  total += value;
 }
 void sub(int value) {
- if(value < 1) return;
- total -= value;
+  if(value < 1) return;
+  total -= value;
 }
 \end{lstlisting}
 
@@ -400,8 +400,8 @@ void set_edge_safe(graph_t* graph, int i, int j, double dist) {
 // Get both locks or none.
 pthread_mutex_lock( a );
 if( pthread_mutex_trylock( b ) ) { /*failed*/
-   pthread_mutex_unlock( a );
-   ...
+  pthread_mutex_unlock( a );
+  ...
 }
 \end{lstlisting}
 

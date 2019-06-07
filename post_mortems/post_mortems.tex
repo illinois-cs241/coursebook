@@ -11,7 +11,7 @@ Required: Appendix/Shell
 This was a back door into most shells. The bug allowed an attacher to exploit an environment variable to execute arbitrary code.
 
 \begin{lstlisting}[language=bash]
-> env x='() { :;}; echo vulnerable' bash -c "echo this is a test"
+$ env x='() { :;}; echo vulnerable' bash -c "echo this is a test"
 vulnerable...
 \end{lstlisting}
 
@@ -139,9 +139,9 @@ Required Sections: Intro to C/Appending
 
 There was a simple bug in steam that caused steam to remove all of your files in the form of something like this
 
-\begin{lstlisting}[language=console]
-  > ROOT=$(cd $0/; echo $PWD);
-  > rm -rf $ROOT
+\begin{lstlisting}[language=bash]
+$ ROOT=$(cd $0/; echo $PWD);
+$ rm -rf $ROOT
 \end{lstlisting}
 
 Well what happens if \$0 or the first parameter passed into a script doesn't exist? You move to root, and you delete your entire computer.

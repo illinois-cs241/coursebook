@@ -6,8 +6,8 @@ The original example that Kernighan and Ritchie proposed way back when hasn't ch
 \begin{lstlisting}[language=C]
 #include <stdio.h>
 int main(void) {
-    printf("Hello World\n");
-    return 0;
+  printf("Hello World\n");
+  return 0;
 }
 \end{lstlisting}
 
@@ -142,11 +142,11 @@ If a macro is defined or equal to zeros, that branch is not taken.
 
 \begin{lstlisting}[language=C]
 int main() {
-#ifdef __GNUC__
-    return 1;
-#else
-    return 0;
-#endif
+  #ifdef __GNUC__
+  return 1;
+  #else
+  return 0;
+  #endif
 }
 \end{lstlisting}
 
@@ -154,7 +154,7 @@ Using \keyword{gcc} your compiler would preprocess the source to the following.
 
 \begin{lstlisting}[language=C]
 int main() {
-    return 1;
+  return 1;
 }
 \end{lstlisting}
 
@@ -162,7 +162,7 @@ Using \keyword{clang} your compiler would preprocess to this.
 
 \begin{lstlisting}[language=C]
 int main() {
-    return 0;
+  return 0;
 }
 \end{lstlisting}
 

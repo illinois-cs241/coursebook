@@ -225,17 +225,17 @@ getifaddrs(&myaddrs);
 char host[256], port[256];
 
 for (ifa = myaddrs; ifa != NULL; ifa = ifa->ifa_next) {
-    int family = ifa->ifa_addr->sa_family;
-    if (family == required_family && ifa->ifa_addr) {
-        int ret = getnameinfo(ifa->ifa_addr,
-                            (family == AF_INET) ? sizeof(struct sockaddr_in) :
-                            sizeof(struct sockaddr_in6),
-                            host, sizeof(host), port, sizeof(port)
-                              , NI_NUMERICHOST | NI_NUMERICSERV)
-        if (0 == ret) {
-            puts(host);
-        }
+  int family = ifa->ifa_addr->sa_family;
+  if (family == required_family && ifa->ifa_addr) {
+    int ret = getnameinfo(ifa->ifa_addr,
+    (family == AF_INET) ? sizeof(struct sockaddr_in) :
+    sizeof(struct sockaddr_in6),
+    host, sizeof(host), port, sizeof(port)
+    , NI_NUMERICHOST | NI_NUMERICSERV)
+    if (0 == ret) {
+      puts(host);
     }
+  }
 }
 \end{lstlisting}
 
@@ -259,14 +259,14 @@ In fact it will return a linked-list of addrinfo structs:
 
 \begin{lstlisting}[language=C]
 struct addrinfo {
-    int              ai_flags;
-    int              ai_family;
-    int              ai_socktype;
-    int              ai_protocol;
-    socklen_t        ai_addrlen;
-    struct sockaddr *ai_addr;
-    char            *ai_canonname;
-    struct addrinfo *ai_next;
+  int              ai_flags;
+  int              ai_family;
+  int              ai_socktype;
+  int              ai_protocol;
+  socklen_t        ai_addrlen;
+  struct sockaddr *ai_addr;
+  char            *ai_canonname;
+  struct addrinfo *ai_next;
 };
 \end{lstlisting}
 
@@ -485,8 +485,8 @@ To convert to a human-readable error use \keyword{gai\_strerror} to get the equi
 \begin{lstlisting}[language=C]
 int result = getaddrinfo(...);
 if(result) {
-   const char *mesg = gai_strerror(result);
-   ...
+  const char *mesg = gai_strerror(result);
+  ...
 }
 \end{lstlisting}
 
@@ -562,82 +562,82 @@ First, we'll start with the boring stuff and the parsing code.
 #endif
 
 typedef struct _host_info {
-	char *hostname;
-	char *port;
-	char *resource;
+  char *hostname;
+  char *port;
+  char *resource;
 } host_info;
 
 host_info *get_info(char *uri) {
 
-	const char *http = "http://";
-	int http_len = strlen(http);
-	int uri_len = strlen(uri);
-	if (uri_len < http_len && !strncmp(uri, http, min(strlen(http), uri_len))) {
-		fprintf(stderr, "The uri must start with \"%s\"", http);
-		exit(1);
-	} else {
-		uri += http_len;
-		uri_len -= http_len;
-	}
-	char *hostname = malloc(uri_len+1);
-	char *port = malloc(6);
-	char *ptr = hostname;
-	while(*uri && *uri != '/' && *uri != ':') {
-		*ptr++ = *uri++;
-	}
-	*ptr = '\0';
+  const char *http = "http://";
+  int http_len = strlen(http);
+  int uri_len = strlen(uri);
+  if (uri_len < http_len && !strncmp(uri, http, min(strlen(http), uri_len))) {
+    fprintf(stderr, "The uri must start with \"%s\"", http);
+    exit(1);
+  } else {
+    uri += http_len;
+    uri_len -= http_len;
+  }
+  char *hostname = malloc(uri_len+1);
+  char *port = malloc(6);
+  char *ptr = hostname;
+  while(*uri && *uri != '/' && *uri != ':') {
+    *ptr++ = *uri++;
+  }
+  *ptr = '\0';
 
-	if(*uri == ':') {
-		ptr = port;
-		uri++;
-		while(*uri != '/') {
-			*ptr++ = *uri++;
-		}
-		*ptr = '\0';
-	} else {
-		free(port);
-		port = strdup("80");
-	}
-	char *resource = NULL;
-	int len = strlen(uri);
-	if (len == 0) {
-		// Empty means get the index
-		resource = strdup("/");
-	} else {
-		resource = strdup(uri);
-	}
+  if(*uri == ':') {
+    ptr = port;
+    uri++;
+    while(*uri != '/') {
+      *ptr++ = *uri++;
+    }
+    *ptr = '\0';
+  } else {
+    free(port);
+    port = strdup("80");
+  }
+  char *resource = NULL;
+  int len = strlen(uri);
+  if (len == 0) {
+    // Empty means get the index
+    resource = strdup("/");
+  } else {
+    resource = strdup(uri);
+  }
 
-	host_info *info = malloc(sizeof(*info));
-	info->hostname = hostname;
-	info->port = port;
-	info->resource = resource;
-	return info;
+  host_info *info = malloc(sizeof(*info));
+  info->hostname = hostname;
+  info->port = port;
+  info->resource = resource;
+  return info;
 }
 
 void free_info(host_info *info) {
-	free(info->hostname);
-	free(info->port);
-	free(info->resource);
-	free(info);
+  free(info->hostname);
+  free(info->port);
+  free(info->resource);
+  free(info);
 }
 
 int main(int argc, char *argv[]) {
-	if(argc != 2) {
-		fprintf(stderr, "Usage: %s http://hostname[:port]/path\n", *argv);
-		return 1;
-	}
-	char *uri = argv[1];
-	host_info *info = get_info(uri);
-	do {
-		host_info *temp = send_request(info);
-		free_info(info);
-		info = NULL;
-		if (temp) {
-			info = temp;
-		}
-	} while(info);
+  if(argc != 2) {
+    fprintf(stderr, "Usage: %s http://hostname[:port]/path\n", *argv);
+    return 1;
+  }
+  char *uri = argv[1];
+  host_info *info = get_info(uri);
+  do {
+    host_info *temp = send_request(info);
+    free_info(info);
+    info = NULL;
+    if (temp) {
+      info = temp;
+    }
+  } while(info);
 
-	return 0;
+  return 0;
 }
 \end{lstlisting}
 
@@ -647,20 +647,20 @@ We'll write up a nice helper function that does the error checking for us.
 
 \begin{lstlisting}[language=C]
 static void connect_to_address(int sock_fd, host_info *info) {
-	struct addrinfo current, *result;
- 	memset(&current, 0, sizeof(struct addrinfo));
- 	current.ai_family = AF_INET;
- 	current.ai_socktype = SOCK_STREAM;
-	int s = getaddrinfo(info->hostname, info->port, &current, &result);
- 	if (s != 0) {
-		fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(s));
-		exit(1);
- 	}
-	if(connect(sock_fd, result->ai_addr, result->ai_addrlen) == -1){
-		perror("connection error");
-		exit(1);
-	}
-	freeaddrinfo(result);
+  struct addrinfo current, *result;
+  memset(&current, 0, sizeof(struct addrinfo));
+  current.ai_family = AF_INET;
+  current.ai_socktype = SOCK_STREAM;
+  int s = getaddrinfo(info->hostname, info->port, &current, &result);
+  if (s != 0) {
+    fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(s));
+    exit(1);
+  }
+  if(connect(sock_fd, result->ai_addr, result->ai_addrlen) == -1){
+    perror("connection error");
+    exit(1);
+  }
+  freeaddrinfo(result);
 }
 \end{lstlisting}
 
@@ -677,15 +677,15 @@ A more robust piece of code would also check if write fails or if the call was i
 
 \begin{lstlisting}[language=C]
 static void send_get_request(FILE *sock_file, host_info *info) {
-	char *buffer;
-	asprintf(&buffer,
-		"GET %s HTTP/1.0\r\n"
-		"Connection: close\r\n"
-		"Accept: */*\r\n\r\n",
-		info->resource);
-	int sock_fd = fileno(sock_file);
-	write(sock_fd, buffer, strlen(buffer));
-	free(buffer);
+  char *buffer;
+  asprintf(&buffer,
+  "GET %s HTTP/1.0\r\n"
+  "Connection: close\r\n"
+  "Accept: */*\r\n\r\n",
+  info->resource);
+  int sock_fd = fileno(sock_file);
+  write(sock_fd, buffer, strlen(buffer));
+  free(buffer);
 }
 \end{lstlisting}
 
@@ -695,36 +695,36 @@ Just be careful not to forget to set the buffering to zero otherwise you may dou
 
 \begin{lstlisting}[language=C]
 host_info *send_request(host_info *info) {
-	int sock_fd = socket(AF_INET, SOCK_STREAM, 0);
-	if (sock_fd == -1) {
-		perror("socket");
-		exit(1);
-	}
+  int sock_fd = socket(AF_INET, SOCK_STREAM, 0);
+  if (sock_fd == -1) {
+    perror("socket");
+    exit(1);
+  }
   // Re-use address is a little overkill here because we are making a
   // Listen only server and we don't expect spoofed requests.
-	int optval = 1;
-	int retval = setsockopt(sock_fd, SOL_SOCKET, SO_REUSEADDR, &optval,
-				sizeof(optval));
-	if(retval == -1) {
-		perror("setsockopt");
-		exit(1);
-	}
-	connect_to_address(sock_fd, info);
+  int optval = 1;
+  int retval = setsockopt(sock_fd, SOL_SOCKET, SO_REUSEADDR, &optval,
+  sizeof(optval));
+  if(retval == -1) {
+    perror("setsockopt");
+    exit(1);
+  }
+  connect_to_address(sock_fd, info);
 
-	// Open so you can use getline
-	FILE *sock_file = fdopen(sock_fd, "r+");
-	setvbuf(sock_file, NULL, _IONBF, 0);
+  // Open so you can use getline
+  FILE *sock_file = fdopen(sock_fd, "r+");
+  setvbuf(sock_file, NULL, _IONBF, 0);
 
-	send_get_request(sock_file, info);
-	host_info *ret = NULL;
-	if (is_redirect(sock_file)) {
-		ret = handle_redirect(sock_file);
-	} else {
-		handle_okay(sock_file);
-	}
+  send_get_request(sock_file, info);
+  host_info *ret = NULL;
+  if (is_redirect(sock_file)) {
+    ret = handle_redirect(sock_file);
+  } else {
+    handle_okay(sock_file);
+  }
 
-	fclose(sock_file);
-	return ret;
+  fclose(sock_file);
+  return ret;
 }
 \end{lstlisting}
 
@@ -827,8 +827,8 @@ Each has a specific purpose and should be called in roughly the above order
   struct sockaddr_storage clientaddr;
   socklen_t clientaddrsize = sizeof(clientaddr);
   int client_id = accept(passive_socket,
-          (struct sockaddr *) &clientaddr,
-          &clientaddrsize);
+  (struct sockaddr *) &clientaddr,
+  &clientaddrsize);
   \end{lstlisting}
 
   We've already seen \keyword{getaddrinfo} that can build a linked list of addrinfo entries and each one of these can include socket configuration data.
@@ -843,8 +843,8 @@ Each has a specific purpose and should be called in roughly the above order
   int client_id = accept(sock_id, (struct sockaddr *) &clientaddr, &clientaddrsize);
   char host[NI_MAXHOST], port[NI_MAXSERV];
   getnameinfo((struct sockaddr *) &clientaddr,
-        clientaddrsize, host, sizeof(host), port, sizeof(port),
-        NI_NUMERICHOST | NI_NUMERICSERV);
+  clientaddrsize, host, sizeof(host), port, sizeof(port),
+  NI_NUMERICHOST | NI_NUMERICSERV);
   \end{lstlisting}
 
   One can use the macros \keyword{NI\_MAXHOST} to denote the maximum length of a hostname, and \keyword{NI\_MAXSERV} to denote the maximum length of a port.
@@ -899,53 +899,53 @@ Note this example is incomplete - for example it does not close either socket de
 #include <arpa/inet.h>
 
 int main(int argc, char **argv) {
-    int s;
+  int s;
 
-    // Create the socket!
-    int sock_fd = socket(AF_INET, SOCK_STREAM, 0);
+  // Create the socket!
+  int sock_fd = socket(AF_INET, SOCK_STREAM, 0);
 
-    // Grab the IP address
-    struct addrinfo hints, *result;
-    memset(&hints, 0, sizeof(struct addrinfo));
-    hints.ai_family = AF_INET;
-    hints.ai_socktype = SOCK_STREAM;
-    hints.ai_flags = AI_PASSIVE;
+  // Grab the IP address
+  struct addrinfo hints, *result;
+  memset(&hints, 0, sizeof(struct addrinfo));
+  hints.ai_family = AF_INET;
+  hints.ai_socktype = SOCK_STREAM;
+  hints.ai_flags = AI_PASSIVE;
 
-    s = getaddrinfo(NULL, "1234", &hints, &result);
-    if (s != 0) {
-            fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(s));
-            exit(1);
-    }
+  s = getaddrinfo(NULL, "1234", &hints, &result);
+  if (s != 0) {
+    fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(s));
+    exit(1);
+  }
 
-    // Bind and listen
-    if (bind(sock_fd, result->ai_addr, result->ai_addrlen) != 0) {
-        perror("bind()");
-        exit(1);
-    }
+  // Bind and listen
+  if (bind(sock_fd, result->ai_addr, result->ai_addrlen) != 0) {
+    perror("bind()");
+    exit(1);
+  }
 
-    if (listen(sock_fd, 10) != 0) {
-        perror("listen()");
-        exit(1);
-    }
+  if (listen(sock_fd, 10) != 0) {
+    perror("listen()");
+    exit(1);
+  }
 
-    struct sockaddr_in *result_addr = (struct sockaddr_in *) result->ai_addr;
-    printf("Listening on file descriptor %d, port %d\n", sock_fd, ntohs(result_addr->sin_port));
+  struct sockaddr_in *result_addr = (struct sockaddr_in *) result->ai_addr;
+  printf("Listening on file descriptor %d, port %d\n", sock_fd, ntohs(result_addr->sin_port));
 
-    // Waiting for connections like a passive socket
-    printf("Waiting for connection...\n");
-    int client_fd = accept(sock_fd, NULL, NULL);
-    printf("Connection made: client_fd=%d\n", client_fd);
+  // Waiting for connections like a passive socket
+  printf("Waiting for connection...\n");
+  int client_fd = accept(sock_fd, NULL, NULL);
+  printf("Connection made: client_fd=%d\n", client_fd);
 
-    char buffer[1000];
-    // Could get interrupted
-    int len = read(client_fd, buffer, sizeof(buffer) - 1);
-    buffer[len] = '\0';
+  char buffer[1000];
+  // Could get interrupted
+  int len = read(client_fd, buffer, sizeof(buffer) - 1);
+  buffer[len] = '\0';
 
-    printf("Read %d chars\n", len);
-    printf("===\n");
-    printf("%s\n", buffer);
+  printf("Read %d chars\n", len);
+  printf("===\n");
+  printf("%s\n", buffer);
 
-    return 0;
+  return 0;
 }
 \end{lstlisting}
 
@@ -1054,13 +1054,13 @@ int connect_to_udp(int port, char *hostname, struct sockaddr_in *ipaddr) {
     exit(1);
   }
   int optval = 1;
-	setsockopt(sockfd, SOL_SOCKET, SO_REUSEPORT, &optval, sizeof(optval));
+  setsockopt(sockfd, SOL_SOCKET, SO_REUSEPORT, &optval, sizeof(optval));
 
   // Get host by name TODO: Refactor to getaddrinfo
-	struct sockaddr_in addr;
-	memset(&addr, 0, sizeof(addr));
-	addr.sin_family = AF_INET;
-	addr.sin_port = htons((uint16_t)port);
+  struct sockaddr_in addr;
+  memset(&addr, 0, sizeof(addr));
+  addr.sin_family = AF_INET;
+  addr.sin_port = htons((uint16_t)port);
   struct hostent *serv = gethostbyname(hostname);
   if (!serv) {
     perror("gethostbyname");
@@ -1076,13 +1076,13 @@ int connect_to_udp(int port, char *hostname, struct sockaddr_in *ipaddr) {
     memcpy(ipaddr, &addr, sizeof(*ipaddr));
   }
 
-	// Timeouts for resending acks and whatnot
-	struct timeval tv;
-	tv.tv_sec = 0;
-	tv.tv_usec = SOCKET_TIMEOUT;
-	setsockopt(sockfd, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv));
+  // Timeouts for resending acks and whatnot
+  struct timeval tv;
+  tv.tv_sec = 0;
+  tv.tv_usec = SOCKET_TIMEOUT;
+  setsockopt(sockfd, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv));
 
-	return sockfd;
+  return sockfd;
 }
 
 // later
@@ -1093,8 +1093,8 @@ char *to_send = "Hello!"
 // sendto may error, but that isn't because the packet wasn't
 // delivered. There could be bad addresses, bad port sends etc
 int send_ret = sendto(port_fd, to_send, packet_size, 0,
-    (struct sockaddr *)&ipaddr,
-    sizeof(ipaddr));
+(struct sockaddr *)&ipaddr,
+sizeof(ipaddr));
 \end{lstlisting}
 
 The above code simply sends ``Hello'' through a UDP. There is no idea of if the packet arrives, is processed etc.
@@ -1155,34 +1155,34 @@ The full UDP server code is below.
 #include <arpa/inet.h>
 
 int main(int argc, char **argv) {
-    struct addrinfo hints, *res;
-    memset(&hints, 0, sizeof(hints));
-    hints.ai_family = AF_INET6; // INET for IPv4
-    hints.ai_socktype =  SOCK_DGRAM;
-    hints.ai_flags =  AI_PASSIVE;
+  struct addrinfo hints, *res;
+  memset(&hints, 0, sizeof(hints));
+  hints.ai_family = AF_INET6; // INET for IPv4
+  hints.ai_socktype =  SOCK_DGRAM;
+  hints.ai_flags =  AI_PASSIVE;
 
-    getaddrinfo(NULL, "300", &hints, &res);
+  getaddrinfo(NULL, "300", &hints, &res);
 
-    int sockfd = socket(res->ai_family, res->ai_socktype, res->ai_protocol);
+  int sockfd = socket(res->ai_family, res->ai_socktype, res->ai_protocol);
 
-    if (bind(sockfd, res->ai_addr, res->ai_addrlen) != 0) {
-        perror("bind()");
-        exit(1);
-    }
-    struct sockaddr_storage addr;
-    int addrlen = sizeof(addr);
+  if (bind(sockfd, res->ai_addr, res->ai_addrlen) != 0) {
+    perror("bind()");
+    exit(1);
+  }
+  struct sockaddr_storage addr;
+  int addrlen = sizeof(addr);
 
-    while(1){
-        char buf[1024];
-        ssize_t byte_count = recvfrom(sockfd, buf, sizeof(buf), 0, &addr, &addrlen);
-        buf[byte_count] = '\0';
+  while(1){
+    char buf[1024];
+    ssize_t byte_count = recvfrom(sockfd, buf, sizeof(buf), 0, &addr, &addrlen);
+    buf[byte_count] = '\0';
 
-        printf("Read %d chars\n", byte_count);
-        printf("===\n");
-        printf("%s\n", buf);
-    }
+    printf("Read %d chars\n", byte_count);
+    printf("===\n");
+    printf("%s\n", buf);
+  }
 
-    return 0;
+  return 0;
 }
 \end{lstlisting}
 
@@ -1294,10 +1294,10 @@ It really isn't preferred by many in the POSIX community if they have an alterna
 
 \begin{lstlisting}[language=C]
 int select(int nfds,
-           fd_set *readfds,
-           fd_set *writefds,
-           fd_set *exceptfds,
-           struct timeval *timeout);
+fd_set *readfds,
+fd_set *writefds,
+fd_set *exceptfds,
+struct timeval *timeout);
 \end{lstlisting}
 
 Given three sets of file descriptors, \keyword{select()} will wait for any of those file descriptors to become `ready'.
@@ -1323,9 +1323,9 @@ fd_set readfds, writefds;
 FD_ZERO(&readfds);
 FD_ZERO(&writefds);
 for (int i=0; i < read_fd_count; i++)
-  FD_SET(my_read_fds[i], &readfds);
+FD_SET(my_read_fds[i], &readfds);
 for (int i=0; i < write_fd_count; i++)
-  FD_SET(my_write_fds[i], &writefds);
+FD_SET(my_write_fds[i], &writefds);
 
 struct timeval timeout;
 timeout.tv_sec = 3;
@@ -1339,11 +1339,11 @@ if (num_ready < 0) {
   printf("timeout\n");
 } else {
   for (int i=0; i < read_fd_count; i++)
-    if (FD_ISSET(my_read_fds[i], &readfds))
-      printf("fd %d is ready for reading\n", my_read_fds[i]);
+  if (FD_ISSET(my_read_fds[i], &readfds))
+  printf("fd %d is ready for reading\n", my_read_fds[i]);
   for (int i=0; i < write_fd_count; i++)
-    if (FD_ISSET(my_write_fds[i], &writefds))
-      printf("fd %d is ready for writing\n", my_write_fds[i]);
+  if (FD_ISSET(my_write_fds[i], &writefds))
+  printf("fd %d is ready for writing\n", my_write_fds[i]);
 }
 \end{lstlisting}
 
@@ -1433,12 +1433,12 @@ struct epoll_event ev, events[MAX_EVENTS];
 int listen_sock, conn_sock, nfds, epollfd;
 
 /* Code to set up listening socket, 'listen_sock',
-  (socket(), bind(), listen()) omitted */
+(socket(), bind(), listen()) omitted */
 
 epollfd = epoll_create1(0);
 if (epollfd == -1) {
-    perror("epoll_create1");
-    exit(EXIT_FAILURE);
+  perror("epoll_create1");
+  exit(EXIT_FAILURE);
 }
 
 // This file object will be `read` from (connect is technically a read operation)
@@ -1447,48 +1447,48 @@ ev.data.fd = listen_sock;
 
 // Add the socket in with all the other fds. Everything is a file descriptor
 if (epoll_ctl(epollfd, EPOLL_CTL_ADD, listen_sock, &ev) == -1) {
-    perror("epoll_ctl: listen_sock");
-    exit(EXIT_FAILURE);
+  perror("epoll_ctl: listen_sock");
+  exit(EXIT_FAILURE);
 }
 
 for (;;) {
-    // Forever check if there is an event
-    nfds = epoll_wait(epollfd, events, MAX_EVENTS, -1);
-    if (nfds == -1) {
-        perror("epoll_wait");
+  // Forever check if there is an event
+  nfds = epoll_wait(epollfd, events, MAX_EVENTS, -1);
+  if (nfds == -1) {
+    perror("epoll_wait");
+    exit(EXIT_FAILURE);
+  }
+
+  // For the number of file descriptors returned from wait
+  for (n = 0; n < nfds; ++n) {
+    // If we got our listen socket back, we have a new connection
+    if (events[n].data.fd == listen_sock) {
+      // Accept
+      conn_sock = accept(listen_sock,
+      (struct sockaddr *) &addr, &addrlen);
+      if (conn_sock == -1) {
+        perror("accept");
         exit(EXIT_FAILURE);
-    }
+      }
+      // Must set to non-blocking
+      setnonblocking(conn_sock);
 
-    // For the number of file descriptors returned from wait
-    for (n = 0; n < nfds; ++n) {
-        // If we got our listen socket back, we have a new connection
-        if (events[n].data.fd == listen_sock) {
-            // Accept
-            conn_sock = accept(listen_sock,
-                              (struct sockaddr *) &addr, &addrlen);
-            if (conn_sock == -1) {
-                perror("accept");
-                exit(EXIT_FAILURE);
-            }
-            // Must set to non-blocking
-            setnonblocking(conn_sock);
-
-            // We will read from this file, and we only want to return once
-            // we have something to read from. We don't want to keep getting
-            // reminded if there is still data left (edge triggered)
-            ev.events = EPOLLIN | EPOLLET;
-            ev.data.fd = conn_sock;
-            if (epoll_ctl(epollfd, EPOLL_CTL_ADD, conn_sock,
-                        &ev) == -1) {
-                perror("epoll_ctl: conn_sock");
-                exit(EXIT_FAILURE);
-            }
-        } else {
-          // To make this function correct, it would have to `read` all the data
-          // from the file descriptor or epoll would never trigger
-            do_use_fd(events[n].data.fd);
-        }
+      // We will read from this file, and we only want to return once
+      // we have something to read from. We don't want to keep getting
+      // reminded if there is still data left (edge triggered)
+      ev.events = EPOLLIN | EPOLLET;
+      ev.data.fd = conn_sock;
+      if (epoll_ctl(epollfd, EPOLL_CTL_ADD, conn_sock,
+      &ev) == -1) {
+        perror("epoll_ctl: conn_sock");
+        exit(EXIT_FAILURE);
+      }
+    } else {
+      // To make this function correct, it would have to `read` all the data
+      // from the file descriptor or epoll would never trigger
+      do_use_fd(events[n].data.fd);
     }
+  }
 }
 
 \end{lstlisting}

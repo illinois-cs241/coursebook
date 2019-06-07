@@ -128,9 +128,9 @@ One can run out of heap memory if the system is constrained or if you run out of
           This section is be writable \cite[P. 124]{van1994expert}.
           Most notably, this section contains variables that were initialized with a static initializer, as follows:
 
-          \begin{lstlisting}[language=C]
-            int global = 1;
-            \end{lstlisting}
+\begin{lstlisting}[language=C]
+int global = 1;
+\end{lstlisting}
 
     \item \textbf{Uninitialized Data Segment / BSS}
           BSS stands for an old assembler operator known as Block Started by Symbol.
@@ -505,7 +505,7 @@ See \keyword{wait}/\keyword{waitpid} man page for more information.
 int status;
 pid_t child = fork();
 if (child == -1) {
-    return 1; //Failed
+  return 1; //Failed
 }
 if (child > 0) { /* I am the parent - wait for the child to finish */
   pid_t pid = waitpid(child, &status, 0);

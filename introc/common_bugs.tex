@@ -16,15 +16,15 @@ Also the NUL bytes are not copied.
 Here is a better version -
 
 \begin{lstlisting}[language=C]
-  while( *src ) { *dest = *src; src ++; dest++; }
-  *dest = *src;
+while( *src ) { *dest = *src; src ++; dest++; }
+*dest = *src;
 \end{lstlisting}
 
 Note that it is also common to see the following kind of implementation, which does everything inside the expression test, including copying the NUL byte.
 However, this is not good style, as a result of doing multiple operations in the same line.
 
 \begin{lstlisting}[language=C]
-  while( (*dest++ = *src++ )) {};
+while( (*dest++ = *src++ )) {};
 \end{lstlisting}
 
 \subsection{Double Frees}
@@ -52,10 +52,10 @@ p = NULL; // Now you can't use this pointer by mistake
 
 \begin{lstlisting}[language=C]
 int *f() {
-    int result = 42;
-    static int imok;
-    return &imok; // OK - static variables are not on the stack
-    return &result; // Not OK
+  int result = 42;
+  static int imok;
+  return &imok; // OK - static variables are not on the stack
+  return &result; // Not OK
 }
 \end{lstlisting}
 
@@ -66,7 +66,7 @@ After the function returns, it is an error to continue to use the memory.
 
 \begin{lstlisting}[language=C]
 struct User {
-   char name[100];
+  char name[100];
 };
 typedef struct User user_t;
 
@@ -80,7 +80,7 @@ The correct code is shown below.
 
 \begin{lstlisting}[language=C]
 struct User {
-   char name[100];
+  char name[100];
 };
 typedef struct User user_t;
 
@@ -115,13 +115,13 @@ Every string must have a null byte after the last characters.
 To store the string ``Hi'' it takes 3 bytes: [H] [i] [\backslash 0].
 
 \begin{lstlisting}[language=C]
-  char *strdup(const char *input) {  /* return a copy of 'input' */
-    char *copy;
-    copy = malloc(sizeof(char*));     /* nope! this allocates space for a pointer, not a string */
-    copy = malloc(strlen(input));     /* Almost...but what about the null terminator? */
-    copy = malloc(strlen(input) + 1); /* That's right. */
-    strcpy(copy, input);   /* strcpy will provide the null terminator */
-    return copy;
+char *strdup(const char *input) {  /* return a copy of 'input' */
+  char *copy;
+  copy = malloc(sizeof(char*));     /* nope! this allocates space for a pointer, not a string */
+  copy = malloc(strlen(input));     /* Almost...but what about the null terminator? */
+  copy = malloc(strlen(input) + 1); /* That's right. */
+  strcpy(copy, input);   /* strcpy will provide the null terminator */
+  return copy;
 }
 \end{lstlisting}
 
@@ -131,7 +131,7 @@ To store the string ``Hi'' it takes 3 bytes: [H] [i] [\backslash 0].
 int myfunction() {
   int x;
   int y = x + 2;
-...
+  ...
 \end{lstlisting}
 
 Automatic variables hold garbage or bit pattern happened to be in memory or register.
@@ -141,8 +141,8 @@ It is an error to assume that it will always be initialized to zero.
 
 \begin{lstlisting}[language=C]
 void myfunct() {
-   char array[10];
-   char *p = malloc(10);
+  char array[10];
+  char *p = malloc(10);
 \end{lstlisting}
 
 Automatic (temporary variables) are not automatically initialized to zero.

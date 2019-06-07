@@ -19,24 +19,24 @@ It is possible that two threads may attempt to increment the variable at the sam
 int sum = 0; //shared
 
 void *countgold(void *param) {
-    int i; //local to each thread
-    for (i = 0; i < 10000000; i++) {
-        sum += 1;
-    }
-    return NULL;
+  int i; //local to each thread
+  for (i = 0; i < 10000000; i++) {
+    sum += 1;
+  }
+  return NULL;
 }
 
 int main() {
-    pthread_t tid1, tid2;
-    pthread_create(&tid1, NULL, countgold, NULL);
-    pthread_create(&tid2, NULL, countgold, NULL);
+  pthread_t tid1, tid2;
+  pthread_create(&tid1, NULL, countgold, NULL);
+  pthread_create(&tid2, NULL, countgold, NULL);
 
-    //Wait for both threads to finish:
-    pthread_join(tid1, NULL);
-    pthread_join(tid2, NULL);
+  //Wait for both threads to finish:
+  pthread_join(tid1, NULL);
+  pthread_join(tid2, NULL);
 
-    printf("ARRRRG sum is %d\n", sum);
-    return 0;
+  printf("ARRRRG sum is %d\n", sum);
+  return 0;
 }
 \end{lstlisting}
 
@@ -149,34 +149,34 @@ pthread_mutex_t m = PTHREAD_MUTEX_INITIALIZER;
 int sum = 0;
 
 void *countgold(void *param) {
-    int i;
+  int i;
 
-    //Same thread that locks the mutex must unlock it
-    //Critical section is just 'sum += 1'
-    //However locking and unlocking a million times
-    //has significant overhead
+  //Same thread that locks the mutex must unlock it
+  //Critical section is just 'sum += 1'
+  //However locking and unlocking a million times
+  //has significant overhead
 
-    pthread_mutex_lock(&m);
+  pthread_mutex_lock(&m);
 
-    // Other threads that call lock will have to wait until we call unlock
+  // Other threads that call lock will have to wait until we call unlock
 
-    for (i = 0; i < 10000000; i++) {
-        sum += 1;
-    }
-    pthread_mutex_unlock(&m);
-    return NULL;
+  for (i = 0; i < 10000000; i++) {
+    sum += 1;
+  }
+  pthread_mutex_unlock(&m);
+  return NULL;
 }
 
 int main() {
-    pthread_t tid1, tid2;
-    pthread_create(&tid1, NULL, countgold, NULL);
-    pthread_create(&tid2, NULL, countgold, NULL);
+  pthread_t tid1, tid2;
+  pthread_create(&tid1, NULL, countgold, NULL);
+  pthread_create(&tid2, NULL, countgold, NULL);
 
-    pthread_join(tid1, NULL);
-    pthread_join(tid2, NULL);
+  pthread_join(tid1, NULL);
+  pthread_join(tid2, NULL);
 
-    printf("ARRRRG sum is %d\n", sum);
-    return 0;
+  printf("ARRRRG sum is %d\n", sum);
+  return 0;
 }
 \end{lstlisting}
 
@@ -184,12 +184,12 @@ In the code above, the thread gets the lock to the counting house before enterin
 The critical section is only the \keyword{sum+=1} so the following version is also correct.
 
 \begin{lstlisting}[language=C]
-    for (i = 0; i < 10000000; i++) {
-        pthread_mutex_lock(&m);
-        sum += 1;
-        pthread_mutex_unlock(&m);
-    }
-    return NULL;
+for (i = 0; i < 10000000; i++) {
+  pthread_mutex_lock(&m);
+  sum += 1;
+  pthread_mutex_unlock(&m);
+}
+return NULL;
 }
 \end{lstlisting}
 
@@ -198,16 +198,16 @@ In this simple example, we didn't really need threads - we could have added up t
 A faster multi-thread example would be to add one million using an automatic (local) variable and only then adding it to a shared total after the calculation loop has finished:
 
 \begin{lstlisting}[language=C]
-    int local = 0;
-    for (i = 0; i < 10000000; i++) {
-       local += 1;
-    }
+int local = 0;
+for (i = 0; i < 10000000; i++) {
+  local += 1;
+}
 
-    pthread_mutex_lock(&m);
-    sum += local;
-    pthread_mutex_unlock(&m);
+pthread_mutex_lock(&m);
+sum += local;
+pthread_mutex_unlock(&m);
 
-    return NULL;
+return NULL;
 }
 \end{lstlisting}
 
@@ -225,7 +225,7 @@ The following code creates a mutex that does effectively nothing.
 \begin{lstlisting}[language=C]
 int a;
 pthread_mutex_t m1 = PTHREAD_MUTEX_INITIALIZER,
-                 m2 = = PTHREAD_MUTEX_INITIALIZER;
+m2 = = PTHREAD_MUTEX_INITIALIZER;
 // later
 // Thread 1
 pthread_mutex_lock(&m1);
@@ -311,11 +311,11 @@ First the data structure and initialization code.
 
 \begin{lstlisting}[language=C]
 typedef struct mutex_{
-    // We need some variable to see if the lock is locked
-    atomic_int_least8_t lock;
-    // A mutex needs to keep track of its owner so
-    // Another thread can't unlock it
-    pthread_t owner;
+  // We need some variable to see if the lock is locked
+  atomic_int_least8_t lock;
+  // A mutex needs to keep track of its owner so
+  // Another thread can't unlock it
+  pthread_t owner;
 } mutex;
 
 #define UNLOCKED 0
@@ -323,14 +323,14 @@ typedef struct mutex_{
 #define UNASSIGNED_OWNER 0
 
 int mutex_init(mutex* mtx){
-    // Some simple error checking
-    if(!mtx){
-        return 0;
-    }
-    // Not thread safe the user has to take care of this
-    atomic_init(&mtx->lock, UNLOCKED);
-    mtx->owner = UNASSIGNED_OWNER;
-    return 1;
+  // Some simple error checking
+  if(!mtx){
+    return 0;
+  }
+  // Not thread safe the user has to take care of this
+  atomic_init(&mtx->lock, UNLOCKED);
+  mtx->owner = UNASSIGNED_OWNER;
+  return 1;
 }
 \end{lstlisting}
 
@@ -339,19 +339,19 @@ We set the state of the mutex to unlocked and set the owner to locked.
 
 \begin{lstlisting}[language=C]
 int mutex_lock(mutex* mtx){
-    int_least8_t zero = UNLOCKED;
-    while(!atomic_compare_exchange_weak_explicit
-            (&mtx->lock,
-             &zero,
-             LOCKED,
-             memory_order_seq_cst,
-             memory_order_seq_cst)){
-        zero = UNLOCKED;
-        sched_yield(); // Use system calls for scheduling speed
-    }
-    // We have the lock now
-    mtx->owner = pthread_self();
-    return 1;
+  int_least8_t zero = UNLOCKED;
+  while(!atomic_compare_exchange_weak_explicit
+  (&mtx->lock,
+  &zero,
+  LOCKED,
+  memory_order_seq_cst,
+  memory_order_seq_cst)){
+    zero = UNLOCKED;
+    sched_yield(); // Use system calls for scheduling speed
+  }
+  // We have the lock now
+  mtx->owner = pthread_self();
+  return 1;
 }
 \end{lstlisting}
 
@@ -362,13 +362,13 @@ The pseudocode for this operation looks like this
 
 \begin{lstlisting}[language=C]
 int atomic_compare_exchange_pseudo(int* addr1, int* addr2, int val){
-    if(*addr1 == *addr2){
-        *addr1 = val;
-        return 1;
-    }else{
-        *addr2 = *addr1;
-        return 0;
-    }
+  if(*addr1 == *addr2){
+    *addr1 = val;
+    return 1;
+  }else{
+    *addr2 = *addr1;
+    return 0;
+  }
 }
 \end{lstlisting}
 
@@ -391,22 +391,22 @@ How do we implement unlock?
 
 \begin{lstlisting}[language=C]
 int mutex_unlock(mutex* mtx){
-    if(unlikely(pthread_self() != mtx->owner)){
-        return 0; //You can't unlock a mutex if you aren't the owner
-    }
-    int_least8_t one = 1;
-    //Critical section ends after this atomic
-    mtx->owner = UNASSIGNED_OWNER;
-    if(!atomic_compare_exchange_strong_explicit(
-                &mtx->lock,
-                &one,
-                UNLOCKED,
-                memory_order_seq_cst,
-                memory_order_seq_cst)){
-        //The mutex was never locked in the first place
-        return 0;
-    }
-    return 1;
+  if(unlikely(pthread_self() != mtx->owner)){
+    return 0; //You can't unlock a mutex if you aren't the owner
+  }
+  int_least8_t one = 1;
+  //Critical section ends after this atomic
+  mtx->owner = UNASSIGNED_OWNER;
+  if(!atomic_compare_exchange_strong_explicit(
+  &mtx->lock,
+  &one,
+  UNLOCKED,
+  memory_order_seq_cst,
+  memory_order_seq_cst)){
+    //The mutex was never locked in the first place
+    return 0;
+  }
+  return 1;
 }
 \end{lstlisting}
 
@@ -526,25 +526,25 @@ Here is some code that utilizes this;
 sem_t s;
 
 void handler(int signal) {
-    sem_post(&s); /* Release the Kraken! */
+  sem_post(&s); /* Release the Kraken! */
 }
 
 void *singsong(void *param) {
-    sem_wait(&s);
-    printf("I had to wait until your signal released me!\n");
+  sem_wait(&s);
+  printf("I had to wait until your signal released me!\n");
 }
 
 int main() {
-    int ok = sem_init(&s, 0, 0 /* Initial value of zero*/);
-    if (ok == -1) {
-       perror("Could not create unnamed semaphore");
-       return 1;
-    }
-    signal(SIGINT, handler); // Too simple! See Signals chapter
+  int ok = sem_init(&s, 0, 0 /* Initial value of zero*/);
+  if (ok == -1) {
+    perror("Could not create unnamed semaphore");
+    return 1;
+  }
+  signal(SIGINT, handler); // Too simple! See Signals chapter
 
-    pthread_t tid;
-    pthread_create(&tid, NULL, singsong, NULL);
-    pthread_exit(NULL); /* Process will exit when there are no more threads */
+  pthread_t tid;
+  pthread_create(&tid, NULL, singsong, NULL);
+  pthread_exit(NULL); /* Process will exit when there are no more threads */
 }
 \end{lstlisting}
 
@@ -638,7 +638,7 @@ count = 0;
 // Thread 1
 pthread_mutex_lock(&m);
 while (count < 10) {
-   pthread_cond_wait(&cv, &m);
+  pthread_cond_wait(&cv, &m);
   /* Remember that cond_wait unlocks the mutex before blocking (waiting)! */
   /* After unlocking, other threads can claim the mutex. */
   /* When this thread is later woken it will */
@@ -691,15 +691,15 @@ int count;
 double values[STACK_SIZE];
 
 void push(double v) {
-    values[count++] = v;
+  values[count++] = v;
 }
 
 double pop() {
-    return values[--count];
+  return values[--count];
 }
 
 int is_empty() {
-    return count == 0;
+  return count == 0;
 }
 \end{lstlisting}
 
@@ -724,23 +724,23 @@ pthread_mutex_t m1 = PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t m2 = PTHREAD_MUTEX_INITIALIZER;
 
 void push(double v) {
-    pthread_mutex_lock(&m1);
-    values[count++] = v;
-    pthread_mutex_unlock(&m1);
+  pthread_mutex_lock(&m1);
+  values[count++] = v;
+  pthread_mutex_unlock(&m1);
 }
 
 double pop() {
-    pthread_mutex_lock(&m2);
-    double v = values[--count];
-    pthread_mutex_unlock(&m2);
+  pthread_mutex_lock(&m2);
+  double v = values[--count];
+  pthread_mutex_unlock(&m2);
 
-    return v;
+  return v;
 }
 
 int is_empty() {
-    pthread_mutex_lock(&m1);
-    return count == 0;
-    pthread_mutex_unlock(&m1);
+  pthread_mutex_lock(&m1);
+  return count == 0;
+  pthread_mutex_unlock(&m1);
 }
 \end{lstlisting}
 
@@ -805,53 +805,53 @@ For example,
 \begin{lstlisting}[language=C]
 // Support for multiple stacks (each one has a mutex)
 typedef struct stack {
-    int count;
-    pthread_mutex_t m;
-    double *values;
+  int count;
+  pthread_mutex_t m;
+  double *values;
 } stack_t;
 
 stack_t* stack_create(int capacity) {
-    stack_t *result = malloc(sizeof(stack_t));
-    result->count = 0;
-    result->values = malloc(sizeof(double) * capacity);
-    pthread_mutex_init(&result->m, NULL);
-    return result;
+  stack_t *result = malloc(sizeof(stack_t));
+  result->count = 0;
+  result->values = malloc(sizeof(double) * capacity);
+  pthread_mutex_init(&result->m, NULL);
+  return result;
 }
 void stack_destroy(stack_t *s) {
-    free(s->values);
-    pthread_mutex_destroy(&s->m);
-    free(s);
+  free(s->values);
+  pthread_mutex_destroy(&s->m);
+  free(s);
 }
 
 // Warning no underflow or overflow checks!
 
 void push(stack_t *s, double v) {
-    pthread_mutex_lock(&s->m);
-    s->values[(s->count)++] = v;
-    pthread_mutex_unlock(&s->m);
+  pthread_mutex_lock(&s->m);
+  s->values[(s->count)++] = v;
+  pthread_mutex_unlock(&s->m);
 }
 
 double pop(stack_t *s) {
-    pthread_mutex_lock(&s->m);
-    double v = s->values[--(s->count)];
-    pthread_mutex_unlock(&s->m);
-    return v;
+  pthread_mutex_lock(&s->m);
+  double v = s->values[--(s->count)];
+  pthread_mutex_unlock(&s->m);
+  return v;
 }
 
 int is_empty(stack_t *s) {
-    pthread_mutex_lock(&s->m);
-    int result = s->count == 0;
-    pthread_mutex_unlock(&s->m);
-    return result;
+  pthread_mutex_lock(&s->m);
+  int result = s->count == 0;
+  pthread_mutex_unlock(&s->m);
+  return result;
 }
 
 int main() {
-    stack_t *s1 = stack_create(10 /* Max capacity*/);
-    stack_t *s2 = stack_create(10);
-    push(s1, 3.141);
-    push(s2, pop(s1));
-    stack_destroy(s2);
-    stack_destroy(s1);
+  stack_t *s1 = stack_create(10 /* Max capacity*/);
+  stack_t *s2 = stack_create(10);
+  push(s1, 3.141);
+  push(s2, pop(s1));
+  stack_destroy(s2);
+  stack_destroy(s1);
 }
 \end{lstlisting}
 
@@ -866,18 +866,18 @@ Attempted solution:
 // correctly initialized
 
 void push(stack_t *s, double v) {
-    pthread_mutex_lock(&s->m);
-    if(s->count == 0) pthread_cond_wait(&s->cv, &s->m);
-    s->values[(s->count)++] = v;
-    pthread_mutex_unlock(&s->m);
+  pthread_mutex_lock(&s->m);
+  if(s->count == 0) pthread_cond_wait(&s->cv, &s->m);
+  s->values[(s->count)++] = v;
+  pthread_mutex_unlock(&s->m);
 }
 
 double pop(stack_t *s) {
-    pthread_mutex_lock(&s->m);
-    if(s->count == 0) pthread_cond_wait(&s->cv, &s->m);
-    double v = s->values[--(s->count)];
-    pthread_mutex_unlock(&s->m);
-    return v;
+  pthread_mutex_lock(&s->m);
+  if(s->count == 0) pthread_cond_wait(&s->cv, &s->m);
+  double v = s->values[--(s->count)];
+  pthread_mutex_unlock(&s->m);
+  return v;
 }
 \end{lstlisting}
 
@@ -896,20 +896,20 @@ Does this solution work?
 
 \begin{lstlisting}[language=C]
 void push(stack_t *s, double v) {
-    pthread_mutex_lock(&s->m);
-    while(s->count == capacity) pthread_cond_wait(&s->cv, &s->m);
-    s->values[(s->count)++] = v;
-    pthread_mutex_unlock(&s->m);
-    pthread_cond_signal(&s->cv);
+  pthread_mutex_lock(&s->m);
+  while(s->count == capacity) pthread_cond_wait(&s->cv, &s->m);
+  s->values[(s->count)++] = v;
+  pthread_mutex_unlock(&s->m);
+  pthread_cond_signal(&s->cv);
 }
 
 double pop(stack_t *s) {
-    pthread_mutex_lock(&s->m);
-    while(s->count == 0) pthread_cond_wait(&s->cv, &s->m);
-    double v = s->values[--(s->count)];
-    pthread_cond_broadcast(&s->cv);
-    pthread_mutex_unlock(&s->m);
-    return v;
+  pthread_mutex_lock(&s->m);
+  while(s->count == 0) pthread_cond_wait(&s->cv, &s->m);
+  double v = s->values[--(s->count)];
+  pthread_cond_broadcast(&s->cv);
+  pthread_mutex_unlock(&s->m);
+  return v;
 }
 \end{lstlisting}
 
@@ -942,11 +942,11 @@ double pop() {
   sem_wait(&sitems);
   ...
 
-void push(double v) {
-  // Wait until there's at least one space
-  sem_wait(&sremain);
-  ...
-}
+  void push(double v) {
+    // Wait until there's at least one space
+    sem_wait(&sremain);
+    ...
+  }
 \end{lstlisting}
 
 Sketch \#2 has implemented the \keyword{post} too early.
@@ -1342,15 +1342,15 @@ Implement \keyword{sem\_init} to initialize the mutex and condition variable
 
 \begin{lstlisting}[language=C]
 int sem_init(sem_t *s, int pshared, int value) {
-    if (pshared) {
-        errno = ENOSYS /* 'Not implemented'*/;
-        return -1;
-    }
+  if (pshared) {
+    errno = ENOSYS /* 'Not implemented'*/;
+    return -1;
+  }
 
-    s->count = value;
-    pthread_mutex_init(&s->m, NULL);
-    pthread_cond_init(&s->cv, NULL);
-    return 0;
+  s->count = value;
+  pthread_mutex_init(&s->m, NULL);
+  pthread_cond_init(&s->cv, NULL);
+  return 0;
 }
 \end{lstlisting}
 
@@ -1379,7 +1379,7 @@ Also notice that even if a thread is woken up, before it returns from \keyword{p
 void sem_wait(sem_t *s) {
   pthread_mutex_lock(&s->m);
   while (s->count == 0) {
-      pthread_cond_wait(&s->cv, &s->m); /*unlock mutex, wait, relock mutex*/
+    pthread_cond_wait(&s->cv, &s->m); /*unlock mutex, wait, relock mutex*/
   }
   s->count--;
   pthread_mutex_unlock(&s->m);
@@ -1392,9 +1392,9 @@ In practice, this means \keyword{sem\_post} would unnecessary call \keyword{pthr
 A more efficient implementation would only call \keyword{pthread\_cond\_signal} when necessary i.e.
 
 \begin{lstlisting}[language=C]
-  /* Did we increment from zero to one- time to signal a thread sleeping inside sem_post */
-  if (s->count == 1) /* Wake up one waiting thread!*/
-     pthread_cond_signal(&s->cv);
+/* Did we increment from zero to one- time to signal a thread sleeping inside sem_post */
+if (s->count == 1) /* Wake up one waiting thread!*/
+pthread_cond_signal(&s->cv);
 \end{lstlisting}
 
 \subsection{Other semaphore considerations}
@@ -1670,11 +1670,11 @@ Since a (void*) type can hold small integers, we will pass the value of \keyword
 #define N (16)
 double data[256][8192] ;
 int main() {
-    pthread_t ids[N];
-    for(int i = 0; i < N; i++) {
-        pthread_create(&ids[i], NULL, calc, (void *) i);
-    }
-    //...
+  pthread_t ids[N];
+  for(int i = 0; i < N; i++) {
+    pthread_create(&ids[i], NULL, calc, (void *) i);
+  }
+  //...
 }
 \end{lstlisting}
 
@@ -1870,16 +1870,16 @@ Implementation \#3 below ensures that a reader will enter the \keyword{cond\_wai
 
 \begin{lstlisting}[language=C]
 read() {
-    lock(&m)
-    while (writing)
-        cond_wait(&cv, &m)
-    reading++;
+  lock(&m)
+  while (writing)
+  cond_wait(&cv, &m)
+  reading++;
 
-/* Read here! */
+  /* Read here! */
 
-    reading--
-    cond_signal(&cv)
-    unlock(&m)
+  reading--
+  cond_signal(&cv)
+  unlock(&m)
 }
 \end{lstlisting}
 
@@ -1888,18 +1888,18 @@ A better version unlocks before reading.
 
 \begin{lstlisting}[language=C]
 read() {
-    lock(&m);
-    while (writing)
-        cond_wait(&cv, &m)
-    reading++;
-    unlock(&m)
+  lock(&m);
+  while (writing)
+  cond_wait(&cv, &m)
+  reading++;
+  unlock(&m)
 
-/* Read here! */
+  /* Read here! */
 
-    lock(&m)
-    reading--
-    cond_signal(&cv)
-    unlock(&m)
+  lock(&m)
+  reading--
+  cond_signal(&cv)
+  unlock(&m)
 }
 \end{lstlisting}
 
@@ -1909,16 +1909,16 @@ Thus only one thread can be executing code inside the critical section (marked w
 
 \begin{lstlisting}[language=C]
 read() {
-    lock(&m);
-**  while (writing)
-**      cond_wait(&cv, &m)
-**  reading++;
-    unlock(&m)
-/* Read here! */
-    lock(&m)
-**  reading--
-**  cond_signal(&cv)
-    unlock(&m)
+  lock(&m);
+  **  while (writing)
+  **      cond_wait(&cv, &m)
+  **  reading++;
+  unlock(&m)
+  /* Read here! */
+  lock(&m)
+  **  reading--
+  **  cond_signal(&cv)
+  unlock(&m)
 }
 \end{lstlisting}
 
@@ -1927,15 +1927,15 @@ Mutual exclusion is assured by the lock.
 
 \begin{lstlisting}[language=C]
 write() {
-    lock(&m);
-**  while (reading || writing)
-**      cond_wait(&cv, &m);
-**  writing++;
-**
-** /* Write here! */
-**  writing--;
-**  cond_signal(&cv);
-    unlock(&m);
+  lock(&m);
+  **  while (reading || writing)
+  **      cond_wait(&cv, &m);
+  **  writing++;
+  **
+  ** /* Write here! */
+  **  writing--;
+  **  cond_signal(&cv);
+  unlock(&m);
 }
 \end{lstlisting}
 
@@ -1957,12 +1957,12 @@ Our plan is that when a writer arrives, and before waiting for current readers t
 
 \begin{lstlisting}[language=C]
 write() {
-    lock()
-    writer++
+  lock()
+  writer++
 
-    while (reading || writing)
-    cond_wait
-    unlock()
+  while (reading || writing)
+  cond_wait
+  unlock()
   ...
 }
 \end{lstlisting}
@@ -1972,17 +1972,17 @@ Notice `writer' indicates a writer has arrived, while `reading' and `writing' co
 
 \begin{lstlisting}[language=C]
 read() {
-    lock()
-    // readers that arrive *after* the writer arrived will have to wait here!
-    while(writer)
-    cond_wait(&cv,&m)
+  lock()
+  // readers that arrive *after* the writer arrived will have to wait here!
+  while(writer)
+  cond_wait(&cv,&m)
 
-    // readers that arrive while there is an active writer
-    // will also wait.
-    while (writing)
-        cond_wait(&cv,&m)
-    reading++
-    unlock
+  // readers that arrive while there is an active writer
+  // will also wait.
+  while (writing)
+  cond_wait(&cv,&m)
+  reading++
+  unlock
   ...
 }
 \end{lstlisting}
@@ -2004,35 +2004,35 @@ int reading; // Number of threads that are actually reading inside the C.S.
 // if writing !=0 then reading must be zero (and vice versa)
 
 reader() {
-    lock(&m)
-    while (writers)
-        cond_wait(&turn, &m)
-    // No need to wait while(writing here) because we can only exit the above loop
-    // when writing is zero
-    reading++
-    unlock(&m)
+  lock(&m)
+  while (writers)
+  cond_wait(&turn, &m)
+  // No need to wait while(writing here) because we can only exit the above loop
+  // when writing is zero
+  reading++
+  unlock(&m)
 
   // perform reading here
 
-    lock(&m)
-    reading--
-    cond_broadcast(&turn)
-    unlock(&m)
+  lock(&m)
+  reading--
+  cond_broadcast(&turn)
+  unlock(&m)
 }
 
 writer() {
-    lock(&m)
-    writers++
-    while (reading || writing)
-        cond_wait(&turn, &m)
-    writing++
-    unlock(&m)
-    // perform writing here
-    lock(&m)
-    writing--
-    writers--
-    cond_broadcast(&turn)
-    unlock(&m)
+  lock(&m)
+  writers++
+  while (reading || writing)
+  cond_wait(&turn, &m)
+  writing++
+  unlock(&m)
+  // perform writing here
+  lock(&m)
+  writing--
+  writers--
+  cond_broadcast(&turn)
+  unlock(&m)
 }
 \end{lstlisting}
 
@@ -2077,9 +2077,9 @@ void *dequeue() { /* Remove one item to the end of the queue.*/
 It's very tempting to write the enqueue or dequeue method in the following compact form.
 
 \begin{lstlisting}[language=C]
-  // N is the capacity of the buffer
+// N is the capacity of the buffer
 void enqueue(void *value)
-  b[ (in++) % N ] = value;
+b[ (in++) % N ] = value;
 }
 \end{lstlisting}
 
@@ -2114,30 +2114,30 @@ int in = 0, out = 0
 p_m_t lock
 sem_t s1,s2
 void init() {
-    p_m_init(&lock, NULL)
-    sem_init(&s1, 0, 16)
-    sem_init(&s2, 0, 0)
+  p_m_init(&lock, NULL)
+  sem_init(&s1, 0, 16)
+  sem_init(&s2, 0, 0)
 }
 
 enqueue(void *value) {
-    p_m_lock(&lock)
+  p_m_lock(&lock)
 
-    // Hint: Wait while zero. Decrement and return
-    sem_wait( &s1 )
+  // Hint: Wait while zero. Decrement and return
+  sem_wait( &s1 )
 
-    b[ (in++) & (N-1) ] = value
+  b[ (in++) & (N-1) ] = value
 
-    // Hint: Increment. Will wake up a waiting thread
-    sem_post(&s1)
-    p_m_unlock(&lock)
+  // Hint: Increment. Will wake up a waiting thread
+  sem_post(&s1)
+  p_m_unlock(&lock)
 }
 void *dequeue(){
-    p_m_lock(&lock)
-    sem_wait(&s2)
-    void *result = b[(out++) & (N-1) ]
-    sem_post(&s2)
-    p_m_unlock(&lock)
-    return result
+  p_m_lock(&lock)
+  sem_wait(&s2)
+  void *result = b[(out++) & (N-1) ]
+  sem_post(&s2)
+  p_m_unlock(&lock)
+  return result
 }
 \end{lstlisting}
 
@@ -2173,18 +2173,18 @@ int in = 0, out = 0
 p_m_t lock
 sem_t s1, s2
 void init() {
-    sem_init(&s1,0,16)
-    sem_init(&s2,0,0)
+  sem_init(&s1,0,16)
+  sem_init(&s2,0,0)
 }
 
 enqueue(void *value){
- sem_wait(&s2)
- p_m_lock(&lock)
+  sem_wait(&s2)
+  p_m_lock(&lock)
 
- b[ (in++) & (N-1) ] = value
+  b[ (in++) & (N-1) ] = value
 
- p_m_unlock(&lock)
- sem_post(&s1)
+  p_m_unlock(&lock)
+  sem_post(&s1)
 }
 
 void *dequeue(){
@@ -2247,15 +2247,15 @@ Make sure to note.
 
 \begin{lstlisting}[language=C]
 enqueue(void *value){
- // wait if there is no space left:
- sem_wait( &spacesem )
+  // wait if there is no space left:
+  sem_wait( &spacesem )
 
- p_m_lock(&lock)
- b[ (in++) & (N-1) ] = value
- p_m_unlock(&lock)
+  p_m_lock(&lock)
+  b[ (in++) & (N-1) ] = value
+  p_m_unlock(&lock)
 
- // increment the count of the number of items
- sem_post(&countsem)
+  // increment the count of the number of items
+  sem_post(&countsem)
 }
 \end{lstlisting}
 
@@ -2299,19 +2299,19 @@ Let's consider a motivating example
 
 \begin{lstlisting}[language=C]
 void write_string(const char *data) {
-    int fd = open("my_file.txt", O_WRONLY);
-    write(fd, data, strlen(data));
-    close(fd);
+  int fd = open("my_file.txt", O_WRONLY);
+  write(fd, data, strlen(data));
+  close(fd);
 }
 
 int main() {
-    if(!fork()) {
-        write_string("key1: value1");
-        wait(NULL);
-    } else {
-        write_string("key2: value2");
-    }
-    return 0;
+  if(!fork()) {
+    write_string("key1: value1");
+    wait(NULL);
+  } else {
+    write_string("key2: value2");
+  }
+  return 0;
 }
 \end{lstlisting}
 
@@ -2353,32 +2353,32 @@ pthread_mutex_t * mutex = NULL;
 pthread_mutexattr_t attr;
 
 void write_string(const char *data) {
-    pthread_mutex_lock(mutex);
-    int fd = open("my_file.txt", O_WRONLY);
-    int bytes_to_write = strlen(data), written = 0;
-    while(written < bytes_to_write) {
-        written += write(fd, data + written, bytes_to_write - written);
-    }
-    close(fd);
-    pthread_mutex_unlock(mutex);
+  pthread_mutex_lock(mutex);
+  int fd = open("my_file.txt", O_WRONLY);
+  int bytes_to_write = strlen(data), written = 0;
+  while(written < bytes_to_write) {
+    written += write(fd, data + written, bytes_to_write - written);
+  }
+  close(fd);
+  pthread_mutex_unlock(mutex);
 }
 
 int main() {
-    pthread_mutexattr_init(&attr);
-    pthread_mutexattr_setpshared(&attr, PTHREAD_PROCESS_SHARED);
-    pmutex = mmap (NULL, sizeof(pthread_mutex_t),
-                PROT_READ|PROT_WRITE, MAP_SHARED|MAP_ANON, -1, 0);
-    pthread_mutex_init(pmutex, &attrmutex);
-    if(!fork()) {
-        write_string("key1: value1");
-        wait(NULL);
-        pthread_mutex_destroy(pmutex);
-        pthread_mutexattr_destroy(&attrmutex);
-        munmap((void *)pmutex, sizeof(*pmutex));
-    } else {
-        write_string("key2: value2");
-    }
-    return 0;
+  pthread_mutexattr_init(&attr);
+  pthread_mutexattr_setpshared(&attr, PTHREAD_PROCESS_SHARED);
+  pmutex = mmap (NULL, sizeof(pthread_mutex_t),
+  PROT_READ|PROT_WRITE, MAP_SHARED|MAP_ANON, -1, 0);
+  pthread_mutex_init(pmutex, &attrmutex);
+  if(!fork()) {
+    write_string("key1: value1");
+    wait(NULL);
+    pthread_mutex_destroy(pmutex);
+    pthread_mutexattr_destroy(&attrmutex);
+    munmap((void *)pmutex, sizeof(*pmutex));
+  } else {
+    write_string("key2: value2");
+  }
+  return 0;
 }
 \end{lstlisting}
 
@@ -2525,31 +2525,31 @@ for(int i = 0; i < 100000000; i++) atomic_fetch_add(a, 1);
 struct linked_list;
 struct node;
 void add_linked_list(linked_list *ll, void* elem){
-    node* packaged = new_node(elem);
-    if(ll->head){
-         ll->head =
-    }else{
-         packaged->next = ll->head;
-         ll->head = packaged;
-         ll->size++;
-    }
+  node* packaged = new_node(elem);
+  if(ll->head){
+    ll->head =
+  }else{
+    packaged->next = ll->head;
+    ll->head = packaged;
+    ll->size++;
+  }
 
 }
 
 void* pop_elem(linked_list *ll, size_t index){
-    if(index >= ll->size) return NULL;
+  if(index >= ll->size) return NULL;
 
-    node *i, *prev;
-    for(i = ll->head; i && index; i = i->next, index--){
-        prev = i;
-    }
+  node *i, *prev;
+  for(i = ll->head; i && index; i = i->next, index--){
+    prev = i;
+  }
 
-    //i points to the element we need to pop, prev before
-    if(prev->next) prev->next = prev->next->next;
-    ll->size--;
-    void* elem = i->elem;
-    destroy_node(i);
-    return elem;
+  //i points to the element we need to pop, prev before
+  if(prev->next) prev->next = prev->next->next;
+  ll->size--;
+  void* elem = i->elem;
+  destroy_node(i);
+  return elem;
 }
 \end{lstlisting}
 
@@ -2560,7 +2560,7 @@ void* pop_elem(linked_list *ll, size_t index){
 
 \begin{lstlisting}[language=C]
 if(not_ready){
-     pthread_cond_wait(&cv, &mtx);
+  pthread_cond_wait(&cv, &mtx);
 }
 \end{lstlisting}
 

@@ -363,87 +363,87 @@ Below is an annotated walk through of the example code in the man pages
 #include <unistd.h>
 
 #define handle_error(msg) \
-    do { perror(msg); exit(EXIT_FAILURE); } while (0)
+do { perror(msg); exit(EXIT_FAILURE); } while (0)
 
 int
 main(int argc, char *argv[])
 {
-    // Various variables that we'll talk about as the code goes through
-    char *addr;
-    int fd;
-    struct stat sb;
-    off_t offset, pa_offset;
-    size_t length;
-    ssize_t s;
+  // Various variables that we'll talk about as the code goes through
+  char *addr;
+  int fd;
+  struct stat sb;
+  off_t offset, pa_offset;
+  size_t length;
+  ssize_t s;
 
-    if (argc < 3 || argc > 4) {
-        fprintf(stderr, "%s file offset [length]\n", argv[0]);
-        exit(EXIT_FAILURE);
-    }
+  if (argc < 3 || argc > 4) {
+    fprintf(stderr, "%s file offset [length]\n", argv[0]);
+    exit(EXIT_FAILURE);
+  }
 
-    // Open the file and get the size of the file
-    fd = open(argv[1], O_RDONLY);
-    if (fd == -1)
-        handle_error("open");
+  // Open the file and get the size of the file
+  fd = open(argv[1], O_RDONLY);
+  if (fd == -1)
+  handle_error("open");
 
-    if (fstat(fd, &sb) == -1)           /* To obtain file size */
-        handle_error("fstat");
+  if (fstat(fd, &sb) == -1)           /* To obtain file size */
+  handle_error("fstat");
 
-    // Grab where the user wants to start the file from
-    offset = atoi(argv[2]);
+  // Grab where the user wants to start the file from
+  offset = atoi(argv[2]);
 
-    // Zeros off the bottom N bits of a page (usually 12)
-    // mmap works based off of pages so we want to get
-    // The first page the user wants
-    pa_offset = offset & ~(sysconf(_SC_PAGE_SIZE) - 1);
-        /* offset for mmap() must be page aligned */
+  // Zeros off the bottom N bits of a page (usually 12)
+  // mmap works based off of pages so we want to get
+  // The first page the user wants
+  pa_offset = offset & ~(sysconf(_SC_PAGE_SIZE) - 1);
+  /* offset for mmap() must be page aligned */
 
-    if (offset >= sb.st_size) {
-        fprintf(stderr, "offset is past end of file\n");
-        exit(EXIT_FAILURE);
-    }
+  if (offset >= sb.st_size) {
+    fprintf(stderr, "offset is past end of file\n");
+    exit(EXIT_FAILURE);
+  }
 
-    if (argc == 4) {
-        length = atoi(argv[3]);
-        if (offset + length > sb.st_size)
-            length = sb.st_size - offset;
-                /* Can't display bytes past end of file */
+  if (argc == 4) {
+    length = atoi(argv[3]);
+    if (offset + length > sb.st_size)
+    length = sb.st_size - offset;
+    /* Can't display bytes past end of file */
 
-    } else {    /* No length arg ==> display to end of file */
-        length = sb.st_size - offset;
-    }
+  } else {    /* No length arg ==> display to end of file */
+    length = sb.st_size - offset;
+  }
 
-    /*
-    Here are the arguments for MMAP
-    1. NULL, this tells mmap we don't need any particular address to start from
-    2. length + offset - pa_offset, mmaps the ``rest'' of the file into memory (starting form offset)
-    3. PROT_READ, we want to read the file
-    4. MAP_PRIVATE, tell the OS, we don't want to share our mapping
-    5. fd, object descriptor that we refer to
-    6. pa_offset, the page aligned offset to start from
-    */
-    addr = mmap(NULL, length + offset - pa_offset, PROT_READ,
-                MAP_PRIVATE, fd, pa_offset);
-    if (addr == MAP_FAILED)
-        handle_error("mmap");
+  /*
+  Here are the arguments for MMAP
+  1. NULL, this tells mmap we don't need any particular address to start from
+  2. length + offset - pa_offset, mmaps the ``rest'' of the file into memory (starting form offset)
+  3. PROT_READ, we want to read the file
+  4. MAP_PRIVATE, tell the OS, we don't want to share our mapping
+  5. fd, object descriptor that we refer to
+  6. pa_offset, the page aligned offset to start from
+  */
+  addr = mmap(NULL, length + offset - pa_offset, PROT_READ,
+  MAP_PRIVATE, fd, pa_offset);
+  if (addr == MAP_FAILED)
+  handle_error("mmap");
 
-    // Write the file as if a normal buffer
-    s = write(STDOUT_FILENO, addr + offset - pa_offset, length);
-    if (s != length) {
-        if (s == -1)
-            handle_error("write");
+  // Write the file as if a normal buffer
+  s = write(STDOUT_FILENO, addr + offset - pa_offset, length);
+  if (s != length) {
+    if (s == -1)
+    handle_error("write");
 
-        fprintf(stderr, "partial write");
-        exit(EXIT_FAILURE);
-    }
+    fprintf(stderr, "partial write");
+    exit(EXIT_FAILURE);
+  }
 
-    // This is important! You must mmap the memory out
-    munmap(addr, length + offset - pa_offset);
+  // This is important! You must mmap the memory out
+  munmap(addr, length + offset - pa_offset);
 
-    // This is also important, tells the OS that any fd level changes need to be addressed
-    close(fd);
+  // This is also important, tells the OS that any fd level changes need to be addressed
+  close(fd);
 
-    exit(EXIT_SUCCESS);
+  exit(EXIT_SUCCESS);
 }
 \end{lstlisting}
 
@@ -564,11 +564,11 @@ int filedes[2];
 pipe (filedes);
 pid_t child = fork();
 if (child > 0) { /* I must be the parent */
-    char buffer[80];
-    int bytesread = read(filedes[0], buffer, sizeof(buffer));
-    // do something with the bytes read
+  char buffer[80];
+  int bytesread = read(filedes[0], buffer, sizeof(buffer));
+  // do something with the bytes read
 } else {
-	write(filedes[1], "done", 4);
+  write(filedes[1], "done", 4);
 }
 \end{lstlisting}
 
@@ -587,21 +587,21 @@ Here's an example program that sends a message to itself.
 #include <stdio.h>
 
 int main() {
-    int fh[2];
-    pipe(fh);
-    FILE *reader = fdopen(fh[0], "r");
-    FILE *writer = fdopen(fh[1], "w");
-    // Hurrah now I can use printf
-    printf("Writing...\n");
-    fprintf(writer,"%d %d %d\n", 10, 20, 30);
-    fflush(writer);
+  int fh[2];
+  pipe(fh);
+  FILE *reader = fdopen(fh[0], "r");
+  FILE *writer = fdopen(fh[1], "w");
+  // Hurrah now I can use printf
+  printf("Writing...\n");
+  fprintf(writer,"%d %d %d\n", 10, 20, 30);
+  fflush(writer);
 
-    printf("Reading...\n");
-    int results[3];
-    int ok = fscanf(reader,"%d %d %d", results, results + 1, results + 2);
-    printf("%d values parsed: %d %d %d\n", ok, results[0], results[1], results[2]);
+  printf("Reading...\n");
+  int results[3];
+  int ok = fscanf(reader,"%d %d %d", results, results + 1, results + 2);
+  printf("%d values parsed: %d %d %d\n", ok, results[0], results[1], results[2]);
 
-    return 0;
+  return 0;
 }
 \end{lstlisting}
 
@@ -610,16 +610,16 @@ The maximum size of the buffer is system dependent; typical values from 4KiB up 
 
 \begin{lstlisting}[language=C]
 int main() {
-    int fh[2];
-    pipe(fh);
-    int b = 0;
-    #define MESG "..............................."
-    while(1) {
-        printf("%d\n",b);
-        write(fh[1], MESG, sizeof(MESG))
-        b+=sizeof(MESG);
-    }
-    return 0;
+  int fh[2];
+  pipe(fh);
+  int b = 0;
+  #define MESG "..............................."
+  while(1) {
+    printf("%d\n",b);
+    write(fh[1], MESG, sizeof(MESG))
+    b+=sizeof(MESG);
+  }
+  return 0;
 }
 \end{lstlisting}
 
@@ -636,27 +636,27 @@ Can you see why?
 #include <signal.h>
 
 int main() {
-    int fd[2];
-    pipe(fd);
-    //You must read from fd[0] and write from fd[1]
-    printf("Reading from %d, writing to %d\n", fd[0], fd[1]);
+  int fd[2];
+  pipe(fd);
+  //You must read from fd[0] and write from fd[1]
+  printf("Reading from %d, writing to %d\n", fd[0], fd[1]);
 
-    pid_t p = fork();
-    if (p > 0) {
-        /* I have a child therefore I am the parent*/
-        write(fd[1],"Hi Child!",9);
+  pid_t p = fork();
+  if (p > 0) {
+    /* I have a child therefore I am the parent*/
+    write(fd[1],"Hi Child!",9);
 
-        /*don't forget your child*/
-        wait(NULL);
-    } else {
-        char buf;
-        int bytesread;
-        // read one byte at a time.
-        while ((bytesread = read(fd[0], &buf, 1)) > 0) {
-            putchar(buf);
-        }
+    /*don't forget your child*/
+    wait(NULL);
+  } else {
+    char buf;
+    int bytesread;
+    // read one byte at a time.
+    while ((bytesread = read(fd[0], &buf, 1)) > 0) {
+      putchar(buf);
     }
-    return 0;
+  }
+  return 0;
 }
 \end{lstlisting}
 
@@ -668,10 +668,10 @@ When there are no characters left to read it simply blocks and waits for more un
 Another solution could also exit the loop by checking for an end-of-message marker,
 
 \begin{lstlisting}[language=C]
-        while ((bytesread = read(fd[0], &buf, 1)) > 0) {
-            putchar(buf);
-            if (buf == '!') break; /* End of message */
-        }
+while ((bytesread = read(fd[0], &buf, 1)) > 0) {
+  putchar(buf);
+  if (buf == '!') break; /* End of message */
+}
 \end{lstlisting}
 
 
@@ -680,10 +680,10 @@ If no pipe has no writers, read returns 0.
 If a process tries to write with some readers the read goes through, or fails -- partially or completely -- if the pipe is full.
 Why happens when a process tries to write when there are no readers left?
 
-\begin{lstlisting}[language=C]
+\begin{verbatim}
 If all file descriptors referring to the read end of a pipe have been closed,
 then a write(2) will cause a SIGPIPE signal to be generated for the calling process.
-\end{lstlisting}
+\end{verbatim}
 
 Tip: Notice only the writer (not a reader) can use this signal. To
 inform the reader that a writer is closing their end of the pipe, you
@@ -699,28 +699,28 @@ Here's an example of catching this signal that does not work! Can you see why?
 #include <signal.h>
 
 void no_one_listening(int signal) {
-    write(1, "No one is listening!\n", 21);
+  write(1, "No one is listening!\n", 21);
 }
 
 int main() {
-    signal(SIGPIPE, no_one_listening);
-    int filedes[2];
+  signal(SIGPIPE, no_one_listening);
+  int filedes[2];
 
-    pipe(filedes);
-    pid_t child = fork();
-    if (child > 0) {
-        /* I must be the parent. Close the listening end of the pipe */
-        /* I'm not listening anymore!*/
-        close(filedes[0]);
-    } else {
-        /* Child writes messages to the pipe */
-        write(filedes[1], "One", 3);
-        sleep(2);
-        // Will this write generate SIGPIPE ?
-        write(filedes[1], "Two", 3);
-        write(1, "Done\n", 5);
-    }
-    return 0;
+  pipe(filedes);
+  pid_t child = fork();
+  if (child > 0) {
+    /* I must be the parent. Close the listening end of the pipe */
+    /* I'm not listening anymore!*/
+    close(filedes[0]);
+  } else {
+    /* Child writes messages to the pipe */
+    write(filedes[1], "One", 3);
+    sleep(2);
+    // Will this write generate SIGPIPE ?
+    write(filedes[1], "Two", 3);
+    write(1, "Done\n", 5);
+  }
+  return 0;
 }
 \end{lstlisting}
 
@@ -774,31 +774,31 @@ Underneath the hood, this is how bash does it internally.
 
 int main() {
 
-    int pipe_fds[2];
-    // Call with the O_CLOEXEC flag to prevent any commands from blocking
-    pipe2(pipe_fds, O_CLOEXEC);
+  int pipe_fds[2];
+  // Call with the O_CLOEXEC flag to prevent any commands from blocking
+  pipe2(pipe_fds, O_CLOEXEC);
 
-    // Remember for pipe_fds, you read then write (reading is 0 and writing is 1)
+  // Remember for pipe_fds, you read then write (reading is 0 and writing is 1)
 
-    if(!fork()) {
-        // I am the child
+  if(!fork()) {
+    // I am the child
 
-        // Make the stdout of the process, the write end
-        dup2(pipe_fds[1], 1);
+    // Make the stdout of the process, the write end
+    dup2(pipe_fds[1], 1);
 
-        // Exec! Don't forget the cast
-        execlp("ls", "ls", "-1", (char*)NULL);
-        exit(-1);
-    }
-
-    // Same here, except the stdin of the process is the read end
-    dup2(pipe_fds[0], 0);
-
-    // Same deal here
-    execlp("cut", "cut", "-f1", "-d.", (char*)NULL);
+    // Exec! Don't forget the cast
+    execlp("ls", "ls", "-1", (char*)NULL);
     exit(-1);
+  }
 
-    return 0;
+  // Same here, except the stdin of the process is the read end
+  dup2(pipe_fds[0], 0);
+
+  // Same deal here
+  execlp("cut", "cut", "-f1", "-d.", (char*)NULL);
+  exit(-1);
+
+  return 0;
 }
 \end{lstlisting}
 
@@ -815,13 +815,13 @@ If you already have a file descriptor, you can `wrap' it yourself into a FILE po
 #include <fcntl.h>
 
 int main() {
-    char *name="Fred";
-    int score = 123;
-    int filedes = open("mydata.txt", "w", O_CREAT, S_IWUSR | S_IRUSR);
+  char *name="Fred";
+  int score = 123;
+  int filedes = open("mydata.txt", "w", O_CREAT, S_IWUSR | S_IRUSR);
 
-    FILE *f = fdopen(filedes, "w");
-    fprintf(f, "Name:%s Score:%d\n", name, score);
-    fclose(f);
+  FILE *f = fdopen(filedes, "w");
+  fprintf(f, "Name:%s Score:%d\n", name, score);
+  fclose(f);
 \end{lstlisting}
 
 For writing to files this is unnecessary - just use \keyword{fopen} which does the same as \keyword{open} and \keyword{fdopen} However for pipes, we already have a file descriptor - so this is great time to use \keyword{fdopen}
@@ -836,20 +836,20 @@ Hint: The parent never prints anything!
 #include <stdio.h>
 
 int main() {
-    int fh[2];
-    pipe(fh);
-    FILE *reader = fdopen(fh[0], "r");
-    FILE *writer = fdopen(fh[1], "w");
-    pid_t p = fork();
-    if (p > 0) {
-        int score;
-        fscanf(reader, "Score %d", &score);
-        printf("The child says the score is %d\n", score);
-    } else {
-        fprintf(writer, "Score %d", 10 + 10);
-        fflush(writer);
-    }
-    return 0;
+  int fh[2];
+  pipe(fh);
+  FILE *reader = fdopen(fh[0], "r");
+  FILE *writer = fdopen(fh[1], "w");
+  pid_t p = fork();
+  if (p > 0) {
+    int score;
+    fscanf(reader, "Score %d", &score);
+    printf("The child says the score is %d\n", score);
+  } else {
+    fprintf(writer, "Score %d", 10 + 10);
+    fflush(writer);
+  }
+  return 0;
 }
 \end{lstlisting}
 
@@ -908,20 +908,20 @@ What is wrong with the following program?
 //Program 1
 
 int main(){
-    int fd = open("fifo", O_RDWR | O_TRUNC);
-    write(fd, "Hello!", 6);
-    close(fd);
-    return 0;
+  int fd = open("fifo", O_RDWR | O_TRUNC);
+  write(fd, "Hello!", 6);
+  close(fd);
+  return 0;
 }
 
 //Program 2
 int main() {
-    char buffer[7];
-    int fd = open("fifo", O_RDONLY);
-    read(fd, buffer, 6);
-    buffer[6] = '\0';
-    printf("%s\n", buffer);
-    return 0;
+  char buffer[7];
+  int fd = open("fifo", O_RDONLY);
+  read(fd, buffer, 6);
+  buffer[6] = '\0';
+  printf("%s\n", buffer);
+  return 0;
 }
 \end{lstlisting}
 
@@ -1015,7 +1015,7 @@ What should we do instead? Use \keyword{stat}! We will cover stat in a later par
 \begin{lstlisting}[language=C]
 struct stat buf;
 if(stat(filename, &buf) == -1){
-    return -1;
+  return -1;
 }
 return (ssize_t)buf.st_size;
 \end{lstlisting}

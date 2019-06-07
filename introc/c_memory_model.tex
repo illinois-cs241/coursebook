@@ -10,9 +10,9 @@ But unlike an array, it can store different types. Consider the contact struct d
 
 \begin{lstlisting}[language=C]
 struct contact {
-    char firstname[20];
-    char lastname[20];
-    unsigned int phone;
+  char firstname[20];
+  char lastname[20];
+  unsigned int phone;
 };
 
 struct contact bhuvan;
@@ -24,7 +24,7 @@ typedef struct contact contact;
 contact bhuvan;
 
 typedef struct optional_name {
-    ...
+  ...
 } contact;
 \end{lstlisting}
 
@@ -45,8 +45,8 @@ The phone variables starts at the \keyword{0x128}th bytes and continues for size
 \begin{lstlisting}[language=C]
 
 typedef struct {
-    int length;
-    char c_str[0];
+  int length;
+  char c_str[0];
 } string;
 
 const char* to_convert = "bhuvan";
@@ -115,10 +115,10 @@ Meaning that
 
 \begin{lstlisting}[language=C]
 struct picture{
-    int height;
-    pixel** data;
-    int width;
-    char* encoding;
+  int height;
+  pixel** data;
+  int width;
+  char* encoding;
 }
 \end{lstlisting}
 
@@ -136,12 +136,12 @@ However, with struct packing, it would conceptually look like this:
 
 \begin{lstlisting}[language=C]
 struct picture{
-    int height;
-    char slop1[4];
-    pixel** data;
-    int width;
-    char slop2[4];
-    char* encoding;
+  int height;
+  char slop1[4];
+  pixel** data;
+  int width;
+  char slop2[4];
+  char* encoding;
 }
 \end{lstlisting}
 
@@ -163,10 +163,10 @@ To enable this, set an attribute.
 
 \begin{lstlisting}[language=C]
 struct __attribute__((packed, aligned(4))) picture{
-    int height;
-    pixel** data;
-    int width;
-    char* encoding;
+  int height;
+  pixel** data;
+  int width;
+  char* encoding;
 }
 \end{lstlisting}
 
@@ -177,10 +177,10 @@ The other thing you can do is reorder the struct, although this is not always po
 
 \begin{lstlisting}[language=C]
 struct picture{
-    int height;
-    int width;
-    pixel** data;
-    char* encoding;
+  int height;
+  int width;
+  pixel** data;
+  char* encoding;
 }
 \end{lstlisting}
 

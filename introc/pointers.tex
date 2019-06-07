@@ -67,21 +67,21 @@ Here is an example of assigning a struct pointer:
 #include <stdio.h>
 
 typedef struct {
-    int a1;
-    int a2;
+  int a1;
+  int a2;
 } pair;
 
 int main() {
-    pair obj;
-    pair zeros;
-    zeros.a1 = 0;
-    zeros.a2 = 0;
-    pair *ptr = &obj;
-    obj.a1 = 1;
-    obj.a2 = 2;
-    *ptr = zeros;
-    printf("a1: %d, a2: %d\n", ptr->a1, ptr->a2);
-    return 0;
+  pair obj;
+  pair zeros;
+  zeros.a1 = 0;
+  zeros.a2 = 0;
+  pair *ptr = &obj;
+  obj.a1 = 1;
+  obj.a2 = 2;
+  *ptr = zeros;
+  printf("a1: %d, a2: %d\n", ptr->a1, ptr->a2);
+  return 0;
 }
 \end{lstlisting}
 

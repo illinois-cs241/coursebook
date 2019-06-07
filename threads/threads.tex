@@ -78,7 +78,7 @@ To create a thread use the function \keyword{pthread\_create}. This function tak
 
 \begin{lstlisting}[language=C]
 int pthread_create(pthread_t *thread, const pthread_attr_t *attr,
-                   void *(*start_routine) (void *), void *arg);
+void *(*start_routine) (void *), void *arg);
 \end{lstlisting}
 
 \begin{itemize}
@@ -102,15 +102,15 @@ It looks like a function declaration except that the name of the function is wra
 #include <pthread.h>
 
 void *busy(void *ptr) {
-    // ptr will point to "Hi"
-    puts("Hello World");
-    return NULL;
+  // ptr will point to "Hi"
+  puts("Hello World");
+  return NULL;
 }
 int main() {
-    pthread_t id;
-    pthread_create(&id, NULL, busy, "Hi");
-    void *result;
-    pthread_join(id, &result);
+  pthread_t id;
+  pthread_create(&id, NULL, busy, "Hi");
+  void *result;
+  pthread_join(id, &result);
 }
 \end{lstlisting}
 
@@ -172,10 +172,10 @@ This is equivalent to turning your children into zombies, so keep this in mind f
 
 \begin{lstlisting}[language=C]
 // ...
-  void* result;
-  pthread_join(tid1, &result);
-  pthread_join(tid2, &result);
-  return 42;
+void* result;
+pthread_join(tid1, &result);
+pthread_join(tid2, &result);
+return 42;
 // ...
 \end{lstlisting}
 
@@ -279,19 +279,19 @@ Can you see why?
 \begin{lstlisting}[language=C]
 #include <pthread.h>
 void* myfunc(void* ptr) {
-    int i = *((int *) ptr);
-    printf("%d ", i);
-    return NULL;
+  int i = *((int *) ptr);
+  printf("%d ", i);
+  return NULL;
 }
 
 int main() {
-    // Each thread gets a different value of i to process
-    int i;
-    pthread_t tid;
-    for(i =0; i < 10; i++) {
-        pthread_create(&tid, NULL, myfunc, &i); // ERROR
-    }
-    pthread_exit(NULL);
+  // Each thread gets a different value of i to process
+  int i;
+  pthread_t tid;
+  for(i =0; i < 10; i++) {
+    pthread_create(&tid, NULL, myfunc, &i); // ERROR
+  }
+  pthread_exit(NULL);
 }
 \end{lstlisting}
 
@@ -303,19 +303,19 @@ We will instead treat i as a pointer and cast it by value.
 
 \begin{lstlisting}[language=C]
 void* myfunc(void* ptr) {
-    int data = ((int) ptr);
-    printf("%d ", data);
-    return NULL;
+  int data = ((int) ptr);
+  printf("%d ", data);
+  return NULL;
 }
 
 int main() {
-    // Each thread gets a different value of i to process
-    int i;
-    pthread_t tid;
-    for(i =0; i < 10; i++) {
-        pthread_create(&tid, NULL, myfunc, (void *)i);
-    }
-    pthread_exit(NULL);
+  // Each thread gets a different value of i to process
+  int i;
+  pthread_t tid;
+  for(i =0; i < 10; i++) {
+    pthread_create(&tid, NULL, myfunc, (void *)i);
+  }
+  pthread_exit(NULL);
 }
 \end{lstlisting}
 
@@ -330,10 +330,10 @@ If two threads were to use it at the same time, one would corrupt the other.
 
 \begin{lstlisting}[language=C]
 char *to_message(int num) {
-    static char result [256];
-    if (num < 10) sprintf(result, "%d : blah blah" , num);
-    else strcpy(result, "Unknown");
-    return result;
+  static char result [256];
+  if (num < 10) sprintf(result, "%d : blah blah" , num);
+  else strcpy(result, "Unknown");
+  return result;
 }
 \end{lstlisting}
 
@@ -422,11 +422,11 @@ You already know a parallelizable algorithm, Merge Sort!
 
 \begin{lstlisting}[language=C]
 void merge_sort(int *arr, size_t len){
-   if(len > 1){
-   //Mergesort the left half
-   //Mergesort the right half
-   //Merge the two halves
-   }
+  if(len > 1){
+    //Mergesort the left half
+    //Mergesort the right half
+    //Merge the two halves
+  }
 \end{lstlisting}
 
 With your new understanding of threads, all you need to do is create a thread for the left half, and one for the right half.
@@ -480,9 +480,9 @@ For example here is how to parallelize a for loop
 
 \begin{lstlisting}[language=C]
 #pragma omp parallel for
-  for (int i = 0; i < n; i++) {
-     // Do stuff
-  }
+for (int i = 0; i < n; i++) {
+  // Do stuff
+}
 
 // Specify the scheduling as follows
 // #pragma omp parallel for scheduling(static)
@@ -563,27 +563,27 @@ int thread_start(void *arg) {
 }
 
 int main() {
-    // Allocate stack space for the child
-    char *child_stack = malloc(STACK_SIZE);
-    // Remember stacks work by growing down, so we need
-    // to give the top of the stack
-    char *stack_top = stack + STACK_SIZE;
+  // Allocate stack space for the child
+  char *child_stack = malloc(STACK_SIZE);
+  // Remember stacks work by growing down, so we need
+  // to give the top of the stack
+  char *stack_top = stack + STACK_SIZE;
 
-    // clone create thread
-    pid_t pid = clone(thread_start, stack_top, SIGCHLD, NULL);
-    if (pid == -1) {
-      perror("clone");
-      exit(1);
-    }
-    printf("Child pid %ld\n", (long) pid);
+  // clone create thread
+  pid_t pid = clone(thread_start, stack_top, SIGCHLD, NULL);
+  if (pid == -1) {
+    perror("clone");
+    exit(1);
+  }
+  printf("Child pid %ld\n", (long) pid);
 
-    // Wait just like any child
-    if (waitpid(pid, NULL, 0) == -1) {
-      perror("waitpid");
-      exit(1);
-    }
+  // Wait just like any child
+  if (waitpid(pid, NULL, 0) == -1) {
+    perror("waitpid");
+    exit(1);
+  }
 
-    return 0;
+  return 0;
 }
 \end{lstlisting}
 

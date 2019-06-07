@@ -276,16 +276,16 @@ The code below has a bug, try to spot it!
 
 \begin{lstlisting}[language=C]
 int exists(char *directory, char *name)  {
-    struct dirent *dp;
-    DIR *dirp = opendir(directory);
-    while ((dp = readdir(dirp)) != NULL) {
-        puts(dp->d_name);
-        if (!strcmp(dp->d_name, name)) {
-        return 1; /* Found */
-        }
+  struct dirent *dp;
+  DIR *dirp = opendir(directory);
+  while ((dp = readdir(dirp)) != NULL) {
+    puts(dp->d_name);
+    if (!strcmp(dp->d_name, name)) {
+      return 1; /* Found */
     }
-    closedir(dirp);
-    return 0; /* Not Found */
+  }
+  closedir(dirp);
+  return 0; /* Not Found */
 }
 \end{lstlisting}
 
@@ -319,10 +319,10 @@ void dirlist(char *path) {
   struct dirent *dp;
   DIR *dirp = opendir(path);
   while ((dp = readdir(dirp)) != NULL) {
-     char newpath[strlen(path) + strlen(dp->d_name) + 1];
-     sprintf(newpath,"%s/%s", newpath, dp->d_name);
-     printf("%s\n", dp->d_name);
-     dirlist(newpath);
+    char newpath[strlen(path) + strlen(dp->d_name) + 1];
+    sprintf(newpath,"%s/%s", newpath, dp->d_name);
+    printf("%s\n", dp->d_name);
+    dirlist(newpath);
   }
 }
 
@@ -407,31 +407,31 @@ There are two kinds of links:
         To read the contents of the link as just a file, use \keyword{readlink}.
         These are both demonstrated below.
 
-        \begin{verbatim}
-            $ ln -s file1.txt file2.txt
-            $ ls -i file1.txt blip.txt
-            134235 file1.txt
-            134236 file2.txt
-            134235 blip.txt
-            $ cat file1.txt
-            file1!
-            $ cat file2.txt
-            file1!
-            $ cat blip.txt
-            file1!
-            $ echo edited file2 >> file2.txt # >> is bash syntax for append to file
-            $ cat file1.txt
-            file1!
-            edited file2
-            $ cat file2.txt
-            I'm file1!
-            edited file2
-            $ cat blip.txt
-            file1!
-            edited file2
-            $ readlink myfile.txt
-            file2.txt
-        \end{verbatim}
+\begin{verbatim}
+$ ln -s file1.txt file2.txt
+$ ls -i file1.txt blip.txt
+134235 file1.txt
+134236 file2.txt
+134235 blip.txt
+$ cat file1.txt
+file1!
+$ cat file2.txt
+file1!
+$ cat blip.txt
+file1!
+$ echo edited file2 >> file2.txt # >> is bash syntax for append to file
+$ cat file1.txt
+file1!
+edited file2
+$ cat file2.txt
+I'm file1!
+edited file2
+$ cat blip.txt
+file1!
+edited file2
+$ readlink myfile.txt
+file2.txt
+\end{verbatim}
 
         Note that \keyword{file2.txt} and \keyword{file1.txt} have different inode numbers, unlike the hard link, \keyword{blip.txt}.
 
@@ -543,19 +543,19 @@ From the \keyword{stat} man page:
 
 \begin{lstlisting}[language=C]
 struct stat {
-    dev_t     st_dev;         /* ID of device containing file */
-    ino_t     st_ino;         /* Inode number */
-    mode_t    st_mode;        /* File type and mode */
-    nlink_t   st_nlink;       /* Number of hard links */
-    uid_t     st_uid;         /* User ID of owner */
-    gid_t     st_gid;         /* Group ID of owner */
-    dev_t     st_rdev;        /* Device ID (if special file) */
-    off_t     st_size;        /* Total size, in bytes */
-    blksize_t st_blksize;     /* Block size for filesystem I/O */
-    blkcnt_t  st_blocks;      /* Number of 512B blocks allocated */
-    struct timespec st_atim;  /* Time of last access */
-    struct timespec st_mtim;  /* Time of last modification */
-    struct timespec st_ctim;  /* Time of last status change */
+  dev_t     st_dev;         /* ID of device containing file */
+  ino_t     st_ino;         /* Inode number */
+  mode_t    st_mode;        /* File type and mode */
+  nlink_t   st_nlink;       /* Number of hard links */
+  uid_t     st_uid;         /* User ID of owner */
+  gid_t     st_gid;         /* Group ID of owner */
+  dev_t     st_rdev;        /* Device ID (if special file) */
+  off_t     st_size;        /* Total size, in bytes */
+  blksize_t st_blksize;     /* Block size for filesystem I/O */
+  blkcnt_t  st_blocks;      /* Number of 512B blocks allocated */
+  struct timespec st_atim;  /* Time of last access */
+  struct timespec st_mtim;  /* Time of last modification */
+  struct timespec st_ctim;  /* Time of last status change */
 };
 \end{lstlisting}
 

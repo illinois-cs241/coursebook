@@ -13,7 +13,7 @@ Each computer has an architecture, and that architecture has an associated assem
 Each assembly command has a 1:1 mapping to a set of 1's and 0's that tell the computer exactly what to do.
 For example the following in the widely used x86 Assembly language add one to the memory address 20 \cite{wiki:xxx} -- you can also look in \cite{guide2011intel} Section 2A under the add instruction though it is more verbose.
 
-\begin{lstlisting}
+\begin{lstlisting}[language={[x86masm]Assembler}]
 add BYTE PTR [0x20], 1
 \end{lstlisting}
 

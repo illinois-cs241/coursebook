@@ -154,10 +154,10 @@ It gets a little more serious if the snippet starts out as
 
 \begin{lstlisting}[language=C]
 int main() {
-    char pass_hash[10];
-    char in[10];
-    read_user_password(pass_hash, 10);
-    // ...
+  char pass_hash[10];
+  char in[10];
+  read_user_password(pass_hash, 10);
+  // ...
 }
 \end{lstlisting}
 
@@ -178,19 +178,19 @@ Spectre is a bug where instructions that otherwise wouldn't be executed are spec
 The following snippet is a high level proof of concept.
 
 \begin{lstlisting}[language=C]
-  char *a[10];
-  for (int i = 10; i != 1; --i) {
-    a[i] = calloc(1, 1);
+char *a[10];
+for (int i = 10; i != 1; --i) {
+  a[i] = calloc(1, 1);
+}
+a[0] = 0xCAFE;
+int val;
+int j = 10; // This will be in a register
+int i = 10; // This will be in main memory
+for (int i = 10; i != 0; --i, --j) {
+  if (i) {
+    val = *a[j];
   }
-  a[0] = 0xCAFE;
-  int val;
-  int j = 10; // This will be in a register
-  int i = 10; // This will be in main memory
-  for (int i = 10; i != 0; --i, --j) {
-    if (i) {
-        val = *a[j];
-    }
-  }
+}
 \end{lstlisting}
 
 Let's analyze this code.

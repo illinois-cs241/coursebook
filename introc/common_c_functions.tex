@@ -112,7 +112,7 @@ On the other hand, one of the advantages of \keyword{getline} is that will autom
 \begin{lstlisting}[language=C]
 // ssize_t getline(char **lineptr, size_t *n, FILE *stream);
 
- /* set buffer and size to 0; they will be changed by getline */
+/* set buffer and size to 0; they will be changed by getline */
 char *buffer = NULL;
 size_t size = 0;
 
@@ -120,7 +120,7 @@ ssize_t chars = getline(&buffer, &size, stdin);
 
 // Discard newline character if it is present,
 if (chars > 0 && buffer[chars-1] == '\n')
-    buffer[chars-1] = '\0';
+buffer[chars-1] = '\0';
 
 // Read another line.
 // The existing buffer will be re-used, or, if necessary,
@@ -137,12 +137,12 @@ Let's say that you have a function call that just failed because you checked the
 
 \begin{lstlisting}[language=C]
 int main(){
-    int ret = open("IDoNotExist.txt", O_RDONLY);
-    if(ret < 0){
-        perror("Opening IDoNotExist:");
-    }
-    //...
-    return 0;
+  int ret = open("IDoNotExist.txt", O_RDONLY);
+  if(ret < 0){
+    perror("Opening IDoNotExist:");
+  }
+  //...
+  return 0;
 }
 \end{lstlisting}
 
@@ -218,17 +218,17 @@ Any behavior not in the documentation, such as the result of \keyword{strlen(NUL
     This function has a lot of specs so please read the man pages a contrived example is below.
 
 	      \begin{lstlisting}[language=C]
-#include <stdio.h>
-#include <string.h>
+        #include <stdio.h>
+        #include <string.h>
 
-int main(){
-    char* upped = strdup("strtok,is,tricky,!!");
-    char* start = strtok(upped, ",");
-    do{
-        printf("%s\n", start);
-    }while((start = strtok(NULL, ",")));
-    return 0;
-}
+        int main(){
+          char* upped = strdup("strtok,is,tricky,!!");
+          char* start = strtok(upped, ",");
+          do{
+            printf("%s\n", start);
+          }while((start = strtok(NULL, ",")));
+          return 0;
+        }
 \end{lstlisting}
 
 	      \textbf{Output}
@@ -243,7 +243,7 @@ tricky
 	      Why is it tricky? Well what happens when I change \keyword{upped} like this?
 
 	      \begin{lstlisting}[language=C]
-char* upped = strdup("strtok,is,tricky,,,!!");
+        char* upped = strdup("strtok,is,tricky,,,!!");
 \end{lstlisting}
 
 	\item For integer parsing use
@@ -257,12 +257,12 @@ char* upped = strdup("strtok,is,tricky,,,!!");
 	      parsed value.
 
 	      \begin{lstlisting}[language=C]
-int main(){
-    const char *nptr = "1A2436";
-    char* endptr;
-    long int result = strtol(nptr, &endptr, 16);
-    return 0;
-}
+        int main(){
+          const char *nptr = "1A2436";
+          char* endptr;
+          long int result = strtol(nptr, &endptr, 16);
+          return 0;
+        }
 \end{lstlisting}
 
 	      Be careful though!
@@ -272,18 +272,18 @@ int main(){
         This often involves an errno trampoline as shown below.
 
 	      \begin{lstlisting}[language=C]
-int main(){
-    const char *input = "0"; // or "!##@" or ""
-    char* endptr;
-    int saved_errno = errno;
-    errno = 0
-    long int parsed = strtol(input, &endptr, 10);
-    if(parsed == 0 && errno != 0){
-      // Definitely an error
-    }
-    errno = saved_errno;
-    return 0;
-}
+        int main(){
+          const char *input = "0"; // or "!##@" or ""
+          char* endptr;
+          int saved_errno = errno;
+          errno = 0
+          long int parsed = strtol(input, &endptr, 10);
+          if(parsed == 0 && errno != 0){
+            // Definitely an error
+          }
+          errno = saved_errno;
+          return 0;
+        }
 \end{lstlisting}
 
 	    \item \keyword{void *memcpy(void *dest, const void *src, size\_t n)} moves \keyword{n} bytes starting at \keyword{src} to \keyword{dest}.
