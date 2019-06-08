@@ -443,8 +443,8 @@ This doesn't apply to protocols that negotiate the endianness before-hand.
 If two computers are CPU bound by converting the messages between network orders -- this happens with RPCs in high performance systems -- it may be worth it to negotiate if they are on similar endians to send in little endian order.
 
 Why is network order defined to be big endian?
-The simple answer is that \url{https://tools.ietf.org/html/rfc1700} RFC1700 says so.
-If you want more information, we'll cite the famous article located \url{https://www.ietf.org/rfc/ien/ien137.txt} that argued for a particular version.
+The simple answer is that RFC1700 says so \cite{RFC1700}.
+If you want more information, we'll cite the famous article located that argued for a particular version \cite{cohen_1980}.
 The most important part is that it is standard.
 What happens when we don't have one standard?
 We have 4 different USB plug types (Regular, Micro, Mini, and USB-C) that don't interact well with each other.
@@ -1282,7 +1282,6 @@ That's the system's way of telling you the data isn't ready yet.
 \keyword{write()} also works in non-blocking mode.
 Say you want to send 40,000 bytes to a remote server using a socket.
 The system can only send so many bytes at a time.
-Common systems can send about 23,000 bytes at a time \todo{citation needed}.
 In non-blocking mode, \keyword{write(fd, buf, 40000)} would return the number of bytes it was able to send immediately, or about 23,000.
 If you called \keyword{write()} right away again, it would return -1 and set errno to \keyword{EAGAIN} or \keyword{EWOULDBLOCK}..
 That's the system's way of telling you that it's still busy sending the last chunk of data and isn't ready to send more yet.

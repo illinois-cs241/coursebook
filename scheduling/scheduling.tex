@@ -197,9 +197,8 @@ Unless otherwise stated
 The processes all arrive at the start and the scheduler schedules the job with the shortest total CPU time.
 The glaring problem is that this scheduler needs to know how long this program will run over time before it ran the program.
 
-Technical Note: A realistic SJF implementation would not use the total execution time of the process but the burst time.
-The total CPU time including future computational execution before the process will no longer be ready to run.
-The expected burst time can be estimated by using an exponentially decaying weighted rolling average based on the previous burst time \todo{Citation Needed}.
+Technical Note: A realistic SJF implementation would not use the total execution time of the process but the burst time or the amount of CPU cycles needed to finish a program.
+The expected burst time can be estimated by using an exponentially decaying weighted rolling average based on the previous burst time \cite[Chapter 6]{silberschatz2005operating}.
 For this exposition we will simplify this discussion to use the total running time of the process as a proxy for the burst time.
 
 \textbf{Advantages}

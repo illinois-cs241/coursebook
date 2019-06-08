@@ -4,11 +4,11 @@
 
 Filesystems are important because they allow you to persist data after a computer is shut down, crashes, or has memory corruption.
 Back in the day, filesystems were expensive to use.
-Writing to the filesystem (FS) involved writing to a magnetic tape and reading from that tape \todo{citation needed}.
+Writing to the filesystem (FS) involved writing to a magnetic tape and reading from that tape \cite{iec}.
 It was slow, heavy, and prone to errors.
 
 Nowadays most of our files are stored on disk -- though not all of them!
-The disk is still slower than memory by an order of magnitude or two \todo{citation needed}.
+The disk is still slower than memory by an order of magnitude at the least.
 
 Some terminology before we begin this chapter.
 A \textbf{filesystem}, as we'll define more concretely later, is anything that satisfies the API of a filesystem.
@@ -45,7 +45,7 @@ That convention is that when a file is stored on a traditional file system, \tex
 When we are talking about computer networks \textbf{KB is not the same as KiB} and is the ISO / Metric Definition above.
 This is a historical quirk was brought by a clash between network developers and memory/hard storage developers.
 Hard storage and memory developers found that if a bit could take one of two states, it would be naturally to call a Kilo- prefix 1024 because it was about 1000.
-Network developers had to deal with bits, real time signal processing, and various other factors, so they went with the already accepted convention that Kilo- means a 1000 of something \todo{citation needed}.
+Network developers had to deal with bits, real time signal processing, and various other factors, so they went with the already accepted convention that Kilo- means a 1000 of something \cite{iec}.
 What you need to know is if you see KB in the wild, that it may be 1024 based on the context.
 If any time in this class (CS 241 @ Illinois) you see KB or any of the family refer to a filesystems question, you can safely infer that they are referring to 1024 as the base unit.
 
@@ -901,7 +901,7 @@ none on /proc/sys/fs/binfmt_misc type binfmt_misc (rw)
 
 \subsubsection{Filesystem Mounting}
 
-Suppose you had downloaded a bootable linux disk image from the \href{http://cosmos.cites.illinois.edu/pub/archlinux/iso/2015.04.01/archlinux-2015.04.01-dual.iso}{URL}
+Suppose you had downloaded a bootable linux disk image from the \href{https://www.archlinux.org/download/}{arch linux download page}
 
 \begin{lstlisting}[language=bash]
 $ wget $URL
