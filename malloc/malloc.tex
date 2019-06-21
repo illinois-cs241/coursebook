@@ -163,11 +163,12 @@ Here is a first attempt at it -- the naive version.
 
 \begin{lstlisting}[language=C]
 void* malloc(size_t size)
-// Ask the system for more bytes by extending the heap space.
-// sbrk Returns -1 on failure
-void *p = sbrk(size);
-if(p == (void *) -1) return NULL; // No space left
-return p;
+{
+    // Ask the system for more bytes by extending the heap space.
+    // sbrk returns -1 on failure
+    void *p = sbrk(size);
+    if(p == (void *) -1) return NULL; // No space left
+    return p;
 }
   void free() {/* Do nothing */}
 \end{lstlisting}
