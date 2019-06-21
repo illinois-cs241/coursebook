@@ -268,7 +268,7 @@ Similarly, a return value of 0 indicates that we are operating in the context of
 
 The positive value returned by \keyword{fork()} is the process id (\emph{pid}) of the child.
 
-A way to remember what is represented by the return value of fork is, that the child process can find its parent - the original process that was duplicated - by calling \keyword{getppid()} - so does not need any additional return information from \keyword{fork()}. However, the parent process may have many parents, and therefore needs to be explicitly informed of its child PIDs.
+A way to remember what is represented by the return value of fork is, that the child process can find its parent - the original process that was duplicated - by calling \keyword{getppid()} - so does not need any additional return information from \keyword{fork()}. However, the parent process may have many child processes, and therefore needs to be explicitly informed of its child PIDs.
 
 According to the POSIX standard, every process only has a single parent process.
 
