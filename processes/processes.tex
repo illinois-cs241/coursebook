@@ -73,8 +73,8 @@ Processes are very powerful, but they are isolated!
 
 That means that by default, no process can communicate with another process.
 
-This is very important because if you have a large system (let's say the University of Illinois Engineering Workstations (EWS)) then it is likely that you want some processes to have higher privileges than your average user.
-One certainly doesn't want the average user to be able to bring down the entire system, either on purpose or accidentally by modifying a process.
+This is very important because in complex systems (like the University of Illinois Engineering Workstations), it is likely that different processes will have different privileges.
+One certainly doesn't want the average user to be able to bring down the entire system, by either purposely or accidentally modifying a process.
 As most of you have realized by now, if you stuck the following code snippet into a program, the variables would not be shared between two parallel invocations of the program.
 
 \begin{lstlisting}[language=C]
