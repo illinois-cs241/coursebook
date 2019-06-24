@@ -2,71 +2,6 @@
 
 A non-comprehensive list of topics is below.
 
-\begin{enumerate}
-\item CSP (critical section problems)
-\item HTTP
-\item SIGINT
-\item TCP
-\item TLB
-\item Virtual Memory
-\item arrays
-\item barrier
-\item c strings
-\item chmod
-\item client/server
-\item Coffman conditions
-\item condition variables
-\item context switch
-\item deadlock
-\item dining philosophers
-\item epoll
-\item exit
-\item file I/O
-\item file system representation
-\item fork/exec/wait
-\item fprintf
-\item free
-\item heap allocator
-\item heap/stack
-\item inode vs name
-\item malloc
-\item mkfifo
-\item mmap
-\item mutexes
-\item network ports
-\item open/close
-\item operating system terms
-\item page fault
-\item page tables
-\item pipes
-\item pointer arithmetic
-\item pointers
-\item printing (printf)
-\item producer/consumer
-\item progress/mutex
-\item race conditions
-\item read/write
-\item reader/writer
-\item resource allocation graphs
-\item ring buffer
-\item scanf
-\item buffering
-\item scheduling
-\item select
-\item semaphores
-\item signals
-\item sizeof
-\item stat
-\item stderr/stdout
-\item symlinks
-\item thread control (pthread\_create, pthread\_join, pthread\_exit)
-\item variable initializers
-\item variable scope
-\item vm thrashing
-\item wait macros
-\item write/read with errno, EINTR and partial data
-\end{enumerate}
-
 \section{C}
 
 \subsection{Memory and Strings}
@@ -90,10 +25,10 @@ void func() {
 
 \begin{lstlisting}[language=C]
 void func() {
-  int* ptr1 = malloc( sizeof(int) );
-  int* ptr2 = realloc(NULL, sizeof(int) );
-  int* ptr3 = calloc( 1, sizeof(int) );
-  int* ptr4 = calloc( sizeof(int) , 1);
+  int* ptr1 = malloc(sizeof(int));
+  int* ptr2 = realloc(NULL, sizeof(int));
+  int* ptr3 = calloc(1, sizeof(int));
+  int* ptr4 = calloc(sizeof(int), 1);
 
   printf("%d %d %d %d\n",*ptr1,*ptr2,*ptr3,*ptr4);
 }
@@ -236,10 +171,48 @@ char* next_ticket() {
 
 \end{enumerate}
 
-\section{Threading}
+\section{Processes}
 
 \begin{enumerate}
+\item What is a process?
+\item What attributes are carried over from a process on fork? How about on a successful exec call?
+\item What is a fork bomb? How can we avoid one?
+\item What is the wait system call used for?
+\item What is a zombie? How do we avoid them?
+\item What is an orphan? What happens to them?
+\item How do we check the status of a process that has exited?
+\item What is a common pattern of processes?
+\end{enumerate}
 
+\section{Memory}
+
+\begin{enumerate}
+\item What are the calls in C to allocate memory?
+\item What must malloc memory be aligned to? Why is it important?
+\item What is Knuth's Allocation Scheme?
+\item How would you handle a request in a buddy allocation scheme?
+\item What is a free list?
+\item What are some different ways of inserting into a free list?
+\item What are the benefits and drawbacks to first fit, worst fit, best fit?
+\item When would a trivial malloc implementation
+\begin{lstlisting}[language=C]
+void *malloc(int size) {
+  return (void *)sbrk(size);
+}
+\end{lstlisting}
+Be acceptable?
+\end{enumerate}
+
+\section{Threading and Synchronization}
+
+\begin{enumerate}
+\item What is a thread? What do threads share?
+\item How does one create a thread?
+\item Where are the stacks for a thread located in memory?
+\item What is a mutex? What problem does it solve?
+\item What is a condition variable? What problem does it solve?
+\item Write a thread safe linked list that supports insert front, back, pop front, and pop back. Make sure it doesn't busy wait!
+\item What is Peterson's Solution to the critical section problem? How about Dekker's?
 \item Is the following code thread-safe? Redesign the following code to be thread-safe. Hint: A mutex is unnecessary if the message memory is unique to each call.
 
 \begin{lstlisting}[language=C]
@@ -376,6 +349,21 @@ void set_edge_safe(graph_t* graph, int i, int j, double dist) {
   pthread_mutex_unlock(&m);
 }
 \end{lstlisting}
+\item How many of the following statements are true for the reader-writer problem?
+
+\begin{itemize}
+\tightlist
+\item
+  There can be multiple active readers
+\item
+  There can be multiple active writers
+\item
+  When there is an active writer the number of active readers must be zero
+\item
+  If there is an active reader the number of active writers must be zero
+\item
+  A writer must wait until the current active readers have finished
+\end{itemize}
 
 \end{enumerate}
 
@@ -383,14 +371,7 @@ void set_edge_safe(graph_t* graph, int i, int j, double dist) {
 
 \begin{enumerate}
 
-\item What do each of the Coffman conditions mean? Can you provide a definition of each one and an example of breaking them using mutexes?
-
-  \begin{enumerate}
-  \item Hold and wait
-  \item Circular wait
-  \item No pre-emption
-  \item Mutual exclusion
-  \end{enumerate}
+\item What do each of the Coffman conditions and what do they mean? Can you provide a definition of each one and an example of breaking them using mutexes?
 
 \item Give a real life example of breaking each Coffman condition in turn. A situation to consider: Painters, paint and paint brushes. Hold and wait Circular wait No pre-emption Mutual exclusion
 
@@ -429,22 +410,13 @@ if( pthread_mutex_trylock( b ) ) { /*failed*/
   P5 waits for R1
 \end{itemize}
 
-\item How many of the following statements are true for the reader-writer problem?
-
-\begin{itemize}
-\tightlist
-\item
-  There can be multiple active readers
-\item
-  There can be multiple active writers
-\item
-  When there is an active writer the number of active readers must be zero
-\item
-  If there is an active reader the number of active writers must be zero
-\item
-  A writer must wait until the current active readers have finished
-\end{itemize}
-
+\item What are the pros and cons for the following solutions to dining philosophers
+  \begin{enumerate}
+  \item Arbitrator
+  \item Dijkstra
+  \item Stalling's
+  \item Trylock
+  \end{enumerate}
 \end{enumerate}
 
 \section{IPC}
@@ -476,11 +448,11 @@ int main() {
       char buffer[16];
       sprintf(buffer, ______,i);
       int fds[ ______];
-      pipe( fds);
-      write( fds[1], ______,______ ); // Write the buffer into the pipe
-      close(  ______ );
-      dup2( fds[0],  ______);
-      execlp( "cat", "cat",  ______ );
+      pipe(fds);
+      write(fds[1], ______,______ ); // Write the buffer into the pipe
+      close(______);
+      dup2(fds[0], ______);
+      execlp("cat", "cat",  ______);
       perror("exec"); exit(1);
     }
     waitpid(pid, NULL, 0);
@@ -489,7 +461,15 @@ int main() {
 }
 \end{lstlisting}
 
-\item Use POSIX calls \keyword{fork} \keyword{pipe} \keyword{dup2} and \keyword{close} to implement an autograding program. Capture the standard output of a child process into a pipe. The child process should \keyword{exec} the program \keyword{./test} with no additional arguments (other than the process name). In the parent process read from the pipe: Exit the parent process as soon as the captured output contains the ! character. Before exiting the parent process send SIGKILL to the child process. Exit 0 if the output contained a !. Otherwise if the child process exits causing the pipe write end to be closed, then exit with a value of 1. Be sure to close the unused ends of the pipe in the parent and child process
+\item Use POSIX calls \keyword{fork} \keyword{pipe} \keyword{dup2} and \keyword{close} to implement an autograding program.
+  Capture the standard output of a child process into a pipe.
+  The child process should \keyword{exec} the program \keyword{./test} with no additional arguments (other than the process name).
+  In the parent process read from the pipe: Exit the parent process as soon as the captured output contains the !
+  character.
+  Before exiting the parent process send SIGKILL to the child process.
+  Exit 0 if the output contained a !.
+  Otherwise if the child process exits causing the pipe write end to be closed, then exit with a value of 1.
+  Be sure to close the unused ends of the pipe in the parent and child process
 
 \item This advanced challenge uses pipes to get an ``AI player'' to play itself until the game is complete. The program \keyword{tictactoe} accepts a line of input - the sequence of turns made so far, prints the same sequence followed by another turn, and then exits. A turn is specified using two characters. For example ``A1'' and ``C3'' are two opposite corner positions. The string \keyword{B2A1A3} is a game of 3 turns/plys. A valid response is \keyword{B2A1A3C1} (the C1 response blocks the diagonal B2 A3 threat). The output line may also include a suffix \keyword{-I\ win} \keyword{-You\ win} \keyword{-invalid} or \keyword{-draw} Use pipes to control the input and output of each child process created. When the output contains a \keyword{-}, print the final output line (the entire game sequence and the result) and exit.
 
@@ -503,12 +483,26 @@ void xout(char* filename) {
 }
 \end{lstlisting}
 
+\item What is an MMU? What are the drawbacks to using it versus a direct memory system?
+\item What is a pipe?
+\item What are the pros and cons between named and unnamed pipes?
+
 \end{enumerate}
 
 \section{Filesystems}
 
 \begin{enumerate}
-
+\item What is the file API?
+\item Where are the names of the files stored?
+\item What is contained in an inode?
+\item What are the two special file names in every directory
+\item How do you resolve the following path \keyword{a/../b/./c/../../c}
+\item What are the rwx groups?
+\item What is an UID? GID? What is the difference between UID and Effective UID?
+\item What is umask?
+\item What is the sticky bit?
+\item What is a virtual file system?
+\item What is RAID?
 \item In an \keyword{ext2} filesystem how many inodes are read from disk to access the first byte of the file \keyword{/dir1/subdirA/notes.txt} ? Assume the directory names and inode numbers in the root directory (but not the inodes themselves) are already in memory.
 
 \item In an \keyword{ext2} filesystem what is the minimum number of disk blocks that must be read from disk to access the first byte of the file \keyword{/dir1/subdirA/notes.txt} ? Assume the directory names and inode numbers in the root directory and all inodes are already in memory.
@@ -528,7 +522,16 @@ $ chmod 000 secret.txt
 \begin{enumerate}
 
 \item What is a socket?
-
+\item What are the different layers of the internet?
+\item What is IP? What is an IP address?
+\item What is TCP? What is UDP? What are the differences?
+\item Create a TCP client that send ``Hello'' to a server.
+\item Create a simple TCP echo server. This is a server that reads bytes from a client until it closes and echoes the bytes back to the client.
+\item Create a UDP client that would send a flood of packets to a hostname at argv[1].
+\item What is HTTP?
+\item What is DNS?
+\item Why do we use non-blocking IO for networking?
+\item What is an RPC?
 \item What is special about listening on port 1000 vs port 2000?
 
 \begin{itemize}
@@ -543,7 +546,7 @@ $ chmod 000 secret.txt
   Nothing
 \end{itemize}
 
-\item Describe one significant difference between IPv4 and IPv6
+\item Describe one significant difference between IPv4 and IPv6?
 
 \item When and why would you use ntohs?
 
@@ -621,6 +624,17 @@ ssize_t write_all(int fd, const char *buf, size_t nbyte) {
 
 \end{enumerate}
 
+\section{Security}
+
+\begin{enumerate}
+\item What are the three measures for data security?
+\item What is stack smashing?
+\item What is buffer overflows?
+\item How does an operating system provide security? What are some examples from Networking and Filesystems?
+\item What security features does TCP provide?
+\item Is DNS secure?
+\end{enumerate}
+
 \section{Signals}
 
 \begin{enumerate}
@@ -628,4 +642,6 @@ ssize_t write_all(int fd, const char *buf, size_t nbyte) {
 \item Give the name of a signal that can not be caught by a signal
 \item Why is it unsafe to call any function (something that it is not signal handler safe) in a signal handler?
 \item Write brief code that uses SIGACTION and a SIGNALSET to create a SIGALRM handler.
+\item What is the difference between a disposition, mask, and pending signal set?
+\item What attributes are passed over to process children? How about exec'ed processes?
 \end{enumerate}
