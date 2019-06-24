@@ -246,7 +246,7 @@ In standard UNIX filesystems the following entries are specially added on reques
 \begin{enumerate}
   \item \keyword{.} represents the current directory
   \item \keyword{..} represents the parent directory
-  \item \keyword{~~} is the name of the home directory usually
+  \item \keyword{\textasciitilde} is the name of the home directory usually
 \end{enumerate}
 
 Counterintuitively, \keyword{...} does not refer to the `grandparent' directory (parent of the parent).
@@ -370,28 +370,28 @@ There are two kinds of links:
         A hard link is simply an entry in a directory assigning some name to an inode number that already has a different name and mapping in either the same directory or a different one.
         If we already have a file on a file system we can create another link to the same inode using the \keyword{`ln'} command:
 
-        \begin{lstlisting}[language=bash]
-            $ ln file1.txt blip.txt
-        \end{lstlisting}
+\begin{lstlisting}[language=bash]
+$ ln file1.txt blip.txt
+\end{lstlisting}
 
         However, blip.txt \emph{is} the same file.
         If I edit blip, I'm editing the same file as `file1.txt!'.
         We can prove this by showing that both file names refer to the same inode.
 
-        \begin{verbatim}
-        $ ls -i file1.txt blip.txt
-        134235 file1.txt
-        134235 blip.txt
-        \end{verbatim}
+\begin{verbatim}
+$ ls -i file1.txt blip.txt
+134235 file1.txt
+134235 blip.txt
+\end{verbatim}
 
         The equivalent C call is \keyword{link}
 
-        \begin{lstlisting}[language=C]
-        // Function Prototype
-        int link(const char *path1, const char *path2);
+\begin{lstlisting}[language=C]
+// Function Prototype
+int link(const char *path1, const char *path2);
 
-        link("file1.txt", "blip.txt");
-        \end{lstlisting}
+link("file1.txt", "blip.txt");
+\end{lstlisting}
 
         For simplicity, the above examples made hard links inside the same directory.
         Hard links can be created anywhere inside the same filesystem.
@@ -437,9 +437,9 @@ file2.txt
 
         There is a C library call to create symlinks which is similar to link.
 
-        \begin{lstlisting}[language=C]
-        symlink(const char *target, const char *symlink);
-        \end{lstlisting}
+\begin{lstlisting}[language=C]
+symlink(const char *target, const char *symlink);
+\end{lstlisting}
 
         Some advantages of symbolic links are
 
