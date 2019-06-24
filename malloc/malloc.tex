@@ -163,11 +163,12 @@ Here is a first attempt at it -- the naive version.
 
 \begin{lstlisting}[language=C]
 void* malloc(size_t size)
-// Ask the system for more bytes by extending the heap space.
-// sbrk Returns -1 on failure
-void *p = sbrk(size);
-if(p == (void *) -1) return NULL; // No space left
-return p;
+{
+    // Ask the system for more bytes by extending the heap space.
+    // sbrk returns -1 on failure
+    void *p = sbrk(size);
+    if(p == (void *) -1) return NULL; // No space left
+    return p;
 }
   void free() {/* Do nothing */}
 \end{lstlisting}
@@ -237,7 +238,7 @@ For example, our first fit allocator could've just returned the original block u
 Notice that this would lead to about 14KiB of space to be unused by the user and the allocator.
 We call this internal fragmentation.
 
-To introduce another concept, external fragmentation is that even though we have enough memory in the heap, it may be divided up in a way that wear are not able to give the full amount.
+To introduce another concept, external fragmentation is that even though we have enough memory in the heap, it may be divided up in a way that we are not able to give the full amount.
 In our previous example, of the 64KiB of heap memory, 17KiB is allocated, and 47KiB is free.
 However, the largest available block is only 30KiB because our available unallocated heap memory is fragmented into smaller pieces.
 
@@ -283,9 +284,9 @@ Some additional notes we make
 
 \begin{enumerate}
 \item Best fit may not require a full scan of the heap. When a block of perfect size or of perfect size within a threshold is found, that can be returned, depending on what edge-case policy you have.
-\item Worst fit may not need to scan the entire heap as well. Depending on how you set up data structures, your heap could represent the data structure max-heap and each allocation call simply needs to pop the top off, reheapify, and possibly insert a split memory block.
-  Using Fibonacci heaps, that can be extremely inefficient.
-\item First fit needs to have some sort of ordering. Most of the time people will default to linked lists which is a fine choice. There isn't too many improvements you can make with a least recently used and most recently used linked list policy, but with address ordered linked lists you can speed up insertion from O(n) to O(log(n)) by using a randomized skip-list in conjunction with your singly linked list.
+\item Worst fit may not need to scan the entire heap as well. Your heap could be represented with the max-heap data structure and each allocation call could simply pop the top off, reheapify, and possibly insert a split memory block.
+  Using Fibonacci heaps, however, could be extremely inefficient.
+\item First fit needs to have some sort of ordering. Most of the time people will default to linked lists which is a fine choice. There aren't too many improvements you can make with a least recently used and most recently used linked list policy, but with address ordered linked lists you can speed up insertion from O(n) to O(log(n)) by using a randomized skip-list in conjunction with your singly linked list.
   Basically an insert would use the skip list as shortcuts to find the right place to insert the block and a removal would go through the list as normal.
 \item There are many placement strategies that we haven't talked about, one is next-fit which is first fit on the next fit block. This adds a sort-of deterministic randomness. You won't be expected to know this algorithm, just know as you are implementing a memory allocator as part of a machine problem, there are more than these.
   \end{enumerate}
