@@ -143,32 +143,27 @@ make
 
 If you find a security vulnerability, do NOT open an issue. Email angrave@illinois.edu instead.
 
-## Filing a Content Issue
 
-Template:
+# Writing Style
 
-> When filing an Content, make sure to answer these five questions:
->
-> 1. What problem does the new content solve?
-> 2. How many changes to the existing book will it need?
-> 3. What will need to be done?
-> 4. Will this be addition or core information?
+To make sure the book has a consistent tone among authors, we'll use the general writing style
 
-## Filing a bug
-
-Template
-
-> When filing an Content, make sure to answer these five questions:
->
-> 1. What problem is there?
-> 2. What are the minimal reproducable steps?
-> 3. What versions of python3, packages, pandoc, latex compiler do you have?
-> 4. What system are you building on?
-
-## Reviews
-
-After a feature and PR is made, add a contributor to the PR to review your contributions.
-Once we approve, we are good to merge.
+* `we` are the authors or the general we. Anything that is a recommendation or a fact should start with this.
+    * We recommend that you don't use `signal`
+    * Don't fork after creating threads, we don't know the state of mutexes.
+* `you` is the reader or the programmer. If we tell someone to do this or do that, make sure to use `you`.
+    * You should be careful using `gets`
+* `program/process` refers to a written program that is running. Don't use you here.
+    * The process sends a signal to the other process
+* Try to keep it generally formal. Asking rhetorical questions is okay.
+* Avoid using i.e.
+* Spell out numbers unless they are used in calculation, numbers never start sentences.
+* Use the SI KiB KB system.
+* Label code figures instead of saying `the following figure`
+* There is no general rule for sections/subsections. Try to avoid using subsubsections.
+* Use `\keyword` to highlight a common executable program, system or library call, or man page entry.
+* Opt for citations rather than links because they allow for smoother reading.
+* Break each sentence into its own line.
 
 # Structure
 
