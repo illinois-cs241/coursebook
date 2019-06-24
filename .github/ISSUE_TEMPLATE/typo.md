@@ -2,7 +2,7 @@
 name: Typo
 about: There is a typographical error
 title: ''
-labels: ''
+labels: 'typo'
 assignees: ''
 
 ---
