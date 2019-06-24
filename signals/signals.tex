@@ -2,23 +2,57 @@
 
 \epigraph{That's a signal, Jerry, that's a signal! [snaps his fingers again] Signal!}{George Costanza (Seinfeld)}
 
-Signals have been a Unix construct since the beginning. They are a convenient way to deliver low-priority information and for users to interact with their programs when no other form of interaction is available like using standard input. Signals allow a program to cleanup or perform an action in the case of an event. Some time, a program can choose to ignore events and that is completely fine and even supported by the standard. Crafting a program that uses signals well is tricky due to all the rules with inheritance. As such, signals are usually kept as cleanup or termination measures.
+Signals are a convenient way to deliver low-priority information and for users to interact with their programs when other ways don't work (for example standard input being frozen).
+They allow a program to cleanup or perform an action in the case of an event.
+Sometimes, a program can choose to ignore events which is supported.
+Crafting a program that uses signals well is tricky due to how signals are handled.
+As such, signals are usually for termination and cleanup.
+Rarely are they supposed to be used in programming logic.
 
-This chapter will go over how to first read information from a process that has either exited or been signaled and then it will deep dive into what are signals, how does the kernel deal with a signal, and the various ways processes can handle signals both in a single and multithreaded way.
+This chapter will go over how to read information from a process that has either exited or been signaled.
+Then, it will deep dive into what are signals, how does the kernel deal with a signal, and the various ways processes can handle signals both with and without threads.
 
 \section{The Deep Dive of Signals}
 
-A signal is a construct provided to us by the kernel. It allows one process to asynchronously send an event (think a message) to another process. If that process wants to accept the signal, it can, and then, for most signals, can decide what to do with that signal. Here is a short list (non comprehensive) of signals. The overall process for how a kernel sends a signal as well as common use cases are below.
+A signal is a construct provided to us by the kernel.
+It allows one process to asynchronously send an event (think a message) to another process.
+If that process wants to accept the signal, it can, and then, for most signals, can decide what to do with that signal.
+
+First, a bit of terminology.
+A signal disposition is a per-process attribute that determines how a signal is handled after it is \textbf{delivered}.
+Think of it as a table of signal-action pairs.
+The full discussion is in the \href{http://man7.org/linux/man-pages/man7/signal.7.html}{Man Page}.
+The actions are
+\begin{enumerate}
+  \item \keyword{TERM}, terminates the process
+  \item \keyword{IGN}, ignore
+  \item \keyword{CORE}, generate a core dump
+  \item \keyword{STOP}, stops a process
+  \item \keyword{CONT}, continues a process
+  \item Execute a custom function.
+\end{enumerate}
+
+A signal mask determines whether a particular signal is delivered or not.
+The overall process for how a kernel sends a signal as well as common use cases are below.
 
 \begin{enumerate}
-\item Before any signals are generated, the kernel sets up the default signal handlers for a process.
-\item If still no signals have arrived, the process can install its own signal handlers. This is simple telling the kernel that when the process gets signal X it should jump to function Y.
-\item Now is the fun part, time to deliver a signal! Signals can come from various places below. The signal is now in what we call the generated state.
-\item As soon as the signal starts to get delivered by the kernel, it is in the pending state.
-\item The kernel then checks the signals \keyword{disposition}, which in layperson terms is whether the process is willing to accept that signal at this point. If not, then the signal is currently blocked and nothing happens.
-\item If not, and there is no signal handler installed, the kernel executes the default action. Otherwise, the kernel delivers the signal by stopping \textit{whatever} the process is doing at the current point, and jumping that process to the signal handler. If the program is multithreaded, then the process picks on thread with a signal disposition that can accept the signal and freezes the rest. The signal is now in the delivered phase.
-\item Finally, we consider a signal caught if the process remains in tact after the signal was delivered.
+\item Before any signals are generated, the kernel sets up the signal handlers for a process.
+\item If still no signals have arrived, the process can install its own signal handlers.
+  This tells the kernel that when the process gets signal X that it should jump to function Y.
+\item Now is the fun part, time to deliver a signal!
+  Signals can come from various places.
+\item A signal that is just created, is called generated.
+\item The time between when a signal is generated and the kernel can apply the disposition/mask rules is called pending.
+\item Then the kernel then checks the process' signal \keyword{mask}.
+  If the mask says all the threads in a process are unwilling to accept the signal, then the signal is currently blocked and nothing happens until the process unblocks it.
+\item If a single thread can accept the signal, then the kernel executes the action. If the action is a default action, then no threads need to be paused.
+  Otherwise, the kernel delivers the signal by stopping \keyword{whatever} a particular thread is doing at the current point, and jumping that process to the signal handler.
+  The signal is now in the delivered phase.
+  More signals can be generated now, but they can't be delivered until the signal handler is complete.
+\item Finally, we consider a signal caught if the process remains intact after the signal was delivered.
 \end{enumerate}
+
+Here are some common signals that you will see thrown around.
 
 \begin{tabular}{|l|l|l|}
 Name & Default Action & Usual Use \\ \hline
@@ -29,11 +63,60 @@ SIGCONT & Continues a process & Starts after a stop \\
 SIGKILL & Terminate Process (Cannot be caught) & You want the process gone \\
 \end{tabular}
 
+One of our favorite anecodotes is to never use \keyword{kill -9} for a host of reasons.
+The following is an excerpt from \underline{Useless Use of Kill -9} \href{http://porkmail.org/era/unix/award.html}{Link to archive}
+
+\begin{quote}
+No no no.  Don't use kill -9.
+
+It doesn't give the process a chance to cleanly:
+
+1) shut down socket connections
+
+2) clean up temp files
+
+3) inform its children that it is going away
+
+4) reset its terminal characteristics
+
+and so on and so on and so on.
+
+Generally, send 15, and wait a second or two, and if that doesn't
+work, send 2, and if that doesn't work, send 1.  If that doesn't,
+REMOVE THE BINARY because the program is badly behaved!
+
+Don't use kill -9.  Don't bring out the combine harvester just to tidy
+up the flower pot.
+
+Just another Useless Use of Usenet,
+\end{quote}
+
+We still keep \keyword{kill -9} in there for extreme scenarios where the process needs to be gone.
+
 \section{Sending Signals}
 
-Signals can be generated multiple ways. The user can send a signal. For example, you are at the terminal, and you send \keyword{CTRL-C} this is rarely the case in operating systems but is included in user programs for convenience. Another way is when a system event happens. For example, if you access a page that you aren't supposed to, the hardware generates a SEGFAULT interrupt which gets intercepted by the kernel. The kernel finds the process that caused this and sends a software interrupt signal \keyword{SIGSEGV}. There are softer kernel events like a child being created or sometimes when the kernel wants to like when it is scheduling processes. Finally, another process can send a message when you execute \keyword{kill\ -9\ PID}, it sends \keyword{SIGKILL} to the process. This could be used in low-stakes communication of events between process. If you are relying on signals to be the driver in your program, you should rethink your application design. There are many drawbacks to using signals for asynchronous communication that is avoided by having a dedicated thread and some form of proper Interprocess Communication.
+Signals can be generated multiple ways.
+\begin{enumerate}
+\item The user can send a signal.
+  For example, you are at the terminal, and you press \keyword{CTRL-C}.
+  One can also use the built-in \keyword{kill} to send any signal.
+\item Another way is when a system event happens.
+For example, if a process accesses a page that it isn't supposed to, the hardware generates an interrupt which gets intercepted by the kernel.
+The kernel finds the process that caused this and sends a software interrupt signal \keyword{SIGSEGV}.
+There are other kernel events like a child being created or a process needs to be resumed.
 
-You can temporarily pause a running process by sending it a SIGSTOP signal. If it succeeds it will freeze a process, the process will not be allocated any more CPU time. To allow a process to resume execution send it the SIGCONT signal. For example, Here's program that slowly prints a dot every second, up to 59 dots.
+\item Finally, another process can send a message.
+  This could be used in low-stakes communication of events between process.
+  If you are relying on signals to be the driver in your program, you should rethink your application design.
+  There are many drawbacks to using POSIX/Real-Time signals for asynchronous communication.
+  The best way to handle interprocess communication is to use, well, interprocess communication methods specifically designed for your task at hand.
+
+\end{enumerate}
+
+You or another process can temporarily pause a running process by sending it a \keyword{SIGSTOP} signal.
+If it succeeds it will freeze a process, the process will not be allocated any more CPU time.
+To allow a process to resume execution send it the SIGCONT signal.
+For example, Here's program that slowly prints a dot every second, up to 59 dots.
 
 \begin{lstlisting}[language=C]
 #include <unistd.h>
@@ -50,7 +133,8 @@ int main() {
 }
 \end{lstlisting}
 
-We will first start the process in the background (notice the \& at the end). Then send it a signal from the shell process by using the kill command.
+We will first start the process in the background (notice the \& at the end).
+Then, send it a signal from the shell process by using the kill command.
 
 \begin{lstlisting}[language=bash]
 $ ./program &
@@ -58,9 +142,10 @@ My pid is 403
 ...
 $ kill -SIGSTOP 403
 $ kill -SIGCONT 403
+...
 \end{lstlisting}
 
-In C, you can send a signal to the child using \keyword{kill} POSIX call,
+In C, a program can send a signal to the child using \keyword{kill} POSIX call,
 
 \begin{lstlisting}[language=C]
 kill(child, SIGUSR1); // Send a user-defined signal
@@ -69,7 +154,9 @@ kill(child, SIGTERM); // Terminate the child process (the child can prevent this
 kill(child, SIGINT); // Equivalent to CTRL-C (by default closes the process)
 \end{lstlisting}
 
-As we saw above there is also a \keyword{kill} command available in the shell. Another command \keyword{killall} works the exact same way but instead of looking up by PID, it tries to match the name of the process. \keyword{ps} is an important utility that can help you find the pid of a process.
+As we saw above there is also a \keyword{kill} command available in the shell.
+Another command \keyword{killall} works the exact same way but instead of looking up by PID, it tries to match the name of the process.
+\keyword{ps} is an important utility that can help you find the pid of a process.
 
 \begin{lstlisting}[language=bash]
 # First let's use ps and grep to find the process we want to send a signal to
@@ -79,31 +166,36 @@ angrave  4409   0.0  0.0  2434892    512 s004  R+    2:42PM   0:00.00 myprogram 
 #Send SIGINT signal to process 4409 (equivalent of `CTRL-C`)
 $ kill -SIGINT 4409
 
-#Send SIGKILL (terminate the process)
+# Send SIGKILL (terminate the process)
 $ kill -SIGKILL 4409
 $ kill -9 4409
-# Use kill all instead
+# Use kill all instead to kill a process by executable name
 $ killall -l firefox
 \end{lstlisting}
 
-In order to send a signal to the current, use \keyword{raise} or \keyword{kill} with \keyword{getpid()}
+In order to send a signal to the current, use \keyword{raise} or \keyword{kill} with \keyword{getpid()}.
 
 \begin{lstlisting}[language=C]
 raise(int sig); // Send a signal to myself!
-kill(getpid(), int sig); // Same as
+kill(getpid(), int sig); // Same as above
 \end{lstlisting}
 
-For non-root processes, signals can only be sent to processes of the same user. You cant just SIGKILL my processes! \keyword{man -s2 kill} for more details.
-
+For non-root processes, signals can only be sent to processes of the same user.
+You cant just SIGKILL my processes!
+\keyword{man -s2 kill} for more details.
 
 \section{Handling Signals}
 
-There are strict limitations on the executable code inside a signal handler. Most library and system calls are not \keyword{async-signal-safe} - they may not be used inside a signal handler because they are not re-entrant safe. Re-entrant safe means that imagine that your function can be frozen at any point and executed again, can you guarantee that your function wouldn't fail? Let's take the following
+There are strict limitations on the executable code inside a signal handler.
+Most library and system calls are not \keyword{async-signal-safe}, meaning they may not be used inside a signal handler because they are not re-entrant.
+Re-entrant safety means that your function can be frozen at any point and executed again, can you guarantee that your function wouldn't fail?
+Let's take the following
 
 \begin{lstlisting}[language=C]
 int func(const char *str) {
   static char buffer[200];
-  strncpy(buffer, str, 199); # We finish this line and get recalled
+  strncpy(buffer, str, 199);
+  # Here is where we get paused
   printf("%s\n", buffer)
 }
 \end{lstlisting}
@@ -117,7 +209,14 @@ int func(const char *str) {
 \item We resume the interrupted function and now print out the buffer once again "World" instead of what the function call originally intended "Hello"
 \end{enumerate}
 
-Guaranteeing that your functions are signal handler safe are not as simple as not having shared buffers. You must also think about multithreading and synchronization i.e. what happens when I double lock a mutex? You also have to make sure that each function call is reentrant safe. Suppose your original program was interrupted while executing the library code of \keyword{malloc} ; the memory structures used by malloc will not be in a consistent state. Calling \keyword{printf} (which uses \keyword{malloc}) as part of the signal handler is unsafe and will result in \keyword{undefined behavior} i.e.~it is no longer a useful,predictable program. In practice your program might crash, compute or generate incorrect results or stop functioning (\keyword{deadlock}), depending on exactly what your program was executing when it was interrupted to execute the signal handler code. One common use of signal handlers is to set a boolean flag that is occasionally polled (read) as part of the normal running of the program. For example,
+Guaranteeing that your functions are signal handler safe can't be solved by removing shared buffers.
+You must also think about multithreading and synchronization -- what happens when I double lock a mutex?
+You also have to make sure that each function call is reentrant safe.
+Suppose your original program was interrupted while executing the library code of \keyword{malloc}.
+The memory structures used by malloc will not be in a consistent state.
+Calling \keyword{printf}, which uses \keyword{malloc} as part of the signal handler, is unsafe and will result in \underline{undefined behavior}.
+A safe way to avoid this behavior is to set a variable and let the program resume operating.
+The design pattern also helps us in designing programs that can receive signals twice and operate correctly.
 
 \begin{lstlisting}[language=C]
 int pleaseStop ; // See notes on why "volatile sig_atomic_t" is better
@@ -129,28 +228,42 @@ void handle_sigint(int signal) {
 int main() {
   signal(SIGINT, handle_sigint);
   pleaseStop = 0;
-  while ( ! pleaseStop) {
+  while (!pleaseStop) {
     /* application logic here */
   }
   /* cleanup code here */
 }
 \end{lstlisting}
 
-The above code might appear to be correct on paper. However, we need to provide a hint to the compiler and to the CPU core that will execute the \keyword{main()} loop. We need to prevent a compiler optimization: The expression \keyword{!\ pleaseStop} appears to be a loop invariant meaning it will be true forever, so can be simplified to \keyword{true}. Secondly, we need to ensure that the value of \keyword{pleaseStop} is not cached using a CPU register and instead always read from and written to main memory. The \keyword{sig\_atomic\_t} type implies that all the bits of the variable can be read or modified as an \keyword{atomic operation} - a single uninterruptible operation. It is impossible to read a value that is composed of some new bit values and old bit values.
+The above code might appear to be correct on paper.
+However, we need to provide a hint to the compiler and the CPU core that will execute the \keyword{main()} loop.
+We need to prevent a compiler optimization.
+The expression \keyword{\!pleaseStop} doesn't get changed in the body of the loop, so some compilers will optimize it to \keyword{true} \todo{citation needed}.
+Secondly, we need to ensure that the value of \keyword{pleaseStop} is not cached using a CPU register and instead always read from and written to main memory.
+The \keyword{sig\_atomic\_t} type implies that all the bits of the variable can be read or modified as an \keyword{atomic operation} - a single uninterruptible operation.
+It is impossible to read a value that is composed of some new bit values and old bit values.
 
-By specifying \keyword{pleaseStop} with the correct type \keyword{volatile\ sig\_atomic\_t}, we can write portable code where the main loop will be exited after the signal handler returns. The \keyword{sig\_atomic\_t} type can be as large as an \keyword{int} on most modern platforms but on embedded systems can be as small as a \keyword{char} and only able to represent (-127 to 127) values.
+By specifying \keyword{pleaseStop} with the correct type \keyword{volatile\ sig\_atomic\_t}, we can write portable code where the main loop will be exited after the signal handler returns.
+The \keyword{sig\_atomic\_t} type can be as large as an \keyword{int} on most modern platforms but on embedded systems can be as small as a \keyword{char} and only able to represent (-127 to 127) values.
 
 \begin{lstlisting}[language=C]
 volatile sig_atomic_t pleaseStop;
 \end{lstlisting}
 
-Two examples of this pattern can be found in \keyword{COMP} a terminal based 1Hz 4bit computer \cite{Sorn_2015}. Two boolean flags are used. One to mark the delivery of \keyword{SIGINT} (CTRL-C), and gracefully shutdown the program, and the other to mark \keyword{SIGWINCH} signal to detect terminal resize and redraw the entire display.
+Two examples of this pattern can be found in \keyword{COMP} a terminal based 1Hz 4bit computer \cite{Sorn_2015}.
+Two boolean flags are used.
+One to mark the delivery of \keyword{SIGINT} (CTRL-C), and gracefully shutdown the program, and the other to mark \keyword{SIGWINCH} signal to detect terminal resize and redraw the entire display.
 
-You can also choose a handle pending signals asynchronously or synchronously. Install a signal handler to asynchronously handle signals use \keyword{sigaction} (or, for simple examples, \keyword{signal} ). To synchronously catch a pending signal use \keyword{sigwait} which blocks until a signal is delivered or \keyword{signalfd} which also blocks and provides a file descriptor that can be \keyword{read()} to retrieve pending signals.
+You can also choose a handle pending signals asynchronously or synchronously.
+To install a signal handler to asynchronously handle signals, use \keyword{sigaction}.
+To synchronously catch a pending signal use \keyword{sigwait} which blocks until a signal is delivered or \keyword{signalfd} which also blocks and provides a file descriptor that can be \keyword{read()} to retrieve pending signals.
 
 \subsection{Sigaction}
 
-You should use \keyword{sigaction} instead of \keyword{signal} because it has better defined semantics. \keyword{signal} on different operating system does different things which is \textbf{bad} \keyword{sigaction} is more portable and is better defined for threads if need be. To change the \keyword{signal disposition} of a process - i.e.~what happens when a signal is delivered to your process - use \keyword{sigaction} You can use system call \keyword{sigaction} to set the current handler for a signal or read the current signal handler for a particular signal.
+You should use \keyword{sigaction} instead of \keyword{signal} because it has better defined semantics.
+\keyword{signal} on different operating system does different things which is \textbf{bad}.
+\keyword{sigaction} is more portable and is better defined for threads.
+You can use system call \keyword{sigaction} to set the current handler and disposition for a signal or read the current signal handler for a particular signal.
 
 \begin{lstlisting}[language=C]
 int sigaction(int signum, const struct sigaction *act, struct sigaction *oldact);
@@ -167,7 +280,8 @@ struct sigaction {
 };
 \end{lstlisting}
 
-Suppose you installed a signal handler for the alarm signal,
+Suppose you stumble upon legacy code that uses \keyword{signal}.
+The following snippet installs \keyword{myhandler} as the SIGALRM handler.
 
 \begin{lstlisting}[language=C]
 signal(SIGALRM, myhandler);
@@ -183,26 +297,79 @@ sa.sa_flags = 0;
 sigaction(SIGALRM, &sa, NULL)
 \end{lstlisting}
 
-However, we typically may also set the mask and the flags field. The mask is a temporary signal mask used during the signal handler execution. The \keyword{SA\_RESTART} flag will automatically restart some (but not all) system calls that otherwise would have returned early (with EINTR error). The latter means we can simplify the rest of code somewhat because a restart loop may no longer be required.
+However, we typically may also set the mask and the flags field.
+The mask is a temporary signal mask used during the signal handler execution.
+If the thread serving the signal is interrupted in the middle of a system call, the \keyword{SA\_RESTART} flag will automatically restart some (but not all) system calls that otherwise would have returned early with EINTR error.
+The latter means we can simplify the rest of code somewhat because a restart loop may no longer be required.
 
 \begin{lstlisting}[language=C]
 sigfillset(&sa.sa_mask);
-sa.sa_flags = SA_RESTART; /* Restart functions if  interrupted by handler */
+sa.sa_flags = SA_RESTART; /* Restart functions if interrupted by handler */
 \end{lstlisting}
+
+It is often better to have your code check for the error and restart itself because not every system call is covered under restart.
+
+\section{Blocking Signals}
+
+To block signals use \keyword{sigprocmask}!
+With sigprocmask you can set the new mask, add new signals to be blocked to the process mask, and unblock currently blocked signals.
+You can also determine the existing mask (and use it for later) by passing in a non-null value for oldset.
+
+\begin{lstlisting}[language=C]
+int sigprocmask(int how, const sigset_t *set, sigset_t *oldset);
+\end{lstlisting}
+
+From the Linux man page of sigprocmask, here are the possible values for \keyword{how} \todo{cite}.
+
+\begin{itemize}
+\item \keyword{SIG\_BLOCK}.
+  The set of blocked signals is the union of the current set and the set argument.
+\item \keyword{SIG\_UNBLOCK}.
+  The signals in set are removed from the current set of blocked signals.
+  It is permissible to attempt to unblock a signal which is not blocked.
+\item \keyword{SIG\_SETMASK}.
+  The set of blocked signals is set to the argument set.
+\end{itemize}
+
+The sigset type behaves as a set.
+It is a common error to forget to initialize the signal set before adding to the set.
+
+\begin{lstlisting}[language=C]
+sigset_t set, oldset;
+sigaddset(&set, SIGINT); // Ooops!
+sigprocmask(SIG_SETMASK, &set, &oldset)
+\end{lstlisting}
+
+Correct code initializes the set to be all on or all off. For example,
+
+\begin{lstlisting}[language=C]
+sigfillset(&set); // all signals
+sigprocmask(SIG_SETMASK, &set, NULL); // Block all the signals which can be blocked
+
+sigemptyset(&set); // no signals
+sigprocmask(SIG_SETMASK, &set, NULL); // set the mask to be empty again
+\end{lstlisting}
+
+If you block a signal with either \keyword{sigprocmask} or \keyword{pthread\_sigmask}, then the handler registered with \keyword{sigaction} is not delivered unless explicitly \keyword{sigwait'ed} on \todo{cite}.
 
 \subsection{Sigwait}
 
-Sigwait can be used to read one pending signal at a time. \keyword{sigwait} is used to synchronously wait for signals, rather than handle them in a callback. A typical use of sigwait in a multi-threaded program is shown below. Notice that the thread signal mask is set first (and will be inherited by new threads). This prevents signals from being \emph{delivered} so they will remain in a pending state until sigwait is called. Also notice the same set sigset\_t variable is used by sigwait - except rather than setting the set of blocked signals it is being used as the set of signals that sigwait can catch and return.
+Sigwait can be used to read one pending signal at a time.
+\keyword{sigwait} is used to synchronously wait for signals, rather than handle them in a callback.
+A typical use of sigwait in a multi-threaded program is shown below.
+Notice that the thread signal mask is set first (and will be inherited by new threads).
+The mask prevents signals from being \emph{delivered} so they will remain in a pending state until sigwait is called.
+Also notice the same set \keyword{sigset\_t} variable is used by sigwait - except rather than setting the set of blocked signals it is used as the set of signals that sigwait can catch and return.
 
 One advantage of writing a custom signal handling thread (such as the example below) rather than a callback function is that you can now use many more C library and system functions that otherwise could not be safely used in a signal handler because they are not async signal-safe.
 
-Based on Sigmask Code\cite{pthread_sigmask}
+Based on sigmask code \cite{pthread_sigmask}
 
 \begin{lstlisting}[language=C]
-static sigset_t   signal_mask;  /* signals to block         */
+static sigset_t signal_mask; /* signals to block */
 
-int main (int argc, char *argv[]) {
-  pthread_t sig_thr_id;      /* signal handler thread ID */
+int main(int argc, char *argv[]) {
+  pthread_t sig_thr_id; /* signal handler thread ID */
   sigemptyset (&signal_mask);
   sigaddset (&signal_mask, SIGINT);
   sigaddset (&signal_mask, SIGTERM);
@@ -215,90 +382,55 @@ int main (int argc, char *argv[]) {
   ...
 }
 
-void *signal_thread (void *arg) {
-  int       sig_caught;    /* signal caught       */
+void *signal_thread(void *arg) {
+  int sig_caught;
 
   /* Use same mask as the set of signals that we'd like to know about! */
   sigwait(&signal_mask, &sig_caught);
-  switch (sig_caught)
-  {
-    case SIGINT:     /* process SIGINT  */
+  switch (sig_caught) {
+    case SIGINT:
     ...
     break;
-    case SIGTERM:    /* process SIGTERM */
+    case SIGTERM:
     ...
     break;
-    default:         /* should normally not happen */
+    default:
     fprintf (stderr, "\nUnexpected signal %d\n", sig_caught);
     break;
   }
 }
 \end{lstlisting}
 
-\section{Signal Disposition}
+\section{Signals in Child Processes and Threads}
 
-For each process, each signal has a disposition which means what action will occur when a signal is delivered to the process. For example, the default disposition SIGINT is to terminate it. The signal disposition can be changed by calling signal() (which is simple but not portable as there are subtle variations in its implementation on different POSIX architectures and also not recommended for multi-threaded programs) or \keyword{sigaction} (discussed later). You can imagine the processes' disposition to all possible signals as a table of function pointers entries (one for each possible signal).
+This is a recap of the processes chapter.
+After forking, the child process inherits a copy of the parent's signal dispositions and a copy of the parent's signal mask.
+If you have installed a SIGINT handler before forking, then the child process will also call the handler if a SIGINT is delivered to the child.
+If \keyword{SIGINT} is blocked in the parent, it will be blocked in the child as well.
+Note that pending signals for the child are \emph{not} inherited during forking.
+After \keyword{exec} though, only the signal mask and pending signals are carried over \cite{execute}.
+Signal handlers are reset to their original action, because the original handler code may have disappeared along with the old process.
 
-The default disposition for signals can be to ignore the signal, stop the process, continue a stopped process, terminate the process, or terminate the process and also dump a `core' file. Note a core file is a representation of the processes' memory state that can be inspected using a debugger.
-
-Multiple signals cannot be queued. However it is possible to have signals that are in a pending state. If a signal is pending, it means it has not yet been delivered to the process. The most common reason for a signal to be pending is that the process (or thread) has currently blocked that particular signal. If a particular signal, e.g.~SIGINT, is pending then it is not possible to queue up the same signal again. It \emph{is} possible to have more than one signal of a different type in a pending state. For example SIGINT and SIGTERM signals may be pending (i.e.~not yet delivered to the target process)
-
-Signals can be blocked (meaning they will stay in the pending state) by setting the process signal mask or, when you are writing a multithreaded program, the thread signal mask.
-
-\section{Disposition in Child Processes (No Threads)}
-
-After forking, the child process inherits a copy of the parent's signal dispositions and a copy of the parent's signal mask. In other words, if you have installed a SIGINT handler before forking, then the child process will also call the handler if a SIGINT is delivered to the child. Also if \keyword{SIGINT} is blocked in the parent, it will be blocked in the child too. Note pending signals for the child are \emph{not} inherited during forking. But after \keyword{exec}, only the signal mask carries over to the exec-ed program \cite{execute}. Pending signals are preserved as well. Signal handlers are reset to their original disposition, because the original handler code has disappeared along with the old process.
-
-To block signals use \keyword{sigprocmask}! With sigprocmask you can set the new mask, add new signals to be blocked to the process mask, and unblock currently blocked signals. You can also determine the existing mask (and use it for later) by passing in a non-null value for oldset.
-
-\begin{lstlisting}[language=C]
-int sigprocmask(int how, const sigset_t *set, sigset_t *oldset);`
-\end{lstlisting}
-
-From the Linux man page of sigprocmask, here are the how parameters
-
-\begin{itemize}
-\item \keyword{SIG\_BLOCK}. The set of blocked signals is the union of the current set and the
-  set argument.
-\item \keyword{SIG\_UNBLOCK}. The signals in set are removed from the current set of blocked
-  signals. It is permissible to attempt to unblock a signal which is not blocked.
-\item \keyword{SIG\_SETMASK}. The set of blocked signals is set to the argument set.
-\end{itemize}
-
-The sigset type behaves as a bitmap, except functions are used rather than explicitly setting and unsetting bits using \& and \textbar{}. It is a common error to forget to initialize the signal set before modifying one bit. For example,
+Each thread has its own mask.
+A new thread inherits a copy of the calling thread's mask.
+On initialization, the calling thread's mask is the exact same as the processes mask.
+After a new thread is created though, the processes signal mask turns into a gray area.
+Instead, the kernel likes to treat the process as a collection of threads, each of which can institute a signal mask and receive signals.
+In order to start setting your mask you can use,
 
 \begin{lstlisting}[language=C]
-sigset_t set, oldset;
-sigaddset(&set, SIGINT); // Ooops!
-sigprocmask(SIG_SETMASK, &set, &oldset)
+pthread_sigmask(...); // set my mask to block delivery of some signals
+pthread_create(...); // new thread will start with a copy of the same mask
 \end{lstlisting}
 
-Correct code initializes the set to be all on or all off. For example,
+Blocking signals is similar in multi-threaded programs to single-threaded programs with the following translation.
 
-\begin{lstlisting}[language=C]
-sigfillset(&set); // all signals
-sigprocmask(SIG_SETMASK, &set, NULL); // Block all the signals!
-// (Actually SIGKILL or SIGSTOP cannot be blocked...)
+\begin{enumerate}
+\item Use \keyword{pthread\_sigmask} instead of \keyword{sigprocmask}
+\item Block a signal in all threads to prevent its asynchronous delivery
+\end{enumerate}
 
-sigemptyset(&set); // no signals
-sigprocmask(SIG_SETMASK, &set, NULL); // set the mask to be empty again
-\end{lstlisting}
-
-
-\section{Signals in a multithreaded program}
-
-The new thread inherits a copy of the calling thread's mask. On initialization the calling thread's mask is the exact same as the processes mask because threads are essentially processes. After a new thread is created though, the processes signal mask turns into a gray area. Instead, the kernel likes to threat the process as a collection of thread, each of which can institute a signal mask and receive signals. In order to start setting your mask you can use,
-
-\begin{lstlisting}[language=C]
-pthread_sigmask( ... ); // set my mask to block delivery of some signals
-pthread_create( ... ); // new thread will start with a copy of the same mask
-\end{lstlisting}
-
-Blocking signals is similar in multi-threaded programs to single-threaded programs:
-* Use \keyword{pthread\_sigmask} instead of \keyword{sigprocmask}
-* Block a signal in all threads to prevent its asynchronous delivery
-
-The easiest method to ensure a signal is blocked in all threads is to set the signal mask in the main thread before new threads are created
+The easiest method to ensure a signal is blocked in all threads is to set the signal mask in the main thread before new threads are created.
 
 \begin{lstlisting}[language=C]
 sigemptyset(&set);
@@ -318,7 +450,11 @@ pthread_sigmask(SIG_BLOCK, &set, NULL) - add the signal set to the thread's mask
 pthread_sigmask(SIG_UNBLOCK, &set, NULL) - remove the signal set from the thread's mask
 \end{lstlisting}
 
-A signal then can delivered to any signal thread that is not blocking that signal. If the two or more threads can receive the signal then which thread will be interrupted is arbitrary! A common practice is to have one thread that can receive all signals or if there is a certain signal that requires special logic, have multiple threads for multiple signals. Even though programs from the outside can't send signals to specific threads (unless a thread is assigned a signal), you can do that in your program with \keyword{pthread\_kill(pthread\_t thread, int sig)}. In the example below, the newly created thread executing \keyword{func} will be interrupted by \keyword{SIGINT}
+A signal then can delivered to any signal thread that is not blocking that signal.
+If the two or more threads can receive the signal then which thread will be interrupted is arbitrary!
+A common practice is to have one thread that can receive all signals or if there is a certain signal that requires special logic, have multiple threads for multiple signals.
+Even though programs from the outside can't send signals to specific threads, you can do that internally with \keyword{pthread\_kill(pthread\_t thread, int sig)}.
+In the example below, the newly created thread executing \keyword{func} will be interrupted by \keyword{SIGINT}
 
 \begin{lstlisting}[language=C]
 pthread_create(&tid, NULL, func, args);
@@ -326,7 +462,9 @@ pthread_kill(tid, SIGINT);
 pthread_kill(pthread_self(), SIGKILL); // send SIGKILL to myself
 \end{lstlisting}
 
-As a word of warning \keyword{pthread\_kill(threadid, SIGKILL)} will kill the entire process. Though individual threads can set a signal mask, the signal disposition (the table of handlers/action performed for each signal) is \emph{per-proces}s not \emph{per-thread}. This means \keyword{sigaction} can be called from any thread because you will be setting a signal handler for all threads in the process.
+As a word of warning \keyword{pthread\_kill(threadid, SIGKILL)} will kill the entire process.
+Though individual threads can set a signal mask, the signal disposition is \emph{per-proces}s not \emph{per-thread}.
+This means \keyword{sigaction} can be called from any thread because you will be setting a signal handler for all threads in the process.
 
 The Linux man pages discusses signal system calls in section 2. There is also a longer article in section 7 (though not in OSX/BSD):
 
@@ -341,7 +479,7 @@ man -s7 signal
 \item
   Signals
 \item
-  Signal Handler Safe
+  Signal Handler Safety
 \item
   Signal Disposition
 \item
@@ -365,20 +503,20 @@ man -s7 signal
 \item
   How are signals served under UNIX? (Bonus: How about Windows?)
 \item
-  What does it mean that a function is signal handler safe
+  What does it mean that a function is signal handler safe? How about reentrant?
 \item
-  What is a process Signal Disposition?
+  What is a process signal disposition? How does it differ from a mask?
 \item
   How do I change the signal disposition in a single threaded program?
-  How about multithreaded?
+  How about a multithreaded program?
 \item
-  Why sigaction vs signal?
+  What are some drawbacks to using signals?
 \item
   How do I asynchronously and synchronously catch a signal?
 \item
-  What happens to pending signals after I fork? Exec?
+  What happens to pending signals after I fork? exec? How about my signal mask? How about signal disposition?
 \item
-  What happens to my signal disposition after I fork? Exec?
+  What is the process the kernel goes through from creation to delivery/block?
 \end{itemize}
 
 \bibliographystyle{plainnat}
