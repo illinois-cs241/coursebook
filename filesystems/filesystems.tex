@@ -196,7 +196,7 @@ To that, we present a motto programmers take too seriously.
 Except the problem of too many layers of indirection.
 
 To solve this problem, we introduce \keyword{indirect blocks}.
-A single indirect block is a block that store pointers to more data blocks.
+A single indirect block is a block that stores pointers to more data blocks.
 Similarly, a double indirect block stores pointers to single indirect blocks, and the concept can be generalized to arbitrary levels of indirection.
 This is a very important concept, as inodes are stored in the superblock, or some other structure in a well known location with a constant amount of space, indirection allows exponential increases in the amount of space an inode can keep track of.
 
@@ -263,7 +263,7 @@ Additional facts about name-related conventions:
             These are usually \emph{abstract UNIX sockets} and are used to prevent cluttering up the filesystem since they will be effectively hidden by any program not expecting them.
             They will, however, be listed by tools that detail information about sockets, so this is not a feature providing security.
     \item If you want to annoy your neighbor, create a file with the terminal bell character.
-        Ever single time the file is listed (by calling `ls', for example), an audible bell will be heard.
+        Every single time the file is listed (by calling `ls', for example), an audible bell will be heard.
 \end{enumerate}
 
 \subsection{Directory API}
@@ -292,7 +292,7 @@ int exists(char *directory, char *name)  {
 Did you find the bug?
 It leaks resources!
 If a matching filename is found then `closedir' is never called as part of the early return.
-Any file descriptors opened, and any memory allocated, by opendir are never released.
+Any file descriptors opened and any memory allocated by opendir are never released.
 This means eventually the process will run out of resources and an \keyword{open} or \keyword{opendir} call will fail.
 
 The fix is to ensure we free up resources in every possible code path.
@@ -302,11 +302,11 @@ Forgetting to release resources is a common C programming bug because there is n
 
 
 Given an open directory, after a call to \keyword{fork()}, either (XOR), the parent or the child can use \keyword{readdir()}, \keyword{rewinddir()} or \keyword{seekdir()}.
-If both the parent and the child use the above, behavior is undefined.
+If both the parent and the child use the above, the behavior is undefined.
 
 There are two main gotchas and one consideration.
 The \keyword{readdir} function returns ``.'' (current directory) and ``..'' (parent directory).
-If you are looking for sub-directories, you need to explicitly exclude these directories.
+If you are looking for subdirectories, you need to explicitly exclude these directories.
 
 For many applications, it's reasonable to check the current directory first before recursively searching sub-directories.
 This can be achieved by storing the results in a linked list, or resetting the directory struct to restart from the beginning.
@@ -397,7 +397,7 @@ link("file1.txt", "blip.txt");
         Hard links can be created anywhere inside the same filesystem.
 
     \item \keyword{Soft Links}
-        The second kind of link is a soft link - or a symbolic link or a symlink.
+        The second kind of link is called a soft link, symbolic link, or symlink.
         A symbolic link is different because it does not deal with inode numbers directly.
         Instead, a symbolic link is a file on disk with a special bit set and stores a path to another file.
         Quite simply, without the special bit, it is nothing more than a text file with a file path inside.
@@ -569,7 +569,7 @@ if (0 == stat(name, &s)) {
   if (S_ISDIR( s.st_mode)) puts("is a directory");
   if (S_ISREG( s.st_mode)) puts("is a regular file");
 } else {
-  perror("stat failed - are you sure I can read this file's meta data?");
+  perror("stat failed - are you sure I can read this file's metadata?");
 }
 \end{lstlisting}
 
@@ -627,7 +627,7 @@ This owner's user ID (\keyword{uid}) can be found inside the \keyword{st\_mode} 
 Similarly, the group ID (\keyword{gid}) is set as well.
 
 Every process can determine its \keyword{uid} and \keyword{gid} with \keyword{getuid} and \keyword{getgid}.
-When a processes tries to open a file with a specific mode, it's \keyword{uid} and \keyword{gid} are compared with the \keyword{uid} and \keyword{gid} of the file.
+When a process tries to open a file with a specific mode, it's \keyword{uid} and \keyword{gid} are compared with the \keyword{uid} and \keyword{gid} of the file.
 If the \keyword{uid}s match, then the process's request to open the file will be compared with the bits on the user field of the file's permissions.
 Similarly if the \keyword{gid}s match, then the process's request will be compared with the group field of the permissions.
 Finally if none of the IDs match, then the other field will apply.
@@ -679,7 +679,7 @@ Example: \keyword{chmod 755 myfile}
 \subsection{Understanding the `umask'}
 
 The umask \emph{subtracts} (reduces) permission bits from \keyword{777} and is used when new files and new directories are created by open, mkdir etc.
-By default the umask is set to \keyword{022} (octal), which means that group and other privileges will not include the writable bit .
+By default, the umask is set to \keyword{022} (octal), which means that group and other privileges will not include the writable bit .
 Each process has a current umask value.
 When forking, the child inherits the parent's umask value.
 
@@ -782,10 +782,10 @@ Device & Use Case \\ \hline
 \keyword{/sys} & An organized list of internal kernel entities
 \end{tabular}
 
-For example if I want a continuous stream of 0s, I can run \keyword{cat /dev/zero}.
+If we want a continuous stream of 0s, we can run \keyword{cat /dev/zero}.
 
-Another example is the file \keyword{/dev/null}, a great place to store bits that you never need to read!
-Bytes sent to \keyword{/dev/null/} are never stored, but are simply discarded.
+Another example is the file \keyword{/dev/null}, a great place to store bits that you never need to read.
+Bytes sent to \keyword{/dev/null/} are never stored and simply discarded.
 A common use of \keyword{/dev/null} is to discard standard output.
 For example,
 
@@ -1054,7 +1054,7 @@ If one disk fails, the other disk serves as the only copy until it can be re-clo
 Reading data is faster since data can be requested from either disk, but writes are potentially twice as slow because now two write commands need to be issued for every disk block write.
 Compared to using a single disk, the cost of storage per byte has doubled.
 
-Another common RAID scheme is RAID-0, meaning that a file could be split up among two disks, but if any one of the disks fail then the files are irrecoverable.
+Another common RAID scheme is RAID-0, meaning that a file could be split up among two disks, but if any one of the disks fails then the files are irrecoverable.
 This has the benefit of halving write times because one part of the file could be writing to hard disk one and another part to hard disk two.
 
 
@@ -1141,13 +1141,13 @@ These aren't pointers so much as indices into an array.
 We will assume that a data block is 4 KiB.
 
 Note that a file will fill up each of its data blocks completely before requesting an additional data block.
-We will refer to this property as as the file being \textit{compact}.
+We will refer to this property as the file being \textit{compact}.
 The file presented above is interesting since it uses all of it's direct blocks, one of the entries for it's indirect block and partially uses another indirect block.
 
 The following subsections will all refer to the file presented above.
 
 \subsection{How big is our file?}
-The size of a file is not something that we can compute by staring at it's structure.
+The size of a file is not something that we can compute by staring at its structure.
 We need additional information that is typically stored in the inode.
 This is because the filesystem isn't aware of the actual contents of what is in a file - that data is considered the user's and should only be manipulated by the user.
 However, we can compute an upper and lower bounds on the filesize by only looking at how many blocks the file uses.
@@ -1184,8 +1184,8 @@ This means that an additional $4KiB$ of overhead will be used to account for the
 
 Note that when only using direct blocks, completely filling up a direct block implies that our filesize and our disk usage are the same thing!
 While it would seem like we always want this ideal scenario, it puts a very restrictive limit on the maximum filesize.
-Attempting to remedy this by increasing the number of direct blocks seems promising, but note that this requires increasing the size of an inode and reducing the amount of space availible to store user data -- a tradeoff you will have to evaluate for yourself.
-Alternatively always trying to split your data up into chunks that never use indirect blocks is also not necessarily wise since it could exhaust the limited pool of availible inodes.
+Attempting to remedy this by increasing the number of direct blocks seems promising, but note that this requires increasing the size of an inode and reducing the amount of space available to store user data -- a tradeoff you will have to evaluate for yourself.
+Alternatively always trying to split your data up into chunks that never use indirect blocks is also not necessarily wise since it could exhaust the limited pool of available inodes.
 
 
 \subsection{Performing Reads}

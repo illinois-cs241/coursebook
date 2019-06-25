@@ -10,7 +10,7 @@ Our goal is to introduce you to the field of making programs do what you want to
 
 \section{Security Terminology and Ethics}
 
-There is some terminology that needs to be explained to get someone who has little to no experiences in computer security up to speed
+There is some terminology that needs to be explained to get someone who has little to no experience in computer security up to speed
 
 \begin{enumerate}
 \item An \textbf{Attacker} is typically the user who is trying to break into the system. Breaking into the system means performing an action that the developer of the system didn't intend. It could also mean accessing a system you shouldn't have access to.
@@ -37,7 +37,7 @@ If not possible, try to go through the engineering steps
   First you should determine if your use is intended or unintended or somewhere in the middle -- get a decision for them.
   If you can't get that, make a reasonable judgement as to what the intended use.
 \item Figure out a reasonable estimate of what the cost is to ``hacking'' the system.
-  Get that reasonable estimate checked out with a few engineers so they can highlight things that you may've missed.
+  Get that reasonable estimate checked out with a few engineers so they can highlight things that you may have missed.
   Try to get someone to sign off on the plan.
 \item Execute the plan with caution.
   If at any point something seems wrong, weigh the risks and execute.
@@ -102,7 +102,7 @@ Most strings will just cause the program to exit with a segmentation fault
 
 If we manipulate the bytes in certain ways and the program was compiled with the correct flags, we can actually get access to a shell!
 Consider if that file is owned by root, and instead we put in some valid bytecode (x86 opcodes) as the string.
-What will happen is we'll try to execute \keyword{execve('/bin/sh', {'/bin/sh', NULL }, NULL)} that is compiled to the bytecode of the operating system and pass that it as part of our string.
+What will happen is we'll try to execute \keyword{execve('/bin/sh', {'/bin/sh', NULL }, NULL)} that is compiled to the bytecode of the operating system and pass it as part of our string.
 With some luck we will get access to a root shell.
 
 \begin{lstlisting}
@@ -167,7 +167,7 @@ Out of order execution is an amazing development that has been recently adopted 
 Processors now instead of executing a sequence of instructions (let's say assigning a variable and then another variable) execute instructions before the current one is done \cite[P. 45]{guide2011intel}.
 This is because modern processors spend a lot of time waiting for memory accesses and other I/O driven applications.
 This means that a processor while it is waiting for an operation to complete will execute the next few operations.
-If any of the operations would possibly alter the final result, there is a barrier, or if the re-ordering violates the data dependences of the instructions, the processor will not reorder the instructions \cite[P. 296]{guide2011intel}.
+If any of the operations would possibly alter the final result, there is a barrier, or if the re-ordering violates the data dependencies of the instructions, the processor will not reorder the instructions \cite[P. 296]{guide2011intel}.
 
 Naturally, not only has this allowed CPUs to become more energy-efficient while executing more instructions in real time, it has also resulted in increased but naturally comes with security risks and more complex architectures.
 What system programmers are worried about is that operation with mutex locks among threads are out of order -- meaning that a pure software implementation of a mutex will not work without copious memory barriers.
@@ -210,7 +210,7 @@ This should result in a SEGFAULT.
 Since the address was never logically reached by the program, the result is just discarded.
 
 Now here is the trick.
-Even though the value of the calculation would've resulted in a SEGFAULT, the bug doesn't clear the cache that refers to the physical memory where 0xCAFE is located. This not an exact explanation, but essentially how it works.
+Even though the value of the calculation would have resulted in a SEGFAULT, the bug doesn't clear the cache that refers to the physical memory where 0xCAFE is located. This is not an exact explanation, but essentially how it works.
 Since it is still in the cache, if you again trick the processor to read form the cache using \keyword{val} then you will read a memory value that you wouldn't be able to read normally.
 This could include important information such as passwords, payment information etc.
 
@@ -263,13 +263,13 @@ An exhaustive list of features is at \url{https://www.openbsd.org/innovations.ht
   Those permissions apply to all forked programs as well.
   This means if you have a suspicious executable that you want to run whose description is ``creates a new file and outputs random words'' one could use this call to restrict access to a safe subdirectory and watch it receive the SIGKILL signal if it tries to access system files in the root directory, for example.
   This could be useful for your program as well.
-  If you want to ensure that no user data is lost during a update (which is what happened with a Steam system update), then the system could only reveal the program's installation directory.
+  If you want to ensure that no user data is lost during an update (which is what happened with a Steam system update), then the system could only reveal the program's installation directory.
   If an attacker manages to find an exploit in the executable, it can only compromise the installation directory.
 \item sudo.
   Sudo is an openBSD project that runs everywhere!
   Before to run commands as root, one would have to drop to a root shell.
   Some times that would also mean giving users scary system capabilities.
-  Sudo gives you the access to perform commands as root for one-offs without giving a long list of capabilities to all of your users.
+  Sudo gives you access to perform commands as root for one-offs without giving a long list of capabilities to all of your users.
 \end{enumerate}
 
 \subsection{Virtualization Security}
@@ -277,7 +277,7 @@ An exhaustive list of features is at \url{https://www.openbsd.org/innovations.ht
 Virtualization is the act of creating a virtual version of an environment for a program to run on.
 Though that definition might be bent a little with the advent of new-age bare metal Virtual Machines, the abstraction is still there.
 One can imagine a single Operating System per motherboard.
-Virtualization in the software sense is providing ``virtual'' mother board features like USB ports or monitors that another program (the bridge) communicates with the actual hardware to perform a task.
+Virtualization in the software sense is providing ``virtual'' motherboard features like USB ports or monitors that another program (the bridge) communicates with the actual hardware to perform a task.
 A simple example is running a virtual machine on your host desktop!
 One can spin up an entirely different operating system whose instructions are fed through another program and executed on the host system.
 There are many forms of virtualization that we use today. We will discuss two popular forms below.
@@ -303,7 +303,7 @@ Here are some simple examples of security provided through virtualization
   We won't go into this too much, just know that they exist.
 \item Hardware virtualization technology.
   Hardware vendors have become increasingly aware that physical protections are needed when emulating instructions.
-  As such, there can be switches enabled by the user that allows the operating system to flip into a virtualization mode where instructions are run as normal, but are monitered for malicious activity.
+  As such, there can be switches enabled by the user that allows the operating system to flip into a virtualization mode where instructions are run as normal, but are monitored for malicious activity.
   This helps the performance and increases security of virtualized environments.
 \end{enumerate}
 
@@ -341,8 +341,8 @@ More and more of our systems are hacked over the web, it is important to underst
 \item Identity Verification.
   In TCP, there is no way to verify the identity of who the program is connecting to.
   There are no checks or federated databases in place.
-  One just has to trust the the DNS server gave a resonable response which is almost always the incorrect answer.
-  Apart from systems that have a approved white list or a ``secret'' connection protocol, there is little at the TCP level that one can do to stop.
+  One just has to trust the DNS server gave a reasonable response which is almost always the incorrect answer.
+  Apart from systems that have an approved white list or a ``secret'' connection protocol, there is little at the TCP level that one can do to stop.
 \item Syn-Ack Sequence Number.
   This is a security improvement.
   TCP features what we call sequence numbers.
@@ -374,7 +374,7 @@ This can get into serious spoofing attacks if one tries to pretend they are a ma
 \begin{enumerate}
 \item Security Terminology
 \item Security in local C programs
-\item Security in Cyber Space
+\item Security in CyberSpace
 \end{enumerate}
 
 \section{Review}

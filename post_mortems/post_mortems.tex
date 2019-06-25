@@ -55,7 +55,7 @@ The mars pathfinder was a mission that tried to collect climate data on Mars. Th
 
 The pattern that caused everything to start failing was the data collection thread starts writing to the bus, the information bus thread is waiting on the data and then out of nowhere the communication thread comes in. The communication thread would preempt the other lower priority thread \textbf{while the lower priority thread still held the mutex}. This means when the regular priority thread tried to lock the bus, you'd get deadlock. After some time the system would reset, but ideally this isn't a good thing to leave to chance.
 
-Moral of the lesson? Don't have the applications themselves deal with the synchronization. Define a module that handles mutex locking and have module communicate with each others through files, IPC, etc etc.
+Moral of the lesson? Don't have the applications themselves deal with the synchronization. Define a module that handles mutex locking and have module communicate through files, IPC, etc etc.
 
 \section{Mars Again}
 
@@ -63,7 +63,7 @@ Required Sections: Malloc
 
 \href{https://www.computerworld.com/article/2574759/data-storage-solutions/out-of-memory-problem-caused-mars-rover-s-glitch.html}{Mars}
 
-The short of it is they ran out of memory. The long of it is they ran out of memory, disk space, and swap space. The moral of the story? Make sure to write code that can handle file failures and can handle files when they close and go out of memory, so the operating system can hotswap file to free up memory. Also clean up files, assume that your tmp directory is roughly a hundredth or a thousandth of the total size and use that.
+The short of it is that they ran out of memory. The long of it is that they ran out of memory, disk space, and swap space. The moral of the story? Make sure to write code that can handle file failures and can handle files when they close and go out of memory, so the operating system can hot swap file to free up memory. Also clean up files, assume that your tmp directory is roughly a hundredth or a thousandth of the total size and use that.
 
 \section{Year 2038}
 
@@ -71,10 +71,14 @@ Required sections: Intro to C
 
 \href{https://en.wikipedia.org/wiki/Year_2038_problem}{2038}
 
-This is actual a fundamental problem that hasn't happened yet. Unix time stamps are kept as the number of seconds from a particular day (Jan 1st 1970). This is stored as a 32 bit signed integer. In March of 2038, this number will overflow. This isn't a problem for most modern operating system who store 64 bit signed integers which is enough to keep us going until the end of time, but it is a problem for embedded devices that we can't change the internal hardware to. Stay tuned to see what happens.
+This is problem that hasn't happened yet.
+Unix timestamps are kept as the number of seconds from a particular day (Jan 1st 1970).
+This is stored as a 32 bit signed integer.
+In March of 2038, this number will overflow.
+This isn't a problem for most modern operating system who store 64 bit signed integers which is enough to keep us going until the end of time, but it is a problem for embedded devices that we can't change the internal hardware to.
+Stay tuned to see what happens.
 
 Lessons learned: Plan like your application will be huge one day.
-
 
 \section{Northeast Blackout of 2003}
 
@@ -82,7 +86,8 @@ Required Sections: Synchronization
 
 \href{https://en.wikipedia.org/wiki/Northeast_blackout_of_2003}{2003}
 
-Very simply put a race condition triggered a series of undefined events in a system that cause the blackout of most of the northeastern part of North America for quite some time. This bug also turned off or caused the backup system and the logging systems to fail so people didn't even know of the bug for an hour. The exact bits that were flipped are not known, but patches have been put into place.
+Very simply put a race condition triggered a series of undefined events in a system that caused the blackout of most of the northeastern part of North America for quite some time.
+This bug also turned off or caused the backup system and logging systems to fail so people didn't even know of the bug for an hour. The exact bits that were flipped are not known, but patches have been put into place.
 
 Lessons Learned: Modularize your code to localize failures (i.e. keeping race conditions different between processes). If you need to synchronize among processes make sure your failure detection system is not interlaced with your system.
 
@@ -93,7 +98,7 @@ Required Sections: Intro to C
 
 \href{http://appleinsider.com/articles/15/05/26/bug-in-ios-notifications-handling-crashes-iphones-with-a-simple-text}{Crashing your iphone with text}
 
-Wonder why we teach string parsing? Because it is hard thing to do even for professional software developers. This bug allowed a lot of undefined behavior when trying to parse a series of unicode characters. Apple probably knows why this happened, but my guess is that the parsing of the string happens somewhere inside the kernel and a segfault is reached. When you get a segfault in the kernel, your kernel panics, and the entire device reboots. Undefined behavior means anything though, and a lot of varied things did happen with this bug.
+Wonder why we teach string parsing? Because it is a hard thing to do even for professional software developers. This bug allowed a lot of undefined behavior when trying to parse a series of unicode characters. Apple probably knows why this happened, but my guess is that the parsing of the string happens somewhere inside the kernel and a segfault is reached. When you get a segfault in the kernel, your kernel panics, and the entire device reboots. Undefined behavior means anything though, and a lot of varied things did happen with this bug.
 
 Lessons Learned: Fuzz your kernel
 
@@ -146,7 +151,7 @@ $ rm -rf $ROOT
 
 Well what happens if \$0 or the first parameter passed into a script doesn't exist? You move to root, and you delete your entire computer.
 
-Lessons Learned: Do parameter checks, always always always set \keyword{set -e} on a script and if you expect a command to fail, explicitly list it. You can also alias rm to mv and then delete the trash later.
+Lessons Learned: Do parameter checks, always always always \keyword{set -e} on a script and if you expect a command to fail, explicitly list it. You can also alias rm to mv and then delete the trash later.
 
 \section{Appnexus Double Free}
 

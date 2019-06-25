@@ -10,14 +10,14 @@ POSIX also lets you peer underneath the hood and optimize all the little parts o
 
 As an addendum that you'll read more about in the next chapter, we will be very strict in our notation for sizes.
 That means that when we refer to the SI prefixes of Kilo- Mega- etc etc, then we are always referring to a power of 10.
-A kilobyte is one thousand bytes, megabyte is thousand kilobytes etc etc.
+A kilobyte is one thousand bytes, a megabyte is a thousand kilobytes and so on.
 If we need to refer to \keyword{1024} bytes, we will use the more accurate term Kibibyte. Mibibyte and Gibibyte are the analogues of Megabyte and Gigabyte respectively.
 We make this distinction in order to make sure that we aren't off by 24.
 The reasons for this misnomer will be explained in the filesystems chapter.
 
 \section{The OSI Model}
 
-The Open Source Interconnection 7 layer model (OSI Model) is a sequence of segments that define standards for both infrastructure and protocols for forms of radio communication, in our case the internet.
+The Open Source Interconnection 7 layer model (OSI Model) is a sequence of segments that define standards for both infrastructure and protocols for forms of radio communication, in our case the Internet.
 The 7 layer model is as follows
 
 \begin{enumerate}
@@ -30,7 +30,7 @@ The 7 layer model is as follows
   This is where \gls{Ethernet} and \gls{WiFi} live.
 
 \item Layer 3: The network layer.
-  This is the heart of the internet.
+  This is the heart of the Internet.
   The bottom two protocols deal with communication between two different computers that are directly connected.
   This layer deals with routing packets from one endpoint to another.
 
@@ -40,7 +40,7 @@ The 7 layer model is as follows
   Using different protocols, this layer can.
 
 \item Layer 5: The session layer.
-  This layer makes sure that if a connection in the previous layers is dropped, a new connection in the lower layers can be established, and it looks like a nothing happened to the end user.
+  This layer makes sure that if a connection in the previous layers is dropped, a new connection in the lower layers can be established, and it looks like nothing happened to the end user.
 
 \item Layer 6: The presentation layer.
   This layer deals with encryption, compression, and data translation.
@@ -48,26 +48,26 @@ The 7 layer model is as follows
 
 \item Layer 7: The application layer.
   \gls{HTTP} and \gls{FTP} are both defined at this level.
-  This is typically where we define protocols across the internet.
+  This is typically where we define protocols across the Internet.
   As programmers, we only go lower when we think we can create algorithms that are more suited to our needs than all of the below.
 
 \end{enumerate}
 
 This book won't cover networking in depth.
-We will focus on some aspects of layers 3, 4, and 7 because they are essential to know if you are going to be doing something with the internet, which at some point in your career you will be.
+We will focus on some aspects of layers 3, 4, and 7 because they are essential to know if you are going to be doing something with the Internet, which at some point in your career you will be.
 As for another definition, a protocol is a set of specifications put forward by the \gls{Internet Engineering Task Force} that govern how implementers of protocol have their program or circuit behave under specific circumstances.
 
 \section{Layer 3: The Internet Protocol}
 
 The following is a short introduction to internet protocol (IP), the primary way to send datagrams of information from one machine to another.
 ``IP4'', or more precisely, \gls{IPv4} is version 4 of the Internet Protocol that describes how to send \gls{packets} of information across a network from one machine to another.
-Even as of 2018, IPv4 still dominates internet traffic, but google reports that 24 countries now supply 15\% of their traffic through IPv6 \cite{internet_society_2018}.
+Even as of 2018, IPv4 still dominates Internet traffic, but google reports that 24 countries now supply 15\% of their traffic through IPv6 \cite{internet_society_2018}.
 A significant limitation of IPv4 is that source and destination addresses are limited to 32 bits.
 IPv4 was designed at a time when the idea of 4 billion devices connected to the same network was unthinkable or at least not worth making the packet size larger.
 \gls{IPv4 address} are written typically in a sequence of four octets delimited by periods "255.255.255.0" for example.
 
 Each IPv4 \gls{datagram} includes a very small header - typically 20 \gls{octets}, that includes a source and destination address.
-Conceptually the source and destination addresses can be split into two: a network number the upper bits and the lower bits represent a particular host number on that network.
+Conceptually the source and destination addresses can be split into two: a network number the upper bits and lower bits represent a particular host number on that network.
 
 A newer packet protocol \gls{IPv6} solves many of the limitations of IPv4 like making routing tables simpler and 128 bit addresses.
 However, very little web traffic is IPv6 based by comparison \cite{internet_society_2018}
@@ -77,12 +77,12 @@ Since that can get unruly, we can omit the zeros "1F45::". A machine can have an
 There are special IP Addresses.
 One such in IPv4 is \keyword{127.0.0.1}, IPv6 as \keyword{0:0:0:0:0:0:0:1} or \keyword{::1} also known as localhost.
 Packets sent to 127.0.0.1 will never leave the machine; the address is specified to be the same machine.
-There are a lot of others that are denoted by certain octets being zeros or 255, the maximum value. You won't need to know all the terminology, just keep in mind that the actual number of IP addresses that a machine can have globally over the internet is smaller than the number of ``raw'' addresses.
+There are a lot of others that are denoted by certain octets being zeros or 255, the maximum value. You won't need to know all the terminology, just keep in mind that the actual number of IP addresses that a machine can have globally over the Internet is smaller than the number of ``raw'' addresses.
 For the purposes of the class, you need to know at this layer that IP deals with routing, fragmenting, and reassembling upper level protocols. A more in-depth aside follows.
 
 \subsection{Extra: In-depth IPv4 Specification}
 
-The internet protocol deals with routing, fragmentation, and reassembly of fragments.
+The Internet Protocol deals with routing, fragmentation, and reassembly of fragments.
 Datagrams are formatted as such
 
 \begin{figure}[H]
@@ -127,9 +127,9 @@ Datagrams are formatted as such
 
 \subsection{Extra: Routing}
 
-The internet protocol routing is an amazing intersection of theory and application.
-We can imagine the entire internet as a set of graphs.
-Most peers are connected to what we call "peering points" these are the WiFi routers and the Ethernet ports that one finds in their house, work, or public.
+The Internet Protocol routing is an amazing intersection of theory and application.
+We can imagine the entire Internet as a set of graphs.
+Most peers are connected to what we call "peering points" these are the WiFi routers and Ethernet ports that one finds in their house, work, or public.
 These peering points are then connected to a wired network of routers, switches, and servers that all route themselves.
 At a top level there are two types of routing
 
@@ -141,7 +141,7 @@ At a top level there are two types of routing
 \item External Routing Protocols.
   These typically happen to be ISP to ISP protocol.
   Certain routers are designated as border routers.
-  These routers talk to routers from ISPs have have different policies from accepting or receiving packets.
+  These routers talk to routers from ISPs have different policies from accepting or receiving packets.
   If an evil ISP is trying to dump all network traffic onto your ISP, these routers would deal with that.
   These protocols also deal with gathering information about the outside world to each router.
   In most routing protocols using link state or OSPF, a router must necessarily calculate the shortest path to the destination.
@@ -166,7 +166,7 @@ The reason being is
   \item There are physical limitations, keeping a laser beam in optics working continuously may cause bit errors.
 \end{enumerate}
 
-If the internet protocol receives a packet that is too big for the maximum size, it must chunk it up.
+If the Internet Protocol receives a packet that is too big for the maximum size, it must chunk it up.
 TCP calculates how many datagrams that it needs to construct a packet and ensures that they are all transmitted and reconstructed at the end receiver.
 The reason that we barely use this feature is that if any fragment is lost, the entire packet is lost.
 Meaning that, assuming the probability of receiving a packet assuming each fragment is lost with an independent percentage, the probability of successfully sending a packet drops off exponentially as packet size increases.
@@ -192,18 +192,18 @@ Note that this will cause undue stress on the network, so a series of multicasts
 One of the big features of IPv6 is the address space.
 The world ran out of IP addresses a while ago and has been using hacks to get around that.
 With IPv6 there are enough internal and external addresses, so that unless we discover alien civilizations, we probably won't run out.
-The other benefit is that these addresses are leased not bought, meaning that if something drastic happens in let's say the internet of things and there needs to be a change in the block addressing scheme, it can be done.
+The other benefit is that these addresses are leased not bought, meaning that if something drastic happens in let's say the Internet of things and there needs to be a change in the block addressing scheme, it can be done.
 
 Another big feature is security through IPsec.
 IPv4 was designed with little to no security in mind.
 As such, now there is a key exchange similar to TLS in higher layers that allows you to encrypt communication.
 
 Another feature is simplified processing.
-In order to make the internet fast, IPv4 and IPv6 headers verification are actually implemented in hardware.
+In order to make the Internet fast, IPv4 and IPv6 headers verification are actually implemented in hardware.
 That means that all header options are processed in circuits as they come in.
 The problem is that as the IPv4 spec grew to include a copious amount of headers, the hardware had to become more and more advanced to support those headers.
 IPv6 reorders the headers so that packets can be dropped and routed with less hardware cycles.
-In the case of the internet, every cycle matters when trying to route the world's traffic.
+In the case of the Internet, every cycle matters when trying to route the world's traffic.
 
 \subsection{What's My Address?}
 
@@ -322,7 +322,7 @@ Just replace the ai\_family attribute in the above code with the following.
 hints.ai_family = AF_UNSPEC
 \end{lstlisting}
 
-If you are wondering how the the computer maps \gls{hostnames} to addresses, we will talk about that in Layer 7.
+If you are wondering how the computer maps \gls{hostnames} to addresses, we will talk about that in Layer 7.
 Spoiler: It is a service called \gls{DNS}.
 Before we move onto the next section, it is important to note that a single website can have multiple IP addresses.
 This may be to be efficient with machines.
@@ -350,10 +350,10 @@ TCP has a number of features that set it apart from the other transport protocol
   \item \gls{Ports}
   With IP, you are only allowed to send packets to a machine.
   If you want one machine to handle multiple flows of data, you have to do it manually with IP.
-  TCP abstracts that an gives the programmer a set of virtual sockets.
+  TCP abstracts that gives the programmer a set of virtual sockets.
   Clients specify the socket that you want the packet sent to and the TCP protocol makes sure that applications that are waiting for packets on that port receive that.
   A process can listen for incoming packets on a particular port.
-  However only processes with \gls{super-user} (root) access can listen on ports less than 1024.
+  However, only processes with \gls{super-user} (root) access can listen on ports less than 1024.
   Any process can listen on ports 1024 or higher.
   An often used port is port 80: Port 80 is used for unencrypted HTTP requests or web pages.
   For example, if a web browser connects to \keyword{http://www.bbc.com/} then it will be connecting to port 80.
@@ -379,7 +379,7 @@ TCP has a number of features that set it apart from the other transport protocol
 \item Flow Control.
   Flow control is performed on the receiver side.
   This may be done so that a slow receiver doesn't get overwhelmed with packets.
-  Servers especially that may handle 10000 or 10 million concurrent connection may need to tell receivers to slow down, but not disconnect due to load.
+  Servers especially that may handle 10000 or 10 million concurrent connections may need to tell receivers to slow down, but not disconnect due to load.
   There are also other problem of making sure the local network is not overwhelmed
 
 \item Congestion control.
@@ -424,8 +424,8 @@ Integers can be represented in least significant byte first or most-significant 
 Either approach is reasonable as long as the machine itself is internally consistent.
 For network communications, we need to standardize on agreed format.
 
-\keyword{htons(xyz)} returns the 16 bit unsigned integer `short' value xyz in network byte order.
-\keyword{htonl(xyz)} returns the 32 bit unsigned integer `long' value xyz in network byte order.
+\keyword{htons(xyz)} returns the 16-bit unsigned integer `short' value xyz in network byte order.
+\keyword{htonl(xyz)} returns the 32-bit unsigned integer `long' value xyz in network byte order.
 Any longer integers need to have the computers specify the order.
 
 These functions are read as `host to network'.
@@ -493,7 +493,7 @@ if(result) {
 
 \item \keyword{int socket(int domain, int socket\_type, int protocol);}
 
-The socket call creates an network socket and returns a descriptor that can be used with \keyword{read} and \keyword{write}.
+The socket call creates a network socket and returns a descriptor that can be used with \keyword{read} and \keyword{write}.
 In this sense it is the network analog of \keyword{open} that opens a file stream -- except that we haven't connected the socket to anything yet!
 
 Sockets are created with a domain \keyword{AF\_INET} for \keyword{IPv4} or \keyword{AF\_INET6} for \keyword{IPv6}, \keyword{socket\_type} is whether to use UDP or TCP or other socket type, \keyword{protocol} is an optional choice of protocol configuration for our examples this we can just leave this as 0 for default.
@@ -735,7 +735,7 @@ In General, there are six parts
 \item The method. GET,POST,\ldots{}
 \item The resource. ``/'' ``/index.html'' ``/image.png''
 \item The protocol ``HTTP/1.0''
-\item A New lines (\keyword{\\r\\n}). Requests always have a carriage return.
+\item A new line (\keyword{\\r\\n}). Requests always have a carriage return.
 \item Any other knobs or switch parameters
 \item The actual body of the request delimited by two new lines. The body of the request is either if the size is specified or until the receiver closes their connection.
 \end{enumerate}
@@ -764,7 +764,7 @@ Each has a specific purpose and should be called in roughly the above order
 
   \item \keyword{int socket(int domain, int socket\_type, int protocol)}
 
-  To create a endpoint for networking communication.
+  To create an endpoint for networking communication.
   A new socket by itself is not particularly useful.
   Though we've specified either a packet or stream-based connections, it is not bound to a particular network interface or port.
   Instead socket returns a network descriptor that can be used with later calls to bind, listen and accept.
@@ -809,16 +809,16 @@ Each has a specific purpose and should be called in roughly the above order
   \item \keyword{int accept(int sockfd, struct sockaddr *addr, socklen\_t *addrlen);}
 
   Once the server socket has been initialized the server calls \keyword{accept} to wait for new connections.
-  Unlike \keyword{socket} \keyword{bind} and \keyword{listen}, this call will block, unless the nonblocking option has been set.
+  Unlike \keyword{socket} \keyword{bind} and \keyword{listen}, this call will block, unless the non blocking option has been set.
   If there are no new connections, this call will block and only return when a new client connects.
   The returned TCP socket is associated with a particular tuple \keyword{(client IP, client port, server IP, server port)} and will be used for all future incoming and outgoing TCP packets that match this tuple.
 
   Note the \keyword{accept} call returns a new file descriptor.
   This file descriptor is specific to a particular client.
-  It is common programming mistake to use the original server socket descriptor for server I/O and then wonder why networking code has failed.
+  It is a common programming mistake to use the original server socket descriptor for server I/O and then wonder why networking code has failed.
 
   The \keyword{accept} system call can optionally provide information about the remote client, by passing in a sockaddr struct.
-  Different protocols have differently variants of the \keyword{struct sockaddr}, which are different sizes.
+  Different protocols have different variants of the \keyword{struct sockaddr}, which are different sizes.
   The simplest struct to use is the \keyword{sockaddr\_storage} which is sufficiently large to represent all possible types of sockaddr.
   Notice that C does not have any model of inheritance.
   Therefore we need to explicitly cast our struct to the `base type' struct sockaddr.
@@ -874,7 +874,7 @@ There are a few gotchas to creating a server.
 \item
   Not specifying SOCK\_STREAM requirement for getaddrinfo
 \item
-  Not being able to re-use an existing port.
+  Not being able to reuse an existing port.
 \item
   Not initializing the unused struct entries
 \item
@@ -1140,8 +1140,8 @@ int addrlen = sizeof(addr);
 byte_count = recvfrom(sockfd, buf, sizeof(buf), 0, &addr, &addrlen);
 \end{lstlisting}
 
-The addr struct will hold sender (source) information about the arriving packet.
-Note the \keyword{sockaddr\_storage} type is a sufficiently large enough to hold all possible types of socket addresses -- IPv4, IPv6 or any other internet protocol.
+The addr struct will hold the sender (source) information about the arriving packet.
+Note the \keyword{sockaddr\_storage} type is a sufficiently large enough to hold all possible types of socket addresses -- IPv4, IPv6 or any other Internet Protocol.
 The full UDP server code is below.
 
 \begin{lstlisting}[language=C]
@@ -1194,7 +1194,7 @@ To make sure that you have enough space, use 64 KiB as storage space.
 \section{Layer 7: HTTP}
 
 Layer 7 of the OSI layer deals with application level interfaces.
-Meaning that you can ignore everything below this layer and treat an internet as a way of communicating with another computer than can be secure and the session may reconnect.
+Meaning that you can ignore everything below this layer and treat the Internet as a way of communicating with another computer than can be secure and the session may reconnect.
 Common layer 7 protocols are the following
 
 \begin{enumerate}
@@ -1412,7 +1412,7 @@ close(epfd);
 
 In addition to non-blocking \keyword{read()} and \keyword{write()}, any calls to \keyword{connect()} on a non-blocking socket will also be non-blocking.
 To wait for the connection to complete, use \keyword{select()} or epoll to wait for the socket to be writable.
-There are definitely reasons to use epoll over select but due to to interface, there are fundamental problems with doing so.
+There are definitely reasons to use epoll over select but due to interface, there are fundamental problems with doing so.
 
 \href{https://idea.popcount.org/2017-01-06-select-is-fundamentally-broken/}{Blogpost about select being broken}
 
@@ -1496,7 +1496,7 @@ Please read through most of \keyword{man 7 epoll} before starting to program. Th
 
 \subsection{Assorted Epoll Gotchas}
 
-There are number of problems with using epoll. Here we will detail a few.
+There are a number of problems with using epoll. Here we will detail a few.
 
 \begin{enumerate}
 \item There are two modes. Level triggered and edge triggered. Level triggered means that while the file descriptor has events on it, it will be returned by epoll when calling the ctl function. In edge triggered, the caller will only get the file descriptor once it goes from zero events to an event.
@@ -1549,17 +1549,17 @@ This in principle can be used to improve the security of a system by ensuring co
 Unfortunately, security concerns need to be carefully assessed to ensure that RPC mechanisms cannot be subverted to perform unwanted actions.
 For example, an RPC implementation may implicitly trust any connected client to perform any action, rather than a subset of actions on a subset of the data.
 
-\subsection{Stub code and Marshalling}
+\subsection{Stub code and Marshaling}
 
 The stub code is the necessary code to hide the complexity of performing a remote procedure call.
-One of the roles of the stub code is to \emph{marshall} the necessary data into a format that can be sent as a byte stream to a remote server.
+One of the roles of the stub code is to \emph{marshal} the necessary data into a format that can be sent as a byte stream to a remote server.
 
 \begin{lstlisting}[language=C]
 // On the outside 'getHiscore' looks like a normal function call
-// On the inside the stub code performs all of the work to send and receive the data to and from the remote machine.
+// On the inside the stub code performs all of the work to send and receive data to and from the remote machine.
 
 int getHighScore(char* game) {
-  // Marshall the request into a sequence of bytes:
+  // Marshal the request into a sequence of bytes:
   char* buffer;
   asprintf(&buffer,"getHiscore(%s)!", name);
 
@@ -1579,9 +1579,9 @@ int getHighScore(char* game) {
 \end{lstlisting}
 
 Using a string format may be a little inefficient.
-A good example of this marshalling is golang's grpc or google RPC. There is a version in C as well if you want to check that out.
+A good example of this marshaling is golang's grpc or google RPC. There is a version in C as well if you want to check that out.
 
-The server stub code will receive the request, unmarshall the request into a valid in-memory data call the underlying implementation and send the result back to the caller.
+The server stub code will receive the request, unmarshal the request into a valid in-memory data call the underlying implementation and send the result back to the caller.
 Often the underlying library will do this for you.
 
 To implement RPC you need to decide and document which conventions you will use to serialize the data into a byte sequence.
@@ -1594,12 +1594,12 @@ Even a simple integer has several common choices.
 \item Little or Big endian binary format if using binary?
 \end{enumerate}
 
-To marshall a struct, decide which fields need to be serialized.
+To marshal a struct, decide which fields need to be serialized.
 It may not be necessary to send all data items.
 For example, some items may be irrelevant to the specific RPC or can be re-computed by the server from the other data items present.
 
-For example to marshall a linked list, it is unnecessary to send the link pointers, just stream the values.
-As part of unmarshalling, the server can recreate a linked list structure from the byte sequence.
+For example to marshal a linked list, it is unnecessary to send the link pointers, just stream the values.
+As part of unmarshaling, the server can recreate a linked list structure from the byte sequence.
 
 By starting at the head node/vertex, a simple tree can be recursively visited to create a serialized version of the data.
 A cyclic graph will usually require additional memory to ensure that each edge and vertex is processed exactly once.
@@ -1607,18 +1607,18 @@ A cyclic graph will usually require additional memory to ensure that each edge a
 \subsection{Interface Description Language}
 
 Writing stub code by hand is painful, tedious, error prone, difficult to maintain and difficult to reverse engineer the wire protocol from the implemented code.
-A better approach is specify the data objects, messages and services and automatically generate the client and server code.
+A better approach is to specify the data objects, messages and services and automatically generate the client and server code.
 A modern example of an Interface Description Language is Google's Protocol Buffer .proto files.
 
 Even then, Remote Procedure Calls are significantly slower (10x to 100x) and more complex than local calls.
-An RPC must marshall data into a wire-compatible format.
+An RPC must marshal data into a wire-compatible format.
 This may require multiple passes through the data structure, temporary memory allocation and transformation of the data representation.
 
 Robust RPC stub code must intelligently handle network failures and versioning.
 For example, a server may have to process requests from clients that are still running an early version of the stub code.
 
 A secure RPC will need to implement additional security checks including authentication and authorization, validate data and encrypt communication between the client and host.
-A lot of the time, the RPC system can do this efficiently for you. Consider if you have both a RPC client and server on the same machine.
+A lot of the time, the RPC system can do this efficiently for you. Consider if you have both an RPC client and server on the same machine.
 Starting up a thrift of grpc server could validate and route the request to a local socket which wouldn't be sent over the network.
 
 \subsection{Transferring Structured Data}
@@ -1636,12 +1636,12 @@ Examples of JSON and XML messages are below.
 \end{lstlisting}
 
 Google Protocol Buffers is an open-source efficient binary protocol that places a strong emphasis on high throughput with low CPU overhead and minimal memory copying.
-This means client and server stub code in multiple languages can be generated from the .proto specification file to marshall data to and from a binary stream.
+This means client and server stub code in multiple languages can be generated from the .proto specification file to marshal data to and from a binary stream.
 
 \href{https://developers.google.com/protocol-buffers/docs/overview}{Google Protocol Buffers} reduces the versioning problem by ignoring unknown fields that are present in a message.
 See the introduction to Protocol Buffers for more information.
 
-The general chain is to abstract away the actual business logic and the various marshalling code.
+The general chain is to abstract away the actual business logic and the various marshaling code.
 If your application ever becomes CPU bound parsing XML, Json or YAML, switch to protocol buffers!
 
 \section{Topics}
@@ -1698,7 +1698,7 @@ If your application ever becomes CPU bound parsing XML, Json or YAML, switch to 
 \item
   What is a remote procedure call? When should I use it?
 \item
-  What is marshalling/unmarshalling? Why is HTTP \emph{not} an RPC?
+  What is marshaling/unmarshaling? Why is HTTP \emph{not} an RPC?
 \end{itemize}
 
 \bibliographystyle{plainnat}

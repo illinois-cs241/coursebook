@@ -132,7 +132,7 @@ if(f) {
 fclose(f);
 \end{lstlisting}
 
-\item How would you print the values of variables a,mesg,val and ptr to a string? Print a as an integer, mesg as C string, val as a double val and ptr as a hexadecimal pointer. You may assume the mesg points to a short C string(\textless{}50 characters). Bonus: How would you make this code more robust or able to cope with?
+\item How would you print the values of the variables \keyword{a}, \keyword{mesg}, \keyword{val} and \keyword{ptr} to a string? Print a as an integer, mesg as C string, val as a double val and ptr as a hexadecimal pointer. You may assume the mesg points to a short C string(\textless{}50 characters). Bonus: How would you make this code more robust or able to cope with?
 
 \begin{lstlisting}[language=C]
 char* toString(int a, char*mesg, double val, void* ptr) {
@@ -306,7 +306,7 @@ void sub(int value) {
 }
 \end{lstlisting}
 
-\item A non-threadsafe data structure has \keyword{size()} \keyword{enq} and \keyword{deq} methods. Use condition variable and mutex lock to complete the thread-safe, blocking versions.
+\item An thread unsafe data structure has \keyword{size()} \keyword{enq} and \keyword{deq} methods. Use condition variable and mutex lock to complete the thread-safe, blocking versions.
 
 \begin{lstlisting}[language=C]
 void enqueue(void* data) {
@@ -319,7 +319,7 @@ void* dequeue() {
 }
 \end{lstlisting}
 
-\item Your startup offers path planning using latest traffic information. Your overpaid intern has created a non-threadsafe data structure with two functions: \keyword{shortest} (which uses but does not modify the graph) and \keyword{set\_edge} (which modifies the graph).
+\item Your startup offers path planning using the latest traffic information. Your overpaid intern has created a thread unsafe data structure with two functions: \keyword{shortest} (which uses but does not modify the graph) and \keyword{set\_edge} (which modifies the graph).
 
 \begin{lstlisting}[language=C]
 graph_t* create_graph(char* filename); // called once
@@ -334,7 +334,7 @@ void set_edge(graph_t* graph, int i, int j, double time);
 
 For performance, multiple threads must be able to call \keyword{shortest} at the same time but the graph can only be modified by one thread when no threads other are executing inside \keyword{shortest} or \keyword{set\_edge}.
 
-\item Use mutex lock and condition variables to implement a reader-writer solution. An incomplete attempt is shown below. Though this attempt is threadsafe (thus sufficient for demo day!), it does not allow multiple threads to calculate \keyword{shortest} path at the same time and will not have sufficient throughput.
+\item Use mutex lock and condition variables to implement a reader-writer solution. An incomplete attempt is shown below. Though this attempt is thread safe (thus sufficient for demo day!), it does not allow multiple threads to calculate \keyword{shortest} path at the same time and will not have sufficient throughput.
 
 \begin{lstlisting}[language=C]
 path_t* shortest_safe(graph_t* graph, int i, int j) {
@@ -373,7 +373,14 @@ void set_edge_safe(graph_t* graph, int i, int j, double dist) {
 
 \item What do each of the Coffman conditions and what do they mean? Can you provide a definition of each one and an example of breaking them using mutexes?
 
-\item Give a real life example of breaking each Coffman condition in turn. A situation to consider: Painters, paint and paint brushes. Hold and wait Circular wait No pre-emption Mutual exclusion
+\item Give a real life example of breaking each Coffman condition in turn. A situation to consider: Painters, paint and paint brushes.
+
+  \begin{enumerate}
+  \item Hold and wait
+  \item Circular wait
+  \item No preemption 
+  \item Mutual exclusion
+  \end{enumerate}
 
 \item Identify when Dining Philosophers code causes a deadlock (or not). For example, if you saw the following code snippet which Coffman condition is not satisfied?
 
@@ -471,7 +478,7 @@ int main() {
   Otherwise if the child process exits causing the pipe write end to be closed, then exit with a value of 1.
   Be sure to close the unused ends of the pipe in the parent and child process
 
-\item This advanced challenge uses pipes to get an ``AI player'' to play itself until the game is complete. The program \keyword{tictactoe} accepts a line of input - the sequence of turns made so far, prints the same sequence followed by another turn, and then exits. A turn is specified using two characters. For example ``A1'' and ``C3'' are two opposite corner positions. The string \keyword{B2A1A3} is a game of 3 turns/plys. A valid response is \keyword{B2A1A3C1} (the C1 response blocks the diagonal B2 A3 threat). The output line may also include a suffix \keyword{-I\ win} \keyword{-You\ win} \keyword{-invalid} or \keyword{-draw} Use pipes to control the input and output of each child process created. When the output contains a \keyword{-}, print the final output line (the entire game sequence and the result) and exit.
+\item This advanced challenge uses pipes to get an ``AI player'' to play itself until the game is complete. The program \keyword{tic tac toe} accepts a line of input - the sequence of turns made so far, prints the same sequence followed by another turn, and then exits. A turn is specified using two characters. For example ``A1'' and ``C3'' are two opposite corner positions. The string \keyword{B2A1A3} is a game of 3 turns/plys. A valid response is \keyword{B2A1A3C1} (the C1 response blocks the diagonal B2 A3 threat). The output line may also include a suffix \keyword{-I\ win} \keyword{-You\ win} \keyword{-invalid} or \keyword{-draw} Use pipes to control the input and output of each child process created. When the output contains a \keyword{-}, print the final output line (the entire game sequence and the result) and exit.
 
 \item Write a function that uses fseek and ftell to replace the middle character of a file with an `X'
 
@@ -507,7 +514,7 @@ void xout(char* filename) {
 
 \item In an \keyword{ext2} filesystem what is the minimum number of disk blocks that must be read from disk to access the first byte of the file \keyword{/dir1/subdirA/notes.txt} ? Assume the directory names and inode numbers in the root directory and all inodes are already in memory.
 
-\item In an \keyword{ext2} filesystem with 32 bit addresses and 4KiB disk blocks, an inodes that can store 10 direct disk block numbers. What is the minimum file size required to require an single indirection table? ii) a double direction table?
+\item In an \keyword{ext2} filesystem with 32 bit addresses and 4KiB disk blocks, an inode can store 10 direct disk block numbers. What is the minimum file size required to require a single indirection table? ii) a double direction table?
 
 \item Fix the shell command \keyword{chmod} below to set the permission of a file \keyword{secret.txt} so that the owner can read,write,and execute permissions the group can read and everyone else has no access.
 
@@ -643,5 +650,5 @@ ssize_t write_all(int fd, const char *buf, size_t nbyte) {
 \item Why is it unsafe to call any function (something that it is not signal handler safe) in a signal handler?
 \item Write brief code that uses SIGACTION and a SIGNALSET to create a SIGALRM handler.
 \item What is the difference between a disposition, mask, and pending signal set?
-\item What attributes are passed over to process children? How about exec'ed processes?
+\item What attributes are passed over to process children? How about exececuted processes?
 \end{enumerate}

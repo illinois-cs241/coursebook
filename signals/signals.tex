@@ -63,7 +63,7 @@ SIGCONT & Continues a process & Starts after a stop \\
 SIGKILL & Terminate Process (Cannot be caught) & You want the process gone \\
 \end{tabular}
 
-One of our favorite anecodotes is to never use \keyword{kill -9} for a host of reasons.
+One of our favorite anecdotes is to never use \keyword{kill -9} for a host of reasons.
 The following is an excerpt from \underline{Useless Use of Kill -9} \href{http://porkmail.org/era/unix/award.html}{Link to archive}
 
 \begin{quote}
@@ -181,7 +181,7 @@ kill(getpid(), int sig); // Same as above
 \end{lstlisting}
 
 For non-root processes, signals can only be sent to processes of the same user.
-You cant just SIGKILL my processes!
+You can't just SIGKILL any process!
 \keyword{man -s2 kill} for more details.
 
 \section{Handling Signals}
@@ -385,7 +385,7 @@ int main(int argc, char *argv[]) {
 void *signal_thread(void *arg) {
   int sig_caught;
 
-  /* Use same mask as the set of signals that we'd like to know about! */
+  /* Use the same mask as the set of signals that we'd like to know about! */
   sigwait(&signal_mask, &sig_caught);
   switch (sig_caught) {
     case SIGINT:
