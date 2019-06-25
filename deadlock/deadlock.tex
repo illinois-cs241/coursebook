@@ -9,7 +9,7 @@
 \gls{Deadlock} is defined as when a system cannot make and forward progress.
 We define a system for the rest of the chapter as a set of rules by which a set of processes can move from one state to another, where a state is either working or waiting for a particular resource.
 Forward progress is defined as if there is at least one process working or we can award a process waiting for a resource that resource.
-In a lot of systems, Deadlock is just avoided by ignore the entire concept \cite[P.237]{silberschatz2006operating}.
+In a lot of systems, Deadlock is just avoided by ignoring the entire concept \cite[P.237]{silberschatz2006operating}.
 Have you heard about turn it on and off again?
 For products where the stakes are low (User Operating Systems, Phones), it may be more efficient not prevent deadlock.
 But in the cases where ``failure is not an option'' - Apollo 13, you need a system that tracks and breaks deadlock or better yet prevents it entirely.
@@ -49,7 +49,7 @@ typedef struct {
 // isCyclic() traverses a graph using DFS and detects whether it has a cycle
 // isCyclic() uses a recursive approach
 // G points to a node in a graph, can be either a resource or a process
-// is_visited is an array indexed with node_id and initialized with zeroes(false) to record whether a particular node has been visited
+// is_visited is an array indexed with node_id and initialized with zeros (false) to record whether a particular node has been visited
 int isCyclic(Graph *G, int* is_visited) {
 	if (this graph has been visited) {
 		// Oh! the cycle is found
@@ -57,7 +57,7 @@ int isCyclic(Graph *G, int* is_visited) {
 	} else {
 		1. Mark this node as visited
 		2. Traverse through all nodes in the reachable_nodes
-		3. Call isCyclic() for each nodes
+		3. Call isCyclic() for each node
 		4. Evaluate the return value of isCyclic()
 	}
 	// Nope, this graph does not have any cycle
@@ -139,7 +139,16 @@ Circular wait means that there exists $\forall p \in P, w_t(p) \neq \text{satisf
 Which is what we needed to show.
 \end{proof}
 
-If you break any of them, you cannot have deadlock! Consider the scenario where two students need to write both pen and paper and there is only one of each. Breaking mutual exclusion means that the students share the pen and paper. Breaking circular wait could be that the students agree to grab the pen then the paper. As a proof by contradiction, say that deadlock occurs under the rule and the conditions. Without loss of generality, that means a student would have to be waiting on a pen while holding the paper and the other waiting on a pen and holding the paper. We have contradicted ourselves because one student grabbed the paper without grabbing the pen, so deadlock must not be able to occur. Breaking hold and wait could be that the students try to get the pen and then the paper and if a student fails to grab the paper then they release the pen. This introduces a new problem called \textit{livelock} which will be discussed latter. Breaking preemption means that if the two students are in deadlock the teacher can come in and break up the deadlock by giving one of the students one the held on items or tell both students to put the items down.
+If you break any of them, you cannot have deadlock!
+Consider the scenario where two students need to write both pen and paper and there is only one of each.
+Breaking mutual exclusion means that the students share the pen and paper.
+Breaking circular wait could be that the students agree to grab the pen then the paper.
+As a proof by contradiction, say that deadlock occurs under the rule and the conditions.
+Without loss of generality, that means a student would have to be waiting on a pen while holding the paper and the other waiting on a pen and holding the paper.
+We have contradicted ourselves because one student grabbed the paper without grabbing the pen, so deadlock must not be able to occur.
+Breaking hold and wait could be that the students try to get the pen and then the paper and if a student fails to grab the paper then they release the pen.
+This introduces a new problem called \textit{livelock} which will be discussed latter.
+Breaking preemption means that if the two students are in deadlock the teacher can come in and break up the deadlock by giving one of the students a held item or tell both students to put the items down.
 
 \gls{livelock} relates to deadlock but it is not exactly deadlock.
 Consider the breaking hold and wait solution as above.
@@ -252,7 +261,7 @@ Since we always have the ability to make one additional move the system can neve
 Now, there is no guarantee that the system won't livelock.
 If the process we hope to request something never does, no work will be done -- but not due to deadlock.
 This analogy expands to higher orders of magnitude but requires that either a process can do its work entirely or there exists a process whose combination of resources can be satisfied, which makes the algorithm a little more tricky (an additional for loop) but nothing too bad.
-There are a fair bit of downsides to this though
+There are some notable downsides.
 
 \begin{itemize}
 \item The program first needs to know how much of each resource a process needs. A lot of times that is impossible or the process requests the wrong amount because the programmer didn't foresee it.
@@ -360,7 +369,7 @@ We have now livelocked our solution! Our poor philosopher are still starving, so
 \section{Viable Solutions}
 
 The naive arbitrator solution is have one arbitrator a mutex for example.
-Have each of the philosopher ask the arbitrator for permission to eat or trylock an arbitrator mutex.
+Have each of the philosophers ask the arbitrator for permission to eat or trylock an arbitrator mutex.
 This solution allows one philosopher to eat at a time.
 When they are done, another philosopher can ask for permission to eat.
 This prevents deadlock because there is no circular wait! No philosopher has to wait on any other philosopher.
@@ -436,7 +445,7 @@ The system is about to deadlock, but the approach resolves it.
 
 This is Dijkstra's solution \cite[P. 20]{EWD:EWD310}. He was the one to propose this problem on an exam.
 Why does the first solution deadlock? Dijkstra thought that the last philosopher who picks up his left fork (causing the solution to deadlock) should pick up his right.
-He accomplishes it by number the forks $1..n$, and tells each of the philosopher to pick up his lower number fork.
+He accomplishes it by number the forks $1..n$, and tells each of the philosophers to pick up his lower number fork.
 Let's run through the deadlock condition again.
 Everyone tries to pick up their lower number fork first.
 Philosopher $1$ gets fork $1$, Philosopher $2$ gets fork $2$, and so on until we get to Philosopher $n$.
@@ -444,9 +453,10 @@ They have to choose between fork $1$ and $n$.
 fork $1$ is already held up by philosopher $1$, so they can't pick up that fork, meaning he won't pick up fork $n$.
 We have broken circular wait! Meaning deadlock isn't possible.
 
-The problems to this is that an entity either needs to know the finite set of resources or be able to produce a consistent partial order suck that circular wait cannot happen.
+Some problems are that an entity either needs to know the finite set of resources in advance or be able to produce a consistent partial order suck that circular wait cannot happen.
 This also implies that there needs to be some entity, either the operating system or another process, deciding on the number and all of the philosophers need to agree on the number as new resources come in.
-As we have also see with previous solutions, this relies on context switching so this prioritizes philosophers that have already eaten but can be made more fair by introducing random sleeps and waits.
+As we have also seen with previous solutions, this relies on context switching.
+This prioritizes philosophers that have already eaten but can be made more fair by introducing random sleeps and waits.
 
 \begin{proof} Dijkstra's Solution Doesn't Deadlock
 
@@ -488,7 +498,7 @@ The actor model is another form of synchronization that doesn't have to do anyth
 The idea is very simple.
 Each actor can either perform work, create more actors, send messages, or respond to messages.
 Any time an actor needs something from another actor, it sends a message.
-Most importantly, an actor is only responsible for one things.
+Most importantly, an actor is only responsible for one thing.
 If we were implementing a real world application, we may have an actor that handles the database, one that handles the incoming connections, one that services the connections, etc etc.
 These actors would pass messages to each other like ``there is a new connection'' from the incoming connection actor to the servicing actor.
 The servicing actor may send a data request message the database actor and a data response message comes back.
@@ -499,7 +509,7 @@ If you don't have a framework that does this already -- like the Message Passing
 In addition the messages now encounter additional overhead for serializing and deserializing or at the very least ordering.
 And a final drawback is that an actor could take an arbitrary long time to respond to a message, spurring the need for shadow actors who service the same job.
 
-As mentioned, there are frameworks like \href{https://en.wikipedia.org/wiki/Message\_Passing\_Interface}{Message passing interface} that is somewhat based on the actor model and allows distributed systems in high performance computing to work effectively, but your mileage my vary
+As mentioned, there are frameworks like \href{https://en.wikipedia.org/wiki/Message\_Passing\_Interface}{Message passing interface} that is somewhat based on the actor model and allows distributed systems in high performance computing to work effectively, but your mileage may vary
 You don't need to know \textit{any} of the specifics of the model, just the high level description given above.
 If you want to read further on the model, feel free to glance over the wikipedia page listed below.
 \href{https://en.wikipedia.org/wiki/Actor\_model}{Further reading on the actor model}

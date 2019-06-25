@@ -6,7 +6,7 @@ To understand what a process is, you need to understand the concept of a boot or
 In the beginning, there is a kernel.
 The operating system kernel is a special piece of software.
 This is the piece of software that is loaded up before all other programs.
-The following is an brief overview on the tasks performed by the kernel.
+The following is a brief overview on the tasks performed by the kernel.
 
 \begin{enumerate}
 \item The operating system executes code from read-only memory, called firmware.
@@ -106,7 +106,7 @@ If the stack grows too far -- meaning that it either grows beyond a preset bound
 
 \item \textbf{A Heap}.
 The heap is a contiguous, expanding region of memory \cite{mallocinternals}.
-If you want to allocate a object whose memory you want to manually control, or whose size cannot be determined at compile time, you would want to create a heap variable.
+If you want to allocate an object whose memory you want to manually control, or whose size cannot be determined at compile time, you would want to create a heap variable.
 
 The heap starts at the top of the text segment and grows upward, meaning sometimes when you call \keyword{malloc} that it asks the operating system to push the heap boundary (called the program break) upward.
 
@@ -696,13 +696,13 @@ What you need to know is the following bullet points.
 
 \begin{enumerate}
 \item File descriptors are preserved after an exec. That means if you open a file, and you forget to close it, it remains open in the child.
-  This is a problem because usually the child doesn't know about those file descriptors. Nevertheless, they take up a slot in the file descriptor table and could possible prevent other processes from accessing the file.
+  This is a problem because usually the child doesn't know about those file descriptors. Nevertheless, they take up a slot in the file descriptor table and could possibly prevent other processes from accessing the file.
   The one exception to this is if the file descriptor has the Close-On-Exec flag set (O\_CLOEXEC) -- we will go over setting flags later.
 \item Various signal semantics. The exec'd processes preserve the signal mask and the pending signal set, but does not preserve the signal handlers because it is a different program.
 \item Environment variables are preserved unless using an environ version of exec
 \item The operating system may open up 0, 1, 2 -- stdin, stdout, stderr, if they are closed after exec, most of the time they leave them closed.
-\item The exec'ed process runs as the same PID and has the same parent and process group as the previous process.
-\item The exec'ed process is run on the same user and group with the same working directory
+\item The executed process runs as the same PID and has the same parent and process group as the previous process.
+\item The executed process is run on the same user and group with the same working directory
 \end{enumerate}
 
 \subsection{Shortcuts}
@@ -792,7 +792,7 @@ char* home = getenv("HOME"); // Will return /home/bhuvy
 setenv("HOME", "/home/bhuvan", 1 /*set overwrite to true*/ );
 \end{lstlisting}
 
-Environment variables are important because they are inherited between processes and can be used the specify a standard set of behaviors \cite{env_std_2018}, although you don't need to memorize the options.
+Environment variables are important because they are inherited between processes and can be used to specify a standard set of behaviors \cite{env_std_2018}, although you don't need to memorize the options.
 Another security related concern is that environment variables cannot be read by an outside process, whereas argv can be.
 
 \section{Further Reading}

@@ -1,11 +1,11 @@
 \chapter{Memory Allocators}
 
-\epigraph{Memory memory everywhere but not a allocation to be made}{A really fragmented heap}
+\epigraph{Memory memory everywhere but not an allocation to be made}{A really fragmented heap}
 
 \section{Introduction}
 
 Memory allocation is very important!
-Allocating and de-allocating heap memory is one of the most common operations in any application.
+Allocating and deallocating heap memory is one of the most common operations in any application.
 The heap at the system level is contiguous series of addresses that the program can expand or contract and use as its own accord \cite{mallocinternals}.
 In POSIX, this is called the system break.
 We use \keyword{sbrk} to move the system break.
@@ -100,7 +100,7 @@ void *calloc(size_t n, size_t size) {
 }
 \end{lstlisting}
 
-\item \keyword{free} takes a pointer to the start of a piece of memory and makes it available for use in the subsequent calls to the other allocation functions.
+\item \keyword{free} takes a pointer to the start of a piece of memory and makes it available for use in subsequent calls to the other allocation functions.
 This is important because we don't want every process in our address space to take an enormous amount of memory.
 Once we are done using memory, we stop using it with free.
 A simple usage is below.
@@ -144,7 +144,7 @@ An important fact we just glossed over earlier is memory that was newly obtained
 If the operating system did not zero out contents of physical RAM, it might be possible for one process to learn about the memory of another process that had previously used the memory.
 This would be a security leak.
 Unfortunately this means that for \keyword{malloc} requests before any memory has been freed is \emph{often} zero.
-This is unfortunate because, many programmers mistaken write C programs that assume malloc'd memory will \emph{always} be zero.
+This is unfortunate because many programmers mistaken write C programs that assume allocated memory will \emph{always} be zero.
 
 \begin{lstlisting}[language=C]
 char* ptr = malloc(300);
@@ -190,9 +190,9 @@ It is considerably faster to do the above and just throw the entire block of mem
 
 \subsection{Placement Strategies}
 
-During program execution, memory is allocated and de-allocated, so there will be gap in the heap memory that can be re-used for future memory requests.
+During program execution, memory is allocated and deallocated, so there will be a gap in the heap memory that can be re-used for future memory requests.
 The memory allocator needs to keep track of which parts of the heap are currently allocated and which are parts are available.
-Suppose our current heap size is 64K, though not all of it is in use because some earlier malloc'd memory has already been freed by the program.
+Suppose our current heap size is 64K, though not all of it is in use because some earlier allocated memory has already been freed by the program.
 Let's say that our heap looks like the following table.
 
 \begin{figure}[H]
@@ -249,7 +249,7 @@ The challenges of writing a heap allocator are
 \item Need to minimize fragmentation (i.e.~maximize memory utilization)
 \item Need high performance
 \item Fiddly implementation -- lots of pointer manipulation using linked lists and pointer arithmetic.
-\item Both fragmentation and performance depend on the application allocation profile, which can be evaluated but not predicted and in practice, under-specific usage conditions, a special-purpose allocator can often out-perform a general purpose implementation.
+\item Both fragmentation and performance depends on the application allocation profile, which can be evaluated but not predicted and in practice, under-specific usage conditions, a special-purpose allocator can often out-perform a general purpose implementation.
 \item The allocator doesn't know the program's memory allocation requests in advance. Even if we did, this is the \href{http://en.wikipedia.org/wiki/Knapsack_problem}{Knapsack problem} which is known to be NP hard!
 \end{itemize}
 
@@ -271,7 +271,7 @@ Here are some summarized takeaways
 \begin{enumerate}
 \item Best fit may have problems when a block is chosen that is almost the right size, and the remaining space is split so small that a program probably won't use it.
   A way to get around this could be to set a threshold for splitting.
-  This small splitting isn't observed as frequently under regular work load.
+  This small splitting isn't observed as frequently under regular workload.
   In addition, the worst case behavior of best fit is bad, but doesn't usually happen p. 43.
 \item The survey also talks about an important distinction of first fit.
   There are multiple notions of first.
@@ -415,11 +415,11 @@ This is before alignment concerns as well.
 
 \subsection{Alignment and rounding up considerations}
 
-Many architectures expect multi-byte primitives to be aligned to some multiple of 2 (4, 16, etc).
+Many architectures expect multibyte primitives to be aligned to some multiple of 2 (4, 16, etc).
 For example, it's common to require 4-byte types to be aligned to 4-byte boundaries and 8-byte types on 8-byte boundaries.
 If multi-byte primitives are not stored on a reasonable boundary for example starting at an odd address then the performance can be significantly impacted because it may require two memory read requests instead of one.
 On some architectures the penalty is even greater - the program will crash with a \href{http://en.wikipedia.org/wiki/Bus_error\#Unaligned_access}{bus error}.
-Most of you experienced this in your architecture classes if there was no memory protection.
+Most of you have experienced this in your architecture classes if there was no memory protection.
 
 As \keyword{malloc} does not know how the user will use the allocated memory, the pointer returned to the program needs to be aligned for the worst case, which is architecture dependent.
 
@@ -463,7 +463,7 @@ If that exists and represents an unallocated memory, then we need to coalesce th
 To be able to coalesce a free block with a previous free block we will also need to find the previous block, so we store the block's size at the end of the block, too.
 These are called ``boundary tags'' \cite{knuth1973art}.
 These are Knuth's solution to the coalescing problem both ways.
-As the blocks are contiguous, the end of one blocks sits right next to the start of the next block.
+As the blocks are contiguous, the end of one block sits right next to the start of the next block.
 So the current block (apart from the first one) can look a few bytes further back to lookup the size of the previous block.
 With this information you can now jump backwards!
 
@@ -485,7 +485,7 @@ De-allocation is constant time.
 No more than 3 blocks will need to be coalesced into a single block, and using a most recently used block scheme only one linked list entry.
 
 Using this allocator it is possible to experiment with different placement strategies.
-For example, you could start searching from where you last free'd a block, or where you last allocated from.
+For example, you could start searching from where you last deallocated a block, or where you last allocated from.
 If you do store pointers to blocks, you need to be very careful that they always remain valid
 Particularly when you malloc, free, calloc, realloc, coalesce, split, etc.
 
@@ -495,7 +495,7 @@ Better performance can be achieved by implementing an explicit doubly-linked lis
 In that case, we can immediately traverse to the next free block and the previous free block.
 This can reduce the search time, because the linked list only includes unallocated blocks.
 A second advantage is that we now have some control over the ordering of the linked list.
-For example, when a block is free'd, we could choose to insert it into the beginning of the linked list rather than always between its neighbors.
+For example, when a block is deallocated, we could choose to insert it into the beginning of the linked list rather than always between its neighbors.
 We may update our struct to look like this
 
 \begin{lstlisting}[language=C]
@@ -523,7 +523,7 @@ With explicit linked lists a fast and simple `Find-First' algorithm is used to f
 However, since the link order can be modified, this corresponds to different placement strategies.
 For example if the links are maintained from largest to smallest, then this produces a `Worst-Fit' placement strategy.
 
-There are edge cases though, consider how you'd maintain your free list if you also have to perform a double coalesce.
+There are edge cases though, consider how you would maintain your free list if you also have to perform a double coalesce.
 We've included a figure with a common mistake.
 
 \begin{figure}[H]
@@ -536,11 +536,11 @@ We recommend when trying to implement malloc that you draw out all the cases con
 
 \subsubsection{Explicit linked list insertion policy}
 
-The newly free'd block can be inserted easily into two possible positions: at the beginning or in address order.
+The newly deallocated block can be inserted easily into two possible positions: at the beginning or in address order.
 Inserting at the beginning creates a LIFO (last-in, first-out) policy.
-The most recently free'd spaces will be reused. Studies suggest fragmentation is worse than using address order \cite{10.1007/3-540-60368-9_19}.
+The most recently deallocated spaces will be reused. Studies suggest fragmentation is worse than using address order \cite{10.1007/3-540-60368-9_19}.
 
-Inserting in address order (``Address ordered policy'') inserts free'd blocks so that the blocks are visited in increasing address order.
+Inserting in address order (``Address ordered policy'') inserts deallocated blocks so that the blocks are visited in increasing address order.
 This policy required more time to free a block because the boundary tags (size data) must be used to find the next and previous unallocated blocks.
 However, there is less fragmentation.
 
@@ -554,7 +554,7 @@ We'll discuss the binary buddy allocator which splits allocation into blocks of 
 The basic concept is simple: If there are no free blocks of size $2^n$, go to the next level and steal that block and split it into two.
 If two neighboring blocks of the same size become unallocated, they can be coalesced back together into a single large block of twice the size.
 
-Buddy allocators are fast because the neighboring blocks to coalesce with can be calculated from the free'd block's address, rather than traversing the size tags.
+Buddy allocators are fast because the neighboring blocks to coalesce with can be calculated from the deallocated block's address, rather than traversing the size tags.
 Ultimate performance often requires a small amount of assembler code to use a specialized CPU instruction to find the lowest non-zero bit.
 
 The main disadvantage of the Buddy allocator is that they suffer from \emph{internal fragmentation}, because allocations are rounded up to the nearest block size.

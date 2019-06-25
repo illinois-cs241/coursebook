@@ -16,7 +16,7 @@ Instead each process is isolated, and there is a translation process between the
 Memory addresses no longer map to physical addresses
 The process runs inside virtual memory.
 Virtual memory not only keeps processes safe because one process cannot directly read or modify another process's memory.
-Virtual memory also allows the system to efficiently allocate and re-allocate portions of memory to different processes.
+Virtual memory also allows the system to efficiently allocate and reallocate portions of memory to different processes.
 The modern process of translating memory is as follows.
 
 \begin{enumerate}
@@ -35,7 +35,7 @@ To illustrate, imagine you had a 32 bit machine, meaning pointers are 32 bits.
 They can address $2^{32}$ different locations or 4GB of memory where one address is one byte.
 Imagine we had a large table for every possible address where we will store the `real' i.e. ~physical address.
 Each physical address will need 4 bytes -- to hold the 32 bits.
-Naturally, This scheme would require 16 billion bytes to store all of entries.
+Naturally, This scheme would require 16 billion bytes to store all of the entries.
 It should be painfully obvious that our lookup scheme would consume all of the memory that we could possibly buy for our 4GB machine.
 Our lookup table better be smaller than the memory we have otherwise we will have no space left for our actual programs and operating system data.
 The solution is to chunk memory into small regions called `pages' and `frames' and use a lookup table for each page.
@@ -125,7 +125,7 @@ There are other ways to split it as well.
 On a machine with page size 256 Bytes, then the lowest 8 bits (10101010) will be used as the offset.
 The remaining upper bits will be the page number (111100001111000011110000). This offset is treated as a binary number and is added to the start of the frame when we get it.
 
-We do a have a problem with 64 bit operating systems.
+We do have a problem with 64 bit operating systems.
 For a 64 bit machine with 4KiB pages, each entry needs 52 bits.
 Meaning we need roughly
 With $2^{52}$ entries thats $2^{55}$ bytes (roughly 40 petabytes).
@@ -259,7 +259,7 @@ We will include some bits that have historically been popular in chipsets.
 \item The read-only bit marks the page as read-only.
 Attempts to write to the page will cause a page fault.
 The page fault will then be handled by the Kernel.
-Two examples of the read-only page include sharing the c runtime library between multiple processes for security you wouldn't want to allow one process to modify the library and Copy-On-Write where the cost of duplicating a page can be delayed until the first write occurs.
+Two examples of the read-only page includes sharing the c runtime library between multiple processes for security you wouldn't want to allow one process to modify the library and Copy-On-Write where the cost of duplicating a page can be delayed until the first write occurs.
 
 \item The execution bit defines whether bytes in a page can be executed as CPU instructions.
 Processors may will merge these bits into one and deem a page either writable or executable.
@@ -300,7 +300,7 @@ There are three types of Page Faults
 What does this have to do with IPC?
 Well internally before this point in your programming career you knew that processes had isolation.
 But, you one didn't really know how that isolation mapped.
-Two, you may have not know how you can break this isolation.
+Two, you may not know how you can break this isolation.
 To break any memory level isolation you have two avenues.
 One is to ask the kernel to provide some kind of interface.
 The other is to ask the kernel to map two pages of memory to the same virtual memory area, and handle all the synchronization yourself.
@@ -309,7 +309,7 @@ The other is to ask the kernel to map two pages of memory to the same virtual me
 
 \keyword{mmap} as mentioned earlier is a trick of virtual memory of instead of mapping a page to just a frame, that frame can be backed by a file on disk, or the frame can be shared among processes.
 We can use that to read from a file on disk efficiently or sync changes to the file.
-One of the big optimizations is that this does not mean that the file is malloc'ed to memory right away.
+One of the big optimizations is that this does not mean that the file is allocated to memory right away.
 Take the following code for example.
 
 \begin{lstlisting}[language=C]
@@ -416,7 +416,7 @@ main(int argc, char *argv[])
   /*
   Here are the arguments for MMAP
   1. NULL, this tells mmap we don't need any particular address to start from
-  2. length + offset - pa_offset, mmaps the ``rest'' of the file into memory (starting form offset)
+  2. length + offset - pa_offset, mmaps the ``rest'' of the file into memory (starting from offset)
   3. PROT_READ, we want to read the file
   4. MAP_PRIVATE, tell the OS, we don't want to share our mapping
   5. fd, object descriptor that we refer to
@@ -528,7 +528,8 @@ Processes that share writable memory might need to use synchronization primitive
 \section{Pipes}
 
 You've seen the virtual memory way of IPC, but there are more standard versions of IPC that are provided by the kernel.
-One of the big utilities is UNIX, now POSIX, pipes. A pipe simply takes in a stream of bytes and spits out a sequence of bytes.
+One of the big utilities is POSIX pipes.
+A pipe simply takes in a stream of bytes and spits out a sequence of bytes.
 
 One of the big starting points of pipes was way back in the PDP-10 days. In those days, a write to the disk or even your terminal was very slow as it may have to be printed out.
 The Unix programmers still wanted to create small, portable programs that did one thing very well and could be composed.
@@ -557,7 +558,8 @@ The numbers in the pipes are the file descriptors for each process and the arrow
 A POSIX pipe is almost like its real counterpart - you can stuff bytes down one end and they will appear at the other end in the same order.
 Unlike real pipes however, the flow is always in the same direction, one file descriptor is used for reading and the other for writing.
 The \keyword{pipe} system call is used to create a pipe.
-These file descriptors can be used with \keyword{read} and with \keyword{write}. A common method of using pipes is to create the pipe before forking in order to communicate with a child process
+These file descriptors can be used with \keyword{read} and \keyword{write}.
+A common method of using pipes is to create the pipe before forking in order to communicate with a child process
 
 \begin{lstlisting}[language=C]
 int filedes[2];
@@ -643,7 +645,7 @@ int main() {
 
   pid_t p = fork();
   if (p > 0) {
-    /* I have a child therefore I am the parent*/
+    /* I have a child, therefore I am the parent */
     write(fd[1],"Hi Child!",9);
 
     /*don't forget your child*/
@@ -677,7 +679,7 @@ while ((bytesread = read(fd[0], &buf, 1)) > 0) {
 
 Okay so we know that when a process tries to read from a pipe where there are still writers, the process blocks.
 If no pipe has no writers, read returns 0.
-If a process tries to write with some readers the read goes through, or fails -- partially or completely -- if the pipe is full.
+If a process tries to write with some reader's read goes through, or fails -- partially or completely -- if the pipe is full.
 Why happens when a process tries to write when there are no readers left?
 
 \begin{verbatim}
@@ -724,7 +726,7 @@ int main() {
 }
 \end{lstlisting}
 
-The mistake in above code is that there is still a reader for the pipe!
+The mistake in the above code is that there is still a reader for the pipe!
 The child still has the pipe's first file descriptor open and remember the specification? All readers must be closed
 
 When forking, \emph{It is common practice} to close the unnecessary (unused) end of each pipe in the child and parent process. For example the parent might close the reading end and the child might close the writing end and vice versa if you have two pipes.
@@ -824,7 +826,7 @@ int main() {
   fclose(f);
 \end{lstlisting}
 
-For writing to files this is unnecessary - just use \keyword{fopen} which does the same as \keyword{open} and \keyword{fdopen} However for pipes, we already have a file descriptor - so this is great time to use \keyword{fdopen}
+For writing to files this is unnecessary - just use \keyword{fopen} which does the same as \keyword{open} and \keyword{fdopen} However for pipes, we already have a file descriptor - so this is a great time to use \keyword{fdopen}
 
 Here's a complete example using pipes that almost works!
 Can you spot the error?
@@ -866,8 +868,10 @@ If you want your bytes to be sent to the pipe immediately, you'll need to fflush
 At the beginning of this course we assumed that file streams are always \emph{line buffered} -- the C library will flush its buffer every time you send a newline character.
 Actually this is only true for terminal streams - for other file streams the C library attempts to improve performance by only flushing when it's internal buffer is full or the file is closed.
 
-\textbf{Even though we have a section on it, it is highly not recommended to fdopen() anything that doesn't point to an underlying file descriptor}. The reason being is that while we get conveniences we also get annoyances like the buffering example we mentioned, caching, etc etc.
-The basic UNIX motto is that anything that you can \keyword{fseek} or move to an arbitrary position in, you should be able to \keyword{fdopen}. Files satisfy this behavior, shared memory also, terminals, etc.
+\textbf{Even though we have a section on it, it is highly not recommended to fdopen() anything that doesn't point to an underlying file descriptos}.
+The reason being is that while we get conveniences we also get annoyances like the buffering example we mentioned, caching, etc etc.
+The basic C library motto is that anything that you can \keyword{fseek} or move to an arbitrary position, you should be able to \keyword{fdopen}.
+Files satisfy this behavior, shared memory also, terminals, etc.
 When it comes to pipes, sockets, epoll objects, etc, don't do it.
 
 \section{Named Pipes}
@@ -974,7 +978,7 @@ On different operating systems, C uses the low level functions to create a wrapp
 \item \keyword{fflush} Take any buffered changes and flush them to a file
 \end{itemize}
 
-But you don't get the expressiveness that Linux gives you with system calls you can convert back and forth between them with \keyword{int\ fileno(FILE*\ stream)} and \keyword{FILE*\ fdopen(int\ fd...)} Another important aspect to note is the C files are \textbf{buffered} meaning that their contents may not be written right away by default. You can can change that with C options.
+But you don't get the expressiveness that Linux gives you with system calls you can convert back and forth between them with \keyword{int\ fileno(FILE*\ stream)} and \keyword{FILE*\ fdopen(int\ fd...)} Another important aspect to note is the C files are \textbf{buffered} meaning that their contents may not be written right away by default. You can change that with C options.
 
 \textbf{Danger} With portability you lose something important, the ability to tell an error. Take for example the advice that we gave you above. You can \keyword{fopen} a file descriptor and get a \keyword{FILE*} object but \textbf{it won't be the same as a file} meaning that certain calls will fail or act weirdly.
 The C API reduces this weirdness, but for example you cannot \keyword{fseek} to a part of the file, or perform any operations with its buffering.
@@ -1028,7 +1032,7 @@ What happens when file streams are closed by two different processes?
 Closing a file stream is unique to each process.
 Other processes can continue to use their own file-handle.
 Remember, everything is copied over when a child is created, even the relative positions of the files.
-As you might have observed with using \keyword{fork}, there is a quirk of the implementation of files and their caches on Ubuntu that will rewind a file descriptor once a file has closed.
+As you might have observed with using \keyword{fork}, there is a quirk of the implementation of files and their caches on Ubuntu that will rewind a file descriptor once a file has been closed.
 As such, make sure to close before forking or at least don't trigger a cache inconsistency which is much harder.
 
 \section{So Many IPC Options}
@@ -1055,7 +1059,7 @@ The key is that you don't jump around too much.
 Jumping around too much causes thrashing and loses all the benefits of using mmap.
 The other case of mmap is a direct memory inter-process communication.
 This means that you can store structures in a piece of mmap'ed memory and share them between two processes.
-Python and ruby use this mapping all the time to utilize copy on write semantics.
+Python and Ruby use this mapping all the time to utilize copy on write semantics.
 
 \section{Topics}
 
@@ -1102,7 +1106,7 @@ Python and ruby use this mapping all the time to utilize copy on write semantics
 \item What is the difference between a named pipe and an unnamed pipe?
 \item Is a pipe thread safe?
 \item Write a function that uses fseek and ftell to replace the middle character of a file with an 'X'
-\item Write a function that create a pipe and uses write to send 5 bytes, "HELLO" to the pipe. Return the read file descriptor of the pipe.
+\item Write a function that creates a pipe and uses write to send 5 bytes, "HELLO" to the pipe. Return the read file descriptor of the pipe.
 \item What happens when you mmap a file?
 \item Why is getting the file size with ftell not recommended? How should you do it instead?
 \end{enumerate}

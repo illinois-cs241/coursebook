@@ -67,7 +67,7 @@ Thus they can all see the heap, the global variables and the program code etc.
 
 Thus you can have two (or more) CPUs working on your program at the same time and inside the same process.
 It's up to the operating system to assign the threads to CPUs.
-If you have more active threads than CPUs then the kernel will assign the thread to a CPU for a short duration or until it runs out of things to do and then will automatically switch the CPU to work on another thread.
+If you have more active threads than CPUs, the kernel will assign the thread to a CPU for a short duration or until it runs out of things to do and then will automatically switch the CPU to work on another thread.
 For example, one CPU might be processing the game AI while another thread is computing the graphics output.
 
 \section{Simple Usage}
@@ -128,10 +128,10 @@ Here are some common pthread functions to help you get going.
 \item \keyword{pthread\_create}.
 Creates a new thread.
 Every thread that gets created gets a new stack.
-For example if you call \keyword{pthread\_create} twice, Your process will contain three stacks - one for each thread.
+If you call \keyword{pthread\_create} twice, Your process will contain three stacks - one for each thread.
 The first thread is created when the process starts, and you created two more.
 Actually there can be more stacks than this, but let's keep it simple.
-The important idea is that each thread requires a stack because the stack contains automatic variables and the old CPU PC register, so that it can back to executing the calling function after the function is finished.
+The important idea is that each thread requires a stack because the stack contains automatic variables and the old CPU PC register, so that it can go back to executing the calling function after the function is finished.
 
 \item \keyword{pthread\_cancel} stops a thread.
 Note the thread may not actually be stopped immediately.
@@ -142,12 +142,12 @@ An alternative implementation is to use a boolean (int) variable whose value is 
 \item \keyword{pthread\_exit(void *)} stops the calling thread meaning the thread never returns after calling \keyword{pthread\_exit}.
 The pthread library will automatically finish the process if there are no other threads running.
 \keyword{pthread\_exit(...)} is equivalent to returning from the thread's function; both finish the thread and also set the return value (void *pointer) for the thread.
-Calling \keyword{pthread\_exit} in the the \keyword{main} thread is a common way for simple programs to ensure that all threads finish.
+Calling \keyword{pthread\_exit} in the \keyword{main} thread is a common way for simple programs to ensure that all threads finish.
 For example, in the following program, the \keyword{myfunc} threads will probably not have time to get started.
-On the other hand \keyword{exit()} exits the entire process and sets the processes exit value.
+On the other hand \keyword{exit()} exits the entire process and sets the process' exit value.
 This is equivalent to \keyword{return ();} in the main method.
 All threads inside the process are stopped.
-Note the \keyword{pthread\_exit} version creates thread zombies, however this is not a long-running processes, so we don't care.
+Note the \keyword{pthread\_exit} version creates thread zombies, however this is not a long-running process, so we don't care.
 
 \begin{lstlisting}[language=C]
 int main() {
@@ -182,7 +182,7 @@ return 42;
 
 \end{itemize}
 
-To be clear, now we have a whole host of way to exit threads.
+There are many ways to exit threads.
 Here is a non-complete list.
 
 \begin{itemize}
@@ -423,9 +423,9 @@ You already know a parallelizable algorithm, Merge Sort!
 \begin{lstlisting}[language=C]
 void merge_sort(int *arr, size_t len){
   if(len > 1){
-    //Mergesort the left half
-    //Mergesort the right half
-    //Merge the two halves
+    // Merge Sort the left half
+    // Merge Sort the right half
+    // Merge the two halves
   }
 \end{lstlisting}
 
@@ -435,7 +435,7 @@ The time complexity analysis gets interesting here as well.
 The parallel algorithm runs in $O(\log^3(n))$ running time because we have the analysis assumes that we have a lot of cores.
 
 In practice though, we typically do two changes.
-One, once the array gets small enough, we ditch the parallel Mergesort algorithm and do a quicksort or other algorithm that works fast on small arrays, usually cache coherency rules at this level.
+One, once the array gets small enough, we ditch the parallel Merge Sort algorithm and do a quicksort or other algorithm that works fast on small arrays, usually cache coherency rules at this level.
 The other thing that we know is that CPUs don't have infinite cores.
 To get around that, we typically keep a worker pool.
 You won't see the speedup right away because of things like cache coherency and scheduling extra threads.
@@ -468,7 +468,7 @@ These are common to the OpenMP framework \cite{silberschatz2005operating}.
   All you need to do is write a loop and give the map function to each sub-array.
 \item \keyword{dynamic scheduling} as a new problem becomes available have a thread serve it.
   This is useful when you don't know how long the scheduling will take
-\item \keyword{guided scheduling} This is a mix of the above with a mix of the benefits and the tradeoffs.
+\item \keyword{guided scheduling} This is a mix of the above with a mix of the benefits and tradeoffs.
   You start with a static scheduling and move slowly to dynamic if needed
 \item \keyword{runtime scheduling} You have absolutely no idea how long the problems are going to take.
   Instead of deciding it yourself, let the program decide what to do!
@@ -521,7 +521,7 @@ We have a lot of threading libraries discussed in the extra section.
 We have the standard POSIX threads, OpenMP threads, we also have a new C11 threading library that is built into the standard.
 This library provides restricted functionality.
 
-You may be asking to yourself, why would I use the restricted functionality?
+You ask yourself, why would I use the restricted functionality?
 The key is in the name.
 Since this is the C standard library, it has to be implemented on all operating systems that are compliant which are pretty much all of them.
 This means there is first-class portability when using threads.
@@ -534,7 +534,7 @@ If you ask why we don't teach these, there are a few reasons
 \item They are pretty new. Even though the standard came out in roughly 2011, POSIX threads have been around forever.
   A lot of their quirks have been ironed out.
 \item You lose expressivity.
-  This is a concept that we'll talk about in later chapters, but when you make something portable, you lose some expressivity with the host hardware.
+  This is a concept that we'll talk about in layer chapters, but when you make something portable, you lose some expressivity with the host hardware.
   That means that the threads.h library is pretty bare bones.
   It is hard to set CPU affinities.
   Schedule threads together.

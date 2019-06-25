@@ -15,7 +15,7 @@ The balance comes from stopping processes often enough where you have a responsi
 It is a hard balance it get right.
 
 The additional complexity of multi-threaded and multiple CPU cores are considered a distraction to this initial exposition so are ignored here.
-Another gotcha for non-native speakers is the dual meanings of ``Time'': The word ``Time'' can be used in both clock and elapsed duration context.
+Another gotcha for non-native speakers is the dual meaning of ``Time'': The word ``Time'' can be used in both clock and elapsed duration context.
 For example ``The arrival time of the first process was 9:00am.'' and, ``The running time of the algorithm is 3 seconds''.
 
 One clarification that we will make is that our scheduling will mainly deal with short term or CPU scheduling.
@@ -38,8 +38,8 @@ Note, please don't memorize all the states.
 
 \begin{enumerate}
 \item New is the initial state. A process has just been requested to schedule. All process requests come from fork or clone. At this point the operating system knows it needs to create a new process.
-\item A process moves from the new state to the ready. This means any structs in the kernel are allocated an there are only a few low latency steps (by comparison) needed to perform a context process switch. From there it can go into ready suspended or running.
-\item Running is the state that we hope most of our processes are in, meaning they are doing useful work. A process could either get pre-empted, blocked, or terminate. Pre-emption brings the process back to the ready state. If a process is blocked, that means it could be waiting on a mutex lock, or it could've called sleep -- either way it willingly gave up control.
+\item A process moves from the new state to the ready. This means any structs in the kernel are allocated. From there, it can go into ready suspended or running.
+\item Running is the state that we hope most of our processes are in, meaning they are doing useful work. A process could either get preempted, blocked, or terminate. Preemption brings the process back to the ready state. If a process is blocked, that means it could be waiting on a mutex lock, or it could've called sleep -- either way it willingly gave up control.
 \item On the blocked state the operating system can either turn the process ready or it can go into a deeper state called blocked suspended.
 \item There are so-called deep slumber states called blocked suspended and blocked ready. You don't need to worry about these.
 \end{enumerate}
@@ -73,7 +73,7 @@ P1 immediately creates a new process P3, with execution time of 5 ms, which is a
 Without preemption, P3 will run 10ms later (after P1 has completed).
 With preemption, P1 will be immediately evicted from the CPU and instead placed back in the ready queue, and P3 will be executed instead by the CPU.
 
-Any scheduler that doesn't use some form of pre-emption can result in starvation because earlier processes may never be scheduled to run (assigned a CPU).
+Any scheduler that doesn't use some form of preemption can result in starvation because earlier processes may never be scheduled to run (assigned a CPU).
 For example with SJF, longer jobs may never be scheduled if the system continues to have many short jobs to schedule.
 It all depends on the \href{https://en.wikipedia.org/wiki/Scheduling_(computing)\#Types_of_operating_system_schedulers}{type of scheduler}.
 
@@ -122,10 +122,10 @@ The convoy effect is when a process takes up a lot of the CPU time, leaving all 
 
 Suppose the CPU is currently assigned to a CPU intensive task and there is a set of I/O intensive processes that are in the ready queue.
 These processes require just a tiny amount of CPU time but they are unable to proceed because they are waiting for the CPU-intensive task to be removed from the processor.
-These processes are starved until the the CPU bound process releases the CPU.
+These processes are starved until the CPU bound process releases the CPU.
 But, the CPU will rarely be released.
-For example in the case of a FCFS scheduler, we must wait until the processes is blocked due to an I/O request.
-The I/O intensive processes can now finally satisfy their CPU needs, which they can do quickly because their CPU needs are small and the CPU is assigned back to the CPU-intensive process again.
+For example in the case of a FCFS scheduler, we must wait until the process is blocked due to an I/O request.
+The I/O intensive process can now finally satisfy their CPU needs, which they can do quickly because their CPU needs are small and the CPU is assigned back to the CPU-intensive process again.
 Thus the I/O performance of the whole system suffers through an indirect effect of starvation of CPU needs of all processes.
 
 This effect is usually discussed in the context of FCFS scheduler, however a round robin scheduler can also exhibit the Convoy effect for long time-quanta.
@@ -139,9 +139,9 @@ Here is how the CFS schedules
 \begin{itemize}
 \tightlist
 \item
-  The CPU creates a Red-Black tree with the processes virtual runtime (runtime / nice\_value) and sleeper fairness flag (if the process is waiting on something give it the CPU when it is done waiting).
+  The CPU creates a Red-Black tree with the processes virtual runtime (runtime / nice\_value) and sleeper fairness flag -- if the process is waiting on something, give it the CPU when it is done waiting.
 \item
-  (Nice values are the kernel's way of giving priority to certain processes, the lower nice value the higher priority)
+  Nice values are the kernel's way of giving priority to certain processes, the lower nice value the higher priority.
 \item
   The kernel chooses the lowest one based on this metric and schedules that process to run next, taking it off the queue. Since the red-black tree is self balancing this operation is guaranteed \(O(log(n))\) (selecting the min process is the same runtime)
 \end{itemize}
@@ -360,8 +360,8 @@ For example, a navigation process might be more important to execute than a logg
 
 \section{Scheduling Conceptually}
 
-Okay so we've given you a bunch of tools, but if your co-worker came up to you now and asked you what scheduling algorithm to use, you wouldn't really know what to say.
-So let's think about scheduling algorithms at a high level and break them down by their times.
+Okay so we've given you a bunch of tools, but if your co-worker asked you what scheduling algorithm to use, you may not know what to say.
+So, let's think about scheduling algorithms at a high level and break them down by their times.
 We will be evaluating this in the context of a random process timing, meaning that each process takes a random but finite amount of time to finish.
 
 Just a refresher, here are the terms.
@@ -371,7 +371,7 @@ Just a refresher, here are the terms.
   Start time & The time the scheduler first started work \\
   End time & When the scheduler finished the process \\
   Arrival time & When the job first arrived at the scheduler \\
-  Run time & How long does the process take to run if there is no pre-emption
+  Run time & How long does the process take to run if there is no preemption
 \end{tabular}
 
 And here are the measures we are trying to optimize.
@@ -398,7 +398,7 @@ Here are some concepts from queueing theory that you'll need to know that will h
 \item We will be denoting the service time $S$, and deriving the waiting time $W$, and the response time $R$; more specifically the expected values of all of those variables $E[S]$ deriving turnaround time is simply $S + W$.
   For clarity we will introduce another variable $N$ that is the number of people currently in the queue.
   A famous result in queueing theory is Little's Law which states $E[N] = \lambda E[W]$ meaning that the number of people waiting is the arrival rate times the expected waiting time (assuming the queue is in a steady state).
-\item We won't make many assumptions about how much time it'll take to run each process except that it will take a finite amount of time -- otherwise this gets almost impossible to evaluate.
+\item We won't make many assumptions about how much time it takes to run each process except that it will take a finite amount of time -- otherwise this gets almost impossible to evaluate.
 We will however denote two variables that $\frac{1}{\mu}$ is the mean of the waiting time and that the coefficient of variation $C$ is defined as $C^2 = \frac{var(S)}{E[S]^2}$ to help us control for processes that take a while to finish.
 An important note is that when $C > 1$ we say that the running times of the process are variadic. We will note below that this rockets up the wait and response times for FCFS quadratically.
 \item $\rho = \frac{\lambda}{\mu} < 1$ Otherwise our queue would become infinitely long
@@ -428,7 +428,7 @@ All results are from Jorma Virtamo's lectures on the matter \cite{virtamo}
   The response time is simple to calculate, it is just the expected number of people ahead of the process in the queue times the expected time to service each of those processes.
   From Little's law above, we can substitute that for this. Since we already know the value of the waiting time, we can reason about the response time as well.
 \item A discussion of the results is shows something very cool discovered by Conway and Al \cite{conway1967theory}.
-  Any scheduling discipline that isn't pre-emptive and doesn't take into account the run time of the process or a priority will have the same wait, response, and turnaround time.
+  Any scheduling discipline that isn't preemptive and doesn't take into account the run time of the process or a priority will have the same wait, response, and turnaround time.
   We will often use this as a baseline.
 \end{enumerate}
 
@@ -497,10 +497,10 @@ The proofs are intuitive for people who don't have a background in queueing theo
 \item That naturally leads to the comparison, what is better?
   The response time is roughly the same comparing the non-strict versions, the wait time is roughly the same, but notice that nothing about the variation of the jobs is put in.
   That's because RR doesn't have to deal with the convoy effect and any variances associated, otherwise FCFS is faster in a strict sense.
-  It also takes more times for the jobs to finish, but the overall turnaround time is lower under high variance loads.
+  It also takes more time for the jobs to finish, but the overall turnaround time is lower under high variance loads.
 \end{enumerate}
 
-\subsection{Non Pre-emptive Priority}
+\subsection{Non Preemptive Priority}
 
 We will introduce the notation that there are $k$ different priorities and $\rho_i > 0$ is the average load contribution for priority $i$ We are constrained by $\sum\limits_{i=0}^k \rho_i = \rho$.
 We will also denote $\rho(x) = \sum\limits_{i=0}^x \rho_i$ which is the load contribution for all higher and similar priority processes to $x$.
@@ -570,13 +570,13 @@ The last bit of notation is that we will assume that the probability of getting 
   This statement doesn't hold for all smooth distributions but for most real-world smoothed distributions (which tend to be smooth) they do.
 
 \item This isn't even to mention the idea of utility.
-  Utility means that if we gain an amount of happiness by having certain jobs finish, priority and pre-emptive priority maximize that while balancing out other measures of efficiency.
+  Utility means that if we gain an amount of happiness by having certain jobs finish, priority and preemptive priority maximize that while balancing out other measures of efficiency.
 \end{enumerate}
 
 
 \subsection{Shortest Job First}
 This is a wonderful reduction to the priority.
-Instead of having discrete priorities, we'll introduce that a process that takes $S_t$ time to get serviced.
+Instead of having discrete priorities, we'll introduce a process that takes $S_t$ time to get serviced.
 $T$ is the maximum amount of time a process can run for, our processes cannot run infinitely long.
 That means the following definitions hold, overriding the previous definitions in priority
 
@@ -595,9 +595,9 @@ That means the following definitions hold, overriding the previous definitions i
   \item This means if you want low wait times on average compared to FCFS, your distribution needs to be right skewed.
 \end{enumerate}
 
-\subsection{Pre-emptive Priority}
+\subsection{Preemptive Priority}
 
-We will describe priority and sjf's pre-emptive version in the same section because it is essentially the same as we've shown above.
+We will describe priority and sjf's preemptive version in the same section because it is essentially the same as we've shown above.
 We'll use the same notation as before.
 We will also introduce an additional term $C_i$ which denotes the variation among a particular class
 
@@ -612,7 +612,7 @@ We will also introduce an additional term $C_i$ which denotes the variation amon
   \]
 
   If this looks familiar it should.
-  This is the average wait time in the non-pre-emptive case with a small change. Instead of using the variance of the entire distribution, we are looking at the variance of each job coming in.
+  This is the average wait time in the nonpreemptive case with a small change. Instead of using the variance of the entire distribution, we are looking at the variance of each job coming in.
   The whole response times are
 
   \[
@@ -621,7 +621,7 @@ We will also introduce an additional term $C_i$ which denotes the variation amon
 
   If lower priorities jobs come in at a higher service time variance, that means our average response times could go down, but not if they make up most of the jobs that come in.
   Think of the extreme cases.
-  If 99\% of jobs are high priority jobs and the rest make up the other percent, then the other jobs will get frequently interrupted, but high priority jobs will make up most of the jobs, so the expectation is still low.
+  If 99\% of the jobs are high priority jobs and the rest make up the other percent, then the other jobs will get frequently interrupted, but high priority jobs will make up most of the jobs, so the expectation is still low.
   The other extreme is if one percent of jobs are high priority and they come in a very low variance.
   That means the chances us of the system getting a really high priority jobs that will take a long time is low, thus making our response times lower on average.
   We only run into trouble if high priority jobs make up a non-negligible amount, and they have a high variance in service times.
@@ -649,14 +649,14 @@ We will also introduce an additional term $C_i$ which denotes the variation amon
   This follows the same laws as before.
   Since we have a variadic, pyramid summation if we have a lot of jobs with small service times then the wait time goes down for both additive pieces.
   It can be analytically shown that this is better given certain probability distributions.
-  For example, try with the uniform versus FCFS or the non pre-emptive version.
+  For example, try with the uniform versus FCFS or the non preemptive version.
   What happens?
   As always the proof is left to the reader.
 
 \item Turnaround Time is the same formula $E[T] = E[S] + E[W]$. This means that given a distribution of jobs that has either low waiting time as described above, we will get low turnaround time -- we can't really control the distribution of service times.
 \end{enumerate}
 
-\subsection{Pre-emptive Shortest Job First}
+\subsection{Preemptive Shortest Job First}
 
 Unfortunately we can't use the same trick as before because an infinitesimal point doesn't have a well controlled variance.
 You can imagine the comparisons though as the same as the previous section.
@@ -678,7 +678,7 @@ You can imagine the comparisons though as the same as the previous section.
 \item
   What is scheduling?
 \item
-  What is turnaround time? Response Time? Wait time?
+  What is Turnaround Time? Response Time? Wait Time?
 \item
   What is the convoy effect?
 \item

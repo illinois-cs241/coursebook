@@ -88,7 +88,7 @@ Which leads us to our first synchronization primitive, a Mutex.
 
 \section{Mutex}
 
-To ensure only one thread at a time can access a global variable, use a mutex -- short for Mutual Exclusion.
+To ensure that only one thread at a time can access a global variable, use a mutex -- short for Mutual Exclusion.
 If one thread is currently inside a critical section we would like another thread to wait until the first thread is complete.
 A mutex isn't a primitive in the truest sense, though it is one of the smallest pieces of data structures that has some threading API sense.
 A mutex also isn't really a data structure.
@@ -676,7 +676,7 @@ We have atomic instructions in hardware by providing the lock prefix
 lock ...
 \end{lstlisting}
 But Atomicity also applies to higher orders of operations.
-We say a data structure operation is an atomic if it happens all at once and successfully or not at all.
+We say a data structure operation is atomic if it happens all at once and successfully or not at all.
 
 As such, we can use synchronization primitives in order to make our data structures thread safe.
 For the most part, we will be using mutexes because they carry more semantic meaning than a binary semaphore.
@@ -791,7 +791,7 @@ We have ensured mutual exclusion for all of the critical sections.
 There are a few things to note.
 
 \begin{itemize}
-\item \keyword{is\_empty} is thread-safe but its result may already be out-of date.
+\item \keyword{is\_empty} is thread-safe but its result may already be out-of-date.
   The stack may no longer be empty by the time the thread gets the result!
   This is usually why in thread safe data structures, functions that return sizes are removed or deprecated.
   \item There is no protection against underflow (popping on an empty stack) or overflow (pushing onto an already-full stack)
@@ -799,7 +799,7 @@ There are a few things to note.
 
 The last point can be fixed using counting semaphores.
 The implementation assumes a single stack.
-A more general purpose version might include the mutex as part of the memory struct and use \keyword{pthread\_mutex\_init} to initialize the mutex.
+A more general purpose version might include the mutex as part of the memory structure and use \keyword{pthread\_mutex\_init} to initialize the mutex.
 For example,
 
 \begin{lstlisting}[language=C]
@@ -1097,10 +1097,10 @@ As we touched on earlier, this implementation \emph{does not satisfy Mutual Excl
 Let's take a close look at this `implementation' from the point of view of two threads running around the same time.
 
 To simplify the discussion, we consider only two threads.
-Note these arguments work for threads and processes and the classic CS literature discusses these problem in terms of two processes that need exclusive access to a critical section or shared resource.
+Note these arguments work for threads and processes and the classic CS literature discusses these problems in terms of two processes that need exclusive access to a critical section or shared resource.
 Raising a flag represents a thread/process's intention to enter the critical section.
 
-There are three main desirable properties that we desire in a solution the critical section problem
+There are three main desirable properties that we desire in a solution to the critical section problem.
 
 \begin{enumerate}
 \item Mutual Exclusion. The thread/process gets exclusive access.
@@ -1109,7 +1109,7 @@ There are three main desirable properties that we desire in a solution the criti
 \item Progress. If no thread/process is inside the critical section, the thread/process should be able to proceed without having to wait.
 \end{enumerate}
 
-With these ideas in mind let's examine another candidate solution that uses a turn-based flag only if two threads both required access at the same time.
+With these ideas in mind, let's examine another candidate solution that uses a turn-based flag only if two threads both required access at the same time.
 
 \subsection{Naive Solutions}
 
@@ -1127,7 +1127,7 @@ raise my flag
 lower my flag
 \end{lstlisting}
 
-Answer: Candidate solution \#1 also suffers a race condition because both threads/processes could read each other's flag value as lowered and continue.
+Answer: Candidate solution \#1 also suffers from a race condition because both threads/processes could read each other's flag value as lowered and continue.
 
 This suggests we should raise the flag \emph{before} checking the other thread's flag, which is candidate solution \#2 below.
 
@@ -1170,7 +1170,7 @@ Candidate \#3 satisfies mutual exclusion.
 Each thread or process gets exclusive access to the Critical Section.
 However, both threads/processes must take a strict turn-based approach to using the critical section.
 They are forced into an alternating critical section access pattern.
-For example if thread 1 wishes to read a hash table every millisecond, but another thread writes to a hash table every second, then the reading thread would have to wait another 999ms before being able to read from the hash table again.
+If thread 1 wishes to read a hash table every millisecond, but another thread writes to a hash table every second, then the reading thread would have to wait another 999ms before being able to read from the hash table again.
 This `solution' is not effective because our threads should be able to make progress and enter the critical section if no other thread is currently in the critical section.
 
 \subsection{Turn and Flag solutions}
@@ -1203,7 +1203,7 @@ The second thread can immediately continue into the Critical Section!
 \begin{tabular}{|l|l|l|l|}
 Time & Turn & Thread \# 1 & Thread \# 2 \\ \hline
 1 & 2 & Raise my flag & \\
-2 & 2 & If your flag is raise, wait until my turn & Raise my flag \\
+2 & 2 & If your flag is raised, wait until my turn & Raise my flag \\
 3 & 2 & // Do Critical Section Stuff & If your flag is raised, wait until my turn (TRUE!) \\
 4 & 2 & // Do Critical Section Stuff & Do Critical Section Stuff - OOPS \\
 \end{tabular}
@@ -1277,7 +1277,7 @@ Thread \#1 arrives, \emph{sets the turn back to 1} and now waits until thread 2 
 
 \subsection{Extra: Can I just implement Software Exclusion in C?}
 
-Yes - and with a bit searching it is possible even today to find it in production for specific simple mobile processors.
+Yes - and with a bit of searching it is possible even today to find it in production for specific simple mobile processors.
 Peterson's algorithm is used to implement low-level Linux Kernel locks for the Tegra mobile processor (a system-on-chip ARM process and GPU core by Nvidia) \href{Link to Lock Source}{https://android.googlesource.com/kernel/tegra.git/+/android-tegra-3.10/arch/arm/mach-tegra/sleep.S\#58}
 
 However in general, CPUs and C compilers can re-order CPU instructions or use CPU-core-specific local cache values that are stale if another core updates the shared variables.
@@ -1297,9 +1297,9 @@ Independent instructions can be re-ordered by an optimizing compiler or at runti
 
 A related challenge is that CPU cores include a data cache to store recently read or modified main memory values.
 Modified values may not be written back to main memory or re-read from memory immediately.
-Thus data changes, such as the state of a flag and turn variable in the above examples, may not be shared between two CPU codes.
+Thus data changes, such as the state of a flag and turn variable in the above example, may not be shared between two CPU codes.
 
-But there is happy ending.
+But there is a happy ending.
 Modern hardware addresses these issues using `memory fences' also known as memory barrier.
 This prevents instructions from getting ordered before or after the barrier.
 There is a performance loss, but it is needed for correct programs!
@@ -1370,7 +1370,7 @@ void sem_post(sem_t *s) {
 
 Our implementation of \keyword{sem\_wait} may need to sleep if the semaphore's count is zero.
 Just like \keyword{sem\_post}, we wrap the critical section using the lock, so only one thread can be executing our code at a time.
-Notice if the thread does need to wait then the mutex will be unlocked, allowing another thread to enter \keyword{sem\_post} and waken us from our sleep!
+Notice if the thread does need to wait then the mutex will be unlocked, allowing another thread to enter \keyword{sem\_post} and awaken us from our sleep!
 
 Also notice that even if a thread is woken up, before it returns from \keyword{pthread\_cond\_wait}, it must re-acquire the lock, so it will have to wait until sem\_post finishes.
 
@@ -1523,7 +1523,7 @@ void cond_broadcast(cond_t *cv) {
 \end{lstlisting}
 
 So how does this work?
-Instead of malloc'ing space which could lead to deadlock.
+Instead of allocating space which could lead to deadlock.
 We keep the data structures or the linked list nodes on each thread's stack.
 The linked list in the wait function is created \textbf{While the thread has the mutex lock} this is important because otherwise we may have a race condition on the insert and removal.
 A more robust implementation would have a mutex per condition variable.
@@ -1542,13 +1542,13 @@ Now an advanced point. Do you see how a broadcast could cause a spurious wakeup 
 \begin{enumerate}
 \item Some number more than 2 threads start waiting
 \item Another thread calls broadcast.
-\item That thread calling broadcast is SIGSTOP'ed before it flip any threads to awake.
+\item That thread calling broadcast is stopped before it flip any threads to awake.
 \item Another thread calls wait on the condition variable and adds itself to the queue.
 \item Broadcast iterates through and frees all of the threads.
 \end{enumerate}
 
 There is no assurance as to \textit{when} broadcast was called and when threads were added in a high performance mutex.
-The ways to prevent this behavior are to include Lamport time stamps or require that broadcast be called with the mutex in question.
+The ways to prevent this behavior are to include Lamport timestamps or require that broadcast be called with the mutex in question.
 That way something that \textit{happens-before} the broadcast call doesn't get signaled after.
 The same argument is put forward for signal too.
 
@@ -2039,7 +2039,7 @@ writer() {
 
 A ring buffer is a simple, usually fixed-sized, storage mechanism where contiguous memory is treated as if it is circular, and two index counters keep track of the current beginning and end of the queue.
 As array indexing is not circular, the index counters must wrap around to zero when moved past the end of the array.
-As data is added (enqueued) to the front of the queue or removed (dequeued) from tail of the queue, the current items in the buffer form a train that appears to circle the track
+As data is added (enqueued) to the front of the queue or removed (dequeued) from the tail of the queue, the current items in the buffer form a train that appears to circle the track
 
 \begin{figure}
 \centering
@@ -2049,7 +2049,7 @@ As data is added (enqueued) to the front of the queue or removed (dequeued) from
 
 A simple (single-threaded) implementation is shown below.
 Note, enqueue and dequeue do not guard against underflow or overflow.
-It's possible to add an item when when the queue is full and possible to remove an item when the queue is empty.
+It's possible to add an item when the queue is full and possible to remove an item when the queue is empty.
 For example if we added 20 integers (1,2,3\ldots{}) to the queue and did not dequeue any items then values, \keyword{17,18,19,20} would overwrite the \keyword{1,2,3,4}.
 We won't fix this problem right now, instead when we create the multi-threaded version we will ensure enqueue-ing and dequeue-ing threads are blocked while the ring buffer is full or empty respectively.
 
@@ -2082,7 +2082,7 @@ b[ (in++) % N ] = value;
 }
 \end{lstlisting}
 
-This method would appear to work (pass simple tests etc) but contains a subtle bug.
+This method would appear to work but contains a subtle bug.
 With a bit more than two billion enqueue operations, the int value of \keyword{in} will overflow and become negative!
 The modulo (or `remainder') operator \keyword{\%} preserves the sign.
 Thus, you might end up writing into \keyword{b[-14]} for example!
@@ -2341,7 +2341,7 @@ key2: key1: value1
 
 \subsection{Solution}
 
-You can create mutex before fork-ing - however the child and parent process will not share virtual memory and each one will have a mutex independent of the other.
+You can create a mutex before fork-ing - however the child and parent process will not share virtual memory and each one will have a mutex independent of the other.
 Advanced note: There are advanced options using shared memory that allow a child and parent to share a mutex if it's created with the correct options and uses a shared memory segment.
 See \href{http://stackoverflow.com/questions/19172541/procs-fork-and-mutexes}{stackoverflow example}
 
@@ -2434,7 +2434,7 @@ One can have stale reads and writes, but after reading the new value, it won't b
                             printf("%d\n", x) // could be 1 or 0
 \end{verbatim}
 
-But that means that previous loads and stores don't need to effect other threads.
+But that means that previous loads and stores don't need to affect other threads.
 In the previous example, the code can now fail.
 
 \subsection{Acquire/Release}
