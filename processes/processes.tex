@@ -450,6 +450,158 @@ Key differences between the parent and the child include:
     \item The child has its own set of environment variables.
 \end{itemize}
 
+\subsection{Fork and FILEs}
+
+There are some tricky edge cases when it comes to using \keyword{FILE} and forking.
+First, we have to make a technical distinction.
+A \textbf{File Description} is the struct that a file descriptor points to.
+File descriptors can point to many different structs, but for our purposes they'll point to a struct that represents a file on a filesystem.
+This file description contains elements like paths, how far the descriptor has read into the file, etc.
+A file descriptor points to a file description.
+This is important because when a process is forked, only the file descriptor is cloned, not the description.
+The following snippet contains only one description.
+
+\begin{lstlisting}[language=C]
+  int file = open(...);
+  if(!fork) {
+    read(file, ...);
+  } else {
+    read(file, ...);
+  }
+\end{lstlisting}
+
+Which means that one process will read one part of the file, the other process will read another part of the file.
+In the following example, there are two descriptions caused by two different file handles.
+
+\begin{lstlisting}[language=C]
+  if(!fork) {
+    int file = open(...);
+    read(file, ...);
+  } else {
+    int file = open(...);
+    read(file, ...);
+  }
+\end{lstlisting}
+
+Let's consider our motivating example.
+
+\begin{lstlisting}[language=bash]
+$ cat test.txt
+A
+B
+C
+\end{lstlisting}
+
+Take a look at this code, what would you expect that it does?
+
+\begin{lstlisting}[language=C]
+size_t buffer_cap = 0;
+char * buffer = NULL;
+ssize_t nread;
+FILE * file = fopen("test.txt", "r");
+int count = 0;
+while((nread = getline(&buffer, &buffer_cap, file) != -1) {
+  printf("%s", buffer);
+  if(fork() == 0) { 
+    exit(0);
+  }
+  wait(NULL);
+}
+\end{lstlisting}
+
+The initial thought may be that it prints the file line by line with some extra forking.
+It is actually undefined behavior because we didn't prepare the file descriptors.
+
+To parse the \href{http://pubs.opengroup.org/onlinepubs/9699919799.2008edition/functions/V2_chap02.html}{POSIX documentation}, we'll have to go deep into the terminology.
+The sentence that sets the expectation is the following
+
+\begin{quote}
+The result of function calls involving any one handle (the "active handle") is defined elsewhere in this volume of POSIX.1-2008, but if two or more handles are used, and any one of them is a stream, the application shall ensure that their actions are coordinated as described below. If this is not done, the result is undefined.
+\end{quote}
+
+What this means is that if we don't follow POSIX to the letter when using two file descriptors that refer to the same description across processes, we get an error.
+To be technical, the file descriptor must have a ``position'' meaning that it needs to have a beginning and an end like a file, not like an arbitrary stream of byte.
+POSIX then goes on to introduce the idea of active handle or active file descriptor.
+File descriptors don't have a flag called ``active''.
+It is a designation of the program.
+An active file descriptor is one that is being used for reading and writing.
+The standard says that before a \keyword{fork} that the \textit{application} or your code must execute a series of steps to prepare the state of the system.
+In simplified terms, the descriptor needs to be closed, flushed, or read to its entirety -- the gory details are in the link above under the bullet points.
+
+\begin{quote}
+For a handle to become the active handle, the application shall ensure that the actions below are performed between the last use of the handle (the current active handle) and the first use of the second handle (the future active handle). The second handle then becomes the active handle. All activity by the application affecting the file offset on the first handle shall be suspended until it again becomes the active file handle. (If a stream function has as an underlying function one that affects the file offset, the stream function shall be considered to affect the file offset.)
+\end{quote}
+
+Which summarizes to if two file descriptors are actively being used, the behavior is undefined.
+Since we didn't close, flush, or read the file in its entirety in our code example, the bullet point that our code is concerned with is the following
+
+\begin{quote}
+If the stream is open with a mode that allows reading and the underlying open file description refers to a device that is capable of seeking, the application shall either perform an fflush(), or the stream shall be closed.
+\end{quote}
+
+This means that our child process forcibly takes the file handle and makes it the current active handle.
+The documentation says that it needs to perform an fflush or close the stream.
+glibc is in a no-win situation if it closes a file descriptor that the parent may expect to be open, so it'll opt for the fflush on exit because exit in POSIX terminology counts as accessing a file.
+That means that for our parent process, this clause gets triggered.
+
+\begin{quote}
+If any previous active handle has been used by a function that explicitly changed the file offset, except as required above for the first handle, the application shall perform an lseek() or fseek() (as appropriate to the type of handle) to an appropriate location.
+\end{quote}
+
+Since we didn't prepare our file descriptors, the operating system chooses to where the file gets reset.
+Different file systems will do different things which are supported by the standard.
+The OS may look at modification times and conclude that the file hasn't changed so no resets are needed or may conclude that exit denotes a change and needs to rewind the file back to the beginning.
+
+So what should you take away from this discussion to avoid undefined behavior?
+\begin{enumerate}
+\item You as the programmer need to make sure that all of your file descriptors are prepared before forking.
+\item If it is a file descriptor or an unbuffered \keyword{FILE*}, it is already prepared.
+\item If the \keyword{FILE*} is line buffered, it must be flushed (or closed).
+\item If the \keyword{FILE*} is open for writing or appending but not reading, it must be flushed or closed.
+\item If the \keyword{FILE*} is open for reading and has been read fully, it is already prepared. If not, it must be flushed or closed.
+\item If the file descriptor is prepared, it must not be used in the parent process if the child process is using it (or it is active in the child process). The child process is using it if it is read or written or if that process \textit{for whatever reason} calls \keyword{exit}. If the parent process uses it when the child process is as well, the whole application's behavior is undefined.
+\end{enumerate}
+
+So how would we fix the previous example?
+We'd just have to flush the file before forking and refrain from using it until after the \keyword{wait} call.
+
+\begin{lstlisting}[language=C]
+size_t buffer_cap = 0;
+char * buffer = NULL;
+ssize_t nread;
+FILE * file = fopen("test.txt", "r");
+int count = 0;
+while((nread = getline(&buffer, &buffer_cap, file) != -1) {
+  printf("%s", buffer);
+  fflush(file);
+  if(fork() == 0) { 
+    exit(0);
+  }
+  wait(NULL);
+}
+\end{lstlisting}
+
+What if we can't we can't wait and need to keep the file handle open?
+Due to ordering of events, we need to make sure that parent process know that the child is finished using.
+We'll talk about Inter-Process communication in a later chapter, but for now we can use the double fork method.
+
+\begin{lstlisting}[language=C]
+//... 
+fflush(file);
+pid_t child = fork();
+if(child == 0) { 
+  fclose(file);
+  if (fork() == 0) {
+    // Do asynchronous work
+    // Safe exit, this child doesn't know about
+    // the file descriptor
+    exit(0);
+  }
+  exit(0);
+}
+waitpid(child, NULL, 0);
+\end{lstlisting}
+
 \section{Waiting and Execing}
 
 If the parent process wants to wait for the child to finish, it must use \keyword{waitpid} (or \keyword{wait}), both of which wait for a child to change process states, which can be one of the following:
@@ -778,7 +930,7 @@ Environment variables are variables that the system keeps for all processes to u
 Your system has these set up right now!
 In Bash, you can check some of these
 
-\begin{lstlisting}
+\begin{lstlisting}[language=bash]
 $ echo $HOME
 /home/bhuvy
 $ echo $PATH
