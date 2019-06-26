@@ -2,42 +2,57 @@
 
 \epigraph{Who needs process isolation?}{Intel Marketing on Meltdown and Spectre}
 
-To understand what a process is, you need to understand the concept of a boot order.
-In the beginning, there is a kernel.
-The operating system kernel is a special piece of software.
-This is the piece of software that is loaded up before all other programs.
-The following is a brief overview on the tasks performed by the kernel.
+To understand what a process is, you need to understand what an operating system is.
+An operating system is a program that provides an interface between hardware and user software as well as providing a set of tools that the software can use.
+The operating system manages hardware and gives user programs a uniform way of interacting with hardware as long as the operating system can be installed on that hardware.
+Although this idea sounds like it is the end all, we know that there are many different operating systems with their own quirks and standards.
+As a solution to that, there is another layer of abstraction: POSIX or portable operating systems interface.
+This is a standard (or many standards now) that an operating system must implement to be POSIX compatable -- most systems that we'll be studying are almost POSIX compatable due more to political reasons.
+
+Before we talk about POSIX systems, we should understand what the idea of a kernel is generally.
+In an operating system there are two spaces, kernel space and user space.
+Kernel space is a power operating mode that allows the system to interact with the hardware and has the potential to destroy your machine.
+User space is where most applications run because they don't need this level of power for every operation.
+When a user space program needs additional power, it interacts with the hardware through a system call that is conducted by the kernel.
+This adds a layer of security so that normal user programs can't destroy your entire operating system.
+For the purposes of our class, we'll talk about single machine multiple user operating systems.
+This is where there is a central clock in a standard laptop or desktop.
+There are other operating systems that relax the central clock requirement (distributed) or the ``standardness'' of the hardware (embedded systems).
+Other invariants make sure events happen at particular times too.
+
+The operating system is made up of many different pieces.
+There may be a program running to handle incoming USB connections, another one to stay connected to the network etc.
+The most important one is the kernel -- although it might be a set of processes -- which is the heart of the operating system.
+The kernel has many important tasks.
+The first of which is booting.
 
 \begin{enumerate}
-\item The operating system executes code from read-only memory, called firmware.
-\item The operating system then executes a bootloader, which often conforms to the Extensible Firmware Interface (\keyword{EFI}), which is an interface between the system firmware and the operating system.
+\item The computer hardware executes code from read-only memory, called firmware.
+\item The firmware executes a bootloader, which often conforms to the Extensible Firmware Interface (\keyword{EFI}), which is an interface between the system firmware and the operating system.
 \item The bootloader's boot manager loads the operating system kernels, based on the boot settings.
 \item
   Your kernel executes \keyword{init} to \href{https://en.wikipedia.org/wiki/Bootstrapping}{bootstrap} itself from nothing.
-\item The kernel executes startup scripts.
-\item The kernel executes userland scripts, and you get to use your computer!
+\item The kernel executes startup scripts like starting networking and USB handling.
+\item The kernel executes userland scripts like starting a desktop, and you get to use your computer!
 \end{enumerate}
 
-You don't need to know the specifics of the booting process, but there it is.
-When you are executing in user space, the kernel provides some important services to programs.
+When you are executing in user space, the kernel provides some important services to programs in User space.
 
 \begin{itemize}
-    \item Scheduling processes and threads
-    \item Handling synchronization primitives (futexes, mutexes, semaphores etc.)
-    \item Providing system calls such as \keyword{write} or \keyword{read}
-    \item Managing virtual memory and low level binary devices such as \keyword{USB} drivers
-    \item Managing filesystems
-    \item Handling communication over networks
-    \item Handling communication between processes
-    \item Dynamically linking libraries
+\item Scheduling processes and threads
+\item Handling synchronization primitives (futexes, mutexes, semaphores etc.)
+\item Providing system calls such as \keyword{write} or \keyword{read}
+\item Managing virtual memory and low level binary devices such as \keyword{USB} drivers
+\item Managing filesystems
+\item Handling communication over networks
+\item Handling communication between processes
+\item Dynamically linking libraries
+\item The list goes on and on...
 \end{itemize}
 
-The kernel handles all of these tasks in kernel mode.
-Kernel mode gets you greater power, such as the ability to execute extra CPU instructions. 
-However, a single failure can crash your entire computer -- ouch.
-These services are what you will be interacting with in this class.
-
-The kernel creates the first process \keyword{init.d} (an alternative is system.d). \emph{init.d} boots up programs such as graphical user interfaces, terminals etc -- by default, this is the only process explicitly created by the system. All other processes are instantiated by using the system calls \keyword{fork} and \keyword{exec} from that single process.
+The kernel creates the first process \keyword{init.d} (an alternative is system.d).
+\emph{init.d} boots up programs such as graphical user interfaces, terminals etc -- by default, this is the only process explicitly created by the system.
+All other processes are instantiated by using the system calls \keyword{fork} and \keyword{exec} from that single process.
 
 \section{File Descriptors}
 
