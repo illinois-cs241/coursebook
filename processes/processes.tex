@@ -524,23 +524,23 @@ To be technical, the file descriptor must have a ``position'' meaning that it ne
 POSIX then goes on to introduce the idea of active handle or active file descriptor.
 File descriptors don't have a flag called ``active''.
 It is a designation of the program.
-An active file descriptor is one that is being used for reading and writing.
+An active file descriptor is one that is being used for reading and writing and other operations (such as \keyword{exit}).
 The standard says that before a \keyword{fork} that the \textit{application} or your code must execute a series of steps to prepare the state of the system.
-In simplified terms, the descriptor needs to be closed, flushed, or read to its entirety -- the gory details are in the link above under the bullet points.
+In simplified terms, the descriptor needs to be closed, flushed, or read to its entirety -- the gory details are explained later.
 
 \begin{quote}
 For a handle to become the active handle, the application shall ensure that the actions below are performed between the last use of the handle (the current active handle) and the first use of the second handle (the future active handle). The second handle then becomes the active handle. All activity by the application affecting the file offset on the first handle shall be suspended until it again becomes the active file handle. (If a stream function has as an underlying function one that affects the file offset, the stream function shall be considered to affect the file offset.)
 \end{quote}
 
 Which summarizes to if two file descriptors are actively being used, the behavior is undefined.
-Since we didn't close, flush, or read the file in its entirety in our code example, the bullet point that our code is concerned with is the following
+The other note is that after a fork, the library code must prepare the file descriptor as if the other process were to make the file active at any time.
+The last bullet point concerns itself with how a process prepares a file descriptor in our case.
 
 \begin{quote}
 If the stream is open with a mode that allows reading and the underlying open file description refers to a device that is capable of seeking, the application shall either perform an fflush(), or the stream shall be closed.
 \end{quote}
 
-This means that our child process forcibly takes the file handle and makes it the current active handle.
-The documentation says that it needs to perform an fflush or close the stream.
+The documentation says that the child needs to perform an fflush or close the stream because the file descriptor needs to be prepared in case the parent process needs to make it active on \keyword{exit}.
 glibc is in a no-win situation if it closes a file descriptor that the parent may expect to be open, so it'll opt for the fflush on exit because exit in POSIX terminology counts as accessing a file.
 That means that for our parent process, this clause gets triggered.
 
@@ -548,11 +548,12 @@ That means that for our parent process, this clause gets triggered.
 If any previous active handle has been used by a function that explicitly changed the file offset, except as required above for the first handle, the application shall perform an lseek() or fseek() (as appropriate to the type of handle) to an appropriate location.
 \end{quote}
 
-Since we didn't prepare our file descriptors, the operating system chooses to where the file gets reset.
+Since the child fflush's and the parent didn't prepare, the operating system chooses to where the file gets reset.
 Different file systems will do different things which are supported by the standard.
 The OS may look at modification times and conclude that the file hasn't changed so no resets are needed or may conclude that exit denotes a change and needs to rewind the file back to the beginning.
 
-So what should you take away from this discussion to avoid undefined behavior?
+So what should you take away from this long winded example to avoid undefined behavior?
+
 \begin{enumerate}
 \item You as the programmer need to make sure that all of your file descriptors are prepared before forking.
 \item If it is a file descriptor or an unbuffered \keyword{FILE*}, it is already prepared.
@@ -562,7 +563,7 @@ So what should you take away from this discussion to avoid undefined behavior?
 \item If the file descriptor is prepared, it must not be used in the parent process if the child process is using it (or it is active in the child process). The child process is using it if it is read or written or if that process \textit{for whatever reason} calls \keyword{exit}. If the parent process uses it when the child process is as well, the whole application's behavior is undefined.
 \end{enumerate}
 
-So how would we fix the previous example?
+So how would we fix the code?
 We'd just have to flush the file before forking and refrain from using it until after the \keyword{wait} call.
 
 \begin{lstlisting}[language=C]
@@ -581,7 +582,7 @@ while((nread = getline(&buffer, &buffer_cap, file) != -1) {
 }
 \end{lstlisting}
 
-What if we can't we can't wait and need to keep the file handle open?
+What if the parent process and the child process need to perform asynchronously and need to keep the file handle open?
 Due to ordering of events, we need to make sure that parent process know that the child is finished using.
 We'll talk about Inter-Process communication in a later chapter, but for now we can use the double fork method.
 
