@@ -519,13 +519,12 @@ The sentence that sets the expectation is the following
 The result of function calls involving any one handle (the "active handle") is defined elsewhere in this volume of POSIX.1-2008, but if two or more handles are used, and any one of them is a stream, the application shall ensure that their actions are coordinated as described below. If this is not done, the result is undefined.
 \end{quote}
 
-What this means is that if we don't follow POSIX to the letter when using two file descriptors that refer to the same description across processes, we get an error.
-To be technical, the file descriptor must have a ``position'' meaning that it needs to have a beginning and an end like a file, not like an arbitrary stream of byte.
+What this means is that if we don't follow POSIX to the letter when using two file descriptors that refer to the same description across processes, we get undefined behavior.
+To be technical, the file descriptor must have a ``position'' meaning that it needs to have a beginning and an end like a file, not like an arbitrary stream of bytes.
 POSIX then goes on to introduce the idea of active handle or active file descriptor.
 File descriptors don't have a flag called ``active''.
-It is a designation of the program.
-An active file descriptor is one that is being used for reading and writing and other operations (such as \keyword{exit}).
-The standard says that before a \keyword{fork} that the \textit{application} or your code must execute a series of steps to prepare the state of the system.
+An active file descriptor is one that is currently being used for reading and writing and other operations (such as \keyword{exit}).
+The standard says that before a \keyword{fork} that the \textit{application} or your code must execute a series of steps to prepare the state of the file.
 In simplified terms, the descriptor needs to be closed, flushed, or read to its entirety -- the gory details are explained later.
 
 \begin{quote}
@@ -540,7 +539,7 @@ The last bullet point concerns itself with how a process prepares a file descrip
 If the stream is open with a mode that allows reading and the underlying open file description refers to a device that is capable of seeking, the application shall either perform an fflush(), or the stream shall be closed.
 \end{quote}
 
-The documentation says that the child needs to perform an fflush or close the stream because the file descriptor needs to be prepared in case the parent process needs to make it active on \keyword{exit}.
+The documentation says that the child needs to perform an fflush or close the stream because the file descriptor needs to be prepared in case the parent process needs to make it active.
 glibc is in a no-win situation if it closes a file descriptor that the parent may expect to be open, so it'll opt for the fflush on exit because exit in POSIX terminology counts as accessing a file.
 That means that for our parent process, this clause gets triggered.
 
@@ -548,7 +547,7 @@ That means that for our parent process, this clause gets triggered.
 If any previous active handle has been used by a function that explicitly changed the file offset, except as required above for the first handle, the application shall perform an lseek() or fseek() (as appropriate to the type of handle) to an appropriate location.
 \end{quote}
 
-Since the child fflush's and the parent didn't prepare, the operating system chooses to where the file gets reset.
+Since the child calls fflush and the parent didn't prepare, the operating system chooses to where the file gets reset.
 Different file systems will do different things which are supported by the standard.
 The OS may look at modification times and conclude that the file hasn't changed so no resets are needed or may conclude that exit denotes a change and needs to rewind the file back to the beginning.
 
@@ -557,14 +556,13 @@ So what should you take away from this long winded example to avoid undefined be
 \begin{enumerate}
 \item You as the programmer need to make sure that all of your file descriptors are prepared before forking.
 \item If it is a file descriptor or an unbuffered \keyword{FILE*}, it is already prepared.
-\item If the \keyword{FILE*} is line buffered, it must be flushed (or closed).
-\item If the \keyword{FILE*} is open for writing or appending but not reading, it must be flushed or closed.
-\item If the \keyword{FILE*} is open for reading and has been read fully, it is already prepared. If not, it must be flushed or closed.
-\item If the file descriptor is prepared, it must not be used in the parent process if the child process is using it (or it is active in the child process). The child process is using it if it is read or written or if that process \textit{for whatever reason} calls \keyword{exit}. If the parent process uses it when the child process is as well, the whole application's behavior is undefined.
+\item If the \keyword{FILE*} is open for reading and has been read fully, it is already prepared.
+\item Otherwise, the \keyword{FILE*} \textbf{must} be \keyword{fflush}'ed or closed to be prepared.
+\item If the file descriptor is prepared, it must not be active in the parent process if the child process is using it or vice versa. A process is using it if it is read or written or if that process \textit{for whatever reason} calls \keyword{exit}. If the a process uses it when the other process is as well, the whole application's behavior is undefined.
 \end{enumerate}
 
 So how would we fix the code?
-We'd just have to flush the file before forking and refrain from using it until after the \keyword{wait} call.
+We'd just have to flush the file before forking and refrain from using it until after the \keyword{wait} call -- more on the specifics of this next section.
 
 \begin{lstlisting}[language=C]
 size_t buffer_cap = 0;
@@ -583,7 +581,7 @@ while((nread = getline(&buffer, &buffer_cap, file) != -1) {
 \end{lstlisting}
 
 What if the parent process and the child process need to perform asynchronously and need to keep the file handle open?
-Due to ordering of events, we need to make sure that parent process know that the child is finished using.
+Due to ordering of events, we need to make sure that parent process knows that the child is finished using \keyword{wait}.
 We'll talk about Inter-Process communication in a later chapter, but for now we can use the double fork method.
 
 \begin{lstlisting}[language=C]
