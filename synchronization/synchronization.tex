@@ -1144,12 +1144,16 @@ It is impossible for two threads to be inside the critical section at the same t
 However, this code suffers from deadlock!
 Suppose two threads wish to enter the critical section at the same time.
 
+\\
+\begin{center}
 \begin{tabular}{|l|c|c|}
 Time & Thread 1 & Thread 2 \\ \hline
 1 & Raise Flag & \\
 2 & & Raise Flag \\
 3 & Wait & Wait \\
 \end{tabular}
+\end{center}
+\\
 
 Both processes are now waiting for the other one to lower their flags.
 Neither one will enter the critical section as both are now stuck forever!
@@ -1200,6 +1204,8 @@ The turn flag now points to the second thread.
 While the first thread is still inside the Critical Section, the second thread arrives.
 The second thread can immediately continue into the Critical Section!
 
+\\
+\begin{center}
 \begin{tabular}{|l|l|l|l|}
 Time & Turn & Thread \# 1 & Thread \# 2 \\ \hline
 1 & 2 & Raise my flag & \\
@@ -1207,6 +1213,8 @@ Time & Turn & Thread \# 1 & Thread \# 2 \\ \hline
 3 & 2 & // Do Critical Section Stuff & If your flag is raised, wait until my turn (TRUE!) \\
 4 & 2 & // Do Critical Section Stuff & Do Critical Section Stuff - OOPS \\
 \end{tabular}
+\end{center}
+\\
 
 \section{Working Solutions}
 
@@ -1218,7 +1226,7 @@ A version of the algorithm is below.
 \begin{lstlisting}
 raise my flag
 while (your flag is raised) :
-   if it's your turn to win :
+   if it is your turn to win :
      lower my flag
      wait while your turn
      raise my flag
