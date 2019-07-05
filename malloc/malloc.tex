@@ -562,19 +562,19 @@ For example, a 68-byte allocation will require a 128-byte block.
 
 \section{Case Study: SLUB Allocator, Slab allocation}
 
-The SLUB allocator is a slab allocator that serves different needs for the Linux kernel \todo{citation needed}.
+The SLUB allocator is a slab allocator that serves different needs for the Linux kernel \href{http://en.wikipedia.org/wiki/SLUB_\%28software\%29}{SLUB}.
 Imagine you are creating an allocator for the kernel, what are your requirements?
-Here is an imaginary shortlist.
+Here is a hypothetical shortlist.
 
 \begin{enumerate}
 \item First and foremost is you want a low memory footprint to have the kernel be able to be installed on all types of hardware from embedded, to desktop, to supercomputer.
-\item Then, you want the actual memroy to be as contiguous as possible to make use of caching. Every time a system call is performed, the kernel's pages need to get loaded into memory.
-    This means that if they are all contiguous, the processor will be able to cache them easier.
-\item Lastly, you want your allocations to be fast. This isn't the most paramount because we can imagine that our kernel on boot-up does a lot of allocations and does comparatively few during the execution.
+\item Then, you want the actual memory to be as contiguous as possible to make use of caching. Every time a system call is performed, the kernel's pages need to get loaded into memory. This means that if they are all contiguous, the processor will be able to cache them more efficiently
+\item Lastly, you want your allocations to be fast.
 \end{enumerate}
 
 Enter the SLUB allocator \keyword{kmalloc}.
 The SLUB allocator is a segregated list allocator with minimal splitting and coalescing.
+Its focus is on low overal memory footprint while keeping pages in cache.
 There are blocks of different sizes and the kernel rounds up each allocation request to the lowest block size that satisfies it.
 One of the big differences between this allocator and the others is that it usually conforms to page sizes.
 We'll talk about virtual memory and pages in another chapter, but the kernel will be working with direct memory pages in spans of 4Kib or 4096 Bytes.
@@ -586,10 +586,9 @@ One of three allocators used internally by the Linux Kernel.
 See \href{http://man7.org/linux/man-pages/man3/malloc.3.html}{the man page} or the appendix of the book \ref{man_malloc}!
 
 \begin{itemize}
+\item \href{https://en.wikipedia.org/wiki/Slab_allocation}{Slab Allocation}
 \item
-  \href{http://en.wikipedia.org/wiki/SLUB_\%28software\%29}{SLUB} (wikipedia)
-\item
-  \href{http://en.wikipedia.org/wiki/Buddy_memory_allocation}{Wikipedia's buddy memory allocation page}
+  \href{http://en.wikipedia.org/wiki/Buddy_memory_allocation}{Buddy Memory Allocation}
 \end{itemize}
 
 \section{Topics}
