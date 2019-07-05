@@ -27,7 +27,7 @@ There are a few arguments for exceptions as well
 \item Exceptions differentiate business logic and normal flow.
 \end{enumerate}
 
-Whatever the pros/cons are, we use the former because of backwards compatibility with languages like FORTRAN \todo{citation needed}.
+Whatever the pros/cons are, we use the former because of backwards compatibility with languages like FORTRAN \cite[P. 84]{fortran72}.
 Each thread will get a copy of \keyword{errno} because it is stored at the top of each thread's stack -- more on threads later.
 One makes a call to a function that could return an error and if that function returns an error according to the man pages, it is up to the programmer to check errno.
 
