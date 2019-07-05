@@ -755,6 +755,64 @@ Try to make a test and figure out something that is going wrong, then log the st
 
 And then use as appropriately.
 
+\section{Extra: Compiling and Linking}
+
+This is a high level overview from the time you compile your program to the time you run your program.
+We often know that compiling your program is very easy.
+You run the program through an IDE or a terminal, and it just works.
+
+\begin{lstlisting}[language=bash]
+$ gcc main.c
+#include <stdio.h>
+
+int main() {
+    printf("Hello World!\n");
+    return 0;
+}
+$ ./a.out
+Hello World!
+$
+\end{lstlisting}
+
+Here are the stages of compiling
+
+\begin{enumerate}
+\item The preprocessor expands all preprocesor directives. This step is preprocessing.
+\item The compiler parses the text file for function declarations, variable declarations, etc. This step is parsing.
+\item The compiler then generates assembly code for all the functions after some optimizations if enabled. This step is code generation.
+\item The assembler turns the assembly into 0s and 1s and creates an object file. This object file maps names to pieces of code. This step is assembling.
+\item The linker then takes a series of objects and static libraries and resolves references of variables and functions from one object file to another.
+The linker then finds the main method and makes that the entry point for the function. The linker also notices when a function is meant to be dynamically linked.
+Dynamic linking happens right before the program is about to run, so it creates a section in the executable that tells the operating system that these functions need addresses right before running. This step is known as static linking.
+\item As the program is getting ready to be executed, the operating system looks at what libraries that the program needs and fills in the addresses of those functions into the program loaded in memory. This step is dynamic linking.
+\item The program is run.
+\end{enumerate}
+
+Further classes will teach you about parsing and assembly (preprocessing is just an extension of parsing).
+Most classes won't teach you about the two different types of linking though.
+Static linking a static library is not too big of a stretch of the imagination.
+A compiler combines different object files to create one executable, and a static library is just essentially another object file archive -- no really, it literally is a sort-of zip file of object files.
+These libraries are useful when you want your executable to be secure, you know all the code that is being included into your executable, and portable, all the code is bundled with your executable meaning no additional installs.
+
+The other type of library is a dynamic library.
+Typically, dynamic libraries are install user or system wide and are accessible by most programs.
+Dynamic libraries' functions are filled in right before they are run.
+There are a number of benefits to this.
+
+\begin{itemize}
+\item Lower Code footprint for common libraries like the C standard library
+\item Late binding means more generalized code and less reliance on the specific behavior.
+\item Differentiation means that the shared library can be updated while keeping the executable the same.
+\end{itemize}
+
+There are a number of drawbacks as well.
+
+\begin{itemize}
+\item All the code is no longer bundled into your program. This means that users have to install something else.
+\item There could be security flaws in the other code. Standard Linux allows you to "replace" dynamic libraries, leading to possible social engineering attacks.
+\item This adds additional complexity to your application. Two identitical binaries with different shared libraries could lead to different results.
+\end{itemize}
+
 \newpage
 
 \section{Homework 0}
