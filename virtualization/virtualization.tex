@@ -1,0 +1,40 @@
+\chapter{Virtualization}
+
+The heart of virtualization is a simple concept.
+Instead of having the installed operating system run on physical hardware, we can have the OS run on virtual hardware.
+Virtualization typically refers to creating a completely virtualized environment.
+This means that we emulate everything that the operating system needs.
+There are have been new types of virtualization called containers that only virtualize specific parts of their application.
+
+\section{Traditional Applications}
+
+First, we'll talk about traditional virtualization.
+Usually to virtualize an operating system, you install a program that handles the virtualization.
+Some common ones include VMWare, Virtual Box, and Qemu.
+Some of these only support what is known as ``bare metal'' installation.
+This means that the software is installed directly on the hardware, and one can run virtual machines on top of them.
+The other type installs on top of an existing operating system.
+There are benefits and tradeoffs to bare metal installation versus on top of operating systems that we won't cover fully, but some examples are
+
+\begin{enumerate}
+\item Bare metal installations are often faster and better at managing resources because they don't have to fight with an operating system
+\item Bare metal solutions can be complex as it needs to support many different hardware vendors
+\item Non Bare metal systems allow users to run other programs in the operating system next to the virtual machine.
+\end{enumerate}
+
+After the environment is set up, one can set up one or more virtual machines.
+Traditional virtual machines install the entire operating system in this virtualized environment, so you'll need an install disk.
+After installation, one can configure virtual peripherals like network adapters, hard drives, and even CPUs.
+The added benefit is that these systems are secure.
+Applications that are spun up in this virtual environment -- if the virtualization environment is programmed correctly -- cannot alter the outside system in malicious ways unless the user has allowed it.
+
+\section{Hypervisors}
+
+
+
+\section{Topics}
+
+\section{Review}
+
+\bibliographystyle{plainnat}
+\bibliography{virtualization/virtualization}
