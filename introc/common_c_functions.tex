@@ -7,6 +7,52 @@ Section 3 are C libraries.
 On the web, Google \keyword{man 7 open}.
 In the shell, \keyword{man -S2 open} or \keyword{man -S3 printf}
 
+\subsection{Handling Errors}
+
+Before we get into the nitty gritty of all the functions, know that most functions in C handle errors return oriented.
+This is at odds with programming languages like C++ or Java where the errors are handled with exceptions.
+There are a number of arguments against exceptions.
+
+\begin{enumerate}
+\item Exceptions make control flow harder to understand.
+\item Exception oriented languages need to keep stack traces and maintain jump tables.
+\item Exceptions may be complex objects.
+\end{enumerate}
+
+There are a few arguments for exceptions as well
+
+\begin{enumerate}
+\item Exceptions can come from several layers deep.
+\item Exceptions help reduce global state.
+\item Exceptions differentiate business logic and normal flow.
+\end{enumerate}
+
+Whatever the pros/cons are, we use the former because of backwards compatibility with languages like FORTRAN \cite[P. 84]{fortran72}.
+Each thread will get a copy of \keyword{errno} because it is stored at the top of each thread's stack -- more on threads later.
+One makes a call to a function that could return an error and if that function returns an error according to the man pages, it is up to the programmer to check errno.
+
+\begin{lstlisting}[language=C]
+#include <errno.h>
+
+FILE *f = fopen("/does/not/exist.txt", "r");
+if (NULL == f) {
+    fprintf(stderr, "Errno is %d\n", errno);
+    fprintf(stderr, "Description is %s\n", strerror(errno));
+}
+\end{lstlisting}
+
+There is a shortcut function \keyword{perror} that prints the english description of errno.
+Also, a function may return the error code in the return value itself.
+
+\begin{lstlisting}[language=C]
+int s = getnameinfo(...);
+if (0 != s) {
+     fprintf(stderr, "getnameinfo: %s\n", gai_strerror(s));
+}
+\end{lstlisting}
+
+Be sure to check the man page for which type of function you are dealing with!
+
 \subsection{Input / Output}
 
 In this section we will cover all the basic input and output functions in the standard library with references to system calls.
