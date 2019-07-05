@@ -1,26 +1,26 @@
 \section{History of C}
 
-C was developed by Dennis Ritchie and Ken Thompson at Bell Labs back in 1973 \cite{Ritchie:1993:DCL:155360.155580}.
-Back then, we had gems of programming languages like Fortran, ALGOL, and LISP.
+C was developed by \gls{Dennis Ritchie} and \gls{Ken Thompson} at \gls{Bell Labs} back in 1973 \cite{Ritchie:1993:DCL:155360.155580}.
+Back then, we had gems of programming languages like \gls{Fortran}, \gls{ALGOL}, and \gls{LISP}.
 The goal of C was two fold.
-Firstly, it was made to target the most popular computers at the time, such as the PDP-7.
-Secondly, it tried to remove some of the lower level constructs (managing registers, and programming assembly for jumps), and create a language that had the power to express programs procedurally (as opposed to mathematically like LISP) with more readable code.
+Firstly, it was made to target the most popular computers at the time, such as the \gls{PDP-7}.
+Secondly, it tried to remove some of the lower level constructs (managing \gls{registers}, and programming assembly for \gls{jumps}), and create a language that had the power to express programs procedurally (as opposed to mathematically like LISP) with readable code.
 All this while still having the ability to interface with the operating system.
 It sounded like a tough feat.
 At first, it was only used internally at Bell Labs along with the UNIX operating system.
 
-The first "real" standardization was with Brian Kernighan and Dennis Ritchie's book \cite{kernighan1988c}.
+The first "real" standardization was with \gls{Brian Kernighan} and Dennis Ritchie's book \cite{kernighan1988c}.
 It is still widely regarded today as the only \gls{portable} set of C instructions.
 The K\&R book is known as the de-facto standard for learning C.
-There were different standards of C from ANSI to ISO, though ISO largely won out as a language specification.
-We will be mainly focusing on is the \gls{POSIX} C library.
-Now to get the elephant out of the room, the Linux kernel is not entirely POSIX compliant.
+There were different standards of C from \gls{ANSI} to \gls{ISO}, though ISO largely won out as a language specification.
+We will be mainly focusing on is the \gls{POSIX} C library which extends ISO.
+Now to get the elephant out of the room, the \gls{Linux kernel} is not entirely POSIX compliant.
 Mostly, this is so because the Linux developers didn't want to pay the fee for compliance.
 It is also because they did not want to be fully compliant with a multitude of different standards because that meant increased development costs to maintain compliance.
 
 We will aim to use C99, as it is the standard that most computers recognize, but sometimes use some of the newer C11 features.
-We will also talk about some off-hand features like \keyword{getline} because they are so widely used with the GNU C library.
-We'll begin by providing a fairly comprehensive overview of the language with pairing facilities.
+We will also talk about some off-hand features like \keyword{getline} because they are so widely used with the \gls{GNU C library}.
+We'll begin by providing a fairly comprehensive overview of the language with language facilities.
 Feel free to gloss over if you have already worked with a C based language.
 
 

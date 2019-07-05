@@ -3,10 +3,11 @@
 \epigraph{If you want to teach systems, don't drum up the programmers, sort the issues, and make PRs. Instead, teach them to yearn for the vast and endless C.}{Antoine de Saint-Exup\'{e}ry (With edits from Bhuvy)}
 
 \gls{C} is the de-facto programming language to do serious system serious programming.
-Why? Most kernels are written in largely in C.
-The \gls{Linux kernel} \cite{Love} and the XNU kernel \citet{xnukernel} of which Mac OS X is based on are written in C and have C API - Application Programming Interface.
-The Windows Kernel uses C++, but doing system programming on that is much harder on windows that UNIX for novice system programmers.
-C doesn't have nice abstractions like classes and Resource Acquisition Is Initialization (RAII) to clean up memory.
+Why?
+Most kernels have their \gls{API} accessible through C.
+The \gls{Linux kernel} \cite{Love} and the XNU kernel \citet{xnukernel} of which \gls{MacOS} is based on are written in C and have C API - Application Programming Interface.
+The \gls{Windows Kernel} uses C++, but doing system programming on that is much harder on windows that \gls{UNIX} for novice system programmers.
+C doesn't have \gls{abstractions} like classes and \gls{Resource Acquisition Is Initialization} (RAII) to clean up memory.
 C also gives you much more of an opportunity to shoot yourself in the foot, but it lets you do things at a much more fine-grained level.
 
 \input{introc/history_of_c.tex}
@@ -105,7 +106,7 @@ sizeof(ptr);
 sizeof(*ptr);
 \end{lstlisting}
 	\item
-	      What is \keyword{malloc}? How is it different than \keyword{calloc}. Once memory is \keyword{malloc}ed how can I use \keyword{realloc}?
+	      What is \keyword{malloc}? How is it different from \keyword{calloc}. Once memory is allocated how can I use \keyword{realloc}?
 	\item
 	      What is the \keyword{\&} operator? How about \keyword{*}?
 	\item
@@ -136,7 +137,7 @@ ptr[1] = malloc(20); //0x300
 	      What is the printf specifier to print a string, \keyword{int}, or
 	      \keyword{char}?
 	\item
-	      Is the following code valid? If so, why? Where is \keyword{output}
+	      Is the following code valid? Why? Where is \keyword{output}
 	      located?
 
 	      \begin{lstlisting}[language=C]
