@@ -165,6 +165,24 @@ To make sure the book has a consistent tone among authors, we'll use the general
 * Opt for citations rather than links because they allow for smoother reading.
 * Break each sentence into its own line.
 
+# Code Style
+
+* Opt for small snippets of code and explainations around them. We want people who are learning to craft their own functions.
+* Two spaces is an indent.
+* The type of bracket style is the following
+```c
+if (1) {
+
+} else if (2) {
+
+} else {
+
+}
+```
+
+* Opt for magic numbers defined in the text than code that compiles through.
+* No headers unless they are the topic of conversation (like talking about preprocessors)
+
 # Structure
 
 Since our wiki is used for the markdown version of the textbook for easy perusing, our high-level documentation is located here.
