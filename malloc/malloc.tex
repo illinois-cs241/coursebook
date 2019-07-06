@@ -544,7 +544,7 @@ Inserting in address order (``Address ordered policy'') inserts deallocated bloc
 This policy required more time to free a block because the boundary tags (size data) must be used to find the next and previous unallocated blocks.
 However, there is less fragmentation.
 
-\section{Case study: Buddy Allocator, an example of a segregated list}
+\section{Case Study: Buddy Allocator, an example of a segregated list}
 
 A segregated allocator is one that divides the heap into different areas that are handled by different sub-allocators dependent on the size of the allocation request.
 Sizes are grouped into powers of two and each size is handled by a different sub-allocator and each size maintains its own free list.
@@ -560,6 +560,25 @@ Ultimate performance often requires a small amount of assembler code to use a sp
 The main disadvantage of the Buddy allocator is that they suffer from \emph{internal fragmentation}, because allocations are rounded up to the nearest block size.
 For example, a 68-byte allocation will require a 128-byte block.
 
+\section{Case Study: SLUB Allocator, Slab allocation}
+
+The SLUB allocator is a slab allocator that serves different needs for the Linux kernel \href{http://en.wikipedia.org/wiki/SLUB_\%28software\%29}{SLUB}.
+Imagine you are creating an allocator for the kernel, what are your requirements?
+Here is a hypothetical shortlist.
+
+\begin{enumerate}
+\item First and foremost is you want a low memory footprint to have the kernel be able to be installed on all types of hardware from embedded, to desktop, to supercomputer.
+\item Then, you want the actual memory to be as contiguous as possible to make use of caching. Every time a system call is performed, the kernel's pages need to get loaded into memory. This means that if they are all contiguous, the processor will be able to cache them more efficiently
+\item Lastly, you want your allocations to be fast.
+\end{enumerate}
+
+Enter the SLUB allocator \keyword{kmalloc}.
+The SLUB allocator is a segregated list allocator with minimal splitting and coalescing.
+Its focus is on low overal memory footprint while keeping pages in cache.
+There are blocks of different sizes and the kernel rounds up each allocation request to the lowest block size that satisfies it.
+One of the big differences between this allocator and the others is that it usually conforms to page sizes.
+We'll talk about virtual memory and pages in another chapter, but the kernel will be working with direct memory pages in spans of 4Kib or 4096 Bytes.
+
 \section{Further Reading}
 
 There are many other allocation schemes.
@@ -567,10 +586,9 @@ One of three allocators used internally by the Linux Kernel.
 See \href{http://man7.org/linux/man-pages/man3/malloc.3.html}{the man page} or the appendix of the book \ref{man_malloc}!
 
 \begin{itemize}
+\item \href{https://en.wikipedia.org/wiki/Slab_allocation}{Slab Allocation}
 \item
-  \href{http://en.wikipedia.org/wiki/SLUB_\%28software\%29}{SLUB} (wikipedia)
-\item
-  \href{http://en.wikipedia.org/wiki/Buddy_memory_allocation}{Wikipedia's buddy memory allocation page}
+  \href{http://en.wikipedia.org/wiki/Buddy_memory_allocation}{Buddy Memory Allocation}
 \end{itemize}
 
 \section{Topics}

@@ -1502,12 +1502,15 @@ There are a number of problems with using epoll. Here we will detail a few.
 \item There are two modes. Level triggered and edge triggered. Level triggered means that while the file descriptor has events on it, it will be returned by epoll when calling the ctl function. In edge triggered, the caller will only get the file descriptor once it goes from zero events to an event.
   This means if you forget to read, write, accept etc on the file descriptor until you get a EWOULDBLOCK, that file descriptor will be dropped.
 \item If at any point you duplicate a file descriptor and add it to epoll, you will get an event from that file descriptor and the duplicated one.
-\item You can add epoll to epoll. Edge triggered and level triggered modes are the same because ctl will reset the state to zero events
+\item You can add an epoll object to epoll. Edge triggered and level triggered modes are the same because ctl will reset the state to zero events
 \item This is a real doozy. Depending on the conditions, you may get a file descriptor that was closed from Epoll. This isn't actually a bug. The reason that this happens is epoll works on the kernel object level, not the file descriptor level.
   If the kernel object lives longer and the right flags are set, a process could get a closed file descriptor.
   This also means that if you close the file descriptor, there is no way to remove the kernel object.
+\item Epoll has the \keyword{EPOLLONESHOT} flag which will remove a file descriptor after it has been returned in \keyword{epoll\_wait}
+\item Epoll using level triggered mode could starve certain file descriptors because it is unknown how much data the application will read from each descriptor.
 \end{enumerate}
 
+Read more at \keyword{man 7 epoll}
 
 \subsection{Extra: KQueue}
 

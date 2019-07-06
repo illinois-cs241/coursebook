@@ -98,7 +98,7 @@ def gen_home_page(files_meta, out_file):
     with open(out_file, "w") as f:
         f.write(rendered)
 
-def generate_tex_meta(order, outdir, meta_file_name):
+def generate_tex_meta(order, outdir, meta_file_name, chapter=None):
     """
     Generates a list of ConvertableTexFile objects given an order file
     an output directory, and a temporary meta file name
@@ -106,6 +106,7 @@ def generate_tex_meta(order, outdir, meta_file_name):
     :param order: List[str] Order of the chapters without the .tex extension
     :param outdir: str The output directory, must be created
     :param meta_file_name: str The metadata file, must be able to be written to
+    :param chatper: str Optional chapter to include
     """
 
     # Set the environment variables so all the subprocess calls know
@@ -113,10 +114,17 @@ def generate_tex_meta(order, outdir, meta_file_name):
     os.environ['META_FILE_NAME'] = meta_file_name
 
     # Order file does not have suffixes
-    out_tex_names = [path + ".tex" for path in order]
     logger.info("Generating Metadata at {}".format(meta_file_name))
 
-    for tex_name in out_tex_names:
+    out_tex_names = []
+    order_converted = []
+
+    for path in order:
+        tex_name = path + '.tex'
+        if chapter is not None:
+            if not tex_name.endswith(chapter + '.tex'):
+                continue
+
         logger.info("Adding {}".format(tex_name))
         # Performa  walk with pandoc along the tree, outputting meta to a file
         command = ['pandoc',
@@ -132,6 +140,8 @@ def generate_tex_meta(order, outdir, meta_file_name):
                     github_shim,
                     '/dev/null']
         subprocess.check_call(command)
+        order_converted.append(path)
+        out_tex_names.append(tex_name)
 
     # Load that file back up
     with open(meta_file_name, 'r') as f:
@@ -139,8 +149,8 @@ def generate_tex_meta(order, outdir, meta_file_name):
 
     # Convert that meta to our datastructures so we aren't referencing magic keys
     ret = []
-    for i in range(len(order)):
-        bare_name = os.path.basename(order[i])
+    for i in range(len(order_converted)):
+        bare_name = os.path.basename(order_converted[i])
         tex_name = out_tex_names[i]
         meta = metadata[i]
         to_append = ConvertableTexFile(bare_name, tex_name, meta, outdir)
@@ -208,6 +218,7 @@ def main(args):
 
     order_file = args.order_file
     outdir = args.outdir
+    chapter = args.chapter
 
     with open(order_file, 'r') as order_f:
         order = yaml.load(order_f, Loader=yaml.Loader)
@@ -215,7 +226,12 @@ def main(args):
     logger.info("Creating Metadata")
     with tempfile.NamedTemporaryFile(mode='r', prefix=tmp_dir) as fp:
         meta_file_name = fp.name
-        files_meta = generate_tex_meta(order, outdir, meta_file_name)
+        files_meta = generate_tex_meta(order, outdir, meta_file_name, chapter=args.chapter)
+
+    if args.chapter is not None:
+        files_meta = list(filter(lambda f: chapter.lower() == f.bare_name.lower(), files_meta))
+        if len(files_meta) == 0:
+            raise ValueError("No Chapter Found")
 
     # 1. Convert files in the order
     num_cores_usable = (multiprocessing.cpu_count()-1)
@@ -227,13 +243,15 @@ def main(args):
     with Pool(num_cores_usable) as p:
         p.map(convert_latex_to_md, files_meta)
 
-    # 3. Generate Home Page
-    home_file = outdir + '/Home.md'
-    gen_home_page(files_meta, home_file)
+    if args.chapter is None:
+        # 3. Generate Home Page
+        home_file = outdir + '/Home.md'
+        gen_home_page(files_meta, home_file)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(help_text)
     parser.add_argument('order_file')
     parser.add_argument('outdir')
+    parser.add_argument('-c', '--chapter', type=str, help='Optional output chapter')
     args = parser.parse_args()
     main(args)

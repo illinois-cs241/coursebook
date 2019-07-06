@@ -820,13 +820,25 @@ A better version is to atomically create the directory with the correct permissi
 $ mkdir -m 700 /tmp/mystuff
 \end{lstlisting}
 
-\subsection{Obtaining random data}
+\subsection{Obtaining Random Data}
 
 \keyword{/dev/random} is a file which contains number generator where the entropy is determined from environmental noise.
 Random will block/wait until enough entropy is collected from the environment.
 
 \keyword{/dev/urandom} is like random, but differs in the fact that it allows for repetition (lower entropy threshold), thus won't block.
 
+One can think of both of these as streams of characters from which a program can read as opposed to files with a start and end.
+To touch on a misconception, most of the time one should be using \keyword{/dev/urandom}.
+The only specific use case of \keyword{/dev/random} is when one needs cryptographically secure data on bootup and the system should block.
+Otherwise, there are the following reasons.
+
+\begin{enumerate}
+\item Empircally, they both produce numbers that look random enough.
+\item \keyword{/dev/random} may block at an inconvenient time. If one is programming a service for high scalability and relies on \keyword{/dev/random}, an attacker can reliably exhaust the entropy pool and cause the service to block.
+\item Man page authors pose a hypothetical attack where an attacker exhausts the entropy pool and guesses the seeding bits, but that attack has yet to be implemented.
+\item Some operating system don't have a true \keyword{/dev/random} like MacOS.
+\item Security experts will talk about Computational Security vs Information Theoretic security, more on this article \href{https://www.2uo.de/myths-about-urandom}{Urandom Myths}. Most encryption is computationally secure, which means \keyword{/dev/urandom} is as well.
+\end{enumerate}
 
 \subsection{Copying Files}
 
