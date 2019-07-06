@@ -2583,10 +2583,26 @@ if(not_ready){
   Give me an implementation of a reader-writer lock with condition variables, make a struct with whatever you need, it just needs to be able to support the following functions
 
 \begin{lstlisting}[language=C]
-void reader_lock(rw_lock_t* lck);
-void writer_lock(rw_lock_t* lck);
-void reader_unlock(rw_lock_t* lck);
-void writer_unlock(rw_lock_t* lck);
+typedef struct {
+
+
+} rw_lock_t;
+
+void reader_lock(rw_lock_t* lck) {
+
+}
+
+void writer_lock(rw_lock_t* lck) {
+
+}
+
+void reader_unlock(rw_lock_t* lck) {
+
+}
+
+void writer_unlock(rw_lock_t* lck) {
+
+}
 \end{lstlisting}
 
   The only specification is that in between \keyword{reader\_lock} and \keyword{reader\_unlock}, no writers can write. In between the writer locks, only one writer may be writing at a time.
@@ -2599,17 +2615,69 @@ void writer_unlock(rw_lock_t* lck);
 \item
   Use CVs to implement a barrier for 15 threads.
 \item
+  What does the following code do?
+\begin{lstlisting}[language=C]
+void main() {
+    pthread_mutex_t mutex;
+    pthread_cond_t cond;
+
+    pthread_mutex_init(&mutex, NULL);
+    pthread_cond_init(&cond, NULL);
+
+    pthread_cond_broadcast(&cond);
+    pthread_cond_wait(&cond,&mutex);
+
+    return 0;
+}
+\end{lstlisting}
+\item
+  Is the following code correct? If it isn't, could you fix it?
+\begin{lstlisting}[language=C]
+extern int money;
+void deposit(int amount) {
+  pthread_mutex_lock(&m);
+  money += amount;
+  pthread_mutex_unlock(&m);
+}
+
+void withdraw(int amount) {
+  if (money < amount) {
+    pthread_cond_wait(&cv);
+  }
+
+  pthread_mutex_lock(&m);
+  money -= amount;
+  pthread_mutex_unlock(&m);
+}
+\end{lstlisting}
+\item
+  Sketch how to use a binary semaphore as a mutex. Remember in addition to mutual exclusion, a mutex can only ever be unlocked by the thread who called it.
+\begin{lstlisting}[language=C]
+sem_t sem;
+
+void lock() {
+
+}
+
+void unlock() {
+
+}
+\end{lstlisting}
+\item
   How many of the following statements are true?
-\item
-There can be multiple active readers
-\item
-There can be multiple active writers
-\item
-When there is an active writer the number of active readers must be zero
-\item
-If there is an active reader the number of active writers must be zero
-\item
-A writer must wait until the current active readers have finished
+
+        \begin{itemize}
+        \item
+        There can be multiple active readers
+        \item
+        There can be multiple active writers
+        \item
+        When there is an active writer the number of active readers must be zero
+        \item
+        If there is an active reader the number of active writers must be zero
+        \item
+        A writer must wait until the current active readers have finished
+        \end{itemize}
 \end{itemize}
 
 \bibliographystyle{plainnat}
