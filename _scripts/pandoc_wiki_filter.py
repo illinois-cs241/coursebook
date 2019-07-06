@@ -13,14 +13,24 @@ base_raw_url = 'https://raw.githubusercontent.com/illinois-cs241/coursebook/mast
 class NoAltTagException(Exception):
     pass
 
+def deserialize(x):
+    """
+    Takes a panflute element x and returns
+    a basic stringified version of that element
+    """
+
+    if type(x) == Str:
+        return x.text
+    return ' '
+
 def change_base_url(elem, doc):
     if type(elem) == Image:
         # Get the number of chars for the alt tag
+        alt_name = ''.join(map(deserialize, elem._content.list))
         alt_length = len(elem._content)
-
         # No alt means no compile
         # Accessibility by default
-        if alt_length == 0:
+        if alt_length == 0 or alt_name.lower() == 'image':
             raise NoAltTagException(elem.url)
 
         # Otherwise link to the raw user link instead of relative
