@@ -228,3 +228,5 @@ main.pdf
 _out/*
 *pdf
 order.tex
+# Don't ask about it
+-B
