@@ -574,7 +574,8 @@ Here is a hypothetical shortlist.
 
 Enter the SLUB allocator \keyword{kmalloc}.
 The SLUB allocator is a segregated list allocator with minimal splitting and coalescing.
-Its focus is on low overal memory footprint while keeping pages in cache.
+The difference here is that the segregated list focuses on more realistic allocation sizes, instead of powers of two.
+SLUB also focuses on low overall memory footprint while keeping pages in cache.
 There are blocks of different sizes and the kernel rounds up each allocation request to the lowest block size that satisfies it.
 One of the big differences between this allocator and the others is that it usually conforms to page sizes.
 We'll talk about virtual memory and pages in another chapter, but the kernel will be working with direct memory pages in spans of 4Kib or 4096 Bytes.
