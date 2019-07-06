@@ -7,6 +7,7 @@ Pandoc filter to change each relative URL to absolute
 from panflute import run_filter, Str, Header, Image, Math, Link, RawInline
 import sys
 import re
+import os.path
 
 base_raw_url = 'https://raw.githubusercontent.com/illinois-cs241/coursebook/master/'
 eps_ext = '.eps'
@@ -44,6 +45,8 @@ def doc_filter(elem, doc):
         # Otherwise link to the raw user link instead of relative
         # That way the wiki and the site will have valid links automagically
         new_url = replace_suffix(elem.url, '.eps', '.png')
+        if not os.path.isfile(new_url):
+            raise ValueError('{} Not found'.format(new_url))
         elem.url = base_raw_url + new_url
         return elem
 
