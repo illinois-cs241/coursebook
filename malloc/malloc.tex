@@ -197,7 +197,7 @@ Let's say that our heap looks like the following table.
 
 \begin{figure}[H]
 \centering
-\includegraphics[width=.9\textwidth]{malloc/drawings/heap_empty.png}
+\includegraphics[width=.9\textwidth]{malloc/drawings/heap_empty.eps}
 \caption{Empty heap blocks}
 \end{figure}
 
@@ -211,7 +211,7 @@ A perfect-fit strategy finds the smallest hole that is of sufficient size (at le
 
 \begin{figure}[H]
 \centering
-\includegraphics[width=.9\textwidth]{malloc/drawings/heap_best_fit.png}
+\includegraphics[width=.9\textwidth]{malloc/drawings/heap_best_fit.eps}
 \caption{Best fit finds an exact match}
 \end{figure}
 
@@ -219,7 +219,7 @@ A worst-fit strategy finds the largest hole that is of sufficient size so break 
 
 \begin{figure}[H]
 \centering
-\includegraphics[width=.9\textwidth]{malloc/drawings/heap_worst_fit.png}
+\includegraphics[width=.9\textwidth]{malloc/drawings/heap_worst_fit.eps}
 \caption{Worst fit finds the worst match}
 \end{figure}
 
@@ -229,7 +229,7 @@ We don't even have to look through the entire heap!
 
 \begin{figure}[H]
 \centering
-\includegraphics[width=.5\textwidth]{malloc/drawings/heap_first_fit.png}
+\includegraphics[width=.5\textwidth]{malloc/drawings/heap_first_fit.eps}
 \caption{First fit finds the first match}
 \end{figure}
 
@@ -303,7 +303,7 @@ bt is short for boundary tag.
 
 \begin{figure}[H]
 \centering
-\includegraphics[width=.7\textwidth]{malloc/drawings/malloc_patching.png}
+\includegraphics[width=.7\textwidth]{malloc/drawings/malloc_patching.eps}
 \caption{3 Adjacent Memory blocks}
 \end{figure}
 
@@ -312,7 +312,7 @@ This is in contrast to an explicit \keyword{metadata *next} field in our meta bl
 
 \begin{figure}[H]
 \centering
-\includegraphics[width=.5\textwidth]{malloc/drawings/malloc_addition.png}
+\includegraphics[width=.5\textwidth]{malloc/drawings/malloc_addition.eps}
 \caption{Malloc addition}
 \end{figure}
 
@@ -407,7 +407,7 @@ The split we'll have to do is the following.
 
 \begin{figure}[H]
 \centering
-\includegraphics[width=.7\textwidth]{malloc/drawings/malloc_split.png}
+\includegraphics[width=.7\textwidth]{malloc/drawings/malloc_split.eps}
 \caption{Malloc split}
 \end{figure}
 
@@ -472,7 +472,7 @@ If we wanted to free the middle block we need to turn the surrounding blocks int
 
 \begin{figure}[H]
 \centering
-\includegraphics[width=.9\textwidth]{malloc/drawings/malloc_double_coalesce.png}
+\includegraphics[width=.9\textwidth]{malloc/drawings/malloc_double_coalesce.eps}
 \caption{Free double coalesce}
 \end{figure}
 
@@ -510,7 +510,7 @@ Here is what that would look like along with our implicit linked list
 
 \begin{figure}[H]
 \centering
-\includegraphics[width=.7\textwidth]{malloc/drawings/free_list.png}
+\includegraphics[width=.7\textwidth]{malloc/drawings/free_list.eps}
 \caption{Free list}
 \end{figure}
 
@@ -528,7 +528,7 @@ We've included a figure with a common mistake.
 
 \begin{figure}[H]
 \centering
-\includegraphics[width=.7\textwidth]{malloc/drawings/free_list_ptrs.png}
+\includegraphics[width=.7\textwidth]{malloc/drawings/free_list_ptrs.eps}
 \caption{Free list good and bad coalesce}
 \end{figure}
 

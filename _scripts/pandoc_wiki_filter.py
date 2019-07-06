@@ -9,6 +9,8 @@ import sys
 import re
 
 base_raw_url = 'https://raw.githubusercontent.com/illinois-cs241/coursebook/master/'
+eps_ext = '.eps'
+default_image_alt = 'image'
 
 class NoAltTagException(Exception):
     pass
@@ -26,7 +28,7 @@ def doc_filter(elem, doc):
 
         # No alt means no compile
         # Accessibility by default
-        if alt_length == 0:
+        if alt_length == 0 or alt_name.lower() == default_image_alt:
             raise NoAltTagException(elem.url)
 
         # Otherwise link to the raw user link instead of relative

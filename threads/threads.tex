@@ -47,7 +47,7 @@ In a multi threaded program, there are multiple stack but only one address space
 
 \begin{figure}[H]
 \centering
-\includegraphics[width=.5\textwidth]{threads/drawings/thread_stack.png}
+\includegraphics[width=.5\textwidth]{threads/drawings/thread_stack.eps}
 \caption{Thread stack visualization}
 \end{figure}
 
@@ -61,7 +61,7 @@ Thus they can all see the heap, the global variables and the program code etc.
 
 \begin{figure}[H]
 \centering
-\includegraphics[width=.5\textwidth]{threads/drawings/thread_stack_pointer.png}
+\includegraphics[width=.5\textwidth]{threads/drawings/thread_stack_pointer.eps}
 \caption{Threads pointing to same place in heap}
 \end{figure}
 
@@ -238,7 +238,7 @@ Consider this access pattern.
 
 \begin{figure}[H]
 \centering
-\includegraphics[width=.7\textwidth]{threads/drawings/thread_nonrace_timing.png}
+\includegraphics[width=.7\textwidth]{threads/drawings/thread_nonrace_timing.eps}
 \caption{Thread access - not a race condition}
 \end{figure}
 
@@ -247,7 +247,7 @@ The problem is when the instructions are executed in parallel.
 
 \begin{figure}[H]
 \centering
-\includegraphics[width=.5\textwidth]{threads/drawings/thread_race_timing.png}
+\includegraphics[width=.5\textwidth]{threads/drawings/thread_race_timing.eps}
 \caption{Thread access - race condition}
 \end{figure}
 

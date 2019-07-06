@@ -62,7 +62,7 @@ There is nothing in those boxes
 
 \begin{figure}[H]
 \centering
-\includegraphics[width=.7\textwidth]{introc/drawings/memory_model_empty.png}
+\includegraphics[width=.7\textwidth]{introc/drawings/memory_model_empty.eps}
 \caption{Struct pointing to 11 empty boxes}
 \end{figure}
 
@@ -78,7 +78,7 @@ bhuvan_name->length = length;
 
 \begin{figure}[H]
 \centering
-\includegraphics[width=.7\textwidth]{introc/drawings/memory_model_length.png}
+\includegraphics[width=.7\textwidth]{introc/drawings/memory_model_length.eps}
 \caption{Struct pointing to 11 boxes, 4 filled with 0006, 7 junk}
 \end{figure}
 
@@ -90,7 +90,7 @@ strcpy(bhuvan_name->c_str, to_convert);
 
 \begin{figure}[H]
 \centering
-\includegraphics[width=.7\textwidth]{introc/drawings/memory_model_full.png}
+\includegraphics[width=.7\textwidth]{introc/drawings/memory_model_full.eps}
 \caption{Struct pointing to 11 boxes, 4 filled with 0006, 7 the stirng ``bhuvan''}
 \end{figure}
 
@@ -127,7 +127,7 @@ One box is four bytes.
 
 \begin{figure}[H]
 \centering
-\includegraphics[width=.7\textwidth]{introc/drawings/struct_clean.png}
+\includegraphics[width=.7\textwidth]{introc/drawings/struct_clean.eps}
 \caption{Six box struct}
 \label{fig:clean_struct}
 \end{figure}
@@ -149,7 +149,7 @@ Visually, we'd add two extra boxes to our diagram
 
 \begin{figure}[H]
 \centering
-\includegraphics[width=.7\textwidth]{introc/drawings/struct_slop.png}
+\includegraphics[width=.7\textwidth]{introc/drawings/struct_slop.eps}
 \caption{Eight box struct, two boxes of slop}
 \label{fig:sloppy_struct}
 \end{figure}
