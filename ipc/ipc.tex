@@ -352,100 +352,57 @@ The other parameters to mmap are described in the annotated walkthrough below.
 
 \subsection{Annotated mmap Walkthrough}
 
-Below is an annotated walk through of the example code in the man pages
+Below is an annotated walk through of the example code in the man pages.
+Our command line utility will take a file, offset, and length to print.
+We can assume that these are initialized correctly and the offset + length is less than the length of the file.
 
 \begin{lstlisting}[language=C]
-#include <sys/mman.h>
-#include <sys/stat.h>
-#include <fcntl.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-
-#define handle_error(msg) \
-do { perror(msg); exit(EXIT_FAILURE); } while (0)
-
-int
-main(int argc, char *argv[])
-{
-  // Various variables that we'll talk about as the code goes through
-  char *addr;
-  int fd;
-  struct stat sb;
-  off_t offset, pa_offset;
-  size_t length;
-  ssize_t s;
-
-  if (argc < 3 || argc > 4) {
-    fprintf(stderr, "%s file offset [length]\n", argv[0]);
-    exit(EXIT_FAILURE);
-  }
-
-  // Open the file and get the size of the file
-  fd = open(argv[1], O_RDONLY);
-  if (fd == -1)
-  handle_error("open");
-
-  if (fstat(fd, &sb) == -1)           /* To obtain file size */
-  handle_error("fstat");
-
-  // Grab where the user wants to start the file from
-  offset = atoi(argv[2]);
-
-  // Zeros off the bottom N bits of a page (usually 12)
-  // mmap works based off of pages so we want to get
-  // The first page the user wants
-  pa_offset = offset & ~(sysconf(_SC_PAGE_SIZE) - 1);
-  /* offset for mmap() must be page aligned */
-
-  if (offset >= sb.st_size) {
-    fprintf(stderr, "offset is past end of file\n");
-    exit(EXIT_FAILURE);
-  }
-
-  if (argc == 4) {
-    length = atoi(argv[3]);
-    if (offset + length > sb.st_size)
-    length = sb.st_size - offset;
-    /* Can't display bytes past end of file */
-
-  } else {    /* No length arg ==> display to end of file */
-    length = sb.st_size - offset;
-  }
-
-  /*
-  Here are the arguments for MMAP
-  1. NULL, this tells mmap we don't need any particular address to start from
-  2. length + offset - pa_offset, mmaps the ``rest'' of the file into memory (starting from offset)
-  3. PROT_READ, we want to read the file
-  4. MAP_PRIVATE, tell the OS, we don't want to share our mapping
-  5. fd, object descriptor that we refer to
-  6. pa_offset, the page aligned offset to start from
-  */
-  addr = mmap(NULL, length + offset - pa_offset, PROT_READ,
-  MAP_PRIVATE, fd, pa_offset);
-  if (addr == MAP_FAILED)
-  handle_error("mmap");
-
-  // Write the file as if a normal buffer
-  s = write(STDOUT_FILENO, addr + offset - pa_offset, length);
-  if (s != length) {
-    if (s == -1)
-    handle_error("write");
-
-    fprintf(stderr, "partial write");
-    exit(EXIT_FAILURE);
-  }
-
-  // This is important! You must mmap the memory out
-  munmap(addr, length + offset - pa_offset);
-
-  // This is also important, tells the OS that any fd level changes need to be addressed
-  close(fd);
-
-  exit(EXIT_SUCCESS);
-}
+off_t offset;
+size_t length;
 \end{lstlisting}
+
+We'll assume that all system calls succeed.
+First we have to open the file and get the size.
+
+\begin{lstlisting}[language=C]
+struct stat sb;
+int fd = open(argv[1], O_RDONLY);
+fstat(fd, &sb);
+\end{lstlisting}
+
+Then, we need to introduce another variable known as \keyword{page\_offset}.
+mmap doesn't let you pass in any value as an offset, it needs to be a multiple of the page size.
+In our case, we will round down.
+
+\begin{lstlisting}[language=C]
+off_t page_offset = offset & ~(sysconf(_SC_PAGE_SIZE) - 1);
+\end{lstlisting}
+
+Then, we make the call to mmap, here is the order of arguments.
+\begin{enumerate}
+\item NULL, this tells mmap we don't need any particular address to start from
+\item length + offset - page\_offset, mmaps the ``rest'' of the file into memory (starting from offset)
+\item PROT\_READ, we want to read the file
+\item MAP\_PRIVATE, tell the OS, we don't want to share our mapping
+\item fd, object descriptor that we refer to
+\item pa\_offset, the page aligned offset to start from
+\end{enumerate}
+
+\begin{lstlisting}[language=C]
+char * addr = mmap(NULL, length + offset - page_offset, PROT_READ,
+  MAP_PRIVATE, fd, page_offset);
+\end{lstlisting}
+
+Now, we can interact with the address as if it were a normal buffer.
+After, we have to unmap the file and close the file descriptor to make sure other system resources are freed.
+
+\begin{lstlisting}[language=C]
+write(1, addr + offset - page_offset, length);
+munmap(addr, length + offset - pa_offset);
+close(fd);
+\end{lstlisting}
+
+Check out the full listing in the man pages.
 
 \subsection{MMAP Communication}
 
