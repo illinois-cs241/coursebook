@@ -2455,6 +2455,113 @@ Non-atomic variables have to get updated in all threads though.
 Imagine the same as above except non-atomic variables don't need to get updated in all threads.
 This model was introduced so that there can be an Acquire/Release/Consume model without mixing in Relaxed because Consume is similar to relax.
 
+\section{Extra: Actor Model and Goroutines}
+
+There are a \textit{lot} of other methods of concurrency than described in this book.
+Posix threads are the finest grained thread construct, allowing for tight control of the threads and the CPU.
+Other languages have their abstractions.
+We'll talk about a language go that is very similar to C in terms of simplicity and design, go or golang
+To get the 5 minute introduction, feel free to read \href{https://learnxinyminutes.com/docs/go/}{the learn x in y guide} for go.
+Here is how we create a "thread" in go.
+
+\begin{lstlisting}[language=golang]
+func hello(out) {
+    fmt.Println(out);
+}
+
+func main() {
+    to_print := "Hello World!"
+    go hello(to_print)
+}
+\end{lstlisting}
+
+This actually creates what is known as a goroutine.
+A goroutine can be thought of as a lightweight thread.
+Internally, it is a worker pool of threads that executes instructions of all the running goroutines.
+When a goroutine needs to be stopped, it is frozen and "context switched" to another thread.
+Context switch is in quotes because this is done at the run time level versus real context switching which is done at the operating system level.
+
+The advantage to gofuncs is pretty self explainatory.
+There is no boilerplate code, or joining, or odd casting \keyword{void *}.
+
+We can still use mutexes in go to perform our end result.
+Consider the counting example as before.
+
+\begin{lstlisting}[language=golang]
+var counter = 0;
+var mut sync.Mutex;
+var wg sync.WaitGroup;
+ 
+func plus() {
+  mut.Lock()
+  counter += 1
+  mut.Unlock()
+  wg.Done()
+}
+
+func main() {
+  num := 10
+  wg.Add(num);
+  for i := 0; i < num; i++ {
+    go plus()
+  }
+
+  wg.Wait()
+
+  fmt.Printf("%d\n", counter);
+
+}
+\end{lstlisting}
+
+But that's boring and error prone.
+Instead, let's use the actor model.
+Let's designate two actors.
+One is the main actor which will be performing the main instruction set.
+The other actor will be the counter.
+The counter is responsible for adding numbers to an internal variable.
+We'll send messages between the threads when we want to add and see the value.
+
+
+\begin{lstlisting}[language=golang]
+const (
+  addRequest = iota;
+  outputRequest = iota;
+)
+
+func counterActor(requestChannel chan int, outputChannel chan int) {
+  counter := 0
+
+  for {
+    req := <- requestChannel;
+    if req == addRequest {
+      counter += 1
+    } else if req == outputRequest {
+      outputChannel <- counter
+    }
+  }
+}
+
+func main() {
+  // Set up the actor
+  requestChannel := make(chan int)
+  outputChannel := make(chan int)
+  go counterActor(requestChannel, outputChannel)
+
+  num := 10
+  for i := 0; i < num; i++ {
+    requestChannel <- addRequest
+  }
+  requestChannel <- outputRequest
+  new_count := <- outputChannel
+  fmt.Printf("%d\n", new_count);
+}
+\end{lstlisting}
+
+Altough there is a bit more boilerplate code, we don't have mutexes anymore!
+If we wanted to scale this operation and do other things like increment by a number, or write to a file, we can just have that particular actor take care of it.
+This differentiation of responsibilities is important to make sure your design scales well.
+There are even libraries that handle all of the boilerplate code as well.
+
 \section{External Resources}
 
 \begin{itemize}
