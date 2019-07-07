@@ -2458,10 +2458,10 @@ This model was introduced so that there can be an Acquire/Release/Consume model 
 \section{Extra: Actor Model and Goroutines}
 
 There are a \textit{lot} of other methods of concurrency than described in this book.
-Posix threads are the finest grained, allowing for tight control of the threads and the CPU.
+Posix threads are the finest grained thread construct, allowing for tight control of the threads and the CPU.
 Other languages have their abstractions.
-We'll talk about a language go that is very similar to C in terms of simplicity, design, etc.
-To get the 5 minute introduction, feel free to read \href{https://learnxinyminutes.com/docs/go/}{the learn x in y guide}.
+We'll talk about a language go that is very similar to C in terms of simplicity and design, go or golang
+To get the 5 minute introduction, feel free to read \href{https://learnxinyminutes.com/docs/go/}{the learn x in y guide} for go.
 Here is how we create a "thread" in go.
 
 \begin{lstlisting}[language=golang]
@@ -2516,7 +2516,7 @@ func main() {
 But that's boring and error prone.
 Instead, let's use the actor model.
 Let's designate two actors.
-One is the main actor which will be performing the normal line of code.
+One is the main actor which will be performing the main instruction set.
 The other actor will be the counter.
 The counter is responsible for adding numbers to an internal variable.
 We'll send messages between the threads when we want to add and see the value.
