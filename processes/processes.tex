@@ -964,6 +964,23 @@ Another security related concern is that environment variables cannot be read by
 \section{Further Reading}
 
 Read the man pages and the POSIX groups above!
+Here are some guiding questions.
+Note that we aren't expecting you to memorize the man page.
+
+\begin{itemize}
+\item What is one reason fork may fail?
+\item Does fork copy all pages to the child?
+\item Are file descriptors cloned between parent and child?
+\item Are file descript\textbf{ions} cloned between parent and child?
+\item What is the difference between exec calls ending in an \keyword{e}?
+\item What is the difference between l and v in an exec call? How about \keyword{p}?
+\item When does exec error? What happens?
+\item Does wait only notify if a child has exited?
+\item Is it an error to pass a negative value into wait?
+\item How does one extract information out of the status?
+\item Why may wait fail?
+\item What happens when a parent doesn't wait on their children?
+\end{itemize}
 
 \begin{itemize}
 \item \href{http://man7.org/linux/man-pages/man2/fork.2.html}{fork}
