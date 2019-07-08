@@ -67,7 +67,7 @@ jinja_templ = """
     <img src="https://raw.githubusercontent.com/illinois-cs241/coursebook/master/_images/duck-alpha-cropped.png" width="50%" class="emoji"/>
 </p>
 
-This coursebook is being built by students and faculty from the University of Illinois. It is based on a crowd-source authoring wikibook experiment by Lawrence Angrave from CS @ Illinois, but is now its own .tex based project. It's source is located at [the github link](https://github.com/illinois-cs241/coursebook) which you can find a pdf version of the book as well.
+This coursebook is being built by students and faculty from the University of Illinois. It is based on a crowd-source authoring wikibook experiment by Lawrence Angrave from CS @ Illinois, but is now its own .tex based project. Its source code is located at [the Github link](https://github.com/illinois-cs241/coursebook) which you can find a pdf version of the book as well.
 
 This book is an introduction to programming in C, and system programming (processes, threads, synchronization, networking and more!). We assume you've already had some programming experience, in an earlier computer science course. If you have any typos to report or content to request, feel free to file an issue at the link above. Happy Reading!
 

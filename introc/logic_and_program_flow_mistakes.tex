@@ -51,7 +51,7 @@ The system function `time' actually takes a parameter a pointer to some memory t
 The compiler did not catch this error because the programmer did not provide a valid function prototype by including \keyword{time.h}.
 
 More confusingly this could compile, work for decades and then crash.
-The reason for that is that time would be found at link time, not compile time in the C standard library which almost surely is already in memory.
+The reason for that is that time would be found at link time, not compile-time in the C standard library which almost surely is already in memory.
 Since a parameter isn't being passed, we are hoping the arguments on the stack (any garbage) is zeroed out because if it isn't, time will try to write the result of the function to that garbage which will cause the program to SEGFAULT.
 
 \subsection{Extra Semicolons}
@@ -71,7 +71,7 @@ for(int i = 0; i < 5; i++){
 }
 \end{lstlisting}
 
-It is OK to have this kind of code, because the C language uses semicolons (;) to separate statements.
+It is OK to have this kind of code because the C language uses semicolons (;) to separate statements.
 If there is no statement in between semicolons, then there is nothing to do and the compiler moves on to the next statement
 To save a lot of confusion, \textbf{always use braces.}
 It increases the number of lines of code, which is a great productivity metric.

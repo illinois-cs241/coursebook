@@ -2,14 +2,15 @@
 
 \epigraph{When multithreading gets interesting}{Bhuvy}
 
-Synchronization are a series of mechanisms to control what threads are allowed to perform what operation at a time.
+Synchronization coordinates various tasks so that they all finishin the the correct state.
+In C, we have series of mechanisms to control what threads are allowed to perform at a given state.
 Most of the time, the threads can progress without having to communicate, but every so often two or more threads may want to access a critical section.
-A critical section is a section of code that can only be executed by one thread at a time, if the program is to function correctly.
-If two threads (or processes) were to execute code inside the critical section at the same time, it is possible that program may no longer have correct behavior.
+A critical section is a section of code that can only be executed by one thread at a time if the program is to function correctly.
+If two threads (or processes) were to execute code inside the critical section at the same time, it is possible that the program may no longer have the correct behavior.
 
 As we said in the previous chapter, race conditions happen when an operation touches a piece of memory at the same time as another thread.
 If the memory location is only accessible by one thread, for example the automatic variable \keyword{i} below, then there is no possibility of a race condition and no Critical Section associated with \keyword{i}.
-However the \keyword{sum} variable is a global variable and accessed by two threads.
+However, the \keyword{sum} variable is a global variable and accessed by two threads.
 It is possible that two threads may attempt to increment the variable at the same time.
 
 \begin{lstlisting}[language=C]
@@ -40,8 +41,8 @@ int main() {
 }
 \end{lstlisting}
 
-Typical output of the above code is \keyword{ARGGGH sum is <some number less than expected>} because there is a race condition.
-The code does not stop two threads from reading-writing \keyword{sum} at the same time.
+A typical output of the above code is \keyword{ARGGGH sum is <some number less than expected>} because there is a race condition.
+The code does not stop two threads from reading and writing \keyword{sum} at the same time.
 For example, both threads copy the current value of sum into CPU that runs each thread (let's pick 123).
 Both threads increment one to their own copy.
 Both threads write back the value (124).
@@ -90,9 +91,9 @@ Which leads us to our first synchronization primitive, a Mutex.
 
 To ensure that only one thread at a time can access a global variable, use a mutex -- short for Mutual Exclusion.
 If one thread is currently inside a critical section we would like another thread to wait until the first thread is complete.
-A mutex isn't a primitive in the truest sense, though it is one of the smallest pieces of data structures that has some threading API sense.
+A mutex isn't a primitive in the truest sense, though it is one of the smallest that has useful threading API.
 A mutex also isn't really a data structure.
-It is an abstract data type, much like you learned in your data structures class.
+It is an abstract data type.
 There are many ways to implement a mutex, and we'll give a few in this chapter.
 For right now let's use the black box that the pthread library gives us.
 Here is how we declare a mutex.
@@ -108,9 +109,9 @@ pthread_mutex_unlock(&m); //end of Critical Section
 
 There are a few ways of initializing a mutex.
 You can use the macro \keyword{PTHREAD\_MUTEX\_INITIALIZER} only for global (`static') variables.
-\keyword{m = PTHREAD\_MUTEX\_INITIALIZER} is exactly equivalent to the more general purpose \keyword{pthread\_mutex\_init(&m,NULL)} but for our purposes it is the same.
+\keyword{m = PTHREAD\_MUTEX\_INITIALIZER} is functionally equivalent to the more general purpose \keyword{pthread\_mutex\_init(&m,NULL)}.
 The init version includes options to trade performance for additional error-checking and advanced sharing options.
-The init version also makes sure that the mutex is correctly initialized after the call, global mutexes are initialized on first lock.
+The init version also makes sure that the mutex is correctly initialized after the call, global mutexes are initialized on the first lock.
 You can also call the init function inside of a program for a mutex located on the heap.
 
 \begin{lstlisting}[language=C]
@@ -211,7 +212,7 @@ return NULL;
 }
 \end{lstlisting}
 
-Obviously if you know the Gaussian sum, you can avoid race conditions altogether, but this is just for illustration.
+If you know the Gaussian sum, you can avoid race conditions altogether, but this is just for illustration.
 
 Starting with the gotchas.
 Firstly, C Mutexes do not lock variables.
@@ -248,8 +249,8 @@ This means any time after your mutexes have been initialized.
   You can design your program to have one lock per data structure,
   one lock per heap,
   or one lock per set of data structures
-  If you only have one lock, then they may be significant contention for the lock between two threads that was unnecessary.
-  For example if two threads were updating two different counters, it might not be necessary to use the same lock.
+  If you only have one lock, then there may be significant contention for the lock.
+  If two threads were updating two different counters, it isn't necessary to use the same lock.
 \item Locks are only tools.
   They don't spot critical sections for you!
 \item There will always be a small amount of overhead of calling \keyword{pthread\_mutex\_lock} and \keyword{pthread\_mutex\_unlock}.
@@ -270,10 +271,11 @@ However, this is the price you pay for correctly functioning programs!
 
 So we have this cool data structure.
 How do we implement it?
-First a naive, incorrect implementation is shown below.
+A naive, incorrect implementation is shown below.
 The \keyword{unlock} function simply unlocks the mutex and returns.
 The lock function first checks to see if the lock is already locked.
 If it is currently locked, it will keep checking again until another thread has unlocked the mutex.
+For the time being, we'll avoid the condition that other threads are able to unlock a lock they don't own and focus on the mutual exclusion aspect.
 
 \begin{lstlisting}[language=C]
 // Version 1 (Incorrect!)
@@ -327,7 +329,7 @@ int mutex_init(mutex* mtx){
   if(!mtx){
     return 0;
   }
-  // Not thread safe the user has to take care of this
+  // Not thread-safe the user has to take care of this
   atomic_init(&mtx->lock, UNLOCKED);
   mtx->owner = UNASSIGNED_OWNER;
   return 1;
@@ -356,7 +358,7 @@ int mutex_lock(mutex* mtx){
 \end{lstlisting}
 
 What does this code do?
-Well to start it it initializes a variable that we will keep as the unlocked state.
+It initializes a variable that we will keep as the unlocked state.
 \href{https://en.wikipedia.org/wiki/Compare-and-swap}{Atomic Compare and Exchange} is an instruction supported by most modern architectures (on x86 it's \keyword{lock cmpxchg}).
 The pseudocode for this operation looks like this
 
@@ -374,7 +376,7 @@ int atomic_compare_exchange_pseudo(int* addr1, int* addr2, int val){
 
 Except it is all done \emph{atomically} meaning in one uninterruptible operation.
 What does the \emph{weak} part mean?
-Well atomic instructions are prone to \textbf{spurious failures} meaning that there are two versions to these atomic functions a \emph{strong} and a \emph{weak} part, strong guarantees the success or failure while weak may fail even when the operation succeeds.
+Atomic instructions are prone to \textbf{spurious failures} meaning that there are two versions to these atomic functions a \emph{strong} and a \emph{weak} part, strong guarantees the success or failure while weak may fail even when the operation succeeds.
 These are the same spurious failures that you'll see in condition variables below.
 We are using weak because weak is faster, and we are in a loop!
 That means we are okay if it fails a little bit more often because we will just keep spinning around anyway.
@@ -383,10 +385,10 @@ Inside the while loop, we have failed to grab the lock!
 We reset zero to unlocked and sleep for a little while.
 When we wake up we try to grab the lock again.
 Once we successfully swap, we are in the critical section!
-We set the mutex's owner to the current thread for the unlock method and return successful.
+We set the mutex's owner to the current thread for the unlock method and return successfully.
 
 How does this guarantee mutual exclusion, when working with atomics we are not entirely sure!
-But in this simple example, we can because the thread that is able to successfully expect the lock to be UNLOCKED (0) and swap it to a LOCKED (1) state is considered the winner.
+But in this simple example, we can because the thread that can successfully expect the lock to be UNLOCKED (0) and swap it to a LOCKED (1) state is considered the winner.
 How do we implement unlock?
 
 \begin{lstlisting}[language=C]
@@ -410,17 +412,17 @@ int mutex_unlock(mutex* mtx){
 }
 \end{lstlisting}
 
-To satisfy the api, you can't unlock the mutex unless you are the one who owns it.
+To satisfy the API, a thread can't unlock the mutex unless you are the one who owns it.
 Then we unassign the mutex owner, because critical section is over after the atomic.
-We want a strong exchange because we don't want to block (pthread\_mutex\_unlock doesn't block).
+We want a strong exchange because we don't want to block.
 We expect the mutex to be locked, and we swap it to unlock.
 If the swap was successful, we unlocked the mutex.
-If the swap wasn't, that means that the mutex was UNLOCKED and we tried to switch it from UNLOCKED to UNLOCKED, preserving the non blocking of unlock.
+If the swap wasn't, that means that the mutex was UNLOCKED and we tried to switch it from UNLOCKED to UNLOCKED, preserving the behavior of unlock.
 
 What is this memory order business?
 We were talking about memory fences earlier, here it is!
 We won't go into detail because it is outside the scope of this course but not the scope of \href{https://gcc.gnu.org/wiki/Atomic/GCCMM/AtomicSync}{this article}.
-Basically we need consistency to make sure no loads or stores are ordered before or after.
+Basically, we need consistency to make sure no loads or stores are ordered before or after.
 You need to create dependency chains for more efficient ordering.
 
 \subsection{Semaphore}
@@ -430,9 +432,9 @@ It is initialized to some value.
 Threads can either \keyword{sem\_wait} or \keyword{sem\_post} which lowers or increases the value.
 If the value reaches zero and a wait is called, the thread will be blocked until a post is called.
 
-Using a semaphore is as easy as creating a mutex.
-First, decide if the initial value should be zero or some other value, for example the number of remaining spaces in an array.
-Unlike pthread mutex there are not shortcuts to creating a semaphore - use \keyword{sem\_init}.
+Using a semaphore is as easy as using a mutex.
+First, decide if on the initial value, for example the number of remaining spaces in an array.
+Unlike pthread mutex there are no shortcuts to creating a semaphore - use \keyword{sem\_init}.
 
 \begin{lstlisting}[language=C]
 #include <semaphore.h>
@@ -486,11 +488,11 @@ sem_post(&s);
 
 // Thread 3
 sem_wait(&s);
-// Not thread safe!
+// Not thread-safe!
 sem_post(&s);
 \end{lstlisting}
 
-If we replace it with mutex lock it won't work now.
+If we replace it with mutex lock, it won't work now.
 
 \begin{lstlisting}[language=C]
 // Thread 1
@@ -504,7 +506,7 @@ mutex_unlock(&s);
 
 // Thread 3
 mutex_lock(&s);
-// Now it's thread safe
+// Now it's thread-safe
 mutex_unlock(&s);
 \end{lstlisting}
 
@@ -513,7 +515,7 @@ Also, binary semaphores are different than mutexes because one thread can unlock
 \subsubsection{Signal Safety}
 
 Also, \keyword{sem\_post} is one of a handful of functions that can be correctly used inside a signal handler \keyword{pthread\_mutex\_unlock} is not.
-W can release a waiting thread which can now make all of the calls that we were not allowed to call inside the signal handler itself e.g. \keyword{printf}.
+W can release a waiting thread that can now make all of the calls that we were not allowed to call inside the signal handler itself e.g. \keyword{printf}.
 Here is some code that utilizes this;
 
 \begin{lstlisting}[language=C]
@@ -556,7 +558,8 @@ We will discuss these in the thread-safe data structures section.
 Condition variables allow a set of threads to sleep until woken up.
 The API allows either one or all threads to be woken up.
 If you only wake one thread, the operating system will decide which thread to wake up.
-You don't wake threads directly instead you `signal' the condition variable, which then will wake up one (or all) threads that are sleeping inside the condition variable.
+Threads don't wake threads other directly like by id.
+Instead, a thread `signal's the condition variable, which then will wake up one (or all) threads that are sleeping inside the condition variable.
 
 Condition variables are also used with a mutex and with a loop, so when woken up they have to check a condition in a critical section.
 If you just need to be woken up not in a critical section, there are other ways to do this in POSIX.
@@ -569,9 +572,9 @@ This is not an issue because you always use \keyword{wait} inside a loop that te
 
 Why do spurious wakeups happen?
 For performance.
-On multi-CPU systems, it is possible that a race-condition could cause a wake-up (signal) request to be unnoticed.
+On multi-CPU systems, it is possible that a race condition could cause a wake-up (signal) request to be unnoticed.
 The kernel may not detect this lost wake-up call but can detect when it might occur.
-To avoid the potential lost signal, the thread is woken up so that the program code can test the condition again.
+To avoid the potentially lost signal, the thread is woken up so that the program code can test the condition again.
 
 \subsection{Extra: Why do Condition Variables also need a mutex?}
 
@@ -605,7 +608,7 @@ pthread_cond_signal(cv);
 The problem here is that a programmer expects the signal to wake up the waiting thread.
 Since instructions are allowed to be interleaved without a mutex, this causes an interleaving that is confusing to application designers.
 Note that technically the API of the condition variable is satisfied.
-The wait call \textit{happens-after} the call to signal and signal is only required to release at most a single thread whose call to wait \textit{happened-before}.
+The wait call \textit{happens-after} the call to signal, and signal is only required to release at most a single thread whose call to wait \textit{happened-before}.
 
 Another problem is the need to satisfy real-time scheduling concerns which we only outline here.
 In a time-critical application, the waiting thread with the \emph{highest priority} should be allowed to continue first.
@@ -665,12 +668,12 @@ while (1) {
 This is a pretty naive example, but it shows that we can tell threads to wake up in a standardized manner.
 In the next section, we will use these to implement efficient blocking data structures.
 
-\section{Thread Safe Data Structures}
+\section{Thread-Safe Data Structures}
 
-Naturally, we want our data structures to be thread safe as well!
+Naturally, we want our data structures to be thread-safe as well!
 We can use mutexes and synchronization primitives to make that happen.
 First a few definitions.
-Atomicity is when an operation is thread safe.
+Atomicity is when an operation is thread-safe.
 We have atomic instructions in hardware by providing the lock prefix
 \begin{lstlisting}
 lock ...
@@ -678,11 +681,11 @@ lock ...
 But Atomicity also applies to higher orders of operations.
 We say a data structure operation is atomic if it happens all at once and successfully or not at all.
 
-As such, we can use synchronization primitives in order to make our data structures thread safe.
+As such, we can use synchronization primitives to make our data structures thread-safe.
 For the most part, we will be using mutexes because they carry more semantic meaning than a binary semaphore.
 Note, this is just an introduction.
 Writing high-performance thread-safe data structures requires its own book!
-Take for example the following non thread-safe stack.
+Take for example the following thread-unsafe stack.
 
 \begin{lstlisting}[language=C]
 // A simple fixed-sized stack (version 1)
@@ -707,8 +710,8 @@ Version 1 of the stack is not thread-safe because if two threads call push or po
 For example, imagine if two threads call pop at the same time then both threads may read the same value, both may read the original count value.
 
 To turn this into a thread-safe data structure we need to identify the \emph{critical sections} of our code, meaning we need to ask which section(s) of the code must only have one thread at a time.
-In the above example the \keyword{push},\keyword{pop} and \keyword{is\_empty} functions access the same memory and all critical sections for the stack.
-While \keyword{push} (and \keyword{pop}) is executing, the data structure is an inconsistent state, for example the count may not have been written to, so may still contain the original value.
+In the above example the \keyword{push}, \keyword{pop}, and \keyword{is\_empty} functions access the same memory and all critical sections for the stack.
+While \keyword{push} (and \keyword{pop}) is executing, the data structure is an inconsistent state, for example the count may not have been written to, so it may still contain the original value.
 By wrapping these methods with a mutex we can ensure that only one thread at a time can update (or read) the stack.
 A candidate `solution' is shown below.
 Is it correct?
@@ -749,7 +752,7 @@ Take a moment to see if you can the error(s) and work out the consequence(s).
 
 If three threads called \keyword{push()} at the same time, the lock \keyword{m1} ensures that only one thread at time manipulates the stack on push or is\_empty -- Two threads will need to wait until the first thread completes
 A similar argument applies to concurrent calls to \keyword{pop}.
-However version 2 does not prevent push and pop from running at the same time because \keyword{push} and \keyword{pop} use two different mutex locks.
+However, version 2 does not prevent push and pop from running at the same time because \keyword{push} and \keyword{pop} use two different mutex locks.
 The fix is simple in this case - use the same mutex lock for both the push and pop functions.
 
 The code has a second error.
@@ -793,13 +796,13 @@ There are a few things to note.
 \begin{itemize}
 \item \keyword{is\_empty} is thread-safe but its result may already be out-of-date.
   The stack may no longer be empty by the time the thread gets the result!
-  This is usually why in thread safe data structures, functions that return sizes are removed or deprecated.
+  This is usually why in thread-safe data structures, functions that return sizes are removed or deprecated.
   \item There is no protection against underflow (popping on an empty stack) or overflow (pushing onto an already-full stack)
 \end{itemize}
 
 The last point can be fixed using counting semaphores.
 The implementation assumes a single stack.
-A more general purpose version might include the mutex as part of the memory structure and use \keyword{pthread\_mutex\_init} to initialize the mutex.
+A more general-purpose version might include the mutex as part of the memory structure and use \keyword{pthread\_mutex\_init} to initialize the mutex.
 For example,
 
 \begin{lstlisting}[language=C]
@@ -922,7 +925,7 @@ Let's discuss it in the next section.
 
 \subsection{Using Semaphores}
 
-Let's use a counting semaphore to keep track of how many spaces remain and another semaphore to keep to track the number of items in the stack.
+Let's use a counting semaphore to keep track of how many spaces remain and another semaphore to track the number of items in the stack.
 We will call these two semaphores \keyword{sremain} and \keyword{sitems}.
 Remember \keyword{sem\_wait} will wait if the semaphore's count has been decremented to zero (by another thread calling sem\_post).
 
@@ -950,7 +953,8 @@ double pop() {
 \end{lstlisting}
 
 Sketch \#2 has implemented the \keyword{post} too early.
-Another thread waiting in push can erroneously attempt to write into a full stack and similarly a thread waiting in the pop() is allowed to continue too early.
+Another thread waiting in push can erroneously attempt to write into a full stack.
+Similarly, a thread waiting in the pop() is allowed to continue too early.
 
 \begin{lstlisting}[language=C]
 // Sketch #2 (Error!)
@@ -989,12 +993,12 @@ void push(double v) {
 \end{lstlisting}
 
 Sketch 3 correctly enforces buffer full and buffer empty conditions using semaphores.
-However there is no \emph{mutual exclusion}.
+However, there is no \emph{mutual exclusion}.
 Two threads can be in the \emph{critical section} at the same time, which would corrupt the data structure or least lead to data loss.
 The fix is to wrap a mutex around the critical section:
 
 \begin{lstlisting}[language=C]
-// Simple single stack - see above example on how to convert this into a multiple stacks.
+// Simple single stack - see the above example on how to convert this into multiple stacks.
 // Also a robust POSIX implementation would check for EINTR and error codes of sem_wait.
 
 // PTHREAD_MUTEX_INITIALIZER for statics (use pthread_mutex_init() for stack/heap memory)
@@ -1061,10 +1065,10 @@ void push(double v) {
 
 Rather than just giving you the answer, we'll let you think about this.
 Is this a permissible way to lock and unlock?
-Is there a series of pattern that could cause a race condition?
+Is there a series of operations that could cause a race condition?
 How about deadlock?
 If there is, provide it.
-If there isn't, provide a short english proof of why that won't happen.
+If there isn't, provide a short justification proof of why that won't happen.
 
 \section{Software Solutions to the Critical Section}
 
@@ -1094,7 +1098,7 @@ pthread_mutex_unlock(p_mutex_t *m) {
 \end{lstlisting}
 
 As we touched on earlier, this implementation \emph{does not satisfy Mutual Exclusion} even considering that threads can unlock other threads locks.
-Let's take a close look at this `implementation' from the point of view of two threads running around the same time.
+Let's take a close look at this `implementation' from two threads running around the same time.
 
 To simplify the discussion, we consider only two threads.
 Note these arguments work for threads and processes and the classic CS literature discusses these problems in terms of two processes that need exclusive access to a critical section or shared resource.
@@ -1117,7 +1121,7 @@ Remember that the pseudo-code outlined below is part of a larger program.
 The thread or process will typically need to enter the critical section many times during the lifetime of the process.
 So, imagine each example as wrapped inside a loop where for a random amount of time the thread or process is working on something else.
 
-Is there anything wrong with candidate solution described below?
+Is there anything wrong with the candidate solution described below?
 
 \begin{lstlisting}
 // Candidate #1
@@ -1172,7 +1176,7 @@ turn = yourid
 
 Candidate \#3 satisfies mutual exclusion.
 Each thread or process gets exclusive access to the Critical Section.
-However, both threads/processes must take a strict turn-based approach to using the critical section.
+However, both threads/processes must take a strict turn-based approach to use the critical section.
 They are forced into an alternating critical section access pattern.
 If thread 1 wishes to read a hash table every millisecond, but another thread writes to a hash table every second, then the reading thread would have to wait another 999ms before being able to read from the hash table again.
 This `solution' is not effective because our threads should be able to make progress and enter the critical section if no other thread is currently in the critical section.
@@ -1196,7 +1200,7 @@ At first glance, it appears to satisfy Mutual Exclusion, Bounded Wait and Progre
 The turn-based flag is only used in the event of a tie, so Progress and Bounded Wait is allowed and mutual exclusion appears to be satisfied.
 Perhaps you can find a counter-example?
 
-Candidate \#4 fails because a thread does not wait until the other thread lowers their flag.
+Candidate \#4 fails because a thread does not wait until the other thread lowers its flag.
 After some thought or inspiration, the following scenario can be created to demonstrate how Mutual Exclusion is not satisfied.
 
 Imagine the first thread runs this code twice.
@@ -1220,7 +1224,7 @@ Time & Turn & Thread \# 1 & Thread \# 2 \\ \hline
 
 The first solution to the problem was Dekker's Solution.
 Dekker's Algorithm (1962) was the first provably correct solution.
-Though, it was in an unpublished paper so it was not discovered until later \cite{dekker_dijkstra_1965} -- this is an english transcribed version released in 1965.
+Though, it was in an unpublished paper, so it was not discovered until later \cite{dekker_dijkstra_1965} (this is an English transcribed version released in 1965).
 A version of the algorithm is below.
 
 \begin{lstlisting}
@@ -1285,10 +1289,11 @@ Thread \#1 arrives, \emph{sets the turn back to 1} and now waits until thread 2 
 
 \subsection{Extra: Can I just implement Software Exclusion in C?}
 
-Yes - and with a bit of searching it is possible even today to find it in production for specific simple mobile processors.
+Yes
+With a bit of searching, it is possible to find it in production for specific simple mobile processors today.
 Peterson's algorithm is used to implement low-level Linux Kernel locks for the Tegra mobile processor (a system-on-chip ARM process and GPU core by Nvidia) \href{Link to Lock Source}{https://android.googlesource.com/kernel/tegra.git/+/android-tegra-3.10/arch/arm/mach-tegra/sleep.S\#58}
 
-However in general, CPUs and C compilers can re-order CPU instructions or use CPU-core-specific local cache values that are stale if another core updates the shared variables.
+In general now, CPUs and C compilers can re-order CPU instructions or use CPU-core-specific local cache values that are stale if another core updates the shared variables.
 Thus a simple pseudo-code to C implementation is too naive for most platforms.
 Warning, here be dragons!
 Consider this advanced and gnarly topic but (spoiler alert) a happy ending.
@@ -1298,7 +1303,7 @@ Consider the following code,
 while(flag2) { /* busy loop - go around again */
 \end{lstlisting}
 
-An efficient compiler would infer that \keyword{flag2} variable is never changed inside the loop, so that test can be optimized to \keyword{while(true)} Using \keyword{volatile} goes someway to prevent compiler optimizations of this kind.
+An efficient compiler would infer that \keyword{flag2} variable is never changed inside the loop, so that test can be optimized to \keyword{while(true)} Using \keyword{volatile} goes some way to prevent compiler optimizations of this kind.
 
 Let's say that we solved this by telling the compiler not to optimize.
 Independent instructions can be re-ordered by an optimizing compiler or at runtime by an out-of-order execution optimization by the CPU.
@@ -1308,13 +1313,13 @@ Modified values may not be written back to main memory or re-read from memory im
 Thus data changes, such as the state of a flag and turn variable in the above example, may not be shared between two CPU codes.
 
 But there is a happy ending.
-Modern hardware addresses these issues using `memory fences' also known as memory barrier.
+Modern hardware addresses these issues using `memory fences' also known as a memory barrier.
 This prevents instructions from getting ordered before or after the barrier.
 There is a performance loss, but it is needed for correct programs!
 
-In addition, there are CPU instructions to ensure that main memory and the CPUs' cache is in a reasonable and coherent state.
-Higher level synchronization primitives, such as \keyword{pthread\_mutex\_lock} are will call these CPU instructions as part of their implementation.
-Thus, in practice, surrounding critical section with a mutex lock and unlock calls is sufficient to ignore these lower-level problems.
+Also, there are CPU instructions to ensure that main memory and the CPU's cache is in a reasonable and coherent state.
+Higher-level synchronization primitives, such as \keyword{pthread\_mutex\_lock} are will call these CPU instructions as part of their implementation.
+Thus, in practice, surrounding critical sections with a mutex lock and unlock calls is sufficient to ignore these lower-level problems.
 
 For further reading, we suggest the following web post that discusses implementing Peterson's algorithm on an x86 process and the Linux documentation on memory barriers.
 \begin{enumerate}
@@ -1328,7 +1333,7 @@ Now that we have a solution to the critical section problem, We can reasonably i
 How would we implement other synchronization primitives?
 Let's start with a semaphore.
 To implement a semaphore with efficient CPU usage, we will say that we have implemented a condition variable.
-Implementing an O(1) space condition variable using only a mutex is not trivial, or at least a O(1) heap condition variable is not trivial.
+Implementing an O(1) space condition variable using only a mutex is not trivial, or at least an O(1) heap condition variable is not trivial.
 We don't want to call malloc while implementing a primitive, or we may deadlock!
 
 \begin{itemize}
@@ -1380,7 +1385,7 @@ Our implementation of \keyword{sem\_wait} may need to sleep if the semaphore's c
 Just like \keyword{sem\_post}, we wrap the critical section using the lock, so only one thread can be executing our code at a time.
 Notice if the thread does need to wait then the mutex will be unlocked, allowing another thread to enter \keyword{sem\_post} and awaken us from our sleep!
 
-Also notice that even if a thread is woken up, before it returns from \keyword{pthread\_cond\_wait}, it must re-acquire the lock, so it will have to wait until sem\_post finishes.
+Also notice that even if a thread is woken up before it returns from \keyword{pthread\_cond\_wait}, it must re-acquire the lock, so it will have to wait until sem\_post finishes.
 
 \begin{lstlisting}[language=C]
 void sem_wait(sem_t *s) {
@@ -1409,10 +1414,10 @@ pthread_cond_signal(&s->cv);
 \begin{itemize}
 \tightlist
 \item
-  Real semaphores implementation may include a queue and scheduling concerns to ensure fairness and priority.
-  Meaning, we wake up the highest-priority longest sleeping thread.
+  A production semaphore implementation may include a queue to ensure fairness and priority.
+  Meaning, we wake up the highest-priority and/or longest sleeping thread.
 \item
-  Also, an advanced use of \keyword{sem\_init} allows semaphores to be shared across processes.
+  An advanced use of \keyword{sem\_init} allows semaphores to be shared across processes.
   Our implementation only works for threads inside the same process.
   We could fix this by setting the condition variable and mutex attributes.
 \end{itemize}
@@ -1533,29 +1538,29 @@ void cond_broadcast(cond_t *cv) {
 So how does this work?
 Instead of allocating space which could lead to deadlock.
 We keep the data structures or the linked list nodes on each thread's stack.
-The linked list in the wait function is created \textbf{While the thread has the mutex lock} this is important because otherwise we may have a race condition on the insert and removal.
+The linked list in the wait function is created \textbf{While the thread has the mutex lock} this is important because we may have a race condition on the insert and removal.
 A more robust implementation would have a mutex per condition variable.
 
 What is the note about (dynamic)?
 In the pthread man pages, wait creates a runtime binding to a mutex. This means that after the first call is called, a mutex is associated with a condition variable while there is still a thread waiting on that condition variable.
 Each new thread coming in must have the same mutex, and it must be locked.
-Hence, the beginning and end of wait (everything besides the while loop) is mutually exclusive.
+Hence, the beginning and end of wait (everything besides the while loop) are mutually exclusive.
 After the last thread leaves, meaning when head is NULL, then the binding is lost.
 
 The signal and broadcast functions merely tell either one thread or all threads respectively that they should be woken up.
-\textbf{It doesn't modify the linked lists because there is no mutex to prevent a corruption if two threads call signal or broadcast}
+\textbf{It doesn't modify the linked lists because there is no mutex to prevent corruption if two threads call signal or broadcast}
 
 Now an advanced point. Do you see how a broadcast could cause a spurious wakeup in this case? Consider this series of events.
 
 \begin{enumerate}
 \item Some number more than 2 threads start waiting
 \item Another thread calls broadcast.
-\item That thread calling broadcast is stopped before it flip any threads to awake.
+\item That thread calling broadcast is stopped before it wake any threads.
 \item Another thread calls wait on the condition variable and adds itself to the queue.
 \item Broadcast iterates through and frees all of the threads.
 \end{enumerate}
 
-There is no assurance as to \textit{when} broadcast was called and when threads were added in a high performance mutex.
+There is no assurance as to \textit{when} the broadcast was called and when threads were added in a high-performance mutex.
 The ways to prevent this behavior are to include Lamport timestamps or require that broadcast be called with the mutex in question.
 That way something that \textit{happens-before} the broadcast call doesn't get signaled after.
 The same argument is put forward for signal too.
@@ -1570,7 +1575,7 @@ If you broadcast after you unlock, the time that broadcast takes could be infini
 \item With our implementation of a condition variable, this would be terminated. If you had an implementation that appended to the tail of the list and iterated form the head to the tail, this could go on infinitely many times.
 \end{enumerate}
 
-In high performance systems, we want to make sure that each thread that calls wait isn't passed by another thread that calls wait.
+In high-performance systems, we want to make sure that each thread that calls wait isn't passed by another thread that calls wait.
 With the current API that we have, we can't assure that.
 We'd have to ask users to pass in a mutex or use a global mutex.
 Instead, we tell programmers to always signal or broadcast before unlocking.
@@ -1664,7 +1669,7 @@ The thread function has four main parts-
 void *calc(void *arg) {
   /* Do my part of the first calculation */
   /* Am I the last thread to finish? If so wake up all the other threads! */
-  /* Otherwise wait until the other threads has finished part one */
+  /* Otherwise wait until the other threads have finished part one */
   /* Do my part of the second calculation */
 }
 \end{lstlisting}
@@ -1758,14 +1763,14 @@ pthread_mutex_unlock(&m);
 \end{lstlisting}
 
 When a thread enters \keyword{pthread\_cond\_wait}, it releases the mutex and sleeps.
-At some point in the future, it will be awoken.
+After, the thread will be woken up.
 Once we bring a thread back from its sleep, before returning it must wait until it can lock the mutex.
 Notice that even if a sleeping thread wakes up early, it will check the while loop condition and re-enter wait if necessary.
 
 \textbf{The above barrier is not reusable}.
-Meaning that if we stick it into any old calculation loop there is a good chance that the code will encounter a condition where the barrier either deadlocks or a thread races ahead one iteration faster.
+Meaning that if we stick it into any old calculation loop there is a good chance that the code will encounter a condition where the barrier either deadlocks or thread races ahead one iteration faster.
 Why is that?
-I'm glad you asked.
+We are glad you asked.
 
 The concept here is what we call the ambitious thread.
 We will assume that one thread is much faster than all the other threads.
@@ -1811,13 +1816,13 @@ Hint: If multiple threads call \keyword{barrier\_wait} in a loop then one can gu
 
 \subsection{Reader Writer Problem}
 
-Imagine you had a key-value map data structure which is used by many threads.
+Imagine you had a key-value map data structure that is used by many threads.
 Multiple threads should be able to look up (read) values at the same time provided the data structure is not being written to.
 The writers are not so gregarious.
 To avoid data corruption, only one thread at a time may modify (\keyword{write}) the data structure and no readers may be reading at that time.
 
 This is an example of the \emph{Reader Writer Problem}.
-Namely how can we efficiently synchronize multiple readers and writers such that multiple readers can read together, but a writer gets exclusive access?
+Namely, how can we efficiently synchronize multiple readers and writers such that multiple readers can read together, but a writer gets exclusive access?
 
 An incorrect attempt is shown below (``lock'' is a shorthand for \keyword{pthread\_mutex\_lock}):
 
@@ -1873,7 +1878,7 @@ Firstly, it atomically unlocks the mutex and then sleeps (until it is woken by \
 Thirdly, the awoken thread must re-acquire the mutex lock before returning.
 Thus only one thread can actually be running inside the critical section defined by the lock and unlock() methods.
 
-Implementation \#3 below ensures that a reader will enter the \keyword{cond\_wait} if there are any writers writing.
+Implementation \#3 below ensures that a reader will enter the \keyword{cond\_wait} if any writers are writing.
 
 \begin{lstlisting}[language=C]
 read() {
@@ -1948,7 +1953,7 @@ write() {
 
 Candidate \#3 above also uses \keyword{pthread\_cond\_signal}.
 This will only wake up one thread.
-For example if many readers are waiting for the writer to complete, only one sleeping reader will be awoken from their slumber.
+If many readers are waiting for the writer to complete, only one sleeping reader will be awoken from their slumber.
 The reader and writer should use \keyword{cond\_broadcast} so that all threads should wake up and check their while-loop condition.
 
 \subsection{Starving writers}
@@ -1960,7 +1965,7 @@ Our fix is to implement a bounded-wait for the writer.
 If a writer arrives they will still need to wait for existing readers however future readers must be placed in a ``holding pen'' and wait for the writer to finish.
 The ``holding pen'' can be implemented using a variable and a condition variable so that we can wake up the threads once the writer has finished.
 
-Our plan is that when a writer arrives, and before waiting for current readers to finish, register our intent to write by incrementing a counter `writer'
+The plan is that when a writer arrives, and before waiting for current readers to finish, register our intent to write by incrementing a counter `writer'
 
 \begin{lstlisting}[language=C]
 write() {
@@ -2058,8 +2063,8 @@ As data is added (enqueued) to the front of the queue or removed (dequeued) from
 A simple (single-threaded) implementation is shown below.
 Note, enqueue and dequeue do not guard against underflow or overflow.
 It's possible to add an item when the queue is full and possible to remove an item when the queue is empty.
-For example if we added 20 integers (1,2,3\ldots{}) to the queue and did not dequeue any items then values, \keyword{17,18,19,20} would overwrite the \keyword{1,2,3,4}.
-We won't fix this problem right now, instead when we create the multi-threaded version we will ensure enqueue-ing and dequeue-ing threads are blocked while the ring buffer is full or empty respectively.
+If we added 20 integers (1,2,3\ldots{}) to the queue and did not dequeue any items then values, \keyword{17,18,19,20} would overwrite the \keyword{1,2,3,4}.
+We won't fix this problem right now, instead of when we create the multi-threaded version we will ensure enqueue-ing and dequeue-ing threads are blocked while the ring buffer is full or empty respectively.
 
 \begin{lstlisting}[language=C]
 void *buffer[16];
@@ -2091,7 +2096,7 @@ b[ (in++) % N ] = value;
 \end{lstlisting}
 
 This method would appear to work but contains a subtle bug.
-With a bit more than two billion enqueue operations, the int value of \keyword{in} will overflow and become negative!
+With more than two billion enqueue operations, the int value of \keyword{in} will overflow and become negative!
 The modulo (or `remainder') operator \keyword{\%} preserves the sign.
 Thus, you might end up writing into \keyword{b[-14]} for example!
 
@@ -2112,7 +2117,7 @@ Will \keyword{enqueue} and/or \keyword{dequeue} block?
 Is mutual exclusion satisfied?
 Can the buffer underflow?
 Can the buffer overflow?
-For clarity \keyword{pthread\_mutex} is shortened to \keyword{p\_m} and we assume sem\_wait cannot be interrupted.
+For clarity, \keyword{pthread\_mutex} is shortened to \keyword{p\_m} and we assume sem\_wait cannot be interrupted.
 
 \begin{lstlisting}[language=C]
 #define N 16
@@ -2161,7 +2166,7 @@ Before reading on, see how many mistakes you can find. Then determine what would
 \item
   The initial value of s2 is zero, so calls to dequeue will always block and never return!
 \item
-  The order of mutex lock and sem\_wait will need to be swapped, however this example is so broken that this bug has no effect!
+  The order of mutex lock and sem\_wait will need to be swapped; however, this example is so broken that this bug has no effect!
 \end{itemize}
 
 \subsection{Another Analysis}
@@ -2219,7 +2224,7 @@ Here are a few problems that we hope you've found.
 \item
   The code does not satisfy Mutual Exclusion.
   Two threads can modify \keyword{in} or \keyword{out} at the same time!
-  The code appears to use mutex lock. Unfortunately the lock was never initialized with \keyword{pthread\_mutex\_init()} or \keyword{PTHREAD\_MUTEX\_INITIALIZER} - so the lock may not work (\keyword{pthread\_mutex\_lock} may simply do nothing)
+  The code appears to use mutex lock. Unfortunately, the lock was never initialized with \keyword{pthread\_mutex\_init()} or \keyword{PTHREAD\_MUTEX\_INITIALIZER} - so the lock may not work (\keyword{pthread\_mutex\_lock} may simply do nothing)
 \end{itemize}
 
 \subsection{Correct implementation of a ring buffer}
@@ -2390,10 +2395,10 @@ int main() {
 \end{lstlisting}
 
 What the code does in main is initialize a process shared mutex using a piece of \keyword{shared} memory.
-You will find out what this call to \keyword{mmap} does later -- just assume for the time being that it create memory that is shared between processes.
+You will find out what this call to \keyword{mmap} does later -- just assume for the time being that it creates memory that is shared between processes.
 We can initialize a \keyword{pthread\_mutex\_t} in that special piece of memory and use it as normal.
 To counter \keyword{write} failing, we have put the \keyword{write} call inside a while loop that keeps writing so long as there are bytes left to write.
-Now if all the other system calls function, there should be more more race conditions.
+Now if all the other system calls function, there should be more race conditions.
 
 Most programs try to avoid this problem entirely by writing to separate files, but it is good to know that there are mutexes across processes, and they are useful.
 You can use all of the primitives that you were taught previously! Barriers, semaphores, and condition variables can all be initialized on a shared piece of memory and used in similar ways to their multithreading counterparts.
@@ -2404,20 +2409,20 @@ You don't need to know the implementation, just need to know that mutexes and ot
 \item
   You don't have to worry about arbitrary memory addresses becoming race condition candidates. This means that only areas that you specifically \keyword{mmap} or outside system resources like files are ever in danger.
 \item
-  You get the nice isolation of a processes so if one process fails the system can maintain intact
+  You get the nice isolation of processes so if one process fails the system can maintain intact
 \item
   When you have a lot of threads, creating a process might ease the system load
 \end{itemize}
 
 \section{Extra: Higher Order Models of Synchronization}
 
-When using atomics, you need to specify the right model of synchronization in order to make sure you have the correct behavior for your program.
+When using atomics, you need to specify the right model of synchronization to ensure a program behaves correctly.
 You can read more about them \href{https://gcc.gnu.org/wiki/Atomic/GCCMM/AtomicSync}{On the gcc wiki}
 These examples are adapted from those.
 
 \subsection{Sequentially Consistent}
 
-Sequentially consistent is the simplest, least error prone and most expensive model. This model says that any change that happens, all changes before it will be synchronized between all threads.
+Sequentially consistent is the simplest, least error-prone and most expensive model. This model says that any change that happens, all changes before it will be synchronized between all threads.
 
 \begin{verbatim}
     Thread 1                    Thread 2
@@ -2481,7 +2486,7 @@ Internally, it is a worker pool of threads that executes instructions of all the
 When a goroutine needs to be stopped, it is frozen and "context switched" to another thread.
 Context switch is in quotes because this is done at the run time level versus real context switching which is done at the operating system level.
 
-The advantage to gofuncs is pretty self explainatory.
+The advantage to gofuncs is pretty self explanatory.
 There is no boilerplate code, or joining, or odd casting \keyword{void *}.
 
 We can still use mutexes in go to perform our end result.
@@ -2516,7 +2521,7 @@ func main() {
 But that's boring and error prone.
 Instead, let's use the actor model.
 Let's designate two actors.
-One is the main actor which will be performing the main instruction set.
+One is the main actor that will be performing the main instruction set.
 The other actor will be the counter.
 The counter is responsible for adding numbers to an internal variable.
 We'll send messages between the threads when we want to add and see the value.
@@ -2557,7 +2562,7 @@ func main() {
 }
 \end{lstlisting}
 
-Altough there is a bit more boilerplate code, we don't have mutexes anymore!
+Although there is a bit more boilerplate code, we don't have mutexes anymore!
 If we wanted to scale this operation and do other things like increment by a number, or write to a file, we can just have that particular actor take care of it.
 This differentiation of responsibilities is important to make sure your design scales well.
 There are even libraries that handle all of the boilerplate code as well.

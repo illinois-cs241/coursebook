@@ -11,7 +11,7 @@ This section is a short review of System Architecture topics that you'll need fo
 What is assembly? Assembly is the lowest that you'll get to machine language without writing 1's and 0's.
 Each computer has an architecture, and that architecture has an associated assembly language.
 Each assembly command has a 1:1 mapping to a set of 1's and 0's that tell the computer exactly what to do.
-For example the following in the widely used x86 Assembly language add one to the memory address 20 \cite{wiki:xxx} -- you can also look in \cite{guide2011intel} Section 2A under the add instruction though it is more verbose.
+For example, the following in the widely used x86 Assembly language add one to the memory address 20 \cite{wiki:xxx} -- you can also look in \cite{guide2011intel} Section 2A under the add instruction though it is more verbose.
 
 \begin{lstlisting}[language={[x86masm]Assembler}]
 add BYTE PTR [0x20], 1
@@ -28,8 +28,7 @@ In the architecture, it may actually have a few different steps on the circuit.
 The operation may start by fetching the value of the memory from the stick of ram, then storing it in the cache or a register, and then finally writing back \cite{schweizer2015evaluating} -- under the description for \textit{fetch-and-add} though your micro-architecture may vary.
 Or depending on performance operations, it may keep that value in cache or in a register which is local to that process -- try dumping the \keyword{-O2} optimized assembly of incrementing a variable and printing it out on most modern compilers, which will probably just use a register.
 The problem comes in if two processors try to do it at the same time.
-The two processors could at the same time copy the value of the memory address, add one, and store the same result back.
-Resulting in the value only being incremented once.
+The two processors could at the same time copy the value of the memory address, add one, and store the same result back, resulting in the value only being incremented once.
 That is why we have a special set of instructions on modern systems called atomic operations.
 If an instruction is atomic, it makes sure that only one processor or thread performs any intermediate step at a time.
 With x86 this is done by the \keyword{lock} prefix \cite[p. 1120]{guide2011intel}.
@@ -46,26 +45,26 @@ Most of the time you can assume the instructions are not locked.
 
 \subsection{Caching}
 
-Ah yes Caching.
+Ah yes, Caching.
 One of computer science's greatest problems.
 Caching that we are referring is processor caching.
-Whenever you do a memory access if the particular address is already in the cache then the processor will perform the operation on the cache such as adding and update the actual memory later because updating memory is slow \cite[Section 3.4]{intel2015improving}.
-If it isn't, the processor requests a chunk of memory from the the memory chip and stores it in cache, kicking out the least recently used page -- this depends on caching policy, but Intel's does use this.
-This is done because the l3 processor cache is roughly three times faster to reach than the memory in terms of time \cite[p. 22]{levinthal2009performance} though exact speeds will vary based on clock speed and architecture.
-Naturally this leads to problems because there are two different copies of the same value, in the cited paper this refers to an unshared line.
+If a particular address is already in the cache when reading or writing, the processor will perform the operation on the cache such as adding and update the actual memory later because updating memory is slow \cite[Section 3.4]{intel2015improving}.
+If it isn't, the processor requests a chunk of memory from the memory chip and stores it in the cache, kicking out the least recently used page -- this depends on caching policy, but Intel's does use this.
+This is done because the l3 processor cache is roughly three times faster to reach than the memory in terms of time \cite[p. 22]{levinthal2009performance} though exact speeds will vary based on the clock speed and architecture.
+Naturally, this leads to problems because there are two different copies of the same value, in the cited paper this refers to an unshared line.
 This isn't a class about caching, just know how this could impact your code.
-A short but non complete list could be
+A short but non-complete list could be
 
 \begin{enumerate}
 \item Race Conditions! If a value is stored in two different processor caches, then that value may not be shared.
-\item Speed. With a cache you program may look slower or faster and you may not know why. Just assume that reads and writes that either happened recently or are next to each other in memory are fast.
+\item Speed. With a cache, your program may look slower or faster and you may not know why. Just assume that reads and writes that either happened recently or are next to each other in memory are fast.
 \item Side effects. Every read or write effects the cache state. While most of the time this doesn't help or hurt, it is important to know. Check the Intel programmer guide on the lock prefix for more information.
 \end{enumerate}
 
 \subsection{Interrupts}
 
 Interrupts are a very important part of system programming.
-An interrupt is internally an electrical signal that is delivered to the processor when something happens -- this is hardware interrupt \cite{redhat_hardware_int}.
+An interrupt is internally an electrical signal that is delivered to the processor when something happens -- this is a hardware interrupt \cite{redhat_hardware_int}.
 Then the hardware decides if this is something that it should handle (i.e. handling keyboard or mouse input for older keyboard and mouses) or it should pass to the operating system.
 The operating system then decides if this is something that it should handle (i.e. paging a memory table from disk) or something the application should handle (i.e. a SEGFAULT).
 If the operating system decides that this is something that the process or program should take care of, it sends a \textbf{software fault} and that software fault is then propagated.
@@ -74,7 +73,7 @@ Applications can also send signals to the kernel and to the hardware as well.
 This is an oversimplification because there are certain hardware faults that can't be ignored or masked away, but this class isn't about teaching you to build an operating system.
 
 An important application of this is this is how system calls are served!
-There is a well established set of registers that the arguments go in according to the kernel as well as a system call ``number'' again defined by the kernel.
+There is a well-established set of registers that the arguments go in according to the kernel as well as a system call ``number'' again defined by the kernel.
 Then the operating system triggers an interrupt which the kernel catches and serves the system call \cite{garg_2006}.
 
 Operating system developers and instruction set developers alike didn't like the overhead of causing an interrupt on a system call. Now, systems use \keyword{SYSENTER} and \keyword{SYSEXIT} which has a cleaner way of transferring control safely to the kernel and safely back.
@@ -82,23 +81,23 @@ What safely means is obvious out of the scope for this class, but it persists.
 \subsection{Optional: Hyperthreading}
 
 Hyperthreading is a new technology and is in no way shape or form multithreading.
-Hyperthreading is allowing one physical core appear as many virtual cores to the operating system \cite[P.51]{guide2011intel}.
+Hyperthreading allows one physical core to appear as many virtual cores to the operating system \cite[P.51]{guide2011intel}.
 The operating system can then schedule processes on these virtual cores and one core will execute them.
-Each core interleaves processes or thread.
+Each core interleaves processes or threads.
 While the core is waiting for one memory access to complete, it may perform a few instructions of another process thread.
 The overall result is more instructions executed in a shorter time.
-This is also potentially means that you can divide the number of cores you need to power smaller devices.
+This potentially means that you can divide the number of cores you need to power smaller devices.
 
 There be dragons here though.
 With hyperthreading, you must be wary of optimizations.
-A famous hyperthreading bug that caused programs to crash if at least two processes was scheduled on a physical core, using specific registers, in a tight loop.
+A famous hyperthreading bug that caused programs to crash if at least two processes were scheduled on a physical core, using specific registers, in a tight loop.
 The actual problem is better explained through an architecture lens.
 But, the actual application was found through systems programmers working on OCaml's mainline \cite{leroy_2017}.
 
 \section{Debugging and Environments}
 
 I'm going to tell you a secret about this course: it is about working smarter \textit{not} harder.
-The course can be time consuming but the reason that so many people see it as such (and why so many student's don't see it as such) is the relative familiarity of people with their tools.
+The course can be time-consuming but the reason that so many people see it as such (and why so many students don't see it as such) is the relative familiarity of people with their tools.
 Let's go through some of the common tools that you'll be working on and need to be familiar with.
 
 \subsection{ssh}
@@ -125,7 +124,7 @@ If you don't want to type your password out every time, you can generate an ssh 
 If you still think that that is too much typing, you can always alias hosts.
 You may need to restart your VM or reload sshd for this to take effect.
 The config file is available on Linux and Mac distros.
-For windows you'll have to use the Windows Linux Subsystem or configure any aliases in PuTTY
+For Windows, you'll have to use the Windows Linux Subsystem or configure any aliases in PuTTY
 
 \begin{lstlisting}[language=bash]
 > cat ~/.ssh/config
@@ -153,9 +152,9 @@ $ git push origin master
 \end{lstlisting}
 
 Now to explain git well, you need to understand that git for our purposes will look like a linked list.
-You will always be at the head of master, and you will do the edit-add-commit-push loop. We have a separate branch on github that we push feedback to under a specific branch which you can view on github website. The markdown file will have information on the test cases and results (like standard out).
+You will always be at the head of master, and you will do the edit-add-commit-push loop. We have a separate branch on Github that we push feedback to under a specific branch which you can view on Github website. The markdown file will have information on the test cases and results (like standard out).
 
-Every so often git can break. Here are a list of commands you probably won't need to fix your repo
+Every so often git can break. Here is a list of commands you probably won't need to fix your repo
 
 \begin{enumerate}
 \item git-cherry-pick
@@ -167,7 +166,7 @@ Every so often git can break. Here are a list of commands you probably won't nee
 \item git-branch
 \end{enumerate}
 
-In addition if you are currently on a branch, and you don't see either
+If you are currently on a branch, and you don't see either
 
 \begin{lstlisting}[language=bash]
 $ git status
@@ -200,7 +199,10 @@ HEAD detached at 4bc4426
 nothing to commit, working directory clean
 \end{lstlisting}
 
-Don't panic, but your repository may be in an unworkable state. If you aren't nearing a deadline, come in to office hours or ask your question on Piazza, and we'd be happy to help. In an emergency scenario, delete your repository and re-clone (you'll have to add the \keyword{release} as above). \textbf{This will lose any local uncommitted changes. Make sure to copy any files you were working on outside the directory, remove and copy them back in}
+Don't panic, but your repository may be in an unworkable state.
+If you aren't nearing a deadline, come to office hours or ask your question on Piazza, and we'd be happy to help.
+In an emergency scenario, delete your repository and re-clone (you'll have to add the \keyword{release} as above).
+\textbf{This will lose any local uncommitted changes. Make sure to copy any files you were working on outside the directory, remove and copy them back in}
 
 If you want to learn more about git, there are all but an endless number of tutorials and resources online that can help you.
 Here are some links that can help you out
@@ -215,33 +217,48 @@ Here are some links that can help you out
 
 Some people take this as an opportunity to learn a new editor, others not so much. The first part is those of you who want to learn a new editor. In the editor war that spans decades, we have come to the battle of vim vs emacs.
 
-Vim is a text editor and Unix-like utility. You enter vim by typing \keyword{vim [file]}. This takes you into the editor. You start off in normal mode. In this mode you can move around with many keys with the most common ones being \keyword{jklh}. To exit vim from this mode, you need to type \keyword{:q} which quits. If you have any unsaved edits, you must either save them \keyword{:w}, save and quit \keyword{:wq}, or discard changes \keyword{:q!}. To make edits you can either type \keyword{i} to change you into insert mode or \keyword{a} to change to insert mode \textbf{a}fter the cursor. This is the very basics when it comes to vim
+Vim is a text editor and a Unix-like utility.
+You enter vim by typing \keyword{vim [file]}.
+This takes you into the editor.
+You start off in normal mode.
+In this mode, you can move around with many keys with the most common ones being \keyword{jklh}.
+To exit vim from this mode, you need to type \keyword{:q} which quits.
+If you have any unsaved edits, you must either save them \keyword{:w}, save and quit \keyword{:wq}, or discard changes \keyword{:q!}. To make edits you can either type \keyword{i} to change you into insert mode or \keyword{a} to change to insert mode \textbf{a}fter the cursor. This is the very basics when it comes to vim
 
-Emacs is more of a way of life, and I don't mean that figuratively. A lot people when they switch to the emacs environment realize that it is a powerful operating system lacking a decent text editor. This means emacs can house a terminal, gdb session, ssh session, code and a whole lot more. It would not be fitting any other way to introduce you the gnu-emacs any other way than the gnu-docs \url{https://www.gnu.org/software/emacs/tour/}. Just note that emacs is \textit{insanely} powerful. You can do almost anything with it. There are a fair number of students who like the IDE-aspect of other programming languages, just know you can set up emacs to be an IDE, but you have to learn a bit of lisp \url{http://martinsosic.com/development/emacs/2017/12/09/emacs-cpp-ide.html}.
+Emacs is more of a way of life, and I don't mean that figuratively.
+A lot of people say that emacs is a powerful operating system lacking a decent text editor.
+This means emacs can house a terminal, gdb session, ssh session, code and a whole lot more.
+It would not be fitting any other way to introduce you to the gnu-emacs any other way than the gnu-docs \url{https://www.gnu.org/software/emacs/tour/}.
+Just note that emacs is \textit{insanely} powerful.
+You can do almost anything with it.
+There are a fair number of students who like the IDE-aspect of other programming languages, just know you can set up emacs to be an IDE, but you have to learn a bit of lisp \url{http://martinsosic.com/development/emacs/2017/12/09/emacs-cpp-ide.html}.
 
 Then there are those of you who like to use your own editors. That is completely fine.
-For this we require sshfs which has ports on many different machines
+For this, we require sshfs which has ports on many different machines.
+
 \begin{enumerate}
 \item Windows \url{https://github.com/billziss-gh/sshfs-win}
 \item Mac \url{https://github.com/osxfuse/osxfuse/wiki/SSHFS}
 \item Linux \url{https://help.ubuntu.com/community/SSHFS}
 \end{enumerate}
-At that point the files on your VM are synced with the files on your machine and edits can be made and will be synced
+
+At that point, the files on your VM are synced with the files on your machine and edits can be made and will be synced.
 
 At the time of writing, Bhuvy (That's me!) really likes to use spacemacs \url{http://spacemacs.org/} which marries both vim and emacs and both of their difficulties.
 I'll give my soapbox for why I like it, but be warned that if you are starting from absolutely no vim or emacs experience the learning curve along with this course may be too much.
 \begin{enumerate}
-\item Extensible. Spacemacs has a clean design written in lisp. There are 100s of packages ready to be installed by editing your spacemacs config and reloading that do everything from syntax checking, automatic static analyzing, etc etc.
-\item Most of the good parts from vim and emacs. Emacs is really good at doing everything by being a fast editor. Vim is really good at making fast edits and moving around. Spacemacs is the best of both worlds allowing vim keybindings with all the emacs goodness underneath.
-\item Lots of preconfiguration done. As opposed with a fresh emacs install, a lot of the configurations with language and projects are done for you like neotree, helm, various language layers. All they you have to do is navigate neotree to the base of your project and emacs will turn into an IDE for that programming language.
+\item Extensible. Spacemacs has a clean design written in lisp. There are 100s of packages ready to be installed by editing your spacemacs config and reloading that do everything from syntax checking, automatic static analyzing, etc.
+\item Most of the good parts from vim and emacs. Emacs is really good at doing everything by being a fast editor. Vim is really good at making fast edits and moving around. Spacemacs is the best of both worlds allowing vim keybindings to all the emacs goodness underneath.
+\item Lots of preconfiguration done. As opposed with a fresh emacs install, a lot of the configurations with language and projects are done for you like neotree, helm, various language layers. All that you have to do is navigate neotree to the base of your project and emacs will turn into an IDE for that programming language.
 \end{enumerate}
 
-But obviously to each his or her own. Many people will argue that editor gurus spend more time editing their editors and actually editing.
+But obviously to each his or her own.
+Many people will argue that editor gurus spend more time editing their editors and actually editing.
 
 \subsection{Clean Code}
 
 Make your code modular using helper functions. If there is a repeated task (getting the pointers to contiguous blocks in the malloc MP, for example), make them helper functions.
-And make sure each function does one thing very well, so that you don't have to debug twice.
+And make sure each function does one thing very well so that you don't have to debug twice.
 Let's say that we are doing selection sort by finding the minimum element each iteration like so,
 
 \begin{lstlisting}[language=C]
@@ -277,11 +294,13 @@ But for the sake of debugging, it may benefit you in the long run to adopt some 
 \subsection{Asserts}
 
 Use assertions to make sure your code works up to a certain point -- and importantly, to make sure you don't break it later.
-For example, if your data structure is a doubly linked list, you can do something like \keyword{assert(node == node->next->prev)} to assert that the next node has a pointer to the current node.
-You can also check the pointer is pointing to an expected range of memory address, not null, -\textgreater{}size is reasonable etc.
+For example, if your data structure is a doubly-linked list, you can do something like \keyword{assert(node == node->next->prev)} to assert that the next node has a pointer to the current node.
+You can also check the pointer is pointing to an expected range of memory address, not null, -\textgreater{}size is reasonable, etc.
 The \keyword{DEBUG} macro will disable all assertions, so don't forget to set that once you finish debugging \cite{cplusplus_assert}.
 
-Here's a quick example with assert. Let's say that I'm writing code using memcpy. I'd want to put an assert before that checks whether or not my two memory regions overlap.
+Here is a quick example with an assert.
+Let's say that we are writing code using memcpy.
+We would want to put an assert before that checks whether or not my two memory regions overlap.
 If they do overlap, memcpy runs into undefined behavior, so we want to catch that problem than later.
 
 \begin{lstlisting}[language=C]
@@ -289,7 +308,7 @@ assert(!(src < dest+n && dest < src+n)); //Checks overlap
 memcpy(dest, src, n);
 \end{lstlisting}
 
-This check can be turned off at compile time, but will save you \textbf{tons} of trouble debugging!
+This check can be turned off at compile-time, but will save you \textbf{tons} of trouble debugging!
 
 \section{Valgrind}
 
@@ -302,7 +321,7 @@ valgrind --leak-check=full --show-leak-kinds=all myprogram arg1 arg2
 \end{lstlisting}
 
 Arguments are optional and the default tool that will run is Memcheck.
-The output will be presented in form of number of allocations, number of freed allocations, and the number of errors.
+The output will be presented in the form: the number of allocations, frees, and errors.
 Suppose we have a simple program like this:
 
 \begin{lstlisting}[language=C]
@@ -319,7 +338,8 @@ int main(void) {
 }
 \end{lstlisting}
 
-This program compiles and run with no errors. Let's see what Valgrind will output.
+This program compiles and runs with no errors.
+Let's see what Valgrind will output.
 
 \begin{lstlisting}[language=C]
 ==29515== Memcheck, a memory error detector
@@ -352,13 +372,13 @@ This program compiles and run with no errors. Let's see what Valgrind will outpu
 ==29515== ERROR SUMMARY: 1 errors from 1 contexts (suppressed: 0 from 0)
 \end{lstlisting}
 
-\textbf{Invalid write}: It detected our heap block overrun, writing outside of allocated block.
+\textbf{Invalid write}: It detected our heap block overrun, writing outside of an allocated block.
 
 \textbf{Definitely lost}: Memory leak --- you probably forgot to free a memory block.
 
-Valgrind is a very effective tool to check for errors at runtime. C is very special when it comes to such behavior, so after compiling your program you can use Valgrind to fix errors that your compiler may not catch and that usually happen when your program is running.
+Valgrind is a very effective tool to check for errors at runtime. C is very special when it comes to such behavior, so after compiling your program you can use Valgrind to fix errors that your compiler may not catch and that usually happens when your program is running.
 
-For more information, you can refer to the the manual \cite{valgrind}
+For more information, you can refer to the manual \cite{valgrind}
 
 \subsection{TSAN}
 
@@ -385,7 +405,9 @@ int main() {
 // compile with gcc -fsanitize=thread -pie -fPIC -ltsan -g simple_race.c
 \end{lstlisting}
 
-We can see that there is a race condition on the variable \keyword{global}. Both the main thread and the thread created with \textt{pthread\_create} will try to change the value at the same time. But, does ThreadSantizer catch it?
+We can see that there is a race condition on the variable \keyword{global}.
+Both the main thread and created thread will try to change the value at the same time.
+But, does ThreadSantizer catch it?
 
 \begin{lstlisting}[language=bash]
 $ ./a.out
@@ -508,7 +530,7 @@ Here, by using the \keyword{x} command with parameters \keyword{16xb}, we can se
 \subsection{Involved gdb example}
 
 Here is how one of your TAs would go through and debug a simple program that is going wrong.
-First the source code of the program.
+First, the source code of the program.
 If you can see the error immediately, please bear with us.
 
 \begin{lstlisting}[language=C]
@@ -533,7 +555,7 @@ How can we use gdb to debug? First we ought to load GDB.
 
 \begin{lstlisting}[language=bash]
 $ gdb --args ./main
-(gdb) layout src; #if you want an GUI type
+(gdb) layout src; # If you want a GUI type
 (gdb) run
 (gdb)
 \end{lstlisting}
@@ -557,7 +579,9 @@ Want to take a look at the source?
 (gdb)
 \end{lstlisting}
 
-From running the code, the breakpoint didn't even trigger, meaning the code never got to that point. That’s because of the comparison! Okay flip the sign it should work now right?
+From running the code, the breakpoint didn't even trigger, meaning the code never got to that point.
+That’s because of the comparison!
+Okay, flip the sign it should work now right?
 
 \begin{lstlisting}[language=bash]
 (gdb) run
@@ -590,7 +614,7 @@ $4 = 3.1414999999999999
 \end{lstlisting}
 
 That was only the bare minimum, though most of you will get by with that.
-There is a whole load more resources on the web, here are a few specific ones that can help you get started.
+There are a whole load more resources on the web, here are a few specific ones that can help you get started.
 
 \begin{enumerate}
 \item \href{http://www.cs.cmu.edu/~gilpin/tutorial/}{Introduction to gdb}
@@ -600,7 +624,7 @@ There is a whole load more resources on the web, here are a few specific ones th
 
 \subsection{Shell}
 
-What do you actually use to run your program? A shell! A shell is a programming language that is running inside your terminal. A terminal is merely a window to input commands. Now, on POSIX we usually have one shell called \keyword{sh} that is linked to a POSIX compliant shell called \keyword{dash}. Most of the time, you use a shell called \keyword{bash} that is not entirely POSIX compliant but has some nifty built in features. If you want to be even more advanced, \keyword{zsh} has some more powerful features like tab complete on programs and fuzzy patterns, but that is neither here nor there.
+What do you actually use to run your program? A shell! A shell is a programming language that is running inside your terminal. A terminal is merely a window to input commands. Now, on POSIX we usually have one shell called \keyword{sh} that is linked to a POSIX compliant shell called \keyword{dash}. Most of the time, you use a shell called \keyword{bash} that is not entirely POSIX compliant but has some nifty built-in features. If you want to be even more advanced, \keyword{zsh} has some more powerful features like tab complete on programs and fuzzy patterns, but that is neither here nor there.
 
 \subsection{Undefined Behavior Sanitizer}
 
@@ -618,7 +642,8 @@ Also please please read Chris Lattner's 3 Part blog post on undefined behavior. 
 
 \subsection{Clang Static Build Tools}
 
-Clang provides great drop in replacement tools for compiling programs. If you want to see if there is an error that may cause a race condition, casting error, etc, all you need to do is type
+Clang provides a great drop-in replacement tools for compiling programs.
+If you want to see if there is an error that may cause a race condition, casting error, etc, all you need to do is the following.
 
 \begin{lstlisting}[language=bash]
 $ scan-build make
@@ -657,11 +682,11 @@ int main() {
 \end{lstlisting}
 
 ltrace output can clue you in to weird things your program is doing live.
-Unfortunately ltrace can’t be used to inject faults, meaning that ltrace can tell you what is happening, but it can't tamper with what is already happening.
+Unfortunately, ltrace can’t be used to inject faults, meaning that ltrace can tell you what is happening, but it can't tamper with what is already happening.
 
 strace on the other hand could modify your program.
 Debugging with strace is amazing.
-A basic usage is just run strace with a program, and it’ll get you a complete list of system call parameters.
+The basic usage is running strace with a program, and it’ll get you a complete list of system call parameters.
 
 \begin{lstlisting}[language=bash]
 $ strace head README.md
@@ -697,7 +722,7 @@ read(3, "# C Datastructures\n\n[![Build Sta"..., 8192) = 1250
 Newer versions of strace can actually inject faults into your program.
 This is useful when you want to occasionally make reads and writes fail for example in a networking application, which your program should handle.
 The problem is as of early 2019, that version is not in any ubuntu apt repositories.
-Meaning that you'll have to install it from source.
+Meaning that you'll have to install it from the source.
 
 \subsection{printfs}
 
@@ -757,7 +782,7 @@ And then use as appropriately.
 
 \section{Extra: Compiling and Linking}
 
-This is a high level overview from the time you compile your program to the time you run your program.
+This is a high-level overview from the time you compile your program to the time you run your program.
 We often know that compiling your program is very easy.
 You run the program through an IDE or a terminal, and it just works.
 
@@ -795,13 +820,13 @@ A static library is literally is an archive of object files.
 These libraries are useful when you want your executable to be secure, you know all the code that is being included into your executable, and portable, all the code is bundled with your executable meaning no additional installs.
 
 The other type is a dynamic library.
-Typically, dynamic libraries are install user or system wide and are accessible by most programs.
+Typically, dynamic libraries are installed user-wide or system-wide and are accessible by most programs.
 Dynamic libraries' functions are filled in right before they are run.
 There are a number of benefits to this.
 
 \begin{itemize}
 \item Lower code footprint for common libraries like the C standard library
-\item Late binding means more generalized code and less reliance on the specific behavior.
+\item Late binding means more generalized code and less reliance on specific behavior.
 \item Differentiation means that the shared library can be updated while keeping the executable the same.
 \end{itemize}
 
@@ -811,7 +836,7 @@ There are a number of drawbacks as well.
 \item All the code is no longer bundled into your program. This means that users have to install something else.
 \item There could be security flaws in the other code leading to security exploits in your program.
 \item Standard Linux allows you to "replace" dynamic libraries, leading to possible social engineering attacks.
-\item This adds additional complexity to your application. Two identitical binaries with different shared libraries could lead to different results.
+\item This adds additional complexity to your application. Two identical binaries with different shared libraries could lead to different results.
 \end{itemize}
 
 \newpage
@@ -894,7 +919,7 @@ The triangle should look like this, for n = 3:
 **
 ***
 \end{lstlisting}
-\item \textbf{Writing to files} Take your program from "Hello, World!" modify it write to a file called \keyword{hello\_world.txt}. Make sure to to use correct flags and a correct mode for \keyword{open()} (\keyword{man 2 open} is your friend).
+\item \textbf{Writing to files} Take your program from "Hello, World!" modify it write to a file called \keyword{hello\_world.txt}. Make sure to use correct flags and a correct mode for \keyword{open()} (\keyword{man 2 open} is your friend).
 \item \textbf{Not everything is a system call} Take your program from "Writing to files" and replace \keyword{write()} with \keyword{printf()}. \textit{Make sure to print to the file instead of standard out!}
 \item What are some differences between \keyword{write()} and \keyword{printf()}?
 \end{enumerate}
@@ -934,7 +959,7 @@ ssize_t str_len = strlen("Hello\0World")
 Program arguments, environment variables, and working with character arrays (strings)
 
 \begin{enumerate}
-\item What are two ways to find the length of \keyword{argv}?
+\item What are at least two ways to find the length of \keyword{argv}?
 \item What does \keyword{argv[0]} represent?
 \item Where are the pointers to environment variables stored (on the stack, the heap, somewhere else)?
 \item On a machine where pointers are 8 bytes, and with the following code:
@@ -977,7 +1002,7 @@ Create functions to create and destroy a Person (Person's and their names should
   The name should be copied onto the heap.
   Use malloc to reserve sufficient memory for everyone having up to ten friends.
   Be sure initialize all fields (why?).
-\item \keyword{destroy()} should free up not only the memory of the person struct, but also free all of its attributes that are stored on the heap. Destroying one person should not destroy any others.
+\item \keyword{destroy()} should free up not only the memory of the person struct, but also free all of its attributes that are stored on the heap. Destroying one person should not destroy any other.
 \end{enumerate}
 
 \subsection{Chapter 5}
@@ -1012,10 +1037,10 @@ Explain why this may be insufficient to generate a new build.
 \subsection{Optional: Just for fun}
 
 \begin{itemize}
-\item Convert your a song lyrics into System Programming and C code covered in this wiki book and share on Piazza.
+\item Convert a song lyrics into System Programming and C code covered in this wiki book and share on Piazza.
 \item Find, in your opinion, the best and worst C code on the web and post the link to Piazza.
 \item Write a short C program with a deliberate subtle C bug and post it on Piazza to see if others can spot your bug.
-\item Do you have any cool/disastrous system programming bugs you've heard about? Feel free to share with your peers and the course staff on piazza.
+\item Do you have any cool/disastrous system programming bugs you've heard about? Feel free to share with your peers and the course staff on Piazza.
 \end{itemize}
 
 \section{UIUC Specific Guidelines}
@@ -1033,7 +1058,7 @@ Oh, and did I mention that this is an easy way to score points with your interns
 \item Have I searched for similar questions/followups on Piazza?
 \item Have I read the MP/Lab specification completely?
 \item Have I watched all of the videos?
-\item Did I Google the error message and a few permutations thereof if necessary? How about stackoverflow.
+\item Did I Google the error message and a few permutations thereof if necessary? How about StackOverflow.
 \item Did I try commenting out, printing, and/or stepping through parts of the code bit by bit to find out precisely where the error occurs?
 \item \textbf{Did I commit my code to git in case the TAs need more context?}
 \item Did I include the console/GDB/Valgrind output **AND** code surrounding the bug in my Piazza post?
@@ -1050,10 +1075,10 @@ Hi, My code got a 50% on the autograder. I tried testing it a lot, but couldn't 
 Sounds good and courteous, but course staff would much much prefer a post resembling the following
 
 \begin{quote}
-Hi, I recently failed test X, Y, Z which is about half the tests on this current assignments. I noticed that they all have something to do with networking and epoll, but couldn't really figure out what was linking them together, or I may be completely off track. So to test my idea, I tried spawning 1000 clients with various get and put requests and verifying the files matched their originals. I couldn't really get it to fail while running normally, the debug build, or valgrind or tsan. I have no warnings and none of the pre-syntax checks showed me anything. Could you tell me if my understanding of the failure is correct and what I could do to modify my tests to better reflect X, Y, Z? netid: bvenkat2
+Hi, I recently failed test X, Y, Z which is about half the tests on this current assignment. I noticed that they all have something to do with networking and epoll, but couldn't really figure out what was linking them together, or I may be completely off track. So to test my idea, I tried spawning 1000 clients with various get and put requests and verifying the files matched their originals. I couldn't really get it to fail while running normally, the debug build, or valgrind or tsan. I have no warnings and none of the pre-syntax checks showed me anything. Could you tell me if my understanding of the failure is correct and what I could do to modify my tests to better reflect X, Y, Z? netid: bvenkat2
 \end{quote}
 
-You don't need to be as courteous, though we'd appreciate it, but this will get a faster response time hand over foot. If you were trying to answer this question, you'd have everything you need in the question body.
+You don't need to be as courteous, though we'd appreciate it, this will get a faster response time hand over foot. If you were trying to answer this question, you'd have everything you need in the question body.
 
 \bibliographystyle{plainnat}
 \bibliography{background/background}

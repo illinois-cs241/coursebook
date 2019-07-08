@@ -89,8 +89,8 @@ user_t * user = (user_t *) malloc(sizeof(user_t));
 
 \subsection{Buffer overflow/ underflow}
 
-Famous example: Heart Bleed performed a memcpy into a buffer that was of insufficient size.
-Simple example: implement a strcpy and forget to add one to strlen, when determining the size of the memory required.
+A famous example: Heart Bleed performed a memcpy into a buffer that was of insufficient size.
+A simple example: implement a strcpy and forget to add one to strlen, when determining the size of the memory required.
 
 \begin{lstlisting}[language=C]
 #define N (10)
@@ -98,7 +98,7 @@ int i = N, array[N];
 for( ; i >= 0; i--) array[i] = i;
 \end{lstlisting}
 
-C does not check that pointers are valid.
+C does not check if pointers are valid.
 The above example writes into \keyword{array[10]} which is outside the array bounds.
 This can cause memory corruption because that memory location is probably being used for something else.
 In practice, this can be harder to spot because the overflow/underflow may occur in a library call.
@@ -134,7 +134,7 @@ int myfunction() {
   ...
 \end{lstlisting}
 
-Automatic variables hold garbage or bit pattern happened to be in memory or register.
+Automatic variables hold garbage or bit pattern that happened to be in memory or register.
 It is an error to assume that it will always be initialized to zero.
 
 \subsection{Assuming Uninitialized memory will be zeroed}

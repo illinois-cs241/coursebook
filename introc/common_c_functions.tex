@@ -88,7 +88,7 @@ From the previous section,
 \keyword{printf} calls the system call \keyword{write}.
 \keyword{printf} is a C library function, while \keyword{write} is a system call system.
 
-The buffering semantics of printf are a little complicated.
+The buffering semantics of printf is a little complicated.
 ISO defines three types of streams \cite[P. 278]{ISON1124}
 \begin{itemize}
 \item Unbuffered, where the contents of the stream reach their destination as soon as possible.
@@ -97,7 +97,7 @@ ISO defines three types of streams \cite[P. 278]{ISON1124}
 \end{itemize}
 
 Standard Error is defined as ``not fully buffered'' \cite[P. 279]{ISON1124}.
-Standard Output and Input are merely defined to be fully buffered if and only if the stream destination is an interactive device.
+Standard Output and Input are merely defined to be fully buffered if and only if the stream destination is not an interactive device.
 Usually, standard error will be unbuffered, standard input and output will be line buffered if the output is a terminal otherwise fully buffered.
 This relates to printf because printf merely uses the abstraction provided by the FILE interface and uses the above semantics to determine when to write.
 One can force a write by calling fflush() on the stream.
@@ -111,7 +111,7 @@ putchar('1');
 
 \subsubsection{Other streams}
 
-To print to other file streams use \keyword{fprintf(\ \_file\_\ ,\ "Hello\ \%s,\ score:\ \%d",\ name,\ score);} Where \_file\_ is either predefined (`stdout' or `stderr') or a FILE pointer that was returned by \keyword{fopen} or \keyword{fdopen}.
+To print to other file streams, use \keyword{fprintf(\ \_file\_\ ,\ "Hello\ \%s,\ score:\ \%d",\ name,\ score);} Where \_file\_ is either predefined (`stdout' or `stderr') or a FILE pointer that was returned by \keyword{fopen} or \keyword{fdopen}.
 There is a printf equivalent that works with file descriptors, called dprintf.
 Just use \keyword{dprintf(int\ fd,\ char*\ format\_string,\ ...);}.
 

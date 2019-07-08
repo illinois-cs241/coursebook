@@ -282,7 +282,7 @@ add_array(a, a) // Undefined
 
 	    \item \keyword{return} is a control flow operator that exits the current function.
         If the function is \keyword{void} then it simply exits the functions.
-        Otherwise another parameter follows as the return value.
+        Otherwise, another parameter follows as the return value.
 
 	      \begin{lstlisting}[language=C]
 void process() {
@@ -303,7 +303,7 @@ int count_bits_and_sign(signed representation) {
   //...
 }
 \end{lstlisting}
-	    \item \keyword{sizeof} is an operator that is evaluated at compile time, which evaluates to the number of bytes that the expression contains.
+	    \item \keyword{sizeof} is an operator that is evaluated at compile-time, which evaluates to the number of bytes that the expression contains.
         When the compiler infers the type the following code changes as follows.
 	      \begin{lstlisting}[language=C]
 char a = 0;
@@ -316,7 +316,7 @@ printf("%zu", 1);
 \end{lstlisting}
 
 	      Which then the compiler is allowed to operate on further.
-        The compiler must have a complete definition of the type at compile time - not link time - or else you may get an odd error.
+        The compiler must have a complete definition of the type at compile-time - not link time - or else you may get an odd error.
         Consider the following
 
 	      \begin{lstlisting}[language=C]
@@ -349,7 +349,7 @@ sizeof(str2) //8 because it is a pointer
 
 	      \begin{enumerate}
 		      \item When used with a global variable or function declaration it means that the scope of the variable or the function is only limited to the file.
-		      \item When used with a function variable, that declares that the variable has static allocation -- meaning that the variable is allocated once at program start up not every time the program is run, and its lifetime is extended to that of the program.
+		      \item When used with a function variable, that declares that the variable has static allocation -- meaning that the variable is allocated once at program startup not every time the program is run, and its lifetime is extended to that of the program.
 	      \end{enumerate}
 
 	      \begin{lstlisting}[language=C]
@@ -389,7 +389,7 @@ struct hostname google = {"80", "www.google.com", "/"};
 
 	    \item \keyword{switch case default} Switches are essentially glorified jump statements.
         Meaning that you take either a byte or an integer and the control flow of the program jumps to that location.
-        Note that, the various cases of a switch statement fall through. It means that if execution starts at one case, flow of control will continue to all subsequent cases, until a break statement.
+        Note that, the various cases of a switch statement fall through. It means that if execution starts in one case, the flow of control will continue to all subsequent cases, until a break statement.
 	      \\
 	      \begin{lstlisting}[language=C]
 switch(/* char or int */) {
@@ -430,7 +430,7 @@ register count;
   }
 }
 \end{lstlisting}
-        This piece of code highlights that switch statements are just goto statements, and you can put whatever other valid piece of code on the other end of a switch case.
+        This piece of code highlights that switch statements are just goto statements, and you can put any code on the other end of a switch case.
         Most of the time it doesn't make sense, some of the time it just makes too much sense.
 
 	    \item \keyword{typedef} declares an alias for a type.
@@ -462,7 +462,7 @@ comparator gt = greater_than;
 	      This declares a function type comparator that accepts two \keyword{void*} params and returns an integer.
 
 	    \item \keyword{union} is a new type specifier.
-        A union is one piece of memory that a many variables occupy.
+        A union is one piece of memory that many variables occupy.
         It is used to maintain consistency while having the flexibility to switch between types without maintaining functions to keep track of the bits.
         Consider an example where we have different pixel values.
 	      \begin{lstlisting}[language=C]
@@ -487,7 +487,7 @@ fprintf(picture, "%d", a.encoded);
         Unsigned can only be used with primitive int types (like \keyword{int} and \keyword{long}).
         There is a lot of behavior associated with unsigned arithmetic. For the most part, unless your code involves bit shifting, it isn't essential to know the difference in behavior with regards to unsigned and signed arithmetic.
 
-	    \item \keyword{void} is a two folded keyword.
+	    \item \keyword{void} is a double meaning keyword.
         When used in terms of function or parameter definition, it means that the function explicitly returns no value or accepts no parameter, respectively. The following declares a function that accepts no parameters and returns nothing.
 
 	      \begin{lstlisting}[language=C]
@@ -496,7 +496,7 @@ void foo(void);
 
 
 	      The other use of \keyword{void} is when you are defining an \keyword{lvalue}.
-        A \keyword{void *} pointer is just a memory address. It is specified as an incomplete type meaning that you cannot dereference it but it can be promoted to any time to any other type. Pointer arithmetic with these pointer is undefined behavior.
+        A \keyword{void *} pointer is just a memory address. It is specified as an incomplete type meaning that you cannot dereference it but it can be promoted to any time to any other type. Pointer arithmetic with this pointer is undefined behavior.
 
 	      \begin{lstlisting}[language=C]
 int *array = void_ptr; // No cast needed
@@ -533,7 +533,7 @@ As you may realize, all of them are either integers or floating point numbers an
 \begin{enumerate}
 \item \keyword{char} Represents exactly one byte of data.
   The number of bits in a byte might vary.
-  \keyword{unsigned char} and \keyword{signed char} mean the exact same thing.
+  \keyword{unsigned char} and \keyword{signed char} means the exact same thing.
   This must be aligned on a boundary (meaning you cannot use bits in between two addresses).
   The rest of the types will assume 8 bits in a byte.
 \item \keyword{short (short int)} must be at least two bytes.
@@ -574,7 +574,7 @@ These operators are listed in order of precedence.
 \item \keyword{\&a} is the address-of operator.
   This takes an element and returns its address.
 \item \keyword{++} is the increment operator.
-  You can use it as a prefix or postfix, meaning that the variable that is being incremented can either be before or after the operator.
+  You can use it as a prefix or postfix, meaning that the incremented variable can either be before or after the operator.
   \keyword{a = 0; ++a === 1} and \keyword{a = 1; a++ === 0}.
 \item \keyword{--} is the decrement operator.
   This has the same semantics as the increment operator except that it decreases the value of the variable by one.
@@ -602,7 +602,7 @@ These operators are listed in order of precedence.
 	\item \keyword{>>/<<} are the bit shift operators. The operand on the right has to be an integer type whose signedness is ignored unless it is signed negative in which case the behavior is undefined. The operator on the left decides a lot of semantics. If we are left shifting, there will always be zeros introduced on the right. If we are right shifting there are a few different cases
 >>>>>>> master
 	      \begin{itemize}
-		    \item If the operand on the left is signed, then the integer is sign extended.
+		    \item If the operand on the left is signed, then the integer is sign-extended.
           This means that if the number has the sign bit set, then any shift right will introduce ones on the left.
           If the number does not have the sign bit set, any shift right will introduce zeros on the left.
 		      \item If the operand is unsigned, zeros will be introduced on the left either way.
