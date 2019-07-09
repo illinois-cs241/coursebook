@@ -2569,11 +2569,20 @@ There are even libraries that handle all of the boilerplate code as well.
 
 \section{External Resources}
 
+Guiding questions for the man pages
+
+\begin{itemize}
+\item How is a recursive mutex different than a default mutex?
+\item How is mutex trylock different than mutex lock?
+\item Why would a mutex lock fail? What's an example?
+\item What happens if you try to destroy a locked mutex?
+\item Can you copy the underlying bytes of a mutex instead of using a pointer?
+\item What is the lifecycle of a semaphore?
+\end{itemize}
+
 \begin{itemize}
 \item \href{http://linux.die.net/man/3/pthread_mutex_lock}{pthread\_mutex\_lock man page}
-\item \href{http://linux.die.net/man/3/pthread_mutex_unlock}{pthread\_mutex\_unlock man page}
 \item \href{http://linux.die.net/man/3/pthread_mutex_init}{pthread\_mutex\_init man page}
-\item \href{http://linux.die.net/man/3/pthread_mutex_destroy}{pthread\_mutex\_destroy man page}
 \item \href{http://man7.org/linux/man-pages/man3/sem_init.3.html}{sem\_init}
 \item \href{http://man7.org/linux/man-pages/man3/sem_wait.3.html}{sem\_wait}
 \item \href{http://man7.org/linux/man-pages/man3/sem_post.3.html}{sem\_post}

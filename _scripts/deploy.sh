@@ -13,7 +13,7 @@ if test $BUILD_FOCUS = WIKI; then
 else
     # Copy main to a tempfile, so we don't get any checkout errors
     TMP_DIR=`mktemp -d`;
-    find . -iname "*.pdf" -exec mv {} $TMP_DIR \;
+    find . -maxdepth 2 -iname "*.pdf" -exec mv {} $TMP_DIR \;
 
     # Set up ssh 
     git config --global core.sshCommand "ssh -i /tmp/deploy_wiki -F /dev/null";
