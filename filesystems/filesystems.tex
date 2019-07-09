@@ -1266,6 +1266,38 @@ After, you have to mark the directory's inode as free and set the associated dat
 Why don't we have to check hard link counts for directories?
 You can't hard link directories! Meaning, we can just easily delete it.
 
+\section{Extra: Modern Filesystems}
+
+While the API for most filesystems have stayed the same on POSIX over the years, the actual filesystems themselves provide lots of important aspects.
+
+\begin{itemize}
+\item Data Integrity. File systems use journaling and sometimes checksums to ensure that the data written to is valid. Journalling is a simple invention where the file system writes an operation in a journal. If the filesystem crashes before the operation is complete, it can resume the operation when booted up again using the partial journal.
+\item Caching. Linux does a very good job of caching file system operations like finding inodes. This makes disk operations seem nearly instant. If you want to see a slow system, look at windows with FAT/NTFS. Disk operations need to be cached by the application, or it will burn through the CPU.
+\item Speed. On spinning disk machines, data that is toward the end of a metallic platter will spin faster (angular velocity is farther from the center). Programs used this to reduce time loading large files like movies in a video editing piece of software. SSDs don't have this problem because there is no spinning disk, but they will portion off a section of their space to be used as "swap space" for fiels.
+\item Parallelism. Filesystems with multiple heads (for physical hard disks) or multiple controllers (for SSDs) can utilize parallelism by multiplexing the PCIe slot with data, always serving some data to the application whenever possible.
+\item Encryption. Data can be encrypted with one or more keys. A good example of this is Apple's APFS file systems.
+\item Redundancy. Sometimes data can be replicated to blocks to ensure that the data is always available.
+\item Efficient Backups. Many of us have data that we can't store on the cloud for one reason or another. It is useful that when a filesystems is either being used as a backup medium or is the source to the backup that it is able to calculate what has changed efficiently, compress files, and sync between the external drive.
+\item Integriy and Bootability. File systems need to be resillient to bit flipping. Most readers have their operating system installed on the same paritition as the file system that they used to do different operations. The file system needs to make sure a stray read or write doesn't destroy the boot sector -- meaning your computer can't start up again.
+\item Fragmentation. Just like a memory allocator, allocating space for a file leads to both internal and external fragmentation. The same caching benefit occurs when disk blocks for a single file are located next to each other. File systems need to perform well under low, high, and possible fragmentation usage.
+\item Distributed. Sometimes, you want your filesystem to run on a fault tolerant scale across multiple computers. Hadoop and other distributed file system allow you to do just that.
+\end{itemize}
+
+\subsection{Extra: Cutting Edge File systems}
+
+There are a few filesystem hardware nowadays that are truly cutting edge.
+The one we'd briefly like to touch on is AMD's StoreMI.
+We aren't trying to sell you AMD chipsets, but the featureset of StoreMI warrants a mention.
+
+StoreMI is a hardware microcontroller that analyzes how the operating system accesses files and moves files/blocks around to speed up the load time.
+A common usage can be imagined as having a fast, but small capacity SSD and a slower, large capcity HDD.
+In order to make it seem like all the files are on an SSD, the StoreMI matches the pattern of file access.
+If you are starting up Windows, windows will often access many files in the same order.
+StoreMI takes note of that and when the microcontroller notices it is starting the boot, it will move files from the HDD drive to the SSD before they are requested by the operating system.
+By the time the operating system needs then, they are already on the SSD.
+StoreMI also does this with other applications as well.
+The technology still has a lot to be desired for, but it is an interesting intersection of data and pattern matching with filesystems.
+
 \section{Topics}
 
 \begin{itemize}
