@@ -1,6 +1,6 @@
 ---
 name: Typo
-about: There is a typographical error
+about: Typographical Error
 title: ''
 labels: 'typo'
 assignees: ''
