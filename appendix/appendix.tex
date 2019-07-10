@@ -2,13 +2,13 @@
 
 \section{Shell}
 
-A shell is actually how you are going to be interacting with the system. Before user friendly operating systems, when a computer started up all you had access to was a shell. This meant that all of your commands and editing had to be done this way. Nowadays, our computers start up in desktop mode, but one can still access a shell using a terminal.
+A shell is actually how you are going to be interacting with the system. Before user-friendly operating systems, when a computer started up all you had access to was a shell. This meant that all of your commands and editing had to be done this way. Nowadays, our computers boot up in desktop mode, but one can still access a shell using a terminal.
 
 \begin{lstlisting}[language=bash]
 (Stuff) $
 \end{lstlisting}
 
-It is ready for your next command! You can type in a lot of Unix utilities like \keyword{ls}, \keyword{echo\ Hello} and the shell will execute them and give you the result. Some of these are what are known as \keyword{shell-builtins} meaning that the code is in the shell program itself. Some of these are compiled programs that you run. The shell only looks through a special variable called path which contains a list of \keyword{:} separated paths to search for an executable with your name, here is an example path.
+It is ready for your next command! You can type in a lot of Unix utilities like \keyword{ls}, \keyword{echo\ Hello} and the shell will execute them and give you the result. Some of these are what are known as \keyword{shell-builtins} meaning that the code is in the shell program itself. Some of these are compiled programs that you run. The shell only looks through a special variable called path which contains a list of colon separated paths to search for an executable with your name, here is an example path.
 
 \begin{lstlisting}[language=bash]
 $ echo $PATH
@@ -43,9 +43,9 @@ You can always call through the full path. That is always why in past classes if
 \item \keyword{popd} cds to the directory at the top of the stack
 \end{itemize}
 
-\subsection{Alright then what's a terminal?}
+\subsection{What's a terminal?}
 
-A terminal is just an application that displays the output form the shell. You can have your default terminal, a quake based terminal, terminator, the options are endless!
+A terminal is just an application that displays the output from the shell. You can have your default terminal, a quake based terminal, terminator, the options are endless!
 
 \subsection{Common Utilities}
 
@@ -58,7 +58,7 @@ $ cat file.txt
 $ cat shakespeare.txt shakespeare.txt > two_shakes.txt
 \end{lstlisting}
 
-\item \keyword{diff} tells you the difference of the two files. If nothing is printed, then zero is returned meaning the files are the same byte for byte. Otherwise, the longest common subsequence difference is printed
+\item \keyword{diff} tells you the difference between the two files. If nothing is printed, then zero is returned meaning the files are the same byte for byte. Otherwise, the longest common subsequence difference is printed
 
 \begin{lstlisting}[language=bash]
 $ cat prog.txt
@@ -75,7 +75,7 @@ $ diff shakespeare.txt shakespeare.txt
 > it's me
 \end{lstlisting}
 
-\item \keyword{grep} tells you which lines in a file or standard in match a POSIX pattern.
+\item \keyword{grep} tells you which lines in a file or standard input match a POSIX pattern.
 
 \begin{lstlisting}[language=bash]
 $ grep it adele.txt
@@ -93,14 +93,21 @@ $ pwd
 /usr/
 \end{lstlisting}
 
-\item \keyword{man} every system programmers favorite command, tells you more about all your favorite functions!
+\item \keyword{man} every system programmers favorite command tells you more about all your favorite functions!
 \item \keyword{make} executes programs according to a makefile.
 
 \end{enumerate}
 
 \subsection{Syntactic}
 
-Shells have many useful utilities like saving output to a file using redirection \keyword{>}. This overwrites the file from the beginning. If you only meant to append to the file, you can use \keyword{>>}. Unix also allows file descriptor swapping. This means that you can take the output going to one file descriptor and make it seem like its coming out of another. The most common one is \keyword{2>&1} which means take the stderr and make it seem like it is coming out of standard out. This is important because when you use \keyword{>} and \keyword{>>} they only write the standard output of the file. There are some examples below.
+Shells have many useful utilities like saving some output to a file using redirection \keyword{>}.
+This overwrites the file from the beginning.
+If you only meant to append to the file, you can use \keyword{>>}.
+Unix also allows file descriptor swapping.
+This means that you can take the output going to one file descriptor and make it seem like it's coming out of another.
+The most common one is \keyword{2>&1} which means take the stderr and make it seem like it is coming out of standard out.
+This is important because when you use \keyword{>} and \keyword{>>} they only write the standard output of the file.
+There are some examples below.
 
 \begin{lstlisting}[language=bash]
 $ ./program > output.txt # To overwrite
@@ -109,7 +116,15 @@ $ ./program 2>&1 > output_all.txt # stderr & stdout
 $ ./program 2>&1 > /dev/null # don't care about any output
 \end{lstlisting}
 
-The pipe operator has a fascinating history. The UNIX philosophy is writing small programs and chaining them together to do new and interesting things. Back in the early days, hard disk space was limited and write times were slow. Brian Kernighan wanted to maintain the philosophy while also not having to write a bunch of intermediate files that take up hard drive space. So, the UNIX pipe was born. A pipe take the \keyword{stdout} of the program on its left and feeds it to the \keyword{stdin} of the program on its write. Consider the command \keyword{tee}. It can be used as a replacement for the redirection operators because tee will both write to a file and output to standard out. It also has the added benefit that it doesn't need to be the last command in the list. Meaning, that you can write an intermediate result and continue your piping.
+The pipe operator has a fascinating history.
+The UNIX philosophy is writing small programs and chaining them together to do new and interesting things.
+Back in the early days, hard disk space was limited and write times were slow.
+Brian Kernighan wanted to maintain the philosophy while also not having to write a bunch of intermediate files that take up hard drive space.
+So, the UNIX pipe was born.
+A pipe takes the \keyword{stdout} of the program on its left and feeds it to the \keyword{stdin} of the program on its write.
+Consider the command \keyword{tee}.
+It can be used as a replacement for the redirection operators because tee will both write to a file and output to standard out.
+It also has the added benefit that it doesn't need to be the last command in the list. Meaning, that you can write an intermediate result and continue your piping.
 
 \begin{lstlisting}[language=bash]
 $ ./program | tee output.txt # Overwrite
@@ -129,15 +144,21 @@ $ false || echo "Hello!"
 
 \subsection{What are environment variables?}
 
-Well each process gets its own dictionary of environment variables that are copied over to the child. Meaning, if the parent changes their environment variables it won't be transferred to the child and vice versa. This is important in the fork-exec-wait trilogy if you want to exec a program with different environment variables than your parent (or any other process).
+Each process gets its own dictionary of environment variables that are copied over to the child. Meaning, if the parent changes their environment variables it won't be transferred to the child and vice versa. This is important in the fork-exec-wait trilogy if you want to exec a program with different environment variables than your parent (or any other process).
 
 For example, you can write a C program that loops through all of the time zones and executes the \keyword{date} command to print out the date and time in all locals. Environment variables are used for all sorts of programs so modifying them is important.
 
 \section{Stack Smashing}
 
-Each thread uses a stack memory. The stack `grows downwards' - if a function calls another function, then the stack is extended to smaller memory addresses. Stack memory includes non-static automatic (temporary) variables, parameter values and the return address. If a buffer is too small some data (e.g.~input values from the user), then there is a real possibility that other stack variables and even the return address will be overwritten. The precise layout of the stack's contents and order of the automatic variables is architecture and compiler dependent. However with a little investigative work we can learn how to deliberately smash the stack for a particular architecture.
+Each thread uses a stack memory.
+The stack `grows downwards' - if a function calls another function, then the stack is extended to smaller memory addresses.
+Stack memory includes non-static automatic (temporary) variables, parameter values, and the return address.
+If a buffer is too small some data (e.g.~input values from the user), then there is a real possibility that other stack variables and even the return address will be overwritten.
+The precise layout of the stack's contents and order of the automatic variables is architecture and compiler dependent. With a little investigative work, we can learn how to deliberately smash the stack for a particular architecture.
 
-The example below demonstrates how the return address is stored on the stack. For a particular 32 bit architecture \href{http://cs-education.github.io/sys/}{Live Linux Machine}, we determine that the return address is stored at an address two pointers (8 bytes) above the address of the automatic variable. The code deliberately changes the stack value so that when the input function returns, rather than continuing on inside the main method, it jumps to the exploit function instead.
+The example below demonstrates how the return address is stored on the stack.
+For a particular 32 bit architecture \href{http://cs-education.github.io/sys/}{Live Linux Machine}, we determine that the return address is stored at an address two pointers (8 bytes) above the address of the automatic variable.
+The code deliberately changes the stack value so that when the input function returns, rather than continuing on inside the main method, it jumps to the exploit function instead.
 
 \begin{lstlisting}[language=C]
 // Overwrites the return address on the following machine:
@@ -396,7 +417,7 @@ A system programmer is\ldots{}
 
 Someone who knows \keyword{sleepsort} is a bad idea but still dreams of an excuse to use it.
 
-Someone who never lets their code deadlock\ldots{} but when it does, causes more problems than everyone else combined.
+Someone who never lets their code deadlock\ldots{} but when it does, it causes more problems than everyone else combined.
 
 Someone who believes zombies are real.
 
@@ -406,4 +427,4 @@ A system program \ldots{}
 
 Evolves until it can send email.
 
-Evolves until it has the potential to create, connect and kill other programs and consume all possible CPU,memory,network,\ldots{} resources on all possible devices but chooses not to. Today.
+Evolves until it has the potential to create, connect and kill other programs and consume all possible CPU, memory, network, \ldots{} resources on all possible devices but chooses not to. Today.

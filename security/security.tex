@@ -14,8 +14,8 @@ There is some terminology that needs to be explained to get someone who has litt
 
 \begin{enumerate}
 \item An \textbf{Attacker} is typically the user who is trying to break into the system. Breaking into the system means performing an action that the developer of the system didn't intend. It could also mean accessing a system you shouldn't have access to.
-\item An \textbf{Defender} is typically the user who is preventing the attacker from breaking into the system. This may or may not be the developer of the system.
-\item There are different types of attackers. There are \textbf{white hat} hackers who attempt to hack a defender with their consent. This is commonly a form of pre-emptive testing -- in case a not-so-friendly attack comes along. The \textbf{black hat} hackers are hackers who hack without permission and the intent to use the information obtained for any purpose. Gray hat hacking differs because the intent of the hacker is to inform the defender of the vulnerability -- though this can be hard to judge at times.
+\item A \textbf{Defender} is typically the user who is preventing the attacker from breaking into the system. This may or may not be the developer of the system.
+\item There are different types of attackers. There are \textbf{white hat} hackers who attempt to hack a defender with their consent. This is commonly a form of pre-emptive testing -- in case a not-so-friendly attack comes along. The \textbf{black hat} hackers are hackers who hack without permission and the intent to use the information obtained for any purpose. Gray hat hacking differs because the hacker's intent is to inform the defender of the vulnerability -- though this can be hard to judge at times.
 \end{enumerate}
 
 \textbf{Danger Will Robinson} Before we let you go much further, it is important that we talk about ethics.
@@ -34,13 +34,13 @@ If not possible, try to go through the engineering steps
   You can't solve a problem that you don't fully understand.
 \item Determine whether or not you need to ``hack'' the system.
   A hack is defined generally as trying to use a system unintendedly.
-  First you should determine if your use is intended or unintended or somewhere in the middle -- get a decision for them.
+  First, you should determine if your use is intended or unintended or somewhere in the middle -- get a decision for them.
   If you can't get that, make a reasonable judgement as to what the intended use.
 \item Figure out a reasonable estimate of what the cost is to ``hacking'' the system.
   Get that reasonable estimate checked out with a few engineers so they can highlight things that you may have missed.
   Try to get someone to sign off on the plan.
 \item Execute the plan with caution.
-  If at any point something seems wrong, weigh the risks and execute.
+  If at any point something seems wrong, weigh the risks and execute the plan.
 \end{enumerate}
 
 If there isn't a certain ethical guideline for the current application, then create some.
@@ -64,7 +64,7 @@ There are three commonly accepted goals to help understand if a system is secure
 \item The triad above forms the Confidentiality, Integrity, and Availability (CIA) triad, often authenticity is added as well.
 \end{enumerate}
 
-If any of these are broken, the security of a system (either a service or piece of information) has been compromised..
+If any of these are broken, the security of a system (either a service or piece of information) has been compromised.
 
 \section{Security in C Programs}
 
@@ -93,21 +93,21 @@ This means that we could potentially pass in a large string and get the program 
 Most strings will just cause the program to exit with a segmentation fault
 
 \begin{lstlisting}
-  $ ./a.out john
-  Hello, john!
-  $ ./a.out JohnAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA...
-  Program received signal SIGSEGV, Segmentation fault.
-  ...
+$ ./a.out john
+Hello, john!
+$ ./a.out JohnAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA...
+Program received signal SIGSEGV, Segmentation fault.
+...
 \end{lstlisting}
 
 If we manipulate the bytes in certain ways and the program was compiled with the correct flags, we can actually get access to a shell!
-Consider if that file is owned by root, and instead we put in some valid bytecode (x86 opcodes) as the string.
+Consider if that file is owned by root, we put in some valid bytecode (binary instructions) as the string.
 What will happen is we'll try to execute \keyword{execve('/bin/sh', {'/bin/sh', NULL }, NULL)} that is compiled to the bytecode of the operating system and pass it as part of our string.
-With some luck we will get access to a root shell.
+With some luck, we will get access to a root shell.
 
 \begin{lstlisting}
-  $ ./a.out <payload>
-  root#
+$ ./a.out <payload>
+root#
 \end{lstlisting}
 
 The question arises, which parts of the triad does this break?
@@ -147,7 +147,7 @@ aoo
 >
 \end{lstlisting}
 
-What happens here should be clear if you have recall the c memory model.
+What happens here should be clear if you recall the c memory model.
 Out and in are both next to each other in memory.
 If you read in a string from standard input that overflows in, then you end up printing aoo.
 It gets a little more serious if the snippet starts out as
@@ -166,16 +166,16 @@ int main() {
 Out of order execution is an amazing development that has been recently adopted by many hardware vendors (think 1990s) \todo{citation needed}.
 Processors now instead of executing a sequence of instructions (let's say assigning a variable and then another variable) execute instructions before the current one is done \cite[P. 45]{guide2011intel}.
 This is because modern processors spend a lot of time waiting for memory accesses and other I/O driven applications.
-This means that a processor while it is waiting for an operation to complete will execute the next few operations.
+This means that a processor, while it is waiting for an operation to complete, will execute the next few operations.
 If any of the operations would possibly alter the final result, there is a barrier, or if the re-ordering violates the data dependencies of the instructions, the processor will not reorder the instructions \cite[P. 296]{guide2011intel}.
 
-Naturally, not only has this allowed CPUs to become more energy-efficient while executing more instructions in real time, it has also resulted in increased but naturally comes with security risks and more complex architectures.
+Naturally, not only has this allowed CPUs to become more energy-efficient while executing more instructions in real-time, it has also resulted in increased but naturally comes with security risks and more complex architectures.
 What system programmers are worried about is that operation with mutex locks among threads are out of order -- meaning that a pure software implementation of a mutex will not work without copious memory barriers.
 Therefore, the programmer has to acknowledge that updates may not be seen among a series of threads, given that there is no barrier, on modern processors.
 
-One of the most prominent bugs with respect to this is Spectre \cite{kocher2018spectre}.
+One of the most prominent bugs concerning this is Spectre \cite{kocher2018spectre}.
 Spectre is a bug where instructions that otherwise wouldn't be executed are speculatively executed due to out-of-order instruction execution.
-The following snippet is a high level proof of concept.
+The following snippet is a high-level proof of concept.
 
 \begin{lstlisting}[language=C]
 char *a[10];
@@ -212,7 +212,7 @@ Since the address was never logically reached by the program, the result is just
 Now here is the trick.
 Even though the value of the calculation would have resulted in a SEGFAULT, the bug doesn't clear the cache that refers to the physical memory where 0xCAFE is located. This is not an exact explanation, but essentially how it works.
 Since it is still in the cache, if you again trick the processor to read form the cache using \keyword{val} then you will read a memory value that you wouldn't be able to read normally.
-This could include important information such as passwords, payment information etc.
+This could include important information such as passwords, payment information, etc.
 
 \subsection{Operating Systems Security}
 
@@ -222,7 +222,7 @@ This could include important information such as passwords, payment information 
   There are directories that you can and can't access, files that you can and can't access.
   Each user account is given access to each file and directory through the read-write-execute (RWX) bits.
   The user gets matched with either the owner, the group, or `everyone else', and their access to the file is limited using these bits.
-  Note that permissions work slightly differently on directories, than they do on files.
+  Note that permissions work slightly differently on directories compared to files.
 \item Capabilities.
   In addition to permissions on files, each user has a certain set of permissions that they can do.
   For a full list, you can check capabilities(7).
@@ -259,7 +259,7 @@ An exhaustive list of features is at \url{https://www.openbsd.org/innovations.ht
   This is known as the process of ``hardening'' an executable or system, giving the smallest amount of permissions to the least number of executables needed to run a system.
   Pledge is also useful in case one tries to perform an injection attack.
 \item unveil.
-  Unveil is a system call that restrict the access of a current program to a few directories.
+  Unveil is a system call that restricts the access of a current program to a few directories.
   Those permissions apply to all forked programs as well.
   This means if you have a suspicious executable that you want to run whose description is ``creates a new file and outputs random words'' one could use this call to restrict access to a safe subdirectory and watch it receive the SIGKILL signal if it tries to access system files in the root directory, for example.
   This could be useful for your program as well.
@@ -298,32 +298,32 @@ Here are some simple examples of security provided through virtualization
   This changes where a program believes that (/) is mounted on the system.
   For example with chroot, one can make a hello world program believe \keyword{/home/bhuvan/} is actually the root directory.
   This is useful because no other files are exposed.
-  This is contrived because linux still needs additional tools (think the c standard library) to come from different directories such as \keyword{/usr/lib} which means those could still be vulnerable.
-\item namespaces are linux's better way to create a virtualization environment.
+  This is contrived because Linux still needs additional tools (think the c standard library) to come from different directories such as \keyword{/usr/lib} which means those could still be vulnerable.
+\item namespaces are Linux's better way to create a virtualization environment.
   We won't go into this too much, just know that they exist.
 \item Hardware virtualization technology.
   Hardware vendors have become increasingly aware that physical protections are needed when emulating instructions.
-  As such, there can be switches enabled by the user that allows the operating system to flip into a virtualization mode where instructions are run as normal, but are monitored for malicious activity.
-  This helps the performance and increases security of virtualized environments.
+  As such, there can be switches enabled by the user that allows the operating system to flip into a virtualization mode where instructions are run as normal but are monitored for malicious activity.
+  This helps the performance and increases the security of virtualized environments.
 \end{enumerate}
 
-\subsection{Security through scrubbing}
+\subsection{Extra: Security through scrubbing}
 
 Security isn't just about making sure that a program cannot be manipulated to a malicious user's ends.
 Some times, security is making sure that the program can't be crashed or effectively timed with input.
 An example of the former is any attack where the attacker threatens to shut a system down due to a leak.
 This means that the system has a flaw where the user can input a value and cause the system to fail.
-One can imagine in mission critical systems -- power grids, medical devices, etc -- this isn't a lightly taken threat.
+One can imagine in mission-critical systems -- power grids, medical devices, etc -- this isn't a lightly taken threat.
 
-In addition, a lot of novice programmers neglect trying the make a program look similar given all inputs.
+Also, a lot of novice programmers neglect making a program look similar given all inputs.
 A common example of this is comparing two strings.
 Let's say that you are guessing the Cross-Site Request Forgery (CSRF) token on a website.
 If the programmed server returns the request immediately after the token doesn't match the server's, that is a security bug.
 If the token matches none of the characters, an attacker now know that a quick response means that the first few characters were off.
-If the token matches some of the characters but not all, an attacker know that this request will take slightly longer.
+If the token matches some of the characters but not all, an attacker knows that this request will take slightly longer.
 It is important to balance speed and security.
 If correct authentication parameters are supplied, the action should succeed immediately.
-However, if there is a mismatch, there should be no difference in time or content of the response for different reasons of failure, nor should information be given to the user about the source of error.
+However, if there is a mismatch, there should be no difference in time or content of the response for different reasons of failure, nor should any information be given to the user about the source of error.
 This is often accomplished by using a standard delay for responses to unsuccessful authentication attempts.
 We want to use a fast \keyword{memcmp} but it may not be secure.
 
@@ -352,8 +352,8 @@ More and more of our systems are hacked over the web, it is important to underst
 \item Syn-Flood.
   Before the first synchronization packet is acknowledged, there is no connection.
   That means a malicious attacker can write a bad TCP implementation that sends out a flood of SYN packets to a hapless server.
-  The SYN flood is easily mitigated by using IPTABLES or another netfilter module to drop all incoming connections from an IP address after a certain volume of traffic is reached for a certain period of time.
-\item Denial of Service, Distributed Denial of Service are the hardest form of attacks to stop.
+  The SYN flood is easily mitigated by using IPTABLES or another netfilter module to drop all incoming connections from an IP address after a certain volume of traffic is reached for a certain period.
+\item Denial of Service, Distributed Denial of Service is the hardest form of attack to stop.
   Companies today are still trying to find good ways to ease these attacks.
   This involves sending all sorts of network traffic forward to servers in the hopes that the traffic will clog them up and slow down the servers.
   In particularly big systems, this can lead to cascading failures. If a system is engineered poorly, one server's failure causes all the other servers to pick up more work which increases the probability that they will fail and so on and so forth.
@@ -384,9 +384,9 @@ This can get into serious spoofing attacks if one tries to pretend they are a ma
 
 \item What is a chmod statement to break only the confidentiality and availability of your data?
 
-\item An attacked gains root access on a Linux system that you use to store private information. Does this affect confidentiality, integrity, or availability of your information, or all three?
+\item An attacker gains root access on a Linux system that you use to store private information. Does this affect confidentiality, integrity, or availability of your information, or all three?
 
-\item Hackers bruteforce your git username and password. Who is affected?
+\item Hackers brute force your git username and password. Who is affected?
 
 \item Why is privilege separation useful in RPC applications?
 
