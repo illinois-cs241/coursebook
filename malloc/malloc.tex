@@ -583,8 +583,14 @@ We'll talk about virtual memory and pages in another chapter, but the kernel wil
 
 \section{Further Reading}
 
-There are many other allocation schemes.
-One of three allocators used internally by the Linux Kernel.
+Guiding questions
+
+\begin{itemize}
+\item Is malloc'ed memory initialized? How about calloc'ed or realloc'ed memory?
+\item Does realloc accept a number of elements or bytes?
+\item Why may the allocation functions error?
+\end{itemize}
+
 See \href{http://man7.org/linux/man-pages/man3/malloc.3.html}{the man page} or the appendix of the book \ref{man_malloc}!
 
 \begin{itemize}
