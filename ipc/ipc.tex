@@ -8,11 +8,11 @@ Abbott: Well, that's it - say it that way. \\
 Costello: That's what I said.}{Abbott and Costello on Effective Communication}
 
 In very simple embedded systems and early computers, processes directly access memory -- ``Address 1234'' corresponds to a particular byte stored in a particular part of physical memory.
-For example the IBM 709 had to read and write directly to a tape with no level of abstraction \cite[P. 65]{ibm709}.
+For example, the IBM 709 had to read and write directly to tape with no level of abstraction \cite[P. 65]{ibm709}.
 Even in systems after that, it was hard to adopt virtual memory because virtual memory required the whole fetch cycle to be altered through hardware -- a change many manufacturers still thought was expensive.
 In the PDP-10, a workaround was used by using different registers for each process and then virtual memory was added later \cite{ricm}.
 In modern systems, this is no longer the case.
-Instead each process is isolated, and there is a translation process between the address of a particular CPU instruction or piece of data of a process and the actual byte of physical memory (``RAM'').
+Instead, each process is isolated, and there is a translation process between the address of a particular CPU instruction or piece of data of a process and the actual byte of physical memory (``RAM'').
 Memory addresses no longer map to physical addresses
 The process runs inside virtual memory.
 Virtual memory not only keeps processes safe because one process cannot directly read or modify another process's memory.
@@ -22,38 +22,38 @@ The modern process of translating memory is as follows.
 \begin{enumerate}
 \item A process makes a memory request
 \item The circuit first checks the Translation Lookaside Buffer (TLB) if the address page is cached into memory. It skips to the reading from/writing to phase if found otherwise the request goes to the MMU.
-\item The Memory Management Unit (MMU) performs the address translation. If the translation succeeds, the page get pulled from RAM -- conceptually the entire page isn't loaded up. The result is cached in the TLB.
+\item The Memory Management Unit (MMU) performs the address translation. If the translation succeeds, the page gets pulled from RAM -- conceptually the entire page isn't loaded up. The result is cached in the TLB.
 \item The CPU performs the operation by either reading from the physical address or writing to the address.
 \end{enumerate}
 
 \section{Translating Addresses}
 
 The Memory Management Unit is part of the CPU, and it converts a virtual memory address into a physical address.
-First we'll talk about what the virtual memory abstraction is and how to translate addresses
+First, we'll talk about what the virtual memory abstraction is and how to translate addresses
 
-To illustrate, imagine you had a 32 bit machine, meaning pointers are 32 bits.
+To illustrate, imagine you had a 32-bit machine, meaning pointers are 32-bits.
 They can address $2^{32}$ different locations or 4GB of memory where one address is one byte.
 Imagine we had a large table for every possible address where we will store the `real' i.e. ~physical address.
-Each physical address will need 4 bytes -- to hold the 32 bits.
+Each physical address will need 4 bytes -- to hold the 32-bits.
 Naturally, This scheme would require 16 billion bytes to store all of the entries.
 It should be painfully obvious that our lookup scheme would consume all of the memory that we could possibly buy for our 4GB machine.
-Our lookup table better be smaller than the memory we have otherwise we will have no space left for our actual programs and operating system data.
+Our lookup table should be smaller than the memory we have otherwise we will have no space left for our actual programs and operating system data.
 The solution is to chunk memory into small regions called `pages' and `frames' and use a lookup table for each page.
 
 \subsection{Terminology}
 
 A \textbf{page} is a block of virtual memory.
-A typical block size on Linux operating system is 4KiB or $2^{12}$ addresses, though you can find examples of larger blocks.
-So rather than talking about individual bytes we can talk about blocks of 4KiBs, each block is called a page.
+A typical block size on Linux is 4KiB or $2^{12}$ addresses, though you can find examples of larger blocks.
+So rather than talking about individual bytes, we can talk about blocks of 4KiBs, each block is called a page.
 We can also number our pages (``Page 0'' ``Page 1'' etc). Let's do a sample calculation of how many pages are there assume page size of 4KiB.
 
-For a 32 bit machine,
+For a 32-bit machine,
 
 \[
    2^{32} \text{address} / 2^{12} \text{(address/page)} = 2^{20} \text{pages}.
 \]
 
-For a 64 bit machine,
+For a 64-bit machine,
 
 \[
    2^{64} \text{address} / 2^{12} \text{(address/page)} = 2^{52} \text{pages} \approx 10^{15} \text{pages}.
@@ -61,12 +61,12 @@ For a 64 bit machine,
 
 We also call this a \textbf{frame} or sometimes called a `page frame' is a block of \emph{physical memory} or RAM -- Random Access Memory.
 A frame is the same number of bytes as a virtual page or 4KiB on our machine.
-A frame actually stores the bytes of interest.
+It stores the bytes of interest.
 To access a particular byte in a frame, you go from the start of the frame and add the offset -- discussed later.
 
-A \textbf{page table} is a maps a number to a particular frame.
+A \textbf{page table} is a map from a number to a particular frame.
 For example Page 1 might be mapped to frame 45, page 2 mapped to frame 30.
-Other frames might be currently unused or assigned to other running processes, or used internally by the operating system.
+Other frames might be currently unused or assigned to other running processes or used internally by the operating system.
 You can imagine a page table just as that
 
 \begin{figure}[H]
@@ -75,10 +75,10 @@ You can imagine a page table just as that
   \caption{Explicit Frame Table}
 \end{figure}
 
-In practice we will omit the first column because it will always be sequentially 0, 1, 2, etc and instead we'll use the offset from the start of the table as the entry number.
+In practice, we will omit the first column because it will always be sequentially 0, 1, 2, etc and instead we'll use the offset from the start of the table as the entry number.
 
 Now to go through the actual calculations.
-We will assume that a 32 bit machine has 4KiB pages
+We will assume that a 32-bit machine has 4KiB pages
 Naturally to address all the possible entries, there are $2^{20}$ frames.
 Since there are $2^{20}$ possible frames, we will need 20 bits to number all of the possible frames meaning \keyword{Frame Number} must be 2.5 bytes long.
 In practice, we'll round that up to 4 bytes and do something interesting with the rest of the bits.
@@ -90,7 +90,7 @@ The solution is to re-use the lowest bits of the virtual memory address directly
 For example, suppose our process is reading the following address- \keyword{VirtualAddress = 11110000111100001111000010101010 (binary)}
 
 So to give an example say we have the virtual address above.
-How would we split it up using a one page table to frame scheme?
+How would we split it up using a one-page table to frame scheme?
 
 \begin{figure}[H]
 \centering
@@ -118,36 +118,36 @@ The way to read from a particular address above is visualized below.
 And if we were reading from it, 'return' that value.
 This sounds like a perfect solution.
 Take each address and map it to a virtual address in sequential order.
-The process will believe that the address look continuous, but the top 20 bits are used to figure out \keyword{page\_num},
+The process will believe that the address looks continuous, but the top 20 bits are used to figure out \keyword{page\_num},
 which will allow us to find the frame number, find the frame, add the \textbf{offset} -- derived from the last 12 bits -- and do the read or write.
 
 There are other ways to split it as well.
 On a machine with page size 256 Bytes, then the lowest 8 bits (10101010) will be used as the offset.
 The remaining upper bits will be the page number (111100001111000011110000). This offset is treated as a binary number and is added to the start of the frame when we get it.
 
-We do have a problem with 64 bit operating systems.
-For a 64 bit machine with 4KiB pages, each entry needs 52 bits.
+We do have a problem with 64-bit operating systems.
+For a 64-bit machine with 4KiB pages, each entry needs 52 bits.
 Meaning we need roughly
 With $2^{52}$ entries thats $2^{55}$ bytes (roughly 40 petabytes).
 So our page table is too large.
-In 64 bit architectures memory addresses are sparse, so we need a mechanism to reduce the page table size, given that most of the entries will never be used.
+In 64-bit architecture, memory addresses are sparse, so we need a mechanism to reduce the page table size, given that most of the entries will never be used.
 We'll take about this below. There is one last piece of terminology that needs to be covered.
 
 \subsection{Multi-level page tables}
 
-Multi-level pages are one solution to the page table size issue for 64 bit architectures.
-We'll look at the simplest implementation - a two level page table.
+Multi-level pages are one solution to the page table size issue for 64-bit architectures.
+We'll look at the simplest implementation - a two-level page table.
 Each table is a list of pointers that point to the next level of tables, not all sub-tables need to exist.
-An example, two level page table for a 32 bit architecture is shown below.
+An example, two-level page table for a 32-bit architecture is shown below.
 
 \begin{figure}[H]
 \centering
 \includegraphics[width=.5\textwidth]{ipc/drawings/three_address_split.eps}
-\caption{Three way Address Split}
+\caption{Three Way Address Split}
 \end{figure}
 
 So what is the intuition for dereferencing an address?
-First, you take the top level page table and find the \keyword{Index1}'th entry.
+First, you take the top-level page table and find the \keyword{Index1}'th entry.
 That will contain a number that will lead you to the appropriate sub-table
 Then go to the \keyword{Index2}'th entry of that table.
 That will contain a frame number.
@@ -177,13 +177,13 @@ Following our example, here is what the dereference would look like.
 Now some calculations on size.
 Each \keyword{page\_table\_num} index is 10 bits wide because there are only $2^{10}$ possible \keyword{sub-tables}, so we need 10 bits to store each directory index.
 We'll round up to 2 bytes for the sake of reasoning.
-If 2 bytes are used for each entry in the top level table and there are only $2^{10}$ entries, we only need 2KiB to store this entire first level page table.
+If 2 bytes are used for each entry in the top-level table and there are only $2^{10}$ entries, we only need 2KiB to store this entire first level page table.
 Each subtable will point to physical frames, and each of their entries need to be the required 4 bytes to be able to address all the frames as mentioned earlier.
-However, for processes with only tiny memory needs, we only need to specify entries for low memory address for the heap and program code and high memory addresses for the stack.
+However, for processes with only tiny memory needs, we only need to specify entries for low memory addresses for the heap and program code and high memory addresses for the stack.
 
-Thus the total memory overhead for our multi-level page table has shrunk from 4MiB for the single level implementation to 3 page tables of memory or 2KiB for the top level and 4KiB for the two intermediate levels or 10KiB.
+Thus, the total memory overhead for our multi-level page table has shrunk from 4MiB for the single-level implementation to three page tables of memory or 2KiB for the top-level and 4KiB for the two intermediate levels or 10KiB.
 Here's why.
-We need at least one frame for the high level directory and two frames for just two sub-tables.
+We need at least one frame for the high-level directory and two frames for just two sub-tables.
 One sub-table is necessary for the low addresses -- program code, constants and possibly a tiny heap.
 The other sub-table is for higher addresses used by the environment and stack.
 In practice, real programs will likely need more sub-table entries, as each subtable can only reference 1024*4KiB = 4MiB of address space.
@@ -206,7 +206,7 @@ However if a program does not have good cache coherence, the TLB will not have t
 \subsection{MMU Algorithm}
 
 There is a sort of pseudocode associated with the MMU.
-We will assume that this is for a single level page table.
+We will assume that this is for a single-level page table.
 
 \begin{enumerate}
 \item Receive address
@@ -221,7 +221,7 @@ We will assume that this is for a single level page table.
 		that it has permissions to do so.
 		\begin{enumerate}
 		\item If so then do the dereference provide the address, cache the results in the TLB
-		\item Otherwise trigger a hardware interrupt. The kernel
+		\item Otherwise, trigger a hardware interrupt. The kernel
 			will most likely send a SIGSEGV or a Segmentation Violation.
 		\end{enumerate}
 	\item If the page doesn't exist in memory, generate an Interrupt.
@@ -238,17 +238,17 @@ How would you alter this for a multi-level page table?
 
 \subsection{Frames and Page Protections}
 
-Frames be shared between processes, and this is where the heart of the chapter comes into play.
+Frames can be shared between processes, and this is where the heart of the chapter comes into play.
 We can use these tables to communicate with processes.
 In addition to storing the frame number, the page table can be used to store whether a process can write or only read a particular frame.
-Read only frames can then be safely shared between multiple processes.
+Read-only frames can then be safely shared between multiple processes.
 For example, the C-library instruction code can be shared between all processes that dynamically load the code into the process memory.
 Each process can only read that memory.
 Meaning that if you try to write to a read-only page in memory you will get a \keyword{SEGFAULT}.
 That is why sometimes memory accesses SEGFAULT and sometimes they don't, it all depends on if your hardware says that you can access.
 
-In addition, processes can share a page with a child process using the \keyword{mmap} system call.
-\keyword{mmap} is an interesting call because instead of tying each virtual address to a physical frame, it ties it to something else. It is an important distinction that we are talking about mmap and not memory-mapped IO in general. The \keyword{mmap} system call can't reliably be used to do other memory mapped operations like communicate with GPUs and write pixels to the screen -- this is mainly hardware dependent.
+Also, processes can share a page with a child process using the \keyword{mmap} system call.
+\keyword{mmap} is an interesting call because instead of tying each virtual address to a physical frame, it ties it to something else. It is an important distinction that we are talking about mmap and not memory-mapped IO in general. The \keyword{mmap} system call can't reliably be used to do other memory-mapped operations like communicate with GPUs and write pixels to the screen -- this is mainly hardware dependent.
 
 \subsubsection{Bits on Pages}
 
@@ -259,17 +259,17 @@ We will include some bits that have historically been popular in chipsets.
 \item The read-only bit marks the page as read-only.
 Attempts to write to the page will cause a page fault.
 The page fault will then be handled by the Kernel.
-Two examples of the read-only page includes sharing the c runtime library between multiple processes for security you wouldn't want to allow one process to modify the library and Copy-On-Write where the cost of duplicating a page can be delayed until the first write occurs.
+Two examples of the read-only page include sharing the C standard library between multiple processes for security you wouldn't want to allow one process to modify the library and Copy-On-Write where the cost of duplicating a page can be delayed until the first write occurs.
 
 \item The execution bit defines whether bytes in a page can be executed as CPU instructions.
 Processors may will merge these bits into one and deem a page either writable or executable.
-This bit is useful because it prevents stack overflow or code injection attacks when writing user data into the heap or the stack because those are not read only and thus not executable.
+This bit is useful because it prevents stack overflow or code injection attacks when writing user data into the heap or the stack because those are not read-only and thus not executable.
 Further reading: \href{http://en.wikipedia.org/wiki/NX\_bit\#Hardware\_background}{background}
 
-\item The dirty bit allows for a performance optimization.
-A page on disk that is paged in to physical memory, then read from, and subsequently paged out again does not need to be written back to disk, since the page hasn't changed.
+\item The dirty bit allows for performance optimization.
+A page on disk that is paged into physical memory then read from, and subsequently paged out again does not needs to be written back to disk, since the page hasn't changed.
 However, if the page was written to after it's paged in, its dirty bit will be set, indicating that the page must be written back to the backing store.
-This strategy requires that the backing store retain a copy of the page after it is paged in to memory.
+This strategy requires that the backing store retain a copy of the page after it is paged into memory.
 When a dirty bit is not used, the backing store need only be as large as the instantaneous total size of all paged-out pages at any moment.
 When a dirty bit is used, at all times some pages will exist in both physical memory and the backing store.
 \item There are plenty of other bits. Take a look at your favorite architecture and see what other bits are associated!
@@ -303,11 +303,11 @@ But, you one didn't really know how that isolation mapped.
 Two, you may not know how you can break this isolation.
 To break any memory level isolation you have two avenues.
 One is to ask the kernel to provide some kind of interface.
-The other is to ask the kernel to map two pages of memory to the same virtual memory area, and handle all the synchronization yourself.
+The other is to ask the kernel to map two pages of memory to the same virtual memory area and handle all the synchronization yourself.
 
 \section{mmap}
 
-\keyword{mmap} as mentioned earlier is a trick of virtual memory of instead of mapping a page to just a frame, that frame can be backed by a file on disk, or the frame can be shared among processes.
+\keyword{mmap} is a trick of virtual memory of instead of mapping a page to just a frame, that frame can be backed by a file on disk, or the frame can be shared among processes.
 We can use that to read from a file on disk efficiently or sync changes to the file.
 One of the big optimizations is that this does not mean that the file is allocated to memory right away.
 Take the following code for example.
@@ -346,13 +346,13 @@ The first option is that the \keyword{flags} argument of mmap can take many opti
 \end{enumerate}
 
 Remember that once you are done \keyword{mmap}ping that you \keyword{munmap} to tell the operating system that you are no longer using the pages allocated, so the OS can write it back to disk and give you the addresses back in case another mmap needs to occur.
-There are accompanying calls \keyword{msync} that take a piece of mmap'ed memory and sync the changes back to the filesystem though we won't cover that in depth. It is important because if you believe your operating system may crash or hang with the next few operations, you should create a hard backup of all the operations that have been executed.
+There are accompanying calls \keyword{msync} that take a piece of mmap'ed memory and sync the changes back to the filesystem though we won't cover that in-depth. It is important because if you believe your operating system may crash or hang with the next few operations, you should create a hard backup of all the operations that have been executed.
 
 The other parameters to mmap are described in the annotated walkthrough below.
 
 \subsection{Annotated mmap Walkthrough}
 
-Below is an annotated walk through of the example code in the man pages.
+Below is an annotated walkthrough of the example code in the man pages.
 Our command line utility will take a file, offset, and length to print.
 We can assume that these are initialized correctly and the offset + length is less than the length of the file.
 
@@ -362,7 +362,7 @@ size_t length;
 \end{lstlisting}
 
 We'll assume that all system calls succeed.
-First we have to open the file and get the size.
+First, we have to open the file and get the size.
 
 \begin{lstlisting}[language=C]
 struct stat sb;
@@ -498,11 +498,12 @@ Consider if you type the following into your terminal.
 $ ls -1 | cut -d'.' -f1 | sort | uniq | tee dirents
 \end{lstlisting}
 
-What does the following code do? Well it \keyword{ls}'s the current directory.
+What does the following code do?
+First, it lists the current directory.
 The -1 means that it outputs one entry per line.
 The \keyword{cut} command then takes everything before the first period.
 \keyword{sort} sorts all the input lines, \keyword{uniq} makes sure all the lines are uniq.
-Finally \keyword{tee} outputs the contents to the file \keyword{dir\_contents} and the terminal for your perusal.
+Finally, \keyword{tee} outputs the contents to the file \keyword{dir\_contents} and the terminal for your perusal.
 The important part is that bash creates \textbf{5 separate processes} and connects their standard outs/stdins with pipes the trail looks something like this.
 
 \begin{figure}[H]
@@ -513,10 +514,10 @@ The important part is that bash creates \textbf{5 separate processes} and connec
 
 The numbers in the pipes are the file descriptors for each process and the arrow represents the redirect or where the output of the pipe is going.
 A POSIX pipe is almost like its real counterpart - you can stuff bytes down one end and they will appear at the other end in the same order.
-Unlike real pipes however, the flow is always in the same direction, one file descriptor is used for reading and the other for writing.
+Unlike real pipes, however, the flow is always in the same direction, one file descriptor is used for reading and the other for writing.
 The \keyword{pipe} system call is used to create a pipe.
 These file descriptors can be used with \keyword{read} and \keyword{write}.
-A common method of using pipes is to create the pipe before forking in order to communicate with a child process
+A common method of using pipes is to create the pipe before forking to communicate with a child process
 
 \begin{lstlisting}[language=C]
 int filedes[2];
@@ -534,7 +535,7 @@ if (child > 0) { /* I must be the parent */
 There are two file descriptors that pipe creates.
 \keyword{filedes[0]} contains the read end.
 \keyword{filedes[1]} contains the write end.
-How your friendly neighborhood TAs remember it is one \textit{reads before you can write, or reading comes before writing}.
+How your friendly neighborhood TAs remember it is one can \textit{read before they can write, or reading comes before writing}.
 You can groan all you want at it, but it is helpful to remember what is the read end and what is the write end.
 
 One can use pipes inside of the same process, but there tends to be no added benefit.
@@ -565,7 +566,7 @@ int main() {
 \end{lstlisting}
 
 The problem with using a pipe in this fashion is that writing to a pipe can block meaning the pipe only has a limited buffering capacity.
-The maximum size of the buffer is system dependent; typical values from 4KiB up to 128KiB though they can be changed.
+The maximum size of the buffer is system-dependent; typical values from 4KiB up to 128KiB though they can be changed.
 
 \begin{lstlisting}[language=C]
 int main() {
@@ -633,8 +634,7 @@ while ((bytesread = read(fd[0], &buf, 1)) > 0) {
 }
 \end{lstlisting}
 
-
-Okay so we know that when a process tries to read from a pipe where there are still writers, the process blocks.
+We know that when a process tries to read from a pipe where there are still writers, the process blocks.
 If no pipe has no writers, read returns 0.
 If a process tries to write with some reader's read goes through, or fails -- partially or completely -- if the pipe is full.
 Why happens when a process tries to write when there are no readers left?
@@ -686,7 +686,8 @@ int main() {
 The mistake in the above code is that there is still a reader for the pipe!
 The child still has the pipe's first file descriptor open and remember the specification? All readers must be closed
 
-When forking, \emph{It is common practice} to close the unnecessary (unused) end of each pipe in the child and parent process. For example the parent might close the reading end and the child might close the writing end and vice versa if you have two pipes.
+When forking, \emph{It is common practice} to close the unnecessary (unused) end of each pipe in the child and parent process.
+For example, the parent might close the reading end and the child might close the writing end and vice versa if you have two pipes.
 
 The last addendum is that you can actually set the file descriptor to return when there is no one listening instead of SIGPIPE because by default SIGPIPE terminates your program.
 The reason that this is default behavior is it makes the pipe example above work.
@@ -695,30 +696,31 @@ Consider this useless use of cat
 \begin{lstlisting}[language=bash]
 $ cat /dev/urandom | head -n 20
 \end{lstlisting}
-Which grabs 20 lines of input from urandom. \keyword{head} will terminate after 20 newline characters have been read. Well what about \keyword{cat}?
+Which grabs 20 lines of input from urandom. \keyword{head} will terminate after 20 newline characters have been read.
+What about \keyword{cat}?
 \keyword{cat} needs to receive a SIGPIPE informing it that the program just tried to write to a pipe that no one is listening on.
 
 \subsection{Other pipe facts}
 
-A pipe gets filled up when the writer writes too much to the pipe without the reader reading any of it. When the pipes become full, all writes fail until a read occurs. Even then, a write may partial fail if the pipe has a little bit of space left but not enough for the entire message. To avoid this, usually two things are done. Either increase the size of the pipe. Or more commonly, fix your program design so that the pipe is constantly being read from.
+A pipe gets filled up when the writer writes too much to the pipe without the reader reading any of it. When the pipes become full, all writes fail until a read occurs. Even then, a write may partial fail if the pipe has a little bit of space left but not enough for the entire message. Usually, two things are done to avoid this. Either increase the size of the pipe. Or more commonly, fix your program design so that the pipe is constantly being read from.
 
-As hinted at before, Pipe write are atomic up to the size of the pipe. Meaning that if two processes try to write to the same pipe, the kernel has internal mutexes with the pipe that it will lock, do the write, and return. The only gotcha is when the pipe is about to become full. If two processes are trying to write and the pipe can only satisfy a partial write, that pipe write is not atomic -- be careful about that!
+As hinted at before, Pipe writes are atomic up to the size of the pipe. Meaning that if two processes try to write to the same pipe, the kernel has internal mutexes with the pipe that it will lock, do the write, and return. The only gotcha is when the pipe is about to become full. If two processes are trying to write and the pipe can only satisfy a partial write, that pipe write is not atomic -- be careful about that!
 
 Unnamed pipes live in memory and are a simple and efficient form of inter-process communication (IPC) that is useful for streaming data and simple messages. Once all processes have closed, the pipe resources are freed.
 
-It is also common design for a pipe to be one way -- meaning one process should do the writing and one process do the reading. Otherwise the child would attempt to read its own data intended for the parent (and vice versa)!
+It is also common design for a pipe to be one way -- meaning one process should do the writing and one process do the reading. Otherwise, the child would attempt to read its own data intended for the parent (and vice versa)!
 
 \subsection{Pipes and Dup}
 
-A lot of time, you'll want to use \keyword{pipe2} in combination with dup.
+Often, you'll want to use \keyword{pipe2} in combination with dup.
 Take for example the simple program in the command line.
 
 \begin{lstlisting}[language=bash]
 $ ls -1 | cut -f1 -d.
 \end{lstlisting}
 
-This command take the output of \keyword{ls -1} which lists the content of the current directory on one line each and pipes it to cut.
-Cut take a delimiter in this case a dot and a field position in our case 1 and outputs per line the nth field by each delimiter.
+This command takes the output of \keyword{ls -1} which lists the content of the current directory on one line each and pipes it to cut.
+Cut take a delimiter, in this case a dot, and a field position, in our case 1, and outputs per line the nth field by each delimiter.
 At a high level, this grabs the file names without the extension of our current directory.
 
 Underneath the hood, this is how bash does it internally.
@@ -814,7 +816,7 @@ int main() {
 
 Note the unnamed pipe resource will disappear once both the child and parent have exited.
 In the above example, the child will send the bytes and the parent will receive the bytes from the pipe.
-However, no end-of-line character is ever sent, so \keyword{fscanf} will continue to ask for bytes because it is waiting for the end of the line i.e.~it will wait forever! The fix is to ensure we send a newline character, so that \keyword{fscanf} will return.
+However, no end-of-line character is ever sent, so \keyword{fscanf} will continue to ask for bytes because it is waiting for the end of the line i.e.~it will wait forever! The fix is to ensure we send a newline character so that \keyword{fscanf} will return.
 
 \begin{lstlisting}[language=C]
 change:   fprintf(writer, "Score %d", 10 + 10);
@@ -822,11 +824,10 @@ to:       fprintf(writer, "Score %d\n", 10 + 10);
 \end{lstlisting}
 
 If you want your bytes to be sent to the pipe immediately, you'll need to fflush!
-At the beginning of this course we assumed that file streams are always \emph{line buffered} -- the C library will flush its buffer every time you send a newline character.
-Actually this is only true for terminal streams - for other file streams the C library attempts to improve performance by only flushing when it's internal buffer is full or the file is closed.
+Remember back to the introduction section that shows the difference between terminal vs non-terminal outputs of stdout.
 
-\textbf{Even though we have a section on it, it is highly not recommended to fdopen() anything that doesn't point to an underlying file descriptos}.
-The reason being is that while we get conveniences we also get annoyances like the buffering example we mentioned, caching, etc etc.
+\textbf{Even though we have a section on it, it is highly not recommended to fdopen() anything that doesn't point to an underlying file descriptors}.
+The reason being is that while we get conveniences we also get annoyances like the buffering example we mentioned, caching, etc.
 The basic C library motto is that anything that you can \keyword{fseek} or move to an arbitrary position, you should be able to \keyword{fdopen}.
 Files satisfy this behavior, shared memory also, terminals, etc.
 When it comes to pipes, sockets, epoll objects, etc, don't do it.
@@ -836,8 +837,8 @@ When it comes to pipes, sockets, epoll objects, etc, don't do it.
 An alternative to \emph{unnamed} pipes is \emph{named} pipes created using \keyword{mkfifo}.
 From the command line: \keyword{mkfifo} From C: \keyword{int\ mkfifo(const\ char\ *pathname,\ mode\_t\ mode);}
 
-You give it the path name and the operation mode, it will be ready to go!
-Named pipes take up virtual no space on disk.
+You give it the pathname and the operation mode, it will be ready to go!
+Named pipes take up virtually no space on disk.
 This means the actual contents of the pipe aren't printed to the file and read from that same file.
 What the operating system is essentially telling you when you have a named pipe is that it will create an unnamed pipe that refers to the named pipe, and that's it!
 There is no additional magic.
@@ -898,7 +899,7 @@ Sometimes it looks like it works because the execution of the code looks somethi
   Time 4 & print() \& exit() & \\
 \end{tabular}
 
-But here is an invalid series of operations that causes a race condition.
+But here is an invalid series of operations that cause a race condition.
 
 \begin{tabular}{|c|c|c|}
   & Process 1 & Process 2 \\ \hline
@@ -917,16 +918,16 @@ On Linux, there are two abstractions with files. The first is the Linux \keyword
 \item \keyword{write} outputs a number of bytes to a file descriptor. If the file is not open in write mode, this will break. This may be buffered internally.
 \item \keyword{close} removes a file descriptor from a process' file descriptors. This always succeeds on a valid file descriptor.
 \item \keyword{lseek} takes a file descriptor and moves it to a certain position. Can fail if the seek is out of bounds.
-\item \keyword{fcntl} is the catch all function for file descriptors. You can do everything with this function. Set file locks, read, write, edit permissions, etc \ldots{}
+\item \keyword{fcntl} is the catch-all function for file descriptors. You can do everything with this function. Set file locks, read, write, edit permissions, etc \ldots{}
  \end{itemize}
 
 The Linux interface is very powerful and expressive, but sometimes we need portability for example if we are writing for a Macintosh or windows.
 This is where C's abstraction comes into play.
-On different operating systems, C uses the low level functions to create a wrapper around files you can use everywhere, meaning that C on Linux uses the above calls.
+On different operating systems, C uses the low-level functions to create a wrapper around files you can use everywhere, meaning that C on Linux uses the above calls.
 
 \begin{itemize}
 \item \keyword{fopen} opens a file and returns an object. \keyword{null} is returned if you don't have permission for the file.
-\item \keyword{fread} reads a certain number of bytes from a file. An error is returned if already at the end of file when which you must call \keyword{feof()} in order to check.
+\item \keyword{fread} reads a certain number of bytes from a file. An error is returned if already at the end of the file when which you must call \keyword{feof()} to check if the program attempted to read \textit{past} the end of the file.
 \item \keyword{fgetc/fgets} Get a char or a string from a file
 \item \keyword{fscanf} Read a format string from the file
 \item \keyword{fwrite} Write some objects to a file
@@ -937,7 +938,9 @@ On different operating systems, C uses the low level functions to create a wrapp
 
 But you don't get the expressiveness that Linux gives you with system calls you can convert back and forth between them with \keyword{int\ fileno(FILE*\ stream)} and \keyword{FILE*\ fdopen(int\ fd...)} Another important aspect to note is the C files are \textbf{buffered} meaning that their contents may not be written right away by default. You can change that with C options.
 
-\textbf{Danger} With portability you lose something important, the ability to tell an error. Take for example the advice that we gave you above. You can \keyword{fopen} a file descriptor and get a \keyword{FILE*} object but \textbf{it won't be the same as a file} meaning that certain calls will fail or act weirdly.
+\textbf{Danger} With portability you lose something important, the ability to tell an error.
+Take the advice that we gave you above.
+You can \keyword{fopen} a file descriptor and get a \keyword{FILE*} object but \textbf{it won't be the same as a file} meaning that certain calls will fail or act weirdly.
 The C API reduces this weirdness, but for example you cannot \keyword{fseek} to a part of the file, or perform any operations with its buffering.
 The problem is the API won't give a lot of warning because C needs to maintain compatibility with other operating systems.
 To keep things simple for you, use the C API of files when you are dealing with a file on disk, which will work fine. Otherwise, be in for a rough ride for portability sake.
@@ -994,20 +997,20 @@ As such, make sure to close before forking or at least don't trigger a cache inc
 
 \section{So Many IPC Options}
 
-Okay so now you have a list of tools in your toolbox in order to tackle communicating between processes, so what should you use?
+Okay so now you have a list of tools in your toolbox to tackle communicating between processes, so what should you use?
 
 There really is no hard answer, though this is the most interesting question.
-Generally we have retained pipes for legacy reasons.
+Generally, we have retained pipes for legacy reasons.
 This means that we only really use them to redirect stdin, stdout, and stderr for the collection of logs and similar programs.
 You may find processes trying to communicate with unnamed or named pipes as well.
 Most of the time you won't be dealing with this interaction directly though.
 
 Files are used almost all the time as a form of IPC.
-Hadoop is a great example where processes will write to append only tables and then other processes will read from those tables.
+Hadoop is a great example where processes will write to append-only tables and then other processes will read from those tables.
 We generally use files under a few cases.
 One case is if we want to save the intermediate results of an operation to a file for future use.
 Another case is if putting it in memory would cause an out of memory error.
-On Linux, file operations are generally pretty cheap, so most programmers use it as a larger intermediate storage.
+On Linux, file operations are generally pretty cheap, so most programmers use it as larger intermediate storage.
 
 mmap is used for two scenarios.
 One is a \keyword{linear} or \keyword{near-linear} read through of the file.
@@ -1027,7 +1030,7 @@ Python and Ruby use this mapping all the time to utilize copy on write semantics
   \item Address Translation
   \item Page Faults
   \item Frames/Pages
-  \item Single level vs multi level page table
+  \item Single-level vs multi-level page table
   \item Calculating offsets for multi-level page table
   \item Pipes
   \item Pipe read write ends
@@ -1053,10 +1056,10 @@ Python and Ruby use this mapping all the time to utilize copy on write semantics
   \end{enumerate}
 \item What is a page table? How about a physical frame? Does a page always need to point to a physical frame?
 \item What is a page fault? What are the types? When does it result in a SEGFAULT?
-\item What are the advantages to a single level page table? Disadvantages? How about a multi leveled table?
+\item What are the advantages to a single-level page table? Disadvantages? How about a multi leveled table?
 \item What does a multi leveled table look like in memory?
 \item How do you determine how many bits are used in the page offset?
-\item Given a 64 bit address space, 4kb pages and frames, and a 3 level page table, how many bits is the Virtual page number 1, VPN2, VPN3 and the offset?
+\item Given a 64-bit address space, 4kb pages and frames, and a 3 level page table, how many bits is the Virtual page number 1, VPN2, VPN3 and the offset?
 \item What is a pipe? How do I create a pipe?
 \item When is SIGPIPE delivered to a process?
 \item Under what conditions will calling read() on a pipe block? Under what conditions will read() immediately return 0
