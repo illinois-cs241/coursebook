@@ -2068,7 +2068,7 @@ We won't fix this problem right now, instead of when we create the multi-threade
 
 \begin{lstlisting}[language=C]
 void *buffer[16];
-int in = 0, out = 0;
+unsigned int in = 0, out = 0;
 
 void enqueue(void *value) { /* Add one item to the front of the queue*/
   buffer[in] = value;
@@ -2096,9 +2096,8 @@ b[ (in++) % N ] = value;
 \end{lstlisting}
 
 This method would appear to work but contains a subtle bug.
-With more than two billion enqueue operations, the int value of \keyword{in} will overflow and become negative!
-The modulo (or `remainder') operator \keyword{\%} preserves the sign.
-Thus, you might end up writing into \keyword{b[-14]} for example!
+With more than four billion enqueue operations, the int value of \keyword{in} will overflow and wrap around to 0!
+Thus, you might end up writing into \keyword{b[0]} for example!
 
 A compact form is correct uses bit masking provided N is a power of two. (16,32,64,\ldots{})
 
