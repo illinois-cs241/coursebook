@@ -8,7 +8,6 @@ MAIN_EPUB=main.epub
 BASE=$(patsubst %.tex,%,$(MAIN_TEX))
 OTHER_FILES=$(addprefix $(BASE),.aux .log .synctex.gz .toc .out .blg .bbl .glg .gls .ist .glo)
 BIBS=$(shell find . -maxdepth 2 -mindepth 2 -path "./.git*" -prune -o -type f -iname "*.bib" -print)
-LATEX_COMMAND=pdflatex -quiet -synctex=1 -interaction=nonstopmode $(MAIN_TEX) > /dev/null 2>&1
 OTHER=$$(find . -iname *aux) $$(find . -iname *bbl) $$(find . -iname *blg)
 ORDER_TEX=order.tex
 ORDER_TEX_DEP=order.yaml
@@ -43,13 +42,13 @@ $(ORDER_TEX): $(ORDER_TEX_DEP)
 $(CHAPTER_PDF): %.pdf: %.tex
 	echo '\\let\\cleardoublepage\\clearpage' > $@.tmp
 	echo "\includeonly{$(basename $^)}\input{$(MAIN_TEX)}" >> $@.tmp
-	-latexmk -interaction=nonstopmode -quiet -f -pdf -jobname="$@" $@.tmp 2>&1 >/dev/null
+	-latexmk -interaction=nonstopmode -quiet -pdflatex=lualatex -f -pdf -jobname="$@" $@.tmp 2>&1 >/dev/null
 	@mv $@.pdf $@
 	@ls $@ > /dev/null
 	-@rm $@.tmp
 
 $(MAIN_OUT): $(TEX) $(MAIN_TEX) $(BIBS) Makefile $(ORDER_TEX)
-	-@latexmk -quiet -interaction=nonstopmode -f -pdf $(MAIN_TEX)
+	-@latexmk -quiet -pdflatex=lualatex -interaction=nonstopmode -f -pdf $(MAIN_TEX)
 	@ls $(PDF_TEX) > /dev/null
 	@mv $(PDF_TEX) $(MAIN_OUT)
 	@echo "Finished"
