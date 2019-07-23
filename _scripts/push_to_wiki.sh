@@ -16,8 +16,8 @@ git clone $CLONE_URL $WIKI_DIR
 # If we get race condition on read only files, we need to fix our build system
 # no temp directory here
 
-echo "Generating Wiki"
-python3 _scripts/gen_wiki.py order.yaml ${WIKI_DIR}
+echo "Copying Wiki"
+cp _wiki/* ${WIKI_DIR}
 
 cd ${WIKI_DIR}
 

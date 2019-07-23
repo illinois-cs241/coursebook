@@ -4,7 +4,9 @@ set -o errexit;
 
 if test $BUILD_FOCUS = "WIKI"
 then
-    echo "Dummy Step"
+    echo "Generating Wiki"
+    mkdir -p _wiki
+    python3 _scripts/gen_wiki.py order.yaml _wiki
 elif test $BUILD_FOCUS = "EPUB"
 then
     make epub;
