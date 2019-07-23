@@ -12,7 +12,7 @@ The output file is stdout, meaning you should use redirection to save it to a pa
 def main(args):
     file_name = args.name
     # Yaml load will load lists in order by default
-    reorder = yaml.load(open(file_name, 'r'))
+    reorder = yaml.load(open(file_name, 'r'), Loader=yaml.SafeLoader)
     templ = '\include{{{}}}'
 
     for file in reorder:
