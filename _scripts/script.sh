@@ -9,6 +9,6 @@ elif test $BUILD_FOCUS = "EPUB"
 then
     make epub;
 else
-    make
+    make pdf;
 fi;
 
