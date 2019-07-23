@@ -234,7 +234,7 @@ def main(args):
             raise ValueError("No Chapter Found")
 
     # 1. Convert files in the order
-    num_cores_usable = (multiprocessing.cpu_count()-1)
+    num_cores_usable = max(multiprocessing.cpu_count()-1, 1)
     logger.info("Converting files to markdown using {} cores".format(num_cores_usable))
 
     # Use a pool to speed things up somewhat
