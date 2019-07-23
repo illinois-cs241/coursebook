@@ -44,4 +44,11 @@
 \restoregeometry % restores the geometry
 \nopagecolor% Use this to restore the color pages to white
 
+\ifepub
+% No droids
+\else
+\setcounter{secnumdepth}{1}
+\setcounter{tocdepth}{1}
 
+\tableofcontents
+\fi
