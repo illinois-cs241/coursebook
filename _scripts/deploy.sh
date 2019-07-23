@@ -2,7 +2,8 @@
 
 set -e;
 
-if test $BUILD_FOCUS = WIKI; then
+if test $BUILD_FOCUS = WIKI
+then
     # Set environment variables used in the next script
     export NUM_RETRIES=3;
     export BUILD_TIME=10;
@@ -11,6 +12,7 @@ if test $BUILD_FOCUS = WIKI; then
     # Run the actual script
     bash _scripts/push_to_wiki.sh;
 elif test $BUILD_FOCUS = "EPUB"
+then
     ls
 else
     # Copy main to a tempfile, so we don't get any checkout errors

@@ -6,6 +6,7 @@ if test $BUILD_FOCUS = "WIKI"
 then
     echo "Dummy Step"
 elif test $BUILD_FOCUS = "EPUB"
+then
     pandoc --toc -s -f latex \ 
         -t epub \ 
         --filter pandoc-citeproc \
