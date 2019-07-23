@@ -10,6 +10,8 @@ if test $BUILD_FOCUS = WIKI; then
 
     # Run the actual script
     bash _scripts/push_to_wiki.sh;
+elif test $BUILD_FOCUS = "EPUB"
+    ls
 else
     # Copy main to a tempfile, so we don't get any checkout errors
     TMP_DIR=`mktemp -d`;

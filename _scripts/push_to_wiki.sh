@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Every script should have thisj
+# Every script should have this
 set -e
 
 DOCS_SHA=$(git rev-parse --short HEAD)

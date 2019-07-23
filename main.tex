@@ -68,12 +68,33 @@
 %% Add some space to the table of contents justification
 \addtolength{\cftsecnumwidth}{10pt}
 
+%% Epub command
+
+\ifcsname ifepub\endcsname\else
+  \expandafter\let\csname ifepub\expandafter\endcsname
+                  \csname iffalse\endcsname
+\fi
+
+\ifepub
+\include{github_redefinitions}
+\usepackage{filecontents}
+\begin{filecontents}{title.tex}
+%% These are not the droids you are looking for
+\end{filecontents}
+\fi
+
 \begin{document}
 
 \raggedbottom
 
 %% The title so that it isn't included in the chapters
+
 \include{title}
+
+\setcounter{secnumdepth}{1}
+\setcounter{tocdepth}{1}
+
+\tableofcontents
 \fancyhf{}
 
 %% Introduction, background, then the book starts

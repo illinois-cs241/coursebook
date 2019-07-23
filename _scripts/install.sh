@@ -13,6 +13,7 @@ then
     sudo dpkg -i pandoc-2.7-1-amd64.deb
     popd
 else
+    # EPUB and MD
     echo ""
 fi;
 

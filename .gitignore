@@ -228,5 +228,7 @@ main.pdf
 _out/*
 *pdf
 order.tex
+*.epub
 # Don't ask about it
 -B
+

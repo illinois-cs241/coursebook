@@ -1,7 +1,8 @@
 # Find all tex files one directory down
 TEX=$(shell find . -path "./.git*" -prune -o -type f -iname "*.tex" -print)
-MAIN_TEX=main.tex
+MAIN_TEX=main_wrapper.tex
 PDF_TEX=$(patsubst %.tex,%.pdf,$(MAIN_TEX))
+MAIN_OUT=main.pdf
 BASE=$(patsubst %.tex,%,$(MAIN_TEX))
 OTHER_FILES=$(addprefix $(BASE),.aux .log .synctex.gz .toc .out .blg .bbl .glg .gls .ist .glo)
 BIBS=$(shell find . -maxdepth 2 -mindepth 2 -path "./.git*" -prune -o -type f -iname "*.bib" -print)
@@ -14,7 +15,7 @@ TEX_ORDER=$(shell sh -c "cat order.yaml | sed 's/^- //'")
 CHAPTER_PDF=$(patsubst %,%.pdf,$(TEX_ORDER))
 
 .PHONY: all
-all: $(PDF_TEX) chapters
+all: $(MAIN_OUT) chapters
 	-@latexmk -c
 	-@rm *aux *bbl *glg *glo *gls *ist *latexmk *fls
 	-@rm **/*aux **/*bbl **/*glg **/*glo **/*gls **/*ist **/*latexmk **/*fls
@@ -36,14 +37,15 @@ $(CHAPTER_PDF): %.pdf: %.tex
 	@ls $@ > /dev/null
 	-@rm $@.tmp
 
-$(PDF_TEX): $(TEX) $(MAIN_TEX) $(BIBS) Makefile $(ORDER_TEX)
-	-@latexmk -quiet -interaction=nonstopmode -f -pdf $(MAIN_TEX) # 2>&1 >/dev/null
+$(MAIN_OUT): $(TEX) $(MAIN_TEX) $(BIBS) Makefile $(ORDER_TEX)
+	-@latexmk -quiet -interaction=nonstopmode -f -pdf $(MAIN_TEX)
 	@ls $(PDF_TEX) > /dev/null
+	@mv $(PDF_TEX) $(MAIN_OUT)
 	@echo "Finished"
 
 $(PDF_TEX)-debug: $(TEX) $(MAIN_TEX) $(BIBS) Makefile
 	-@latexmk -interaction=nonstopmode -f -pdf $(MAIN_TEX) > latexmk.out
-	-@mv $(PDF_TEX) $(PDF_TEX-debug)
+	@mv $(PDF_TEX)-debug $(MAIN_OUT)
 
 .PHONY: clean
 clean:

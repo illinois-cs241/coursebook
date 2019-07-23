@@ -9,6 +9,9 @@ matrix:
   - name: Wiki Build
     python: '3.6'
     env: BUILD_FOCUS=WIKI
+  - name: Epub Build
+    python: '3.6'
+    env: BUILD_FOCUS=EPUB
   - name: PDF Build
     python: '3.6'
     env: BUILD_FOCUS=PDF

@@ -1,6 +1,18 @@
 \pagestyle{fancy}
-\setcounter{secnumdepth}{1}
-\setcounter{tocdepth}{1}
+
+\ifepub
+%% Really gross hack for epub
+%% Comment out all the environments that would output something and put them back in after
+%% Why can't we just comment out the titlepage command?
+%% Latex and pandoc make it difficult with macros
+
+\let\oldbf\textbf
+\renewcommand{\textbf}[1]{}
+
+\let\oldgraphics\includegraphics
+\renewcommand{\includegraphics}[2][]{}
+
+\fi
 
 \begin{titlepage}
 \newgeometry{left=6cm} %defines the geometry for the titlepage
@@ -13,7 +25,9 @@
 \par
 {\color{linecolor}\makebox[0pt][l]{\rule{1.3\textwidth}{3pt}}\color{white}}
 \vfill
+
 \includegraphics[width=10cm]{_images/duck-alpha-cropped.png}
+
 \vfill
 \noindent
 \textbf{ {\huge B. Venkatesh, L. Angrave, et Al.} }
@@ -22,9 +36,12 @@
 \vskip\baselineskip
 \end{titlepage}
 
+\ifepub
+\let\textbf\oldbf
+\let\includegraphics\oldgraphics
+\fi
+
 \restoregeometry % restores the geometry
 \nopagecolor% Use this to restore the color pages to white
-
-\tableofcontents
 
 
