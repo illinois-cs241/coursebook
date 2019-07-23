@@ -1,6 +1,9 @@
 dist: xenial
 language: python
-cache: pip
+cache:
+  pip: true
+  directories:
+    - $HOME/cache/
 branches:
   only:
   - master

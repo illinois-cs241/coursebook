@@ -43,6 +43,11 @@ github_shim = 'github_redefinitions.tex'
 sed_regex = r'0,/\\\[1\\\]\\\[\\\]/{//d;}'
 # Do all ops in the /tmp directory
 tmp_dir = '/tmp/'
+# Cache file directory
+cache_file_dir = os.path.join(os.path.expanduser('~'), 'cache')
+os.makedirs(cache_file_dir, exist_ok=True)
+
+cache_file_name = os.path.join(cache_file_dir, 'link_cache.json')
 
 class ConvertableTexFile(object):
     """
@@ -113,6 +118,7 @@ def generate_tex_meta(order, outdir, meta_file_name, chapter=None):
     # Where to output the data
     os.environ['META_FILE_NAME'] = meta_file_name
 
+    os.environ['LINK_CACHE_FILE_NAME'] = cache_file_name
     # Order file does not have suffixes
     logger.info("Generating Metadata at {}".format(meta_file_name))
 

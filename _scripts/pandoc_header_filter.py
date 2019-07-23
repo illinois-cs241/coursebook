@@ -4,15 +4,21 @@
 Pandoc filter to grab the different header levels as yaml to stderr
 """
 
-from panflute import run_filter, Str, Header, MetaMap
+from panflute import run_filter, Str, Header, MetaMap, Image, Link
 import sys
 import atexit
 import yaml
 import os
+import os.path
 try:
     from yaml import CLoader as Loader, CDumper as Dumper
 except ImportError:
     from yaml import Loader, Dumper
+import dateutil.parser
+import datetime
+import requests
+
+link_cache_days = 30
 
 # Metadata gleaned from the file
 meta = dict(
@@ -23,6 +29,22 @@ meta = dict(
 
 # Max header level
 max_level = 2
+
+# Cache of all the links
+cache_file = os.environ['LINK_CACHE_FILE_NAME']
+if not os.path.isfile(cache_file):
+    link_cache = dict()
+else:
+    with open(cache_file, 'r') as f:
+        link_cache = yaml.load(f, Loader=Loader)
+
+default_image_alt = 'image'
+
+class NoAltTagException(Exception):
+    pass
+
+class BadLinkException(Exception):
+    pass
 
 def exit_handler():
     """
@@ -43,6 +65,9 @@ def exit_handler():
     with open(meta_file_name, 'w') as f:
         f.write(out)
 
+    with open(cache_file, 'w+') as f:
+        f.write(yaml.dump(link_cache, Dumper=Dumper))
+
 def deserialize(x):
     """
     Takes a panflute element x and returns
@@ -53,13 +78,32 @@ def deserialize(x):
         return x.text
     return ' '
 
+def is_valid_cache_info(link_info):
+    if link_info is None:
+        return False
+    date = dateutil.parser.parse(link_info)
+    time_between = datetime.datetime.now() - date
+    return time_between.days <= link_cache_days
+
 def output_yaml(elem, doc):
     """
     This function performs a walk along a document and outputs to
     stderr a yaml file that has metadata about the name and the
     subsections of the chapter. Elem is a pandoc valid element
     doc is usually going to be None
+
+    This also validates all images and links within a cache
     """
+    if type(elem) == Image:
+        # Get the number of chars for the alt tag
+        alt_name = ''.join(map(deserialize, elem._content.list))
+        alt_length = len(elem._content)
+        # No alt means no compile
+        # Accessibility by default
+        if alt_length == 0 or alt_name.lower() == default_image_alt:
+            raise NoAltTagException(elem.url)
+
+
     if type(elem) == Header and elem.level <= max_level:
         # Format what the title is going to look like
         name = ''.join(map(deserialize, elem.content.list))
@@ -73,6 +117,25 @@ def output_yaml(elem, doc):
         if 'bibliography' in dictionary_map:
             bib_file = deserialize(dictionary_map['bibliography'][0].content[0])
             meta['bib_file'] = bib_file
+
+    if isinstance(elem, Link):
+        url = elem.url
+        link_info = link_cache.get(url)
+
+        # Ignore internal links for the time being
+        # There are a lot of edge cases
+        if not url.startswith('#') and not is_valid_cache_info(link_info):
+            if not (url.startswith('http://') or url.startswith('https://')):
+                raise BadLinkException(url)
+
+            print('Requesting url "{}"'.format(url), file=sys.stderr)
+            # Ping the image
+            head = requests.head(url)
+            if head.status_code < 200 and head.status_code > 299:
+                raise BadLinkException(url)
+
+            # Otherwise reset the cache
+            link_cache[url] = datetime.datetime.now().isoformat()
 
     return elem
 

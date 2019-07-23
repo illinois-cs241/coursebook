@@ -11,10 +11,6 @@ import os.path
 
 base_raw_url = 'https://raw.githubusercontent.com/illinois-cs241/coursebook/master/'
 eps_ext = '.eps'
-default_image_alt = 'image'
-
-class NoAltTagException(Exception):
-    pass
 
 def replace_suffix(content, suffix_old, suffix_new):
     ret = content
@@ -34,17 +30,9 @@ def deserialize(x):
 
 def doc_filter(elem, doc):
     if type(elem) == Image:
-        # Get the number of chars for the alt tag
-        alt_name = ''.join(map(deserialize, elem._content.list))
-        alt_length = len(elem._content)
-        # No alt means no compile
-        # Accessibility by default
-        if alt_length == 0 or alt_name.lower() == default_image_alt:
-            raise NoAltTagException(elem.url)
-
-        # Otherwise link to the raw user link instead of relative
+        # Link to the raw user link instead of relative
         # That way the wiki and the site will have valid links automagically
-        new_url = replace_suffix(elem.url, '.eps', '.png')
+        new_url = replace_suffix(elem.url, eps_ext, '.png')
         if not os.path.isfile(new_url):
             raise ValueError('{} Not found'.format(new_url))
         elem.url = base_raw_url + new_url
