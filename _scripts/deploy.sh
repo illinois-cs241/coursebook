@@ -45,7 +45,7 @@ else
     # Swap the https origin for the ssh origin so we can push
     OLD_ORIGIN=`git remote get-url origin`;
     git remote set-url origin git@github.com:${TRAVIS_REPO_SLUG}.git;
-    git push origin --force pdf_deploy;
+    git push origin --force $BRANCH;
 
     # Swap it back
     git remote set-url origin ${OLD_ORIGIN};
