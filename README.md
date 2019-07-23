@@ -4,6 +4,7 @@
 [![Current Pdf Link](https://img.shields.io/badge/current-pdf-blue.svg)](https://github.com/illinois-cs241/coursebook/blob/pdf_deploy/main.pdf)
 [![Current Wiki Link](https://img.shields.io/badge/current-wiki-blue.svg)](https://github.com/illinois-cs241/coursebook/wiki)
 [![Current HTML Link](https://img.shields.io/badge/current-html-blue.svg)](http://cs241.cs.illinois.edu/wikibook/Index.html)
+[![Current Epub Link](https://img.shields.io/badge/current-epub-blue.svg)](https://github.com/illinois-cs241/coursebook/blob/epub_deploy/main.epub)
 
 <p align="center">
     <img src="_images/duck-alpha-cropped.png" width="50%"/>
@@ -36,4 +37,4 @@ Read `CONTRIBUTING.md`
 * Title Page Idea - https://tex.stackexchange.com/questions/85904/showcase-of-beautiful-title-page-done-in-tex
 * Duck Image - https://pixabay.com/photos/toy-bath-rubber-duck-studio-1474138/
 * Chapter Style Inspiration - https://texblog.org/2012/07/03/fancy-latex-chapter-styles/
-* PDF Images - https://pixabay.com/illustrations/pdf-miniature-file-icon-2127829/
+* PDF Image Inspiration - https://pixabay.com/illustrations/pdf-miniature-file-icon-2127829/

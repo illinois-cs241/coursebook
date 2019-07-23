@@ -1,8 +1,10 @@
 # Find all tex files one directory down
 TEX=$(shell find . -path "./.git*" -prune -o -type f -iname "*.tex" -print)
 MAIN_TEX=main_wrapper.tex
+MAIN_TEX_SOURCE=main.tex
 PDF_TEX=$(patsubst %.tex,%.pdf,$(MAIN_TEX))
 MAIN_OUT=main.pdf
+MAIN_EPUB=main.epub
 BASE=$(patsubst %.tex,%,$(MAIN_TEX))
 OTHER_FILES=$(addprefix $(BASE),.aux .log .synctex.gz .toc .out .blg .bbl .glg .gls .ist .glo)
 BIBS=$(shell find . -maxdepth 2 -mindepth 2 -path "./.git*" -prune -o -type f -iname "*.bib" -print)
@@ -15,16 +17,25 @@ TEX_ORDER=$(shell sh -c "cat order.yaml | sed 's/^- //'")
 CHAPTER_PDF=$(patsubst %,%.pdf,$(TEX_ORDER))
 
 .PHONY: all
-all: $(MAIN_OUT) chapters
+all: pdf chapters epub
 	-@latexmk -c
 	-@rm *aux *bbl *glg *glo *gls *ist *latexmk *fls
 	-@rm **/*aux **/*bbl **/*glg **/*glo **/*gls **/*ist **/*latexmk **/*fls
+
+.PHONY: pdf
+pdf: $(MAIN_OUT)
 
 .PHONY: chapters
 chapters: $(CHAPTER_PDF)
 
 .PHONY: debug
 debug: $(PDF_TEX)-debug
+
+.PHONY: epub
+epub: $(MAIN_EPUB)
+
+$(MAIN_EPUB): $(ORDER_TEX) $(MAIN_TEX_SOURCE)
+	pandoc --toc -s -f latex -t epub --filter pandoc-citeproc --filter _scripts/pandoc_epub_filter.py -M link-citations=true --epub-cover-image _images/cover.png -M author="B. Venkatesh, L. Angrave, et Al." -o $(MAIN_EPUB) $(MAIN_TEX_SOURCE);
 
 $(ORDER_TEX): $(ORDER_TEX_DEP)
 	python3 _scripts/gen_order.py $^ > $@

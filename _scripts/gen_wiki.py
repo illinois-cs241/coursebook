@@ -73,9 +73,9 @@ This book is an introduction to programming in C, and system programming (proces
 
 -- Bhuvy
 
-### One Big File
+<h3 id="one-big-pdf" class="title-text"><a href="https://github.com/illinois-cs241/coursebook/tree/pdf_deploy/main.pdf" alt="PDF Version" class="wiki-link">One Big PDF<img src="https://raw.githubusercontent.com/illinois-cs241/coursebook/master/_images/pdf_icon.png" style="width: 10vh;" width="50px"> </a></h3>
 
-<a href="https://github.com/illinois-cs241/coursebook/tree/pdf_deploy/main.pdf" alt="PDF Versions"><img src="https://raw.githubusercontent.com/illinois-cs241/coursebook/master/_images/pdf_icon.png" width="50px" style="width: 10vh;" /> </a>
+<h3 id="one-big-epub" class="title-text"><a href="https://github.com/illinois-cs241/coursebook/tree/epub_deploy/main.epub" alt="Epub Versions" class="wiki-link">One Big EPUB<img src="https://raw.githubusercontent.com/illinois-cs241/coursebook/master/_images/epub_icon.png" style="width: 10vh;" width="50px"> </a></h3>
 
 
 {% for chapter in chapters %}
