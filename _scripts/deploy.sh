@@ -11,19 +11,25 @@ then
 
     # Run the actual script
     bash _scripts/push_to_wiki.sh;
-elif test $BUILD_FOCUS = "EPUB"
-then
-    ls
 else
     # Copy main to a tempfile, so we don't get any checkout errors
     TMP_DIR=`mktemp -d`;
-    find . -maxdepth 2 -iname "*.pdf" -exec mv {} $TMP_DIR \;
+
+    if test $BUILD_FOCUS = "PDF"
+    then
+        find . -maxdepth 2 -iname "*.pdf" -exec mv {} $TMP_DIR \;
+        BRANCH="pdf_deploy"
+    else
+        find . -iname "*.epub" -exec mv {} $TMP_DIR \;
+        BRANCH="epub_deploy"
+    fi
+
+    # Grab an orphaned branch, so git doesn't calculate diffs
+    git checkout --orphan $BRANCH;
 
     # Set up ssh 
     git config --global core.sshCommand "ssh -i /tmp/deploy_wiki -F /dev/null";
 
-    # Grab an orphaned branch, so git doesn't calculate diffs
-    git checkout --orphan pdf_deploy;
 
     # Remove all other files, we won't need them
     rm -rf * || true;
