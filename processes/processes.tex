@@ -293,11 +293,11 @@ The parent process can only know the PID of the new child process from the retur
 pid_t id = fork();
 if (id == -1) exit(1); // fork failed
 if (id > 0) {
-  // I'm the original parent and
-  // I just created a child process with id 'id'
+  // Original parent
+  // A child process with id 'id'
   // Use waitpid to wait for the child to finish
 } else { // returned zero
-  // I must be the newly made child process
+  // Child Process
 }
 \end{minted}
 
@@ -377,13 +377,15 @@ int main(){
   int i;
   for(i = 0; i < HELLO_NUMBER; i++){
     pid_t child = fork();
-    if(child == -1){
+    if(child == -1) {
       break;
     }
-    if(child == 0){ //I am the child
+    if(child == 0) {
+      // Child
       execlp("ehco", "echo", "hello", NULL);
     }
     else{
+      // Parent
       children[i] = child;
     }
   }
@@ -679,14 +681,15 @@ pid_t child = fork();
 if (child == -1) {
   return 1; //Failed
 }
-if (child > 0) { /* I am the parent - wait for the child to finish */
+if (child > 0) {
+  // Parent, wait for child to finish
   pid_t pid = waitpid(child, &status, 0);
   if (pid != -1 && WIFEXITED(status)) {
     int exit_status = WEXITSTATUS(status);
     printf("Process %d returned %d" , pid, exit_status);
   }
-} else { /* I am the child */
-  // do something interesting
+} else {
+  // Child, do something interesting
   execl("/bin/ls", "/bin/ls", ".", (char *) NULL); // "ls ."
 }
 \end{lstlisting}
@@ -736,7 +739,7 @@ Therefore, these children would see \keyword{getppid()} return a value of 1.
 These orphans will eventually finish and for a brief moment become a zombie.
 The init process automatically waits for all of its children, thus removing these zombies from the system.
 
-\subsection{Extra: How can I asynchronously wait for my child using SIGCHLD?}
+\subsection{Extra: Asynchronously Waiting}
 
 Warning: This section uses signals which we have not yet fully introduced.
 The parent gets the signal SIGCHLD when a child completes, so the signal handler can wait for the process.
@@ -1034,7 +1037,7 @@ Note that we aren't expecting you to memorize the man page.
     \item
           Code up a fork bomb in C (please don't run it).
     \item
-          What is an orphan? How does it become a zombie? How do I be a good parent?
+          What is an orphan? How does it become a zombie? What should a parent do to avoid this?
     \item
           Don't you hate it when your parents tell you that you can't do something? Write me a program that sends \keyword{SIGSTOP} to your parent.
     \item

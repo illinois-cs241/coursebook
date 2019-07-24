@@ -66,7 +66,7 @@ int main() {
   array[0] = 10; array[1] = 20;
   void *tmp = realloc(array, 3 * sizeof(int));
   if (tmp == NULL) {
-    // Nothing I can do here
+    // Nothing to do here.
   } else if (tmp == array) {
     // realloc returned same space
     array[2] = 30;

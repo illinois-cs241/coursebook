@@ -18,14 +18,14 @@ Most of the time this isn't what we want to do.
 
 \begin{lstlisting}[language=C]
 int answer = 3; // Will print out the answer.
-if (answer = 42) { printf("I've solved the answer! It's %d", answer);}
+if (answer = 42) { printf("The answer is %d", answer);}
 \end{lstlisting}
 
 The quick way to fix that is to get in the habit of putting constants first.
 This mistake is common enough in while loop conditions, that most modern programming languages do not let you assign in a while loop without some kind of warning, and some do not allow it at all.
 
 \begin{lstlisting}[language=C]
-if (42 = answer) { printf("I've solved the answer! It's %d", answer);}
+if (42 = answer) { printf("The answer is %d", answer);}
 \end{lstlisting}
 
 There are cases where we want to do it.
@@ -59,7 +59,7 @@ Since a parameter isn't being passed, we are hoping the arguments on the stack (
 This is a pretty simple one, don't put semicolons when not needed.
 
 \begin{lstlisting}[language=C]
-for(int i = 0; i < 5; i++) ; printf("I'm printed once");
+for(int i = 0; i < 5; i++) ; printf("Printed once");
 while(x < 10); x++ ; // X is never incremented
 \end{lstlisting}
 

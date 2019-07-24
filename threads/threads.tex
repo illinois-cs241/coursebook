@@ -255,7 +255,7 @@ This access pattern will cause the variable \keyword{data} to be 2.
 This is undefined behavior and a race condition.
 What we want is one thread to access the part of the code at a time.
 
-You may also ask, well when I compile the code with \keyword{-O2} then I get
+You may also ask when compiled with \keyword{-O2} then assembly output is
 
 \begin{lstlisting}[language={[x86masm]Assembler}]
 shl dword ptr [rdi]   # Optimized way of doing the add
@@ -521,7 +521,7 @@ We have a lot of threading libraries discussed in the extra section.
 We have the standard POSIX threads, OpenMP threads, we also have a new C11 threading library that is built into the standard.
 This library provides restricted functionality.
 
-You ask yourself, why would I use the restricted functionality?
+Why use restricted functionality?
 The key is in the name.
 Since this is the C standard library, it has to be implemented in all operating systems that are compliant which are pretty much all of them.
 This means there is first-class portability when using threads.
@@ -558,7 +558,7 @@ Take a look at the example code below
 int thread_start(void *arg) {
   // Just like the pthread function
   puts("Hello Clone!")
-  // I share the same heap and address space!
+  // This share the same heap and address space!
   return 0;
 }
 

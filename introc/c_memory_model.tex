@@ -37,10 +37,12 @@ If you compile the code without any optimizations and reordering, you can expect
 &bhuvan.phone     // 0x128 = 0x100+0x28
 \end{lstlisting}
 
-All your compiler does is say "reserve this much space, and I will calculate the offsets of whatever variables you want to write to'.
+All your compiler does is say "reserve this much space".
+Whenever a read or write occurs in the code, the compiler will calculate the offsets of the variable.
 The offsets are where the variable starts at.
 The phone variables starts at the \keyword{0x128}th bytes and continues for sizeof(int) bytes, but not always.
-\textbf{Offsets don't determine where the variable ends though}. Consider the following hack that you see in a lot of kernel code.
+\textbf{Offsets don't determine where the variable ends though}.
+Consider the following hack that you see in a lot of kernel code.
 
 \begin{lstlisting}[language=C]
 

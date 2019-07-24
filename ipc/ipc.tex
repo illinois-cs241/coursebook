@@ -668,8 +668,7 @@ int main() {
   pipe(filedes);
   pid_t child = fork();
   if (child > 0) {
-    /* I must be the parent. Close the listening end of the pipe */
-    /* I'm not listening anymore!*/
+    /* This process is the parent. Close the listening end of the pipe */
     close(filedes[0]);
   } else {
     /* Child writes messages to the pipe */
@@ -742,7 +741,7 @@ int main() {
   // Remember for pipe_fds, you read then write (reading is 0 and writing is 1)
 
   if(!fork()) {
-    // I am the child
+    // Child
 
     // Make the stdout of the process, the write end
     dup2(pipe_fds[1], 1);
@@ -855,7 +854,7 @@ Reads and writes hang on Named Pipes until there is at least one reader and one 
 \begin{lstlisting}[language=bash]
 1$ mkfifo fifo
 1$ echo Hello > fifo
-# This will hang until I do this on another terminal or another process
+# This will hang until the following command is run on another terminal or another process
 2$ cat fifo
 Hello
 \end{lstlisting}
@@ -945,7 +944,7 @@ The C API reduces this weirdness, but for example you cannot \keyword{fseek} to 
 The problem is the API won't give a lot of warning because C needs to maintain compatibility with other operating systems.
 To keep things simple for you, use the C API of files when you are dealing with a file on disk, which will work fine. Otherwise, be in for a rough ride for portability sake.
 
-\subsection{How do I tell how large a file is?}
+\subsection{Determining File Length}
 
 For files less than the size of a long, using fseek and ftell is a
 simple way to accomplish this.
@@ -1060,7 +1059,7 @@ Python and Ruby use this mapping all the time to utilize copy on write semantics
 \item What does a multi leveled table look like in memory?
 \item How do you determine how many bits are used in the page offset?
 \item Given a 64-bit address space, 4kb pages and frames, and a 3 level page table, how many bits is the Virtual page number 1, VPN2, VPN3 and the offset?
-\item What is a pipe? How do I create a pipe?
+\item What is a pipe? How do we create pipes?
 \item When is SIGPIPE delivered to a process?
 \item Under what conditions will calling read() on a pipe block? Under what conditions will read() immediately return 0
 \item What is the difference between a named pipe and an unnamed pipe?

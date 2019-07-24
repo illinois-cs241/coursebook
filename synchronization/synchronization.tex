@@ -137,8 +137,8 @@ You don't need to destroy a mutex created with the global initializer.
 
 \subsection{Mutex Usages}
 
-How would I use a mutex?
-Here is a complete example in the spirit of the earlier piece.
+How does one use a mutex?
+Here is a complete example in the spirit of the earlier piece of code.
 
 \begin{lstlisting}[language=C]
 #include <stdio.h>
@@ -218,7 +218,7 @@ Starting with the gotchas.
 Firstly, C Mutexes do not lock variables.
 A mutex is not that smart.
 It works with code, not data.
-If I lock a mutex, the other threads will continue.
+If a mutex is locked, the other threads will continue.
 It's only when a thread attempts to lock a mutex that is already locked, will the thread have to wait.
 As soon as the original thread unlocks the mutex, the second (waiting) thread will acquire the lock and be able to continue.
 The following code creates a mutex that does effectively nothing.
@@ -533,7 +533,7 @@ void handler(int signal) {
 
 void *singsong(void *param) {
   sem_wait(&s);
-  printf("I had to wait until your signal released me!\n");
+  printf("Waiting until a signal releases...\n");
 }
 
 int main() {
@@ -1287,7 +1287,7 @@ Thread \#1 arrives, \emph{sets the turn back to 1} and now waits until thread 2 
 \item Progress. If no other thread is contesting, other thread's flags are not up. That means that a thread can go past the while loop and do critical section items.
 \end{enumerate}
 
-\subsection{Extra: Can I just implement Software Exclusion in C?}
+\subsection{Extra: Implementing Software Mutex}
 
 Yes
 With a bit of searching, it is possible to find it in production for specific simple mobile processors today.
@@ -1668,7 +1668,7 @@ The thread function has four main parts-
 
 void *calc(void *arg) {
   /* Do my part of the first calculation */
-  /* Am I the last thread to finish? If so wake up all the other threads! */
+  /* Is this the last thread to finish? If so wake up all the other threads! */
   /* Otherwise wait until the other threads have finished part one */
   /* Do my part of the second calculation */
 }
@@ -2451,7 +2451,7 @@ In the previous example, the code can now fail.
 
 \subsection{Acquire/Release}
 
-The simplest way I can explain it is the order of atomic variables don't need to be consistent -- meaning if I assign atomic var y to be 10 then atomic var x to be 0 those don't need to propagate and you could get stale reads.
+The order of atomic variables don't need to be consistent -- meaning if atomic var y is assigned to 10 then atomic var x to be 0 those don't need to propagate, and you could get stale reads.
 Non-atomic variables have to get updated in all threads though.
 
 \subsection{Consume}
