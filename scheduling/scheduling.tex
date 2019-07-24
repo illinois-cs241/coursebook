@@ -29,7 +29,7 @@ Think about a process that only checks something once an hour.
 \section{High Level Scheduler Overview}
 
 Schedulers are pieces of software programs. In fact, you can implement schedulers yourself!
-If you are given a list of commands to exec, you can run them with SIGSTOP and SIGCONT.
+If you are given a list of commands to exec, a program can schedule them them with SIGSTOP and SIGCONT.
 These are called user space schedulers.
 Hadoop and python's celery may do some sort of user space scheduling or deal with the operating system.
 
@@ -44,8 +44,7 @@ Note, please don't memorize all the states.
 \item There are so-called deep slumber states called blocked suspended and blocked ready. You don't need to worry about these.
 \end{enumerate}
 
-The reason that we mention this even though you don't need to memorize the transitions is it's important to know that scheduling is much more about the measures below -- in fact, the content below is more related to queueing theory than it is to scheduling as a whole.
-This means that we will try to pick a scheme that decides when a process should move to the running state, and when it should be moved back to the ready state.
+We will try to pick a scheme that decides when a process should move to the running state, and when it should be moved back to the ready state.
 We won't make much mention of how to factor in voluntarily blocked states and when to switch to deep slumber states.
 
 \section{Measurements}
@@ -219,7 +218,7 @@ For this exposition, we will simplify this discussion to use the total running t
 Preemptive shortest job first is like shortest job first but if a new job comes in with a shorter runtime than the total runtime of the current job, it is run instead.
 If it is equal like our example our algorithm can choose.
 The scheduler uses the \emph{total} runtime of the process.
-If you want the shortest \emph{remaining} time left, that is a variant of PSJF called Shortest Remaining Time First (SRTF).
+If the scheduler wants to compare the shortest \emph{remaining} time left, that is a variant of PSJF called Shortest Remaining Time First (SRTF).
 
 \begin{figure}[htbp]
 \centering
@@ -289,7 +288,8 @@ Processes are scheduled in the order of arrival.
 One advantage of FCFS is that scheduling algorithm is simple
 The ready queue is a FIFO (first in first out) queue.
 FCFS suffers from the Convoy effect.
-Here P2 Arrives, then P1 arrives, then P5, then P4, then P3. You can see the convoy effect for P5.
+Here P2 Arrives, then P1 arrives, then P5, then P4, then P3.
+You can see the convoy effect for P5.
 
 \textbf{Advantages}
 
@@ -436,12 +436,12 @@ All results are from Jorma Virtamo's lectures on the matter \cite{virtamo}.
 \subsection{Round Robin or Processor Sharing}
 
 It is really hard to analyze Round Robin from a probabilistic sense because it is so state based.
-The next job that you work on requires you to remember the previous jobs.
+The next job that the scheduler schedules requires it to remember the previous jobs.
 Queueing theory developers have made an assumption that the time quanta is roughly zero -- ignoring context switching and the like.
 This leads way into processor sharing.
 Many different tasks can get worked on at the same time but experience a slowdown.
 All of these proofs will be adapted from Harchol-Balter's book \cite{harchol2013performance}.
-I highly recommend checking out the books if you are interested.
+We highly recommend checking out the books if you are interested.
 The proofs are intuitive for people who don't have a background in queueing theory.
 
 \begin{enumerate}
@@ -453,7 +453,7 @@ The proofs are intuitive for people who don't have a background in queueing theo
     E[W] = 0
     \]
 
-  Under a non-strict analysis of processor sharing though, the number of time that you wait is best approximated by the number of times you need to wait.
+  Under a non-strict analysis of processor sharing though, the number of time that the scheduler waits is best approximated by the number of times the scheduler need to wait.
   You'll need $\frac{E[S]}{Q}$ service periods where $Q$ is the quanta, and you'll need about $E[N] * Q$ time in between those periods.
   Leading to an average time of
   \[
@@ -541,7 +541,7 @@ The last bit of notation is that we will assume that the probability of getting 
       \frac{1}{1-\rho}
   \]
 
-  In words -- you can work this out with experimenting distributions -- if you have a lot of low priority processes who don't contribute a lot to the average load, your average wait time becomes much lower.
+  In words -- you can work this out with experimenting distributions -- if the system has a lot of low priority processes who don't contribute a lot to the average load, your average wait time becomes much lower.
 
 \item The average per process response time is
 
@@ -549,8 +549,8 @@ The last bit of notation is that we will assume that the probability of getting 
   E[R_i] = \sum\limits_{j = 0}^i E[N_j] * E[S_j]
   \]
 
-  Which simply says that you need to wait for all jobs with a higher priority and the same to go before you can go.
-  Imagine a series of FCFS queues that you need to wait your turn.
+  Which says that the scheduler needs to wait for all jobs with a higher priority and the same to go before a process can go.
+  Imagine a series of FCFS queues that a process needs to wait your turn.
   Using Little's Law for different colored jobs and the formula above we can simplify this
 
   \[
@@ -661,7 +661,7 @@ We will also introduce an additional term $C_i$ which denotes the variation amon
 \subsection{Preemptive Shortest Job First}
 
 Unfortunately, we can't use the same trick as before because an infinitesimal point doesn't have a controlled variance.
-You can imagine the comparisons though as the same as the previous section.
+Imagine the comparisons though as the same as the previous section.
 
 \section{Topics}
 

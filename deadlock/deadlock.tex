@@ -71,10 +71,10 @@ int isCyclic(Graph *G, int* is_visited) {
 \caption{Graph based Deadlock}
 \end{figure}
 
-\section{Coffman conditions}
+\section{Coffman Conditions}
 
 Surely cycles in RAGs happen all the time in an OS, so why doesn't it grind to a halt?
-You may not see this because the OS may \textbf{preempt} some processes breaking the cycle but there is still a chance that your three lonely processes could deadlock.
+You may not see deadlock because the OS may \textbf{preempt} some processes breaking the cycle but there is still a chance that your three lonely processes could deadlock.
 
 There are four \emph{necessary} and \emph{sufficient} conditions for deadlock -- meaning if these conditions hold then there is a non-zero probability that the system will deadlock at any given iteration.
 These are known as the \gls{Coffman Conditions} \cite{coffman1971system}.
@@ -129,7 +129,7 @@ Circular wait also implies that at this current state, no process is satisfied, 
 Hold and wait simply proves the condition that from this point onward, the system will not change, which is all the conditions that we needed to show.
 \end{proof}
 
-If you break any of them, you cannot have deadlock!
+If a system breaks any of them, it cannot have deadlock!
 Consider the scenario where two students need to write both pen and paper and there is only one of each.
 Breaking mutual exclusion means that the students share the pen and paper.
 Breaking circular wait could be that the students agree to grab the pen then the paper.
@@ -148,7 +148,6 @@ Another problem is that there are necessary conditions for livelock (i.e. deadlo
 You must formally prove in a system by what is known as an invariant.
 One has to enumerate each of the steps of a system and if each of the steps eventually -- after some finite number of steps -- leads to forward progress, the system is not livelocked.
 There are even better systems that prove bounded waits; a system can only be livelocked for at most $n$ cycles which may be important for something like stock exchanges.
-
 
 \section{Approaches to Solving Livelock and Deadlock}
 
@@ -177,7 +176,8 @@ The way around this is mostly probabilistic.
 The operating system chooses a random resource to break hold and wait.
 Now even though a user can craft a program where breaking hold and wait on each resource will result in a livelock, this doesn't happen as often on machines that run programs in practice or the livelock that does happen happens for a couple of cycles.
 These systems are good for products that need to maintain a non-deadlocked state but can tolerate a small chance of livelock for a short time.
-The following proof \textbf{is not required for our 241 related purposes but is included for concreteness}.
+
+\subsection{Extra: Livelock Eventual Termination}
 
 \begin{proof}
   That livelock terminates eventually.
@@ -209,7 +209,7 @@ The system will almost surely not be deadlocked after an arbitrary number of ste
 
 \end{proof}
 
-Deadlock prevention is making sure that deadlock cannot happen, meaning that you break a Coffman condition.
+Deadlock prevention is making sure that deadlock cannot happen, meaning that a system break a Coffman Condition.
 This works the best inside a single program and the software engineer making the choice to break a certain Coffman condition. Consider the 
 \href{https://en.wikipedia.org/wiki/Banker's\_algorithm}{Banker's Algorithm} \cite{Dijkstra:1965:CSP:1102034}.
 It is another algorithm for deadlock avoidance.
@@ -217,13 +217,12 @@ The whole implementation is outside the scope of this class, just know that ther
 
 \subsection{Extra: Banker's Algorithm}
 
-The banker algorithm is not too complicated to detail.
-We can start out with a single resource solution.
-Let's say that I'm a banker.
-As a banker, I have a finite amount of money.
-As having a finite amount of money, I want to make loans and eventually get my money back.
+We can start out with a single resource Banker's Algorithm.
+Consider a banker.
+The banker has a finite amount of money.
+With a finite amount of money, she want to make loans and eventually get my money back.
 Let's say that we have a set of $n$ people where each of them has a set amount or a limit $a_i$ ($i$ being the $i$th process) that they need to obtain before they can do any work.
-I keep track in my book how much I've given to each person $l_i$, and I have some amount of principle $p$ at any given time.
+The banker keep track in my book how much she has given to each person $l_i$, and she has some amount of moeny $p$ at any given time.
 For people to request money, they do the following.
 Consider the state of the system $(A=\{a_1, a_2, ...\}, L_t=\{l_{t,1}, l_{t,2}, ...\}, p)$ at time $t$.
 A precondition is that we have $p \geq min(A)$, or we have enough money to suit at least one person..
@@ -258,7 +257,7 @@ There are some notable downsides.
 \section{Dining Philosophers}
 
 The Dining Philosophers problem is a classic synchronization problem.
-Imagine I invite $n$ (let's say 6) philosophers to a meal.
+Imagine we invite $n$ (let's say 6) philosophers to a meal.
 We will sit them at a table with 6 chopsticks, one between each philosopher.
 A philosopher alternates between wanting to eat or think.
 To eat the philosopher must pick up the two chopsticks either side of their position.
@@ -277,7 +276,6 @@ Or will all of them deadlock?
 For example, imagine each guest picks up the chopstick on their left and then waits for the chopstick on their right to be free.
 Oops - our philosophers have deadlocked!
 Each of the philosophers is essentially the same, meaning that each philosopher has the same instruction set based on the other philosopher i.e. you can't tell every even philosopher to do one thing and every odd philosopher to do another thing.
-
 
 \subsection{Failed Solutions}
 
@@ -309,7 +307,7 @@ Here is a simple resource allocation graph that shows how the system could be de
 \end{figure}
 
 
-So now you are thinking about breaking one of the Coffman conditions.
+So now you are thinking about breaking one of the Coffman Conditions.
 Let's break Hold and Wait!
 
 \begin{lstlisting}[language=C]
@@ -368,7 +366,7 @@ Assuming that all the philosophers are good-willed, the arbitrator needs to be f
 In practical systems, the arbitrator tends to give forks to the same processes because of scheduling or pseudo-randomness.
 Another important thing to note is that this prevents deadlock for the entire system.
 But in our model of dining philosophers, the philosopher has to release the lock themselves.
-Then you can consider the case of the malicious philosopher (let's say Descartes because of his Evil Demons) could hold on to the arbitrator forever.
+Then, you can consider the case of the malicious philosopher (let's say Descartes because of his Evil Demons) could hold on to the arbitrator forever.
 He would make forward progress and the system would make forward progress but there is no way of ensuring that each process makes forward progress without assuming something about the processes or having true preemption -- meaning that a higher authority (let's say Steve Jobs) tells them to stop eating forcibly.
 
 
@@ -392,14 +390,15 @@ What if there is only 1 philosopher at the table?
 Can we deadlock?
 No.
 How about 2 philosophers?
-3? \ldots{} You can see where this is going.
+3?
+You can see where this is going.
 Stallings' \cite[P. 280]{stalling} solution removes philosophers from the table until deadlock is not possible -- think about what the magic number of philosophers at the table.
 The way to do this in actual system is through semaphores and letting a certain number of philosophers through.
 This has the benefit that multiple philosophers can be eating.
 
 In the case that the philosophers aren't evil, this solution requires a lot of time-consuming context switching.
 There is also no reliable way to know the number of resources beforehand.
-In the dining philosophers case, this is solved because everything is known but trying to specify an operating system where you don't know which file is going to get opened by what process leads you with a faulty solution.
+In the dining philosophers case, this is solved because everything is known but trying to specify an operating system where a system doesn't know which file is going to get opened by what process can lead to a faulty solution.
 And again since semaphores are system constructs, they obey system timing clocks which means that the same processes tend to get added back into the queue again.
 Now if a philosopher becomes evil, then the problem becomes that there is no preemption.
 A philosopher can eat for as long as they want and the system will continue to function but that means the fairness of this solution can be low in the worst case.
@@ -516,11 +515,11 @@ If you want to read further on the model, feel free to glance over the wikipedia
 \item
   What are the Coffman Conditions?
 \item
-  What do each of the Coffman conditions mean? (e.g.~can you provide a definition of each one)
+  What do each of the Coffman conditions mean? Provide a definition of each one.
 \item
   Give a real-life example of breaking each Coffman condition in turn. A situation to consider: Painters, Paint, Paint Brushes etc. How would you assure that work would get done?
 \item
-  Be able to identify when Dining Philosophers code causes a deadlock (or not). For example, if you saw the following code snippet which Coffman condition is not satisfied?
+  Which Coffman condition is not satisfied in the following snippet?
 
 \begin{lstlisting}[language=C]
 // Get both locks or none

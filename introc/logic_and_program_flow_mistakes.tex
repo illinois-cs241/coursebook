@@ -22,10 +22,11 @@ if (answer = 42) { printf("The answer is %d", answer);}
 \end{lstlisting}
 
 The quick way to fix that is to get in the habit of putting constants first.
-This mistake is common enough in while loop conditions, that most modern programming languages do not let you assign in a while loop without some kind of warning, and some do not allow it at all.
+This mistake is common enough in while loop conditions.
+Most modern compilers disallows assigning variables a condition without parenthesis.
 
 \begin{lstlisting}[language=C]
-if (42 = answer) { printf("The answer is %d", answer);}
+  if (42 = answer) { printf("The answer is %d", answer);}
 \end{lstlisting}
 
 There are cases where we want to do it.
@@ -41,7 +42,7 @@ It is always good practice to put parentheses around any assignment condition.
 
 \subsection{Undeclared or incorrectly prototyped functions}
 
-You may see code do something like this.
+Some snippets of code may do the following.
 
 \begin{lstlisting}[language=C]
 time_t start = time();

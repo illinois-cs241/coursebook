@@ -29,7 +29,7 @@ while( (*dest++ = *src++ )) {};
 
 \subsection{Double Frees}
 
-A double free error is when you accidentally attempt to free the same allocation twice.
+A double free error is when a program accidentally attempt to free the same allocation twice.
 
 \begin{lstlisting}[language=C]
 int *p = malloc(sizeof(int));
@@ -45,7 +45,7 @@ Secondly, it is a good habit to set pointers to NULL, once the memory has been f
 This ensures that the pointer cannot be used incorrectly without the program crashing.
 
 \begin{lstlisting}[language=C]
-p = NULL; // Now you can't use this pointer by mistake
+p = NULL; // No dangling pointers
 \end{lstlisting}
 
 \subsection{Returning pointers to automatic variables}

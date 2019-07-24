@@ -109,7 +109,7 @@ Some of them are listed below:
 Not every filesystem supports all the possible callback functions.
 For example, many filesystems do not implement \keyword{ioctl} or \keyword{link}.
 Many filesystems aren't \keyword{seekable} meaning that they do not provide random access.
-You cannot move to an arbitrary point in the file.
+A program cannot move to an arbitrary point in the file.
 This is analogous to \keyword{seekable stream}s.
 In this chapter, we will not be examining each filesystem callback.
 If you would like to learn more about this interface, try looking at the documentation for Filesystems at the User Space Level (FUSE).
@@ -182,7 +182,7 @@ Filenames are usually only stored in directories (see below).
 
 For example, to read the first few bytes of the file, follow the first direct block pointer to the first direct block and read the first few bytes.
 Writing follows the same process.
-If you want to read the entire file, keep reading direct blocks until you've read several bytes equal to the size of the file.
+If a program wants to read the entire file, keep reading direct blocks until you've read several bytes equal to the size of the file.
 If the total size of the file is less than that of the number of direct blocks multiplied by the size of a block, then unused block pointers will be undefined.
 Similarly, if the size of a file is not a multiple of the size of a block, data past the end of the last byte in the last block will be garbage.
 
@@ -269,7 +269,8 @@ Additional facts about name-related conventions:
 \subsection{Directory API}
 
 While interacting with a file in C is typically done by using \keyword{open} to open the file and then \keyword{read} or \keyword{write} to interact with the file before calling \keyword{close} to release resources, directories have special calls such as, \keyword{opendir}, \keyword{closedir} and \keyword{readdir}.
-There is no function \keyword{writedir} since typically that implies creating a file or link (for that you would just use something like \keyword{open} or \keyword{mkdir}).
+There is no function \keyword{writedir} since typically that implies creating a file or link.
+The program would just use something like \keyword{open} or \keyword{mkdir}.
 
 To explore these functions, let's write a program to search the contents of a directory for a particular file.
 The code below has a bug, try to spot it!
@@ -306,7 +307,7 @@ If both the parent and the child use the above, the behavior is undefined.
 
 There are two main gotchas and one consideration.
 The \keyword{readdir} function returns ``.'' (current directory) and ``..'' (parent directory).
-If you are looking for subdirectories, you need to explicitly exclude these directories.
+The other is programs need to explicity exclude subdirectories from a search, otherwise the search may take a very long time.
 
 For many applications, it's reasonable to check the current directory first before recursively searching sub-directories.
 This can be achieved by storing the results in a linked list, or resetting the directory struct to restart from the beginning.
@@ -375,7 +376,7 @@ $ ln file1.txt blip.txt
 \end{lstlisting}
 
         However, blip.txt \emph{is} the same file.
-        If I edit blip, I'm editing the same file as `file1.txt!'.
+        If we edit blip, I'm editing the same file as `file1.txt!'.
         We can prove this by showing that both file names refer to the same inode.
 
 \begin{verbatim}
@@ -521,7 +522,7 @@ int fstat(int fd, struct stat *buf);
 int lstat(const char *path, struct stat *buf);
 \end{lstlisting}
 
-For example, you can use \keyword{fstat} to learn about file metadata if you already have a file descriptor associated with that file.
+For example, a program can use \keyword{fstat} to learn about file metadata if it already has a file descriptor associated with that file.
 
 \begin{lstlisting}[language=C]
 FILE *file = fopen("notes.txt", "r");
@@ -560,7 +561,7 @@ struct stat {
 \end{lstlisting}
 
 The \keyword{st\_mode} field can be used to distinguish between regular files and directories.
-To accomplish this, you will also need the macros, \keyword{S\_ISDIR} and \keyword{S\_ISREG}.
+To accomplish this, use the macros, \keyword{S\_ISDIR} and \keyword{S\_ISREG}.
 
 \begin{lstlisting}[language=C]
 struct stat s;
@@ -569,7 +570,7 @@ if (0 == stat(name, &s)) {
   if (S_ISDIR( s.st_mode)) puts("is a directory");
   if (S_ISREG( s.st_mode)) puts("is a regular file");
 } else {
-  perror("stat failed - are you sure I can read this file's metadata?");
+  perror("stat failed - are you sure we can read this file's metadata?");
 }
 \end{lstlisting}
 
@@ -600,11 +601,11 @@ Here are the bit conventions:
 \end{tabular}
 
 It is worth noting that the \keyword{rwx} bits have a slightly different meaning for directories.
-Write access to a directory that will allow you to create or delete new files or directories inside.
+Write access to a directory that will allow a program to create or delete new files or directories inside.
 You can think about this as just having write access to the directory entry (dirent) mappings.
-Read-access to a directory will allow you to list a directory's contents.
+Read-access to a directory will allow a program to list a directory's contents.
 This is just read access to the directory entry (dirent) mapping.
-Execute will allow you to enter the directory and access it.
+Execute will allow a program to enter the directory using cd.
 Without the execute bit, it is not possible to create or remove files or directories since you cannot access them.
 You can, however, list the contents of the directory.
 
@@ -1218,23 +1219,24 @@ In our particular example, the first four bytes evaluate to the integer 5, meani
 We do the same for data block \#4 and we stop after because we exceed the size of the inode
 
 Now, let's think about the edge cases.
-How would you start the read starting at an arbitrary offset of $n$ bytes given that block sizes are $4 KiBs$.
+How would a program start the read starting at an arbitrary offset of $n$ bytes given that block sizes are $4 KiBs$.
 How many indirect blocks should there be if the filesystem is correct? (Hint: \textit{think about using the size of the inode})
 
 \subsection{Performing Writes}
 \subsubsection{Writing to files}
 Performing writes fall into two categories, writes to files and writes to directories.
 First we'll focus on files and assume that we are writing a byte to the $6$th KiB of our file.
-To perform a write on a file at a particular offset, first you must go to the data block would start at that offset.
+To perform a write on a file at a particular offset, first the filesystem must go to the data block would start at that offset.
 For this particular example we would have to go to the 2nd or indexed number 1 inode to perform our write.
 We would once again fetch this number from the inode, go to the root of the data blocks, go to the $5$th data block and perform our write at the $2$KiB offset from this block because we skipped the first four kibibytes of the file in block 7.
 We perform our write and go on our merry way.
 
-Some questions for you:
+Some questions to consider.
 
 \begin {itemize}
-    \item How would you consider performing a write that would go across data block boundaries?
-    \item How would you consider performing a write whose write after adding the offset would extend the length of the file?\item How would you consider performing a write where the offset is greater than the length of the original file?
+    \item How would a program perform a write go across data block boundaries?
+    \item How would a program perform a write after adding the offset would extend the length of the file?
+    \item How would a program perform a write where the offset is greater than the length of the original file?
 \end{itemize}
 
 \subsubsection{Writing to directories}
@@ -1249,22 +1251,19 @@ Don't forget to update the size of the directory so that the next creation doesn
 Some more questions: 
 
 \begin{itemize}
-    \item How would you consider performing a write when the last data block is already full?
+    \item How would would a program perform a write when the last data block is already full?
     \item How about when all the direct blocks have just been filled up and the inode doesn't have an indirect block?
     \item What about when the first indirect entry (\#4) is full?
 \end{itemize}
 
 \subsection{Adding Deletes}
 
-If you were to ask what happens when a file gets deleted, it is actually quite simple.
 If the inode is a file, then remove the directory entry in the parent directory by marking it as invalid (maybe making it point to inode -1) and skip it in your reads.
-You need to make sure to decrease the hard link count of the inode and if the count reaches zero, free the inode in the inode map and free all associated data blocks so they are reclaimed by the filesystem.
+A filesystem decreases the hard link count of the inode and if the count reaches zero, free the inode in the inode map and free all associated data blocks so they are reclaimed by the filesystem.
 In many operating systems, several fields in the inode get overwritten.
 
-If the inode is a directory, first you have to recursively remove every directory entry inside
-After, you have to mark the directory's inode as free and set the associated data blocks to free as well.
-Why don't we have to check hard link counts for directories?
-You can't hard link directories! Meaning, we can just easily delete it.
+If the inode is a directory, the filesystem checks if it is empty.
+If not, then the kernel will most likely just mark an error.
 
 \section{Extra: Modern Filesystems}
 
@@ -1272,7 +1271,7 @@ While the API for most filesystems have stayed the same on POSIX over the years,
 
 \begin{itemize}
 \item Data Integrity. File systems use journaling and sometimes checksums to ensure that the data written to is valid. Journalling is a simple invention where the file system writes an operation in a journal. If the filesystem crashes before the operation is complete, it can resume the operation when booted up again using the partial journal.
-\item Caching. Linux does a very good job of caching file system operations like finding inodes. This makes disk operations seem nearly instant. If you want to see a slow system, look at windows with FAT/NTFS. Disk operations need to be cached by the application, or it will burn through the CPU.
+\item Caching. Linux does a very good job of caching file system operations like finding inodes. This makes disk operations seem nearly instant. If you want to see a slow system, look at Windows with FAT/NTFS. Disk operations need to be cached by the application, or it will burn through the CPU.
 \item Speed. On spinning disk machines, data that is toward the end of a metallic platter will spin faster (angular velocity is farther from the center). Programs used this to reduce time loading large files like movies in a video editing piece of software. SSDs don't have this problem because there is no spinning disk, but they will portion off a section of their space to be used as "swap space" for fiels.
 \item Parallelism. Filesystems with multiple heads (for physical hard disks) or multiple controllers (for SSDs) can utilize parallelism by multiplexing the PCIe slot with data, always serving some data to the application whenever possible.
 \item Encryption. Data can be encrypted with one or more keys. A good example of this is Apple's APFS file systems.
@@ -1280,19 +1279,19 @@ While the API for most filesystems have stayed the same on POSIX over the years,
 \item Efficient Backups. Many of us have data that we can't store on the cloud for one reason or another. It is useful that when a filesystems is either being used as a backup medium or is the source to the backup that it is able to calculate what has changed efficiently, compress files, and sync between the external drive.
 \item Integriy and Bootability. File systems need to be resillient to bit flipping. Most readers have their operating system installed on the same paritition as the file system that they used to do different operations. The file system needs to make sure a stray read or write doesn't destroy the boot sector -- meaning your computer can't start up again.
 \item Fragmentation. Just like a memory allocator, allocating space for a file leads to both internal and external fragmentation. The same caching benefit occurs when disk blocks for a single file are located next to each other. File systems need to perform well under low, high, and possible fragmentation usage.
-\item Distributed. Sometimes, you want your filesystem to run on a fault tolerant scale across multiple computers. Hadoop and other distributed file system allow you to do just that.
+\item Distributed. Sometimes, the filesystem should be single machine fault tolerant. Hadoop and other distributed file system allow you to do just that.
 \end{itemize}
 
 \subsection{Extra: Cutting Edge File systems}
 
 There are a few filesystem hardware nowadays that are truly cutting edge.
 The one we'd briefly like to touch on is AMD's StoreMI.
-We aren't trying to sell you AMD chipsets, but the featureset of StoreMI warrants a mention.
+We aren't trying to sell AMD chipsets, but the featureset of StoreMI warrants a mention.
 
 StoreMI is a hardware microcontroller that analyzes how the operating system accesses files and moves files/blocks around to speed up the load time.
 A common usage can be imagined as having a fast, but small capacity SSD and a slower, large capcity HDD.
 To make it seem like all the files are on an SSD, the StoreMI matches the pattern of file access.
-If you are starting up Windows, windows will often access many files in the same order.
+If you are starting up Windows, Windows will often access many files in the same order.
 StoreMI takes note of that and when the microcontroller notices it is starting the boot, it will move files from the HDD drive to the SSD before they are requested by the operating system.
 By the time the operating system needs then, they are already on the SSD.
 StoreMI also does this with other applications as well.
@@ -1337,7 +1336,7 @@ The technology still has a lot to be desired for, but it is an interesting inter
 \item
   What is a superblock? Inode? Data block?
 \item
-  How do I simplify \keyword{/./proc/../dev/./random}/
+  How do we simplify \keyword{/./proc/../dev/./random}/
 \item
   In ext2, what is stored in an inode, and what is stored in a directory entry?
 \item
@@ -1345,7 +1344,7 @@ The technology still has a lot to be desired for, but it is an interesting inter
 \item
   What are the permission bits?
 \item
-  How do you use chmod to set user/group/owner read/write/execute permissions?
+  How does one use chmod to set user/group/owner read/write/execute permissions?
 \item
   What does the ``dd'' command do?
 \item

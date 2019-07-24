@@ -108,11 +108,11 @@ pthread_mutex_unlock(&m); //end of Critical Section
 \subsection{Mutex Lifetime}
 
 There are a few ways of initializing a mutex.
-You can use the macro \keyword{PTHREAD\_MUTEX\_INITIALIZER} only for global (`static') variables.
+A program can use the macro \keyword{PTHREAD\_MUTEX\_INITIALIZER} only for global (`static') variables.
 \keyword{m = PTHREAD\_MUTEX\_INITIALIZER} is functionally equivalent to the more general purpose \keyword{pthread\_mutex\_init(&m,NULL)}.
 The init version includes options to trade performance for additional error-checking and advanced sharing options.
 The init version also makes sure that the mutex is correctly initialized after the call, global mutexes are initialized on the first lock.
-You can also call the init function inside of a program for a mutex located on the heap.
+A program can also call the init function inside of a program for a mutex located on the heap.
 
 \begin{lstlisting}[language=C]
 pthread_mutex_t *lock = malloc(sizeof(pthread_mutex_t));
@@ -123,16 +123,16 @@ free(lock);
 \end{lstlisting}
 
 Once we are finished with the mutex we should also call \keyword{pthread\_mutex\_destroy(&m)} too.
-Note, you can only destroy an unlocked mutex, destroy on a locked mutex is undefined behavior.
+Note, a program can only destroy an unlocked mutex, destroy on a locked mutex is undefined behavior.
 Things to keep in mind about \keyword{init} and \keyword{destroy}
-You don't need to destroy a mutex created with the global initializer.
+A program doesn't need to destroy a mutex created with the global initializer.
 
 \begin{enumerate}
 \item Multiple threads init/destroy has undefined behavior
 \item Destroying a locked mutex has undefined behavior
 \item Keep to the pattern of one and only one thread initializing a mutex.
 \item Copying the bytes of the mutex to a new memory location and then using the copy is \emph{not} supported.
-  To reference a mutex, you have to have a pointer to that memory address.
+  To reference a mutex, a program \emph{must} to have a pointer to that memory address.
 \end{enumerate}
 
 \subsection{Mutex Usages}
@@ -242,19 +242,19 @@ pthread_mutex_unlock(&m2);
 Here are some other gotchas in no particular order
 \begin{enumerate}
 \item Don't cross the streams!
-If you are using threads, don't fork in the middle of your program.
+If using threads, don't fork in the middle of your program.
 This means any time after your mutexes have been initialized.
 \item The thread that locks a mutex is the only thread that can unlock it.
 \item Each program can have multiple mutex locks.
-  You can design your program to have one lock per data structure,
+  A thread safe design might include a lock with each data structure,
   one lock per heap,
   or one lock per set of data structures
-  If you only have one lock, then there may be significant contention for the lock.
+  If a program has only one lock, then there may be significant contention for the lock.
   If two threads were updating two different counters, it isn't necessary to use the same lock.
 \item Locks are only tools.
-  They don't spot critical sections for you!
+  They don't spot critical sections!
 \item There will always be a small amount of overhead of calling \keyword{pthread\_mutex\_lock} and \keyword{pthread\_mutex\_unlock}.
-However, this is the price you pay for correctly functioning programs!
+However, this is the price to pay for correctly functioning programs!
 \item
   Not unlocking a mutex due to an early return during an error condition
 \item
@@ -394,7 +394,7 @@ How do we implement unlock?
 \begin{lstlisting}[language=C]
 int mutex_unlock(mutex* mtx){
   if(unlikely(pthread_self() != mtx->owner)){
-    return 0; //You can't unlock a mutex if you aren't the owner
+    return 0; // Can't unlock a mutex if the thread isn't the owner
   }
   int_least8_t one = 1;
   //Critical section ends after this atomic
@@ -412,7 +412,7 @@ int mutex_unlock(mutex* mtx){
 }
 \end{lstlisting}
 
-To satisfy the API, a thread can't unlock the mutex unless you are the one who owns it.
+To satisfy the API, a thread can't unlock the mutex unless the thread is the one who owns it.
 Then we unassign the mutex owner, because critical section is over after the atomic.
 We want a strong exchange because we don't want to block.
 We expect the mutex to be locked, and we swap it to unlock.
@@ -423,7 +423,7 @@ What is this memory order business?
 We were talking about memory fences earlier, here it is!
 We won't go into detail because it is outside the scope of this course but not the scope of \href{https://gcc.gnu.org/wiki/Atomic/GCCMM/AtomicSync}{this article}.
 Basically, we need consistency to make sure no loads or stores are ordered before or after.
-You need to create dependency chains for more efficient ordering.
+A program need to create dependency chains for more efficient ordering.
 
 \subsection{Semaphore}
 
@@ -557,18 +557,17 @@ We will discuss these in the thread-safe data structures section.
 
 Condition variables allow a set of threads to sleep until woken up.
 The API allows either one or all threads to be woken up.
-If you only wake one thread, the operating system will decide which thread to wake up.
+If a program only wakes one thread, the operating system will decide which thread to wake up.
 Threads don't wake threads other directly like by id.
 Instead, a thread `signal's the condition variable, which then will wake up one (or all) threads that are sleeping inside the condition variable.
 
 Condition variables are also used with a mutex and with a loop, so when woken up they have to check a condition in a critical section.
-If you just need to be woken up not in a critical section, there are other ways to do this in POSIX.
+If a thread needs to be woken up not in a critical section, there are other ways to do this in POSIX.
 Threads sleeping inside a condition variable are woken up by calling \keyword{pthread\_cond\_broadcast} (wake up all) or \keyword{pthread\_cond\_signal} (wake up one).
 Note despite the function name, this has nothing to do with POSIX \keyword{signal}s!
 
 Occasionally, a waiting thread may appear to wake up for no reason. This is called a \emph{spurious wakeup}.
 If you read the hardware implementation of a mutex section, this is similar to the atomic failure of the same name.
-This is not an issue because you always use \keyword{wait} inside a loop that tests a condition that must be true to continue.
 
 Why do spurious wakeups happen?
 For performance.
@@ -760,7 +759,7 @@ The code has a second error.
 However, the error would not be spotted immediately.
 For example, suppose one thread calls \keyword{is\_empty} and a second thread later calls \keyword{push}.
 This thread would mysteriously stop.
-Using debugger you can discover that the thread is stuck at the lock() method inside the \keyword{push} method because the lock was never unlocked by the earlier \keyword{is\_empty} call.
+Using debugger, you can discover that the thread is stuck at the lock() method inside the \keyword{push} method because the lock was never unlocked by the earlier \keyword{is\_empty} call.
 Thus an oversight in one thread led to problems much later in time in an arbitrary other thread.
 Let's try to rectify these problems
 
@@ -1278,7 +1277,7 @@ Thread \#1 arrives, \emph{sets the turn back to 1} and now waits until thread 2 
 
 \begin{enumerate}
 \item Mutual Exclusion. Let's try to sketch a simple proof again.
-  You don't get into the critical section until the turn variable is yours or the other thread's flag isn't up.
+  A thread doesn't get into the critical section until the turn variable is yours or the other thread's flag isn't up.
   If the other thread's flag isn't up, it isn't trying to enter the critical section.
   That is the first action the thread does and the last action the thread undoes.
   If the turn variable is set to this thread, that means that the other thread has given the control to this thread.
@@ -1550,7 +1549,8 @@ After the last thread leaves, meaning when head is NULL, then the binding is los
 The signal and broadcast functions merely tell either one thread or all threads respectively that they should be woken up.
 \textbf{It doesn't modify the linked lists because there is no mutex to prevent corruption if two threads call signal or broadcast}
 
-Now an advanced point. Do you see how a broadcast could cause a spurious wakeup in this case? Consider this series of events.
+Now an advanced point.
+Do you see how a broadcast could cause a spurious wakeup in this case? Consider this series of events.
 
 \begin{enumerate}
 \item Some number more than 2 threads start waiting
@@ -1572,7 +1572,8 @@ If you broadcast after you unlock, the time that broadcast takes could be infini
 \item Broadcast is called on a waiting queue of threads
 \item First thread is freed, broadcast thread is frozen. Since the mutex is unlocked, it locks and continues.
 \item It continues for such a long time that it calls broadcast again.
-\item With our implementation of a condition variable, this would be terminated. If you had an implementation that appended to the tail of the list and iterated form the head to the tail, this could go on infinitely many times.
+\item With our implementation of a condition variable, this would be terminated.
+  If you had an implementation that appended to the tail of the list and iterated form the head to the tail, this could go on infinitely many times.
 \end{enumerate}
 
 In high-performance systems, we want to make sure that each thread that calls wait isn't passed by another thread that calls wait.
@@ -1729,7 +1730,7 @@ We can do better!
 Let's use a condition variable and then we will use a broadcast/signal functions to wake up the sleeping threads.
 
 A reminder, a condition variable is similar to a house! Threads go there to sleep (\keyword{pthread\_cond\_wait}).
-You can choose to wake up one thread (\keyword{pthread\_cond\_signal}) or all of them (\keyword{pthread\_cond\_broadcast}).
+A threa can choose to wake up one thread (\keyword{pthread\_cond\_signal}) or all of them (\keyword{pthread\_cond\_broadcast}).
 If there are no threads currently waiting then these two calls have no effect.
 
 A condition variable version is usually very similar to a busy loop incorrect solution - as we will show next.
@@ -1770,9 +1771,8 @@ Notice that even if a sleeping thread wakes up early, it will check the while lo
 \textbf{The above barrier is not reusable}.
 Meaning that if we stick it into any old calculation loop there is a good chance that the code will encounter a condition where the barrier either deadlocks or thread races ahead one iteration faster.
 Why is that?
-We are glad you asked.
+Because of the ambitious thread.
 
-The concept here is what we call the ambitious thread.
 We will assume that one thread is much faster than all the other threads.
 With the barrier API, this thread should be waiting, but it may not be.
 To make it concrete, let's look at this code
@@ -1801,7 +1801,8 @@ for (/* ... */) {
 }
 \end{lstlisting}
 
-What happens if you have what we call \textbf{The ambitious thread?}. Well
+What happens if a thread becomes ambitious. Well
+
 \begin{enumerate}
 \item Many other threads wait on the condition variable
 \item The last thread broadcasts.
@@ -1810,7 +1811,7 @@ What happens if you have what we call \textbf{The ambitious thread?}. Well
 \item Reset the number of remaining threads and goes back to sleep.
 \end{enumerate}
 
-Now the problem becomes all the other threads who should've woken up never do and our implementation deadlocks.
+All the other threads who should've woken up never do and our implementation deadlocks.
 How would you go about solving this?
 Hint: If multiple threads call \keyword{barrier\_wait} in a loop then one can guarantee that they are on the same iteration.
 
@@ -2353,7 +2354,7 @@ key2: key1: value1
 
 \subsection{Solution}
 
-You can create a mutex before fork-ing - however the child and parent process will not share virtual memory and each one will have a mutex independent of the other.
+A program can create a mutex before fork-ing - however the child and parent process will not share virtual memory and each one will have a mutex independent of the other.
 Advanced note: There are advanced options using shared memory that allow a child and parent to share a mutex if it's created with the correct options and uses a shared memory segment.
 See \href{http://stackoverflow.com/questions/19172541/procs-fork-and-mutexes}{stackoverflow example}
 
@@ -2400,15 +2401,16 @@ To counter \keyword{write} failing, we have put the \keyword{write} call inside 
 Now if all the other system calls function, there should be more race conditions.
 
 Most programs try to avoid this problem entirely by writing to separate files, but it is good to know that there are mutexes across processes, and they are useful.
-You can use all of the primitives that you were taught previously! Barriers, semaphores, and condition variables can all be initialized on a shared piece of memory and used in similar ways to their multithreading counterparts.
-You don't need to know the implementation, just need to know that mutexes and other synchronization primitives can be shared across processes and some of the benefits.
+A program can use all of the primitives that were mentioned previouslty!
+Barriers, semaphores, and condition variables can all be initialized on a shared piece of memory and used in similar ways to their multithreading counterparts.
 
 \begin{itemize}
 \tightlist
 \item
-  You don't have to worry about arbitrary memory addresses becoming race condition candidates. This means that only areas that you specifically \keyword{mmap} or outside system resources like files are ever in danger.
+  You don't have to worry about arbitrary memory addresses becoming race condition candidates.
+  Only areas that specifically mapped are in danger.
 \item
-  You get the nice isolation of processes so if one process fails the system can maintain intact
+  You get the nice isolation of processes so if one process fails the system can maintain intact.
 \item
   When you have a lot of threads, creating a process might ease the system load
 \end{itemize}
@@ -2451,7 +2453,7 @@ In the previous example, the code can now fail.
 
 \subsection{Acquire/Release}
 
-The order of atomic variables don't need to be consistent -- meaning if atomic var y is assigned to 10 then atomic var x to be 0 those don't need to propagate, and you could get stale reads.
+The order of atomic variables don't need to be consistent -- meaning if atomic var y is assigned to 10 then atomic var x to be 0 those don't need to propagate, and a threa could get stale reads.
 Non-atomic variables have to get updated in all threads though.
 
 \subsection{Consume}
@@ -2574,8 +2576,8 @@ Guiding questions for the man pages
 \item How is a recursive mutex different than a default mutex?
 \item How is mutex trylock different than mutex lock?
 \item Why would a mutex lock fail? What's an example?
-\item What happens if you try to destroy a locked mutex?
-\item Can you copy the underlying bytes of a mutex instead of using a pointer?
+\item What happens if a thread tries to destroy a locked mutex?
+\item Can a thread copy the underlying bytes of a mutex instead of using a pointer?
 \item What is the lifecycle of a semaphore?
 \end{itemize}
 
@@ -2660,7 +2662,6 @@ void add_linked_list(linked_list *ll, void* elem){
     ll->head = packaged;
     ll->size++;
   }
-
 }
 
 void* pop_elem(linked_list *ll, size_t index){

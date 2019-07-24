@@ -24,9 +24,9 @@ If \keyword{malloc} can either return a pointer to at least that much free space
 That means that malloc can return NULL even if there is some spaces.
 Robust programs should check the return value.
 If your code assumes \keyword{malloc} succeeds, and it does not, then your program will likely crash (segfault) when it tries to write to address 0.
-Also, malloc may not zero out memory because of performance -- check your code to make sure that you are not using uninitialized values.
+Also, malloc may not zero out memory because of performance -- check your code to make sure that a program is not using uninitialized values.
 
-\item \keyword{realloc(void *space, size\_t bytes)} allows you to resize an existing memory allocation that was previously allocated on the heap (via malloc, calloc, or realloc) \cite[P. 349]{jones2010wg14}.
+\item \keyword{realloc(void *space, size\_t bytes)} allows a program to resize an existing memory allocation that was previously allocated on the heap (via malloc, calloc, or realloc) \cite[P. 349]{jones2010wg14}.
 The most common use of realloc is to resize memory used to hold an array of values.
 There are two gotchas with realloc.
 One, a new pointer may be returned.
@@ -111,14 +111,14 @@ do_something(ptr);
 free(ptr);
 \end{lstlisting}
 
-If you use a piece of memory after it is freed - that is undefined behavior.
+If a program uses a piece of memory after it is freed - that is undefined behavior.
 
 \end{itemize}
 
 \subsection{Heaps and sbrk}
 
 The heap is part of the process memory, and it does not have a fixed size.
-Heap memory allocation is performed by the C library when you call \keyword{malloc} (\keyword{calloc}, \keyword{realloc}) and \keyword{free}.
+Heap memory allocation is performed by the C library when a program calls \keyword{malloc} (\keyword{calloc}, \keyword{realloc}) and \keyword{free}.
 By calling \keyword{sbrk} the C library can increase the size of the heap as your program demands more heap memory.
 As the heap and stack need to grow, we put them at opposite ends of the address space.
 Stacks don't grow like a heap, new parts of the stack are allocated for new threads.
@@ -129,7 +129,7 @@ Instead, they can request independent regions of virtual memory and maintain mul
 For example, gibibyte requests may be placed in a different memory region than small allocation requests.
 However, this detail is an unwanted complexity.
 
-Programs don't need to call \keyword{brk} or \keyword{sbrk} typically, though calling \keyword{sbrk(0)} can be interesting because it tells you where your heap currently ends.
+Programs don't need to call \keyword{brk} or \keyword{sbrk} typically, though calling \keyword{sbrk(0)} can be interesting because it tells a program where your heap currently ends.
 Instead programs use \keyword{malloc}, \keyword{calloc}, \keyword{realloc} and \keyword{free} which are part of the C library.
 The internal implementation of these functions may call \keyword{sbrk} when additional heap memory is required.
 
@@ -256,7 +256,8 @@ The challenges of writing a heap allocator are
 
 Different strategies affect the fragmentation of heap memory in non-obvious ways, which only are discovered by mathematical analysis or careful simulations under real-world conditions (for example simulating the memory allocation requests of a database or webserver).
 
-First, we will have a more mathematical, one-shot approach to each of these algorithms \cite{Garey:1972:WAM:800152.804907}. The paper describes a scenario where you have a certain number of bins, and a certain number of allocations, and you are trying to fit the allocations in as few bins as possible, hence using as little memory as possible.
+First, we will have a more mathematical, one-shot approach to each of these algorithms \cite{Garey:1972:WAM:800152.804907}.
+The paper describes a scenario where you have a certain number of bins, and a certain number of allocations, and you are trying to fit the allocations in as few bins as possible, hence using as little memory as possible.
 The paper discusses theoretical implications and puts a nice limit on the ratios in the long run between the ideal memory usage and the actual memory usage.
 For those who are interested, the paper concludes that actual memory usage over ideal memory usage as the number of bins increases -- the bins can have any distribution -- is about 1.7 for first fit and lower bounded by 1.7 for best fit.
 The problem with this analysis is that very few real-world applications need this type of one-shot allocation.
@@ -348,7 +349,7 @@ p + sizeof(metadata) + p->block_size + sizeof(BTag)
 \end{lstlisting}
 
 Make sure to get your casting right!
-Otherwise, you will move an extreme amount of bytes over.
+Otherwise, the program will move an extreme amount of bytes over.
 
 The calling program never sees these values.
 They are internal to the implementation of the memory allocator.
@@ -371,7 +372,7 @@ In addition, a fast implementation might extend it a significant amount so that 
 When a free block is found, it may be larger than the space we need.
 If so, we will create two entries in our implicit list.
 The first entry is the allocated block, the second entry is the remaining space.
-There are ways to do this if you want to keep the overhead small.
+There are ways to do this if the program wants to keep the overhead small.
 We recommend first for going with readability.
 
 \begin{lstlisting}[language=C]
@@ -385,7 +386,7 @@ p->size = 100 - sizeof(*p) - sizeof(boundary_tag);
 // Other block allocations
 \end{lstlisting}
 
-If you want certain bits to hold different pieces of information, use bit fields!
+If the program wants certain bits to hold different pieces of information, use bit fields!
 
 \begin{lstlisting}[language=C]
 typedef struct {
@@ -399,7 +400,7 @@ typedef struct {
 } block;
 \end{lstlisting}
 
-The compiler will handle it for you.
+The compiler will handle the shifting.
 After setting up your fields then it becomes simply looping through each of the blocks and checking the appropriate fields
 
 Here is a visual representation of what happens.
@@ -439,11 +440,11 @@ int s = (requested_bytes + tag_overhead_bytes + 15) / 16
 The additional constant ensures incomplete units are rounded up. Note, real code is more likely to symbol sizes e.g. \keyword{sizeof(x)\ -\ 1}, rather than coding numerical constant 15.
 \href{http://www.ibm.com/developerworks/library/pa-dalign/}{Here's a great article on memory alignment, if you are further interested}
 
-Another added effect is could be internal fragmentation happens when the block you give them is larger than their allocation size.
+Another added effect could be internal fragmentation happens when the given block is larger than their allocation size.
 Let's say that we have a free block of size 16B (not including metadata).
-If they allocate 7 bytes, you may want to round up to 16B and just return the entire block.
-This gets very sinister when you implementing coalescing and splitting.
-If you don't implement either, then you may end up returning a block of size 64B for a 7B allocation!
+If they allocate 7 bytes, the allocator may want to round up to 16B and just return the entire block.
+This gets very sinister when implementing coalescing and splitting.
+If the allocator doesn't implement either, it may end up returning a block of size 64B for a 7B allocation!
 There is a \emph{lot} of overhead for that allocation which is what we are trying to avoid.
 
 \subsection{Implementing free}
@@ -466,7 +467,7 @@ These are called ``boundary tags'' \cite{knuth1973art}.
 These are Knuth's solution to the coalescing problem both ways.
 As the blocks are contiguous, the end of one block sits right next to the start of the next block.
 So the current block (apart from the first one) can look a few bytes further back to look up the size of the previous block.
-With this information, you can now jump backward!
+With this information, the allocator can now jump backward!
 
 Take for example a double coalesce.
 If we wanted to free the middle block we need to turn the surrounding blocks into one big blocks
@@ -486,9 +487,8 @@ De-allocation is constant time.
 No more than 3 blocks will need to coalesce into a single block, and using a most recently used block scheme only one linked list entry.
 
 Using this allocator it is possible to experiment with different placement strategies.
-For example, you could start searching from where you last deallocated a block, or where you last allocated from.
-If you do store pointers to blocks, you need to be very careful that they always remain valid
-Particularly when you malloc, free, calloc, realloc, coalesce, split, etc.
+For example, the allocator could start searching from the last deallocated a block.
+If the allocator stores pointers to blocks, it needs to update the pointers so that they always remain valid.
 
 \subsection{Explicit Free Lists Allocators}
 
@@ -517,14 +517,14 @@ Here is what that would look like along with our implicit linked list
 
 
 Where do we store the pointers of our linked list?
-A simple trick is to realize that the block itself is not being used and store the next and previous pointers as part of the block, though now you have to ensure that the free blocks are always sufficiently large to hold two pointers.
+A simple trick is to realize that the block itself is not being used and store the next and previous pointers as part of the block, though you have to ensure that the free blocks are always sufficiently large to hold two pointers.
 We still need to implement Boundary Tags, so we can correctly free blocks and coalesce them with their two neighbors.
 Consequently, explicit free lists require more code and complexity.
 With explicitly linked lists a fast and simple `Find-First' algorithm is used to find the first sufficiently large link.
 However, since the link order can be modified, this corresponds to different placement strategies.
 If the links are maintained from largest to smallest, then this produces a `Worst-Fit' placement strategy.
 
-There are edge cases though, consider how you would maintain your free list if you also have to perform a double coalesce.
+There are edge cases though, consider how to maintain your free list if also double coalescing.
 We've included a figure with a common mistake.
 
 \begin{figure}[H]

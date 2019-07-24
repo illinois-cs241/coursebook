@@ -182,6 +182,8 @@ if (1) {
 
 * Opt for magic numbers defined in the text than code that compiles through.
 * No headers unless they are the topic of conversation (like talking about preprocessors)
+* Don't use 'I' ever
+* Only use 'you' to refer to things that a _human_ can do. A human can read the man page, but a human cannot access a memory location.
 
 # Structure
 

@@ -42,7 +42,7 @@ Whenever a read or write occurs in the code, the compiler will calculate the off
 The offsets are where the variable starts at.
 The phone variables starts at the \keyword{0x128}th bytes and continues for sizeof(int) bytes, but not always.
 \textbf{Offsets don't determine where the variable ends though}.
-Consider the following hack that you see in a lot of kernel code.
+Consider the following hack seen in a lot of kernel code.
 
 \begin{lstlisting}[language=C]
 
@@ -111,9 +111,9 @@ This is highly inefficient for doing something as common in programming as is st
 \subsubsection{Extra: Struct packing}
 
 Structs may require something called \href{http://www.catb.org/esr/structure-packing/}{padding} (tutorial).
-\textbf{We do not expect you to pack structs in this course, just know that it is there} This is because in the early days (and even now) when you have to load an address from memory you have to do it in 32-bit or 64-bit blocks.
-This also meant that you could only request addresses that were multiples of block sizes.
-Meaning that
+\textbf{We do not expect you to pack structs in this course, just know that it is there}.
+This is because in the early days (and even now) loading an address in memory happens in 32-bit or 64-bit blocks.
+This also meant requested addresses had to be multiples of block sizes.
 
 \begin{lstlisting}[language=C]
 struct picture{
@@ -175,7 +175,7 @@ struct __attribute__((packed, aligned(4))) picture{
 Now our figure will look like the clean struct as in figure  \ref{fig:clean_struct}
 But now, every time the processor needs to access \keyword{data} or \keyword{encoding},
 two memory accesses are required.
-The other thing you can do is reorder the struct, although this is not always possible
+An alternative is to reorder the struct, although this is not always possible
 
 \begin{lstlisting}[language=C]
 struct picture{
@@ -186,16 +186,15 @@ struct picture{
 }
 \end{lstlisting}
 
-Which will get you the same output.
-
 \subsection{Strings in C}
 
 In C, we have
 \href{https://en.wikipedia.org/wiki/Null-terminated_string}{Null
 	Terminated} strings rather than
 \href{https://en.wikipedia.org/wiki/String_(computer_science)\#Length-prefixed}{Length
-	Prefixed} for historical reasons. What that means for your average everyday programming is that you need to remember the NUL character!
-A string in C is defined as a bunch of bytes until you reach `\0' or the NUL Byte. `\0' is NULL cast to a character pointer.
+	Prefixed} for historical reasons.
+For everyday programmers, remember to NUL terminate your string!
+A string in C is defined as a bunch of bytes ended by `\0' or the NUL Byte.
 
 \subsection{Places for strings}
 

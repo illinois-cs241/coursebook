@@ -19,10 +19,10 @@ int main(void) {
     In C, no two functions can have the same name in a single compiled program, although shared libraries may be able.
     Then, the parameter list comes after.
     When we provide the parameter list for regular functions \keyword{(void)} that means that the compiler should produce an error if the function is called with a non-zero number of arguments.
-    For regular functions having a declaration like \keyword{void func()} means that you are allowed to call the function like \keyword{func(1, 2, 3)}, because there is no delimiter.
+    For regular functions having a declaration like \keyword{void func()} means that the function can be called like \keyword{func(1, 2, 3)}, because there is no delimiter.
     \keyword{main} is a special function.
-    There are many ways of declaring \keyword{main} but the ones that you will likely be familiar with are \keyword{int main(void)}, \keyword{int main()}, and \keyword{int main(int argc, char *argv[])}.
-	\item \keyword{printf("Hello World\n");} is what we call a function call.
+    There are many ways of declaring \keyword{main} but the standard ones are \keyword{int main(void)}, \keyword{int main()}, and \keyword{int main(int argc, char *argv[])}.
+	\item \keyword{printf("Hello World\n");} is what a function call.
     \keyword{printf} is defined as a part of \keyword{stdio.h}.
     The function has been compiled and lives somewhere else on our machine - the location of the C standard library.
     Just remember to include the header and call the function with the appropriate parameters (a string literal \keyword{"Hello World\n"}).
@@ -83,7 +83,7 @@ int main() {
 Macros are simple text substitution so the above example expands to
 
 \begin{lstlisting}[language=C]
-  x++ < 100 ? x++ : 100
+x++ < 100 ? x++ : 100
 \end{lstlisting}
 
 In this case, it is opaque what gets printed out, but it will be 6.
@@ -99,7 +99,7 @@ int r = 10 + 99 < 100 ? 99 : 100
 int r = (10 + 99) < 100 ? 99 : 100
 \end{lstlisting}
 
-You can also have logical problems with the flexibility of certain parameters.
+There are also logical problems with the flexibility of certain parameters.
 One common source of confusion is with static arrays and the \keyword{sizeof} operator.
 
 \begin{lstlisting}[language=C]
@@ -109,7 +109,7 @@ int* dynamic_array = malloc(10); // ARRAY_LENGTH(dynamic_array) = 2 or 1 consist
 \end{lstlisting}
 
 What is wrong with the macro?
-Well, it works if a \gls{static array} is passed in because \keyword{sizeof} a static array returns the number of bytes that array takes up and dividing it by the \keyword{sizeof(an\_element)} would give you the number of entries.
+Well, it works if a \gls{static array} is passed in because \keyword{sizeof} a static array returns the number of bytes that array takes up and dividing it by the \keyword{sizeof(an\_element)} would give the number of entries.
 But if passed a pointer to a piece of memory, taking the sizeof the pointer and dividing it by the size of the first entry won't always give us the size of the array.
 
 \subsection{Extra: Includes and conditionals}

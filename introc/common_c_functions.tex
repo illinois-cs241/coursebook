@@ -51,7 +51,7 @@ if (0 != s) {
 }
 \end{lstlisting}
 
-Be sure to check the man page for which type of function you are dealing with!
+Be sure to check the man page for return code characteristics.
 
 \subsection{Input / Output}
 
@@ -178,7 +178,7 @@ free(buffer);
 \end{lstlisting}
 
 In addition to those functions, we have \keyword{perror} that has a two-fold meaning.
-Let's say that you have a function call that just failed because you checked the man page, and it is a failing return code.
+Let's say that a function call just failed using the errno convention.
 \keyword{perror(const\ char*\ message)} will print the English version of the error to stderr.
 
 \begin{lstlisting}[language=C]
@@ -286,7 +286,7 @@ tricky
 !!
 \end{lstlisting}
 
-	      Why is it tricky? Well what happens when upped is changed?
+	      Why is it tricky? Well what happens when upped is changed to the following?
 
 	      \begin{lstlisting}[language=C]
         char* upped = strdup("strtok,is,tricky,,,!!");

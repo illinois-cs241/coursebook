@@ -31,7 +31,7 @@ The modern process of translating memory is as follows.
 The Memory Management Unit is part of the CPU, and it converts a virtual memory address into a physical address.
 First, we'll talk about what the virtual memory abstraction is and how to translate addresses
 
-To illustrate, imagine you had a 32-bit machine, meaning pointers are 32-bits.
+To illustrate, consider a 32-bit machine, meaning pointers are 32-bits.
 They can address $2^{32}$ different locations or 4GB of memory where one address is one byte.
 Imagine we had a large table for every possible address where we will store the `real' i.e. ~physical address.
 Each physical address will need 4 bytes -- to hold the 32-bits.
@@ -43,7 +43,7 @@ The solution is to chunk memory into small regions called `pages' and `frames' a
 \subsection{Terminology}
 
 A \textbf{page} is a block of virtual memory.
-A typical block size on Linux is 4KiB or $2^{12}$ addresses, though you can find examples of larger blocks.
+A typical block size on Linux is 4KiB or $2^{12}$ addresses, though one can find examples of larger blocks.
 So rather than talking about individual bytes, we can talk about blocks of 4KiBs, each block is called a page.
 We can also number our pages (``Page 0'' ``Page 1'' etc). Let's do a sample calculation of how many pages are there assume page size of 4KiB.
 
@@ -62,7 +62,7 @@ For a 64-bit machine,
 We also call this a \textbf{frame} or sometimes called a `page frame' is a block of \emph{physical memory} or RAM -- Random Access Memory.
 A frame is the same number of bytes as a virtual page or 4KiB on our machine.
 It stores the bytes of interest.
-To access a particular byte in a frame, you go from the start of the frame and add the offset -- discussed later.
+To access a particular byte in a frame, an MMU goes from the start of the frame and adds the offset -- discussed later.
 
 A \textbf{page table} is a map from a number to a particular frame.
 For example Page 1 might be mapped to frame 45, page 2 mapped to frame 30.
@@ -147,12 +147,12 @@ An example, two-level page table for a 32-bit architecture is shown below.
 \end{figure}
 
 So what is the intuition for dereferencing an address?
-First, you take the top-level page table and find the \keyword{Index1}'th entry.
-That will contain a number that will lead you to the appropriate sub-table
+First, the MMU takes the top-level page table and find the \keyword{Index1}'th entry.
+That will contain a number that will lead the MMU to the appropriate sub-table
 Then go to the \keyword{Index2}'th entry of that table.
 That will contain a frame number.
 This is the good old fashioned 4KiB RAM that we were talking about earlier.
-Then you add the offset and do the read or write.
+Then, the MMU adds the offset and do the read or write.
 
 \subsubsection{Visualizing The Dereference}
 
@@ -244,8 +244,8 @@ In addition to storing the frame number, the page table can be used to store whe
 Read-only frames can then be safely shared between multiple processes.
 For example, the C-library instruction code can be shared between all processes that dynamically load the code into the process memory.
 Each process can only read that memory.
-Meaning that if you try to write to a read-only page in memory you will get a \keyword{SEGFAULT}.
-That is why sometimes memory accesses SEGFAULT and sometimes they don't, it all depends on if your hardware says that you can access.
+Meaning that if a program try to write to a read-only page in memory, it will \keyword{SEGFAULT}.
+That is why sometimes memory accesses SEGFAULT and sometimes they don't, it all depends on if your hardware says that a program can access.
 
 Also, processes can share a page with a child process using the \keyword{mmap} system call.
 \keyword{mmap} is an interesting call because instead of tying each virtual address to a physical frame, it ties it to something else. It is an important distinction that we are talking about mmap and not memory-mapped IO in general. The \keyword{mmap} system call can't reliably be used to do other memory-mapped operations like communicate with GPUs and write pixels to the screen -- this is mainly hardware dependent.
@@ -290,16 +290,16 @@ There are three types of Page Faults
   What this will do is swap the page into memory and swap another page out.
   If this happens frequently enough, your program is said to \emph{thrash} the MMU.
 
-\item \textbf{Invalid} When you try to write to a non-writable memory address or read to a non-readable memory address.
-  The MMU generates an invalid fault and the OS will usually generate a \keyword{SIGSEGV} meaning segmentation violation meaning that you wrote outside the segment that you could write to.
+\item \textbf{Invalid} When a program tries to write to a non-writable memory address or read to a non-readable memory address.
+  The MMU generates an invalid fault and the OS will usually generate a \keyword{SIGSEGV} meaning segmentation violation meaning that the program wrote outside the segment that it could write to.
 
 \end{enumerate}
 
-\subsection{What does this have to do with IPC?}
+\subsection{Link Back to IPC}
 
 What does this have to do with IPC?
-Well internally before this point in your programming career you knew that processes had isolation.
-But, you one didn't really know how that isolation mapped.
+Before, you knew that processes had isolation.
+One, you one didn't really know how that isolation mapped.
 Two, you may not know how you can break this isolation.
 To break any memory level isolation you have two avenues.
 One is to ask the kernel to provide some kind of interface.
@@ -318,20 +318,20 @@ char* addr = mmap(..fd..);
 addr[0] = 'l';
 \end{lstlisting}
 
-The kernel may say, see that you want to mmap the file into memory, so it will reserve some space in your address space that is the length of the file.
-That means when you write to \keyword{addr[0]} that you are actually writing to the first byte of the file.
+The kernel sees that the program wants to mmap the file into memory, so it will reserve some space in your address space that is the length of the file.
+That means when the program writes to \keyword{addr[0]} that it writes to the first byte of the file.
 The kernel can actually do some optimizations too.
 Instead of loading the file into memory, it may only load pages at a time because if the file is 1024 pages.
-You may only access 3 or 4 pages making loading the entire file a waste of time.
+A program may only access 3 or 4 pages making loading the entire file a waste of time.
 That is why page faults are so powerful.
-They let the operating system take control of how much you use your files.
+They let the operating system take control of when a file is used.
 
 \subsection{mmap Definitions}
 
 \keyword{mmap} does more than just take a file and map it to memory.
 It is the general interface for creating shared memory among processes.
 Currently it only supports regular files and POSIX \keyword{shmem} \cite{mmap_2018}.
-Naturally, you can read all about it in the citation above, which references the current working group POSIX standard.
+Naturally, you can read all about it in the reference above, which references the current working group POSIX standard.
 Some other options to note in the page will follow.
 
 The first option is that the \keyword{flags} argument of mmap can take many options.
@@ -345,9 +345,8 @@ The first option is that the \keyword{flags} argument of mmap can take many opti
 \item \keyword{MAP\_PRIVATE} This mapping will only be visible to the process itself. Useful to not thrash the operating system.
 \end{enumerate}
 
-Remember that once you are done \keyword{mmap}ping that you \keyword{munmap} to tell the operating system that you are no longer using the pages allocated, so the OS can write it back to disk and give you the addresses back in case another mmap needs to occur.
-There are accompanying calls \keyword{msync} that take a piece of mmap'ed memory and sync the changes back to the filesystem though we won't cover that in-depth. It is important because if you believe your operating system may crash or hang with the next few operations, you should create a hard backup of all the operations that have been executed.
-
+Remember that once a program is done \keyword{mmap}ping that the program must \keyword{munmap} to tell the operating system that it is no longer using the pages allocated, so the OS can write it back to disk and give back the addresses in case another mmap needs to occur.
+There are accompanying calls \keyword{msync} that take a piece of mmap'ed memory and sync the changes back to the filesystem though we won't cover that in-depth.
 The other parameters to mmap are described in the annotated walkthrough below.
 
 \subsection{Annotated mmap Walkthrough}
@@ -371,7 +370,7 @@ fstat(fd, &sb);
 \end{lstlisting}
 
 Then, we need to introduce another variable known as \keyword{page\_offset}.
-mmap doesn't let you pass in any value as an offset, it needs to be a multiple of the page size.
+mmap doesn't let the program pass in any value as an offset, it needs to be a multiple of the page size.
 In our case, we will round down.
 
 \begin{lstlisting}[language=C]
@@ -513,7 +512,7 @@ The important part is that bash creates \textbf{5 separate processes} and connec
 \end{figure}
 
 The numbers in the pipes are the file descriptors for each process and the arrow represents the redirect or where the output of the pipe is going.
-A POSIX pipe is almost like its real counterpart - you can stuff bytes down one end and they will appear at the other end in the same order.
+A POSIX pipe is almost like its real counterpart - a program can stuff bytes down one end and they will appear at the other end in the same order.
 Unlike real pipes, however, the flow is always in the same direction, one file descriptor is used for reading and the other for writing.
 The \keyword{pipe} system call is used to create a pipe.
 These file descriptors can be used with \keyword{read} and \keyword{write}.
@@ -644,10 +643,8 @@ If all file descriptors referring to the read end of a pipe have been closed,
 then a write(2) will cause a SIGPIPE signal to be generated for the calling process.
 \end{verbatim}
 
-Tip: Notice only the writer (not a reader) can use this signal. To
-inform the reader that a writer is closing their end of the pipe, you
-could write your own special byte (e.g.~0xff) or a message (
-\keyword{"Bye!"})
+Tip: Notice only the writer (not a reader) can use this signal.
+To inform the reader that a writer is closing their end of the pipe, a program could write your own special byte (e.g.~0xff) or a message (\keyword{"Bye!"})
 
 Here's an example of catching this signal that does not work! Can you see why?
 
@@ -686,9 +683,9 @@ The mistake in the above code is that there is still a reader for the pipe!
 The child still has the pipe's first file descriptor open and remember the specification? All readers must be closed
 
 When forking, \emph{It is common practice} to close the unnecessary (unused) end of each pipe in the child and parent process.
-For example, the parent might close the reading end and the child might close the writing end and vice versa if you have two pipes.
+For example, the parent might close the reading end and the child might close the writing end.
 
-The last addendum is that you can actually set the file descriptor to return when there is no one listening instead of SIGPIPE because by default SIGPIPE terminates your program.
+The last addendum is that a program can set the file descriptor to return when there is no one listening instead of SIGPIPE because by default SIGPIPE terminates your program.
 The reason that this is default behavior is it makes the pipe example above work.
 Consider this useless use of cat
 
@@ -738,7 +735,7 @@ int main() {
   // Call with the O_CLOEXEC flag to prevent any commands from blocking
   pipe2(pipe_fds, O_CLOEXEC);
 
-  // Remember for pipe_fds, you read then write (reading is 0 and writing is 1)
+  // Remember for pipe_fds, the program read then write (reading is 0 and writing is 1)
 
   if(!fork()) {
     // Child
@@ -763,11 +760,11 @@ int main() {
 \end{lstlisting}
 
 The results of the two programs should be the same.
-Remember as you encounter more complicated examples of piping processes up, you need to close all unused ends of pipes otherwise you will deadlock waiting for your processes to finish.
+Remember as you encounter more complicated examples of piping processes up, a program needs to close all unused ends of pipes otherwise the program will deadlock waiting for your processes to finish.
 
 \subsection{Pipe Conveniences}
 
-If you already have a file descriptor, you can `wrap' it yourself into a FILE pointer using \keyword{fdopen}.
+If the program already have a file descriptor, it can `wrap' it yourself into a FILE pointer using \keyword{fdopen}.
 
 \begin{lstlisting}[language=C]
 #include <sys/types.h>
@@ -827,7 +824,7 @@ Remember back to the introduction section that shows the difference between term
 
 \textbf{Even though we have a section on it, it is highly not recommended to fdopen() anything that doesn't point to an underlying file descriptors}.
 The reason being is that while we get conveniences we also get annoyances like the buffering example we mentioned, caching, etc.
-The basic C library motto is that anything that you can \keyword{fseek} or move to an arbitrary position, you should be able to \keyword{fdopen}.
+The basic C library motto is that any device a program can properly \keyword{fseek} or move to an arbitrary position, it should be able to \keyword{fdopen}.
 Files satisfy this behavior, shared memory also, terminals, etc.
 When it comes to pipes, sockets, epoll objects, etc, don't do it.
 
@@ -839,13 +836,13 @@ From the command line: \keyword{mkfifo} From C: \keyword{int\ mkfifo(const\ char
 You give it the pathname and the operation mode, it will be ready to go!
 Named pipes take up virtually no space on disk.
 This means the actual contents of the pipe aren't printed to the file and read from that same file.
-What the operating system is essentially telling you when you have a named pipe is that it will create an unnamed pipe that refers to the named pipe, and that's it!
+What the operating system tells you when you have a named pipe is that it will create an unnamed pipe that refers to the named pipe, and that's it!
 There is no additional magic.
 This is just for programming convenience if processes are started without forking meaning that there would be no way to get the file descriptor to the child process for an unnamed pipe.
 
 \subsection{Why is my named pipe hanging?}
 
-A named pipe \keyword{mkfifo} is simply a pipe that you call \keyword{open(2)} on with read and/or write permissions.
+A named pipe \keyword{mkfifo} is a pipe that a program calls \keyword{open(2)} on with read and/or write permissions.
 This is useful if you want to have a pipe between two processes without one processing having to fork the other process.
 There are some gotchas with named pipes.
 There is more down below, but we'll introduce it here for a simple example.
@@ -887,7 +884,7 @@ int main() {
 \end{lstlisting}
 
 This may never print hello because of a race condition.
-Since you opened the pipe in the first process under both permissions, open won't wait for a reader because you told the operating system that you are a reader!
+Since a program opened the pipe in the first process under both permissions, open won't wait for a reader because the program told the operating system that it is a reader!
 Sometimes it looks like it works because the execution of the code looks something like this.
 
 \begin{tabular}{|c|c|c|}
@@ -912,21 +909,21 @@ But here is an invalid series of operations that cause a race condition.
 On Linux, there are two abstractions with files. The first is the Linux \keyword{fd} level abstraction.
 
  \begin{itemize}
-\item \keyword{open} takes a path to a file and creates a file descriptor entry in the process table. If the file is not available to you, it errors out.
+\item \keyword{open} takes a path to a file and creates a file descriptor entry in the process table. If the file is not available, it errors out.
 \item \keyword{read} takes a number of bytes that the kernel has received and reads them into a user space buffer. If the file is not open in read mode, this will break.
 \item \keyword{write} outputs a number of bytes to a file descriptor. If the file is not open in write mode, this will break. This may be buffered internally.
 \item \keyword{close} removes a file descriptor from a process' file descriptors. This always succeeds on a valid file descriptor.
 \item \keyword{lseek} takes a file descriptor and moves it to a certain position. Can fail if the seek is out of bounds.
-\item \keyword{fcntl} is the catch-all function for file descriptors. You can do everything with this function. Set file locks, read, write, edit permissions, etc \ldots{}
+\item \keyword{fcntl} is the catch-all function for file descriptors. Set file locks, read, write, edit permissions, etc \ldots{}
  \end{itemize}
 
 The Linux interface is very powerful and expressive, but sometimes we need portability for example if we are writing for a Macintosh or windows.
 This is where C's abstraction comes into play.
-On different operating systems, C uses the low-level functions to create a wrapper around files you can use everywhere, meaning that C on Linux uses the above calls.
+On different operating systems, C uses the low-level functions to create a wrapper around files used everywhere, meaning that C on Linux uses the above calls.
 
 \begin{itemize}
-\item \keyword{fopen} opens a file and returns an object. \keyword{null} is returned if you don't have permission for the file.
-\item \keyword{fread} reads a certain number of bytes from a file. An error is returned if already at the end of the file when which you must call \keyword{feof()} to check if the program attempted to read \textit{past} the end of the file.
+\item \keyword{fopen} opens a file and returns an object. \keyword{null} is returned if the program doesn't have permission for the file.
+\item \keyword{fread} reads a certain number of bytes from a file. An error is returned if already at the end of the file when which the program must call \keyword{feof()} to check if the program attempted to read \textit{past} the end of the file.
 \item \keyword{fgetc/fgets} Get a char or a string from a file
 \item \keyword{fscanf} Read a format string from the file
 \item \keyword{fwrite} Write some objects to a file
@@ -935,14 +932,16 @@ On different operating systems, C uses the low-level functions to create a wrapp
 \item \keyword{fflush} Take any buffered changes and flush them to a file
 \end{itemize}
 
-But you don't get the expressiveness that Linux gives you with system calls you can convert back and forth between them with \keyword{int\ fileno(FILE*\ stream)} and \keyword{FILE*\ fdopen(int\ fd...)} Another important aspect to note is the C files are \textbf{buffered} meaning that their contents may not be written right away by default. You can change that with C options.
+But programs don't get the expressiveness that Linux gives with system calls.
+A program can convert back and forth between them with \keyword{int\ fileno(FILE*\ stream)} and \keyword{FILE*\ fdopen(int\ fd...)}.
+Also, C files are \textbf{buffered} meaning that their contents may not be written right away by default.
+You can change that with C options.
 
 \textbf{Danger} With portability you lose something important, the ability to tell an error.
-Take the advice that we gave you above.
-You can \keyword{fopen} a file descriptor and get a \keyword{FILE*} object but \textbf{it won't be the same as a file} meaning that certain calls will fail or act weirdly.
-The C API reduces this weirdness, but for example you cannot \keyword{fseek} to a part of the file, or perform any operations with its buffering.
+A program can \keyword{fopen} a file descriptor and get a \keyword{FILE*} object but \textbf{it won't be the same as a file} meaning that certain calls will fail or act weirdly.
+The C API reduces this weirdness, but for example a program cannot \keyword{fseek} to a part of the file, or perform any operations with its buffering.
 The problem is the API won't give a lot of warning because C needs to maintain compatibility with other operating systems.
-To keep things simple for you, use the C API of files when you are dealing with a file on disk, which will work fine. Otherwise, be in for a rough ride for portability sake.
+To keep things simple, use the C API of files when dealing with a file on disk, which will work fine. Otherwise, be in for a rough ride for portability sake.
 
 \subsection{Determining File Length}
 
@@ -973,7 +972,7 @@ See the man pages for fseek and ftell for more information.
 
 \textbf{Note: This is not recommended in the usual case because of a quirk with the C language}.
 That quirk is that longs only need to be \textbf{4 Bytes big} meaning that the maximum size that \keyword{ftell} can return is a little under 2 Gibibytes which we know nowadays our files could be hundreds of gibibytes or even terabytes on a distributed file system.
-What should we do instead? Use \keyword{stat}! We will cover stat in a later part but here is some code that will tell you the size of the file
+What should we do instead? Use \keyword{stat}! We will cover stat in a later part but here is some code that will tell a program the size of the file
 
 \begin{lstlisting}[language=C]
 struct stat buf;
@@ -994,7 +993,7 @@ Remember, everything is copied over when a child is created, even the relative p
 As you might have observed with using \keyword{fork}, there is a quirk of the implementation of files and their caches on Ubuntu that will rewind a file descriptor once a file has been closed.
 As such, make sure to close before forking or at least don't trigger a cache inconsistency which is much harder.
 
-\section{So Many IPC Options}
+\section{IPC Alternativs}
 
 Okay so now you have a list of tools in your toolbox to tackle communicating between processes, so what should you use?
 
@@ -1013,11 +1012,11 @@ On Linux, file operations are generally pretty cheap, so most programmers use it
 
 mmap is used for two scenarios.
 One is a \keyword{linear} or \keyword{near-linear} read through of the file.
-Meaning, you read the file front to back or back to front.
-The key is that you don't jump around too much.
+Meaning, a program reads the file front to back or back to front.
+The key is that the program don't jump around too much.
 Jumping around too much causes thrashing and loses all the benefits of using mmap.
 The other case of mmap is a direct memory inter-process communication.
-This means that you can store structures in a piece of mmap'ed memory and share them between two processes.
+This means that a program can store structures in a piece of mmap'ed memory and share them between two processes.
 Python and Ruby use this mapping all the time to utilize copy on write semantics.
 
 \section{Topics}
