@@ -34,7 +34,7 @@ Read `CONTRIBUTING.md`
 
 ## Credit Where Credit is Due
 
-* Title Page Idea - https://tex.stackexchange.com/questions/85904/showcase-of-beautiful-title-page-done-in-tex
-* Duck Image - https://pixabay.com/photos/toy-bath-rubber-duck-studio-1474138/
+* Title Page Idea Inspiration - https://tex.stackexchange.com/questions/85904/showcase-of-beautiful-title-page-done-in-tex
+* Duck Image Inspiration - https://pixabay.com/photos/toy-bath-rubber-duck-studio-1474138/
 * Chapter Style Inspiration - https://texblog.org/2012/07/03/fancy-latex-chapter-styles/
 * PDF Image Inspiration - https://pixabay.com/illustrations/pdf-miniature-file-icon-2127829/
