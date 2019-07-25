@@ -16,7 +16,10 @@
    version="1.1"
    id="svg8"
    inkscape:version="0.92.4 (5da689c313, 2019-01-14)"
-   sodipodi:docname="fcfs.svg">
+   sodipodi:docname="psjf.svg"
+   inkscape:export-filename="C:\Users\bhuvy\systems\coursebook\scheduling\drawings\psjf.png"
+   inkscape:export-xdpi="96"
+   inkscape:export-ydpi="96">
   <defs
      id="defs2">
     <inkscape:path-effect
@@ -1281,9 +1284,9 @@
      borderopacity="1.0"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="0.70710678"
-     inkscape:cx="554.07809"
-     inkscape:cy="460.595"
+     inkscape:zoom="0.5"
+     inkscape:cx="761.74274"
+     inkscape:cy="515.96402"
      inkscape:document-units="mm"
      inkscape:current-layer="layer1"
      showgrid="false"
@@ -1480,18 +1483,11 @@
          style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:10.58333302px;font-family:sans-serif;-inkscape-font-specification:'sans-serif, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:center;writing-mode:lr-tb;text-anchor:middle;stroke-width:0.26458332"
          id="tspan1234">Number</tspan></text>
     <rect
-       style="opacity:1;fill:#ff950e;fill-opacity:1;stroke:none;stroke-width:4.43232679;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
-       id="rect1242"
-       width="27.361715"
-       height="10.851142"
-       x="34.156246"
-       y="-21.69846" />
-    <rect
        style="opacity:1;fill:#c5000b;fill-opacity:1;stroke:none;stroke-width:3.18917203;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
        id="rect1242-1"
        width="14.165622"
        height="10.851142"
-       x="62.42588"
+       x="47.408848"
        y="-1.2836568" />
     <text
        xml:space="preserve"
@@ -1518,35 +1514,21 @@
     <text
        xml:space="preserve"
        style="font-style:normal;font-weight:normal;font-size:10.58333302px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332"
-       x="86.307213"
-       y="-94.569496"
+       x="70.093773"
+       y="-94.350311"
        id="text1291"><tspan
          sodipodi:role="line"
          id="tspan1289"
-         x="86.307213"
-         y="-94.569496"
-         style="stroke-width:0.26458332">First Come First Served</tspan></text>
+         x="70.093773"
+         y="-94.350311"
+         style="stroke-width:0.26458332">Preemptive Shortest Job First</tspan></text>
     <rect
-       style="opacity:1;fill:#579d1c;fill-opacity:1;stroke:none;stroke-width:7.14894342;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
-       id="rect1242-1-2"
-       width="71.180901"
-       height="10.851142"
-       x="75.836838"
-       y="-82.876297" />
-    <rect
-       style="opacity:1;fill:#ff420e;fill-opacity:1;stroke:none;stroke-width:6.3652668;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
-       id="rect1242-1-2-5"
-       width="56.430378"
-       height="10.851142"
-       x="147.7892"
-       y="-62.654831" />
-    <rect
-       style="opacity:1;fill:#004586;fill-opacity:1;stroke:none;stroke-width:5.50523996;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       style="opacity:1;fill:#004586;fill-opacity:1;stroke:none;stroke-width:5.63716745;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
        id="rect1242-1-2-5-8"
-       width="42.211639"
-       height="10.851142"
-       x="205.11539"
-       y="-42.320499" />
+       width="43.223202"
+       height="11.111178"
+       x="103.78385"
+       y="-42.45052" />
     <text
        xml:space="preserve"
        style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:8.46666622px;line-height:1.25;font-family:sans-serif;-inkscape-font-specification:'sans-serif, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:center;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332"
@@ -1627,5 +1609,47 @@
          id="tspan1534"
          x="261.64056"
          y="25.863949">16</tspan></text>
+    <rect
+       style="opacity:1;fill:#ff950e;fill-opacity:1;stroke:none;stroke-width:3.18917227;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       id="rect1242-1-5"
+       width="14.165623"
+       height="10.851142"
+       x="34.102226"
+       y="-21.69846" />
+    <rect
+       style="opacity:1;fill:#ff420e;fill-opacity:1;stroke:none;stroke-width:5.63716745;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       id="rect1242-1-2-5-8-7"
+       width="43.223202"
+       height="11.111178"
+       x="147.75584"
+       y="-62.91534" />
+    <rect
+       style="opacity:1;fill:#579d1c;fill-opacity:1;stroke:none;stroke-width:5.63716745;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       id="rect1242-1-2-5-8-7-0"
+       width="43.223202"
+       height="11.111178"
+       x="190.99785"
+       y="-83.136337" />
+    <rect
+       style="opacity:1;fill:#ff950e;fill-opacity:1;stroke:none;stroke-width:3.18917251;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       id="rect1242-1-5-2"
+       width="14.165624"
+       height="10.851142"
+       x="62.373848"
+       y="-21.698303" />
+    <rect
+       style="opacity:1;fill:#ff420e;fill-opacity:1;stroke:none;stroke-width:3.18917274;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       id="rect1242-1-5-2-2"
+       width="14.165624"
+       height="10.851142"
+       x="91.004852"
+       y="-62.655304" />
+    <rect
+       style="opacity:1;fill:#579d1c;fill-opacity:1;stroke:none;stroke-width:3.18917274;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       id="rect1242-1-5-2-5"
+       width="14.165624"
+       height="10.851142"
+       x="76.18885"
+       y="-82.876305" />
   </g>
 </svg>
