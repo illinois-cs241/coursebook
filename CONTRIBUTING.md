@@ -187,6 +187,7 @@ if (1) {
 
 * Opt for magic numbers defined in the text than code that compiles through.
 * No headers unless they are the topic of conversation (like talking about preprocessors)
+* Don't every say "NULL Byte" correct terminology is "NUL Byte"
 
 # Structure
 

@@ -117,7 +117,7 @@ Just use \keyword{dprintf(int\ fd,\ char*\ format\_string,\ ...);}.
 
 To print data into a C string, use \keyword{sprintf} or better \keyword{snprintf}.
 \keyword{snprintf} returns the number of characters written excluding the terminating byte.
-We would use \keyword{sprintf} the size of the printed string is less than the provided buffer -- think about printing an integer, it will never be more than 11 characters with the null byte.
+We would use \keyword{sprintf} the size of the printed string is less than the provided buffer -- think about printing an integer, it will never be more than 11 characters with the NUL byte.
 If printf is dealing with variadic input, it is safer to use the former function as shown in the following snippet.
 
 \begin{lstlisting}[language=C]
@@ -248,7 +248,7 @@ Any behavior missing from the documentation, such as the result of \keyword{strl
     \textbf{This function assumes dest has enough space for src otherwise undefined behavior}
 
 	\item \keyword{char *strcat(char *dest, const char *src)} Concatenates the string at \keyword{src} to the end of destination.
-    \textbf{This function assumes that there is enough space for \keyword{src} at the end of destination including the NULL byte}
+    \textbf{This function assumes that there is enough space for \keyword{src} at the end of destination including the NUL byte}
 
 	\item \keyword{char *strdup(const char *dest)} Returns a \keyword{malloc}'d copy of the string.
 

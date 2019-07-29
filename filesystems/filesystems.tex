@@ -259,7 +259,7 @@ Additional facts about name-related conventions:
 \begin{enumerate}
     \item Files that start with '.' (a period) on disk are conventionally considered 'hidden' and will not be listed by programs like \keyword{ls} without additional flags (\keyword{-a}).
         This is not a feature of the filesystem, and programs may choose to ignore this.
-    \item Some files may also start with a null byte.
+    \item Some files may also start with a NUL byte.
             These are usually \emph{abstract UNIX sockets} and are used to prevent cluttering up the filesystem since they will be effectively hidden by any program not expecting them.
             They will, however, be listed by tools that detail information about sockets, so this is not a feature providing security.
     \item If you want to annoy your neighbor, create a file with the terminal bell character.
