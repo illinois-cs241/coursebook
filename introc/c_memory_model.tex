@@ -40,7 +40,7 @@ If you compile the code without any optimizations and reordering, you can expect
 All your compiler does is say "reserve this much space".
 Whenever a read or write occurs in the code, the compiler will calculate the offsets of the variable.
 The offsets are where the variable starts at.
-The phone variables starts at the \keyword{0x128}th bytes and continues for sizeof(int) bytes, but not always.
+The phone variables starts at the \keyword{0x128}th bytes and continues for sizeof(int) bytes with this compiler.
 \textbf{Offsets don't determine where the variable ends though}.
 Consider the following hack seen in a lot of kernel code.
 
@@ -157,7 +157,7 @@ Visually, we'd add two extra boxes to our diagram
 \end{figure}
 
 This padding is common on a 64-bit system.
-This is not always the case because sometimes your processor supports unaligned access.
+Other time, a processor supports unaligned access, leaving the compiler able to pack structs.
 What does this mean?
 We can have a variable start at a non-64-bit boundary.
 The processor will figure out the rest.
@@ -175,7 +175,7 @@ struct __attribute__((packed, aligned(4))) picture{
 Now our figure will look like the clean struct as in figure  \ref{fig:clean_struct}
 But now, every time the processor needs to access \keyword{data} or \keyword{encoding},
 two memory accesses are required.
-An alternative is to reorder the struct, although this is not always possible
+A possible alternative is to reorder the struct.
 
 \begin{lstlisting}[language=C]
 struct picture{
@@ -235,7 +235,7 @@ char *str2 = "Bhuvy likes books";
 The strings pointed to by \keyword{str1} and \keyword{str2} may actually reside in the same location in memory.
 
 Char arrays, however, contain the literal value which has been copied from the code segment into either the stack or static memory.
-These following char arrays do not reside in the same place in memory.
+These following char arrays reside in different memory locations.
 
 \begin{lstlisting}[language=C]
 char arr1[] = "Bhuvy also likes to write";
@@ -266,9 +266,8 @@ printf("%p : %s\n", ptr, ptr);
 \end{lstlisting}
 
 As mentioned before, the char array is mutable, so we can change its contents.
-Be careful not to write bytes beyond the end of the array. C does \emph{not} do bounds checking at compile-time, but invalid reads/writes can get your program to crash.
-
-Once again, be careful not to get the two mixed up!
+Be careful to write within the bounds of the array.
+C does \emph{not} do bounds checking at compile-time, but invalid reads/writes can get your program to crash.
 
 \begin{lstlisting}[language=C]
 strcpy(ary, "World"); // OK

@@ -32,8 +32,8 @@ while(1) {
   break; /* Breaks out of while(1) */
 } /* Continues here */
 \end{lstlisting}
-	    \item \keyword{const} is a language level construct that tells the compiler that this data should not be modified.
-        If one tries to change a const variable, the program will not even compile.
+	    \item \keyword{const} is a language level construct that tells the compiler that this data should remain constant.
+        If one tries to change a const variable, the program will fail to compile.
         \keyword{const} works a little differently when put before the type, the compiler re-orders the first type and const.
         Then the compiler uses a \href{https://en.wikipedia.org/wiki/Operator_associativity}{left associativity rule}.
         Meaning that whatever is left of the pointer is constant.
@@ -72,7 +72,7 @@ while(i--) {
 
 	    \item \keyword{do \{\} while();} is another loop construct.
         These loops execute the body and then check the condition at the bottom of the loop.
-        If the condition is zero, the loop body is not executed and the rest of the program is executed - the program counter is set to the first instruction after the loop.
+        If the condition is zero, the next statement is executed -- the program counter is set to the first instruction after the loop.
         Otherwise, the loop body is executed.
 
 \begin{lstlisting}[language=C]
@@ -101,8 +101,7 @@ void process_day(enum day foo) {
 }
 \end{lstlisting}
 
-	      It is completely possible to assign enum values to either be different or the same.
-        It is not advisable to rely on the compiler for consistent numbering, if you do the above. If you are going to use this abstraction, try not to break it.
+	      It is completely possible to assign enum values to either be different or the same. It is not advisable to rely on the compiler for consistent numbering, if you assign numbers. If you are going to use this abstraction, try not to break it.
 
 \begin{lstlisting}[language=C]
 enum day{
@@ -123,7 +122,7 @@ void process_day(enum day foo) {
 }
 \end{lstlisting}
 
-	    \item \keyword{extern} is a special keyword that tells the compiler that the variable may be defined in another object file or a library, so the compiler doesn't throw an error when either the variable is not defined or if the variable is defined twice because the first file will really be referencing the variable in the other file.
+	    \item \keyword{extern} is a special keyword that tells the compiler that the variable may be defined in another object file or a library, so the program compiles on missing variable because the program will reference a variable in the system or another file.
 
 \begin{lstlisting}[language=C]
 // file1.c
@@ -248,7 +247,7 @@ if (connect(...)) {
 }
 \end{lstlisting}
 
-	    \item \keyword{inline} is a compiler keyword that tells the compiler it's okay not to create a new function in the assembly.
+	    \item \keyword{inline} is a compiler keyword that tells the compiler it's okay to moit the C function call procedure and "paste" the code in the callee.
         Instead, the compiler is hinted at substituting the function body directly into the calling function.
         This is not always recommended explicitly as the compiler is usually smart enough to know when to \keyword{inline} a function for you.
 
@@ -521,7 +520,7 @@ while(1) {
     // Do things unrelated to flag
 }
 \end{lstlisting}
-	      If you use the volatile keyword, the compiler is forced to keep the variable in and perform that check. This is particularly useful for cases where you are doing multi-process or multi-threaded programs so that we can affect the running of one sequence of execution with another.
+	      If you use the volatile keyword, the compiler is forced to keep the variable in and perform that check. This is useful for cases where you are doing multi-process or multi-threaded programs so that we can affect the running of one sequence of execution with another.
 	\item \keyword{while } represents the traditional \keyword{while} loop. There is a condition at the top of the loop, which is checked before every execution of the loop body. If the condition evaluates to a non-zero value, the loop body will be run.
 \end{enumerate}
 

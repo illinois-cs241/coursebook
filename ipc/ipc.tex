@@ -299,7 +299,7 @@ There are three types of Page Faults
 
 What does this have to do with IPC?
 Before, you knew that processes had isolation.
-One, you one didn't really know how that isolation mapped.
+One, you one didn't know how that isolation mapped.
 Two, you may not know how you can break this isolation.
 To break any memory level isolation you have two avenues.
 One is to ask the kernel to provide some kind of interface.
@@ -997,9 +997,9 @@ As such, make sure to close before forking or at least don't trigger a cache inc
 
 Okay so now you have a list of tools in your toolbox to tackle communicating between processes, so what should you use?
 
-There really is no hard answer, though this is the most interesting question.
+There is no hard answer, though this is the most interesting question.
 Generally, we have retained pipes for legacy reasons.
-This means that we only really use them to redirect stdin, stdout, and stderr for the collection of logs and similar programs.
+This means that we only use them to redirect stdin, stdout, and stderr for the collection of logs and similar programs.
 You may find processes trying to communicate with unnamed or named pipes as well.
 Most of the time you won't be dealing with this interaction directly though.
 

@@ -131,7 +131,7 @@ This effect is usually discussed in the context of FCFS scheduler; however, a Ro
 
 \subsection{Extra: Linux Scheduling}
 
-As of February 2016, Linux by default uses the \emph{Completely Fair Scheduler} for CPU scheduling and the Budget Fair Scheduling ``BFQ'' for I/O scheduling. Appropriate scheduling can have a significant impact on throughput and latency. Latency is particularly important for interactive and soft-real time applications such as audio and video streaming. See the discussion and comparative benchmarks \href{https://lkml.org/lkml/2014/5/27/314}{here} for more information.
+As of February 2016, Linux by default uses the \emph{Completely Fair Scheduler} for CPU scheduling and the Budget Fair Scheduling ``BFQ'' for I/O scheduling. Appropriate scheduling can have a significant impact on throughput and latency. Latency is important for interactive and soft-real time applications such as audio and video streaming. See the discussion and comparative benchmarks \href{https://lkml.org/lkml/2014/5/27/314}{here} for more information.
 
 Here is how the CFS schedules
 
@@ -418,7 +418,7 @@ All results are from Jorma Virtamo's lectures on the matter \cite{virtamo}.
   E[W] = \frac{(1 + C^2)}{2}\frac{\rho}{(1 - \rho)} * E[S]
   \]
 
-  What does this say? When given as $\rho \rightarrow 1$ or the mean job arrival rate equals the mean job processing rate, then the wait times get really long.
+  What does this say? When given as $\rho \rightarrow 1$ or the mean job arrival rate equals the mean job processing rate, then the wait times get long.
   Also, as the variance of the job increases, the wait times go up.
 
 \item Next is the expected response time
@@ -435,7 +435,7 @@ All results are from Jorma Virtamo's lectures on the matter \cite{virtamo}.
 
 \subsection{Round Robin or Processor Sharing}
 
-It is really hard to analyze Round Robin from a probabilistic sense because it is so state based.
+It is hard to analyze Round Robin from a probabilistic sense because it is so state based.
 The next job that the scheduler schedules requires it to remember the previous jobs.
 Queueing theory developers have made an assumption that the time quanta is roughly zero -- ignoring context switching and the like.
 This leads way into processor sharing.
@@ -655,7 +655,7 @@ We will also introduce an additional term $C_i$ which denotes the variation amon
   What happens?
   As always the proof is left to the reader.
 
-\item Turnaround Time is the same formula $E[T] = E[S] + E[W]$. This means that given a distribution of jobs that has either low waiting time as described above, we will get low turnaround time -- we can't really control the distribution of service times.
+\item Turnaround Time is the same formula $E[T] = E[S] + E[W]$. This means that given a distribution of jobs that has either low waiting time as described above, we will get low turnaround time -- we can't control the distribution of service times.
 \end{enumerate}
 
 \subsection{Preemptive Shortest Job First}

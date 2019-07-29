@@ -92,7 +92,7 @@ Which leads us to our first synchronization primitive, a Mutex.
 To ensure that only one thread at a time can access a global variable, use a mutex -- short for Mutual Exclusion.
 If one thread is currently inside a critical section we would like another thread to wait until the first thread is complete.
 A mutex isn't a primitive in the truest sense, though it is one of the smallest that has useful threading API.
-A mutex also isn't really a data structure.
+A mutex also isn't a data structure.
 It is an abstract data type.
 There are many ways to implement a mutex, and we'll give a few in this chapter.
 For right now let's use the black box that the pthread library gives us.
@@ -195,7 +195,7 @@ return NULL;
 \end{lstlisting}
 
 This process runs slower because we lock and unlock the mutex a million times, which is expensive - at least compared with incrementing a variable.
-In this simple example, we didn't really need threads - we could have added up twice!
+In this simple example, we didn't need threads - we could have added up twice!
 A faster multi-thread example would be to add one million using an automatic (local) variable and only then adding it to a shared total after the calculation loop has finished:
 
 \begin{lstlisting}[language=C]

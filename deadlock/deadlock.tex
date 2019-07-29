@@ -297,7 +297,7 @@ void* philosopher(void* forks){
 This looks good but.
 What if everyone picks up their left fork and is waiting on their right fork? We have deadlocked the program.
 It is important to note that deadlock doesn't happen all the time and the probability that this solution deadlock goes down as the number of philosophers goes up.
-What is really important to note is that eventually that this solution will deadlock, letting threads starve which is bad.
+What is important to note is that eventually that this solution will deadlock, letting threads starve which is bad.
 Here is a simple resource allocation graph that shows how the system could be deadlocked
 
 \begin{figure}[H]

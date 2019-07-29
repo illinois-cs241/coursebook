@@ -1,6 +1,6 @@
 # Introduction
 
-Thanks for taking the time to help contribute to the coursebook. We really appreciate it!
+Thanks for taking the time to help contribute to the coursebook. We appreciate it!
 If any of the upcoming sections is confusing, feel free to open an issue, and we'll take a look at it.
 
 Following these guidelines helps accomplish a few things
@@ -164,6 +164,11 @@ To make sure the book has a consistent tone among authors, we'll use the general
 * Use `\keyword` to highlight a common executable program, system or library call, or man page entry.
 * Opt for citations rather than links because they allow for smoother reading.
 * Break each sentence into its own line.
+* Don't use 'I' ever
+* Only use 'you' to refer to things that a _human_ can do. A human can read the man page, but a human cannot access a memory location.
+* Aim for resolute rather than pedantic language
+* Avoid negative language "This does not print" to "Hello stays is unwritten"
+* Avoid using filler words like "really"
 
 # Code Style
 
@@ -182,8 +187,6 @@ if (1) {
 
 * Opt for magic numbers defined in the text than code that compiles through.
 * No headers unless they are the topic of conversation (like talking about preprocessors)
-* Don't use 'I' ever
-* Only use 'you' to refer to things that a _human_ can do. A human can read the man page, but a human cannot access a memory location.
 
 # Structure
 

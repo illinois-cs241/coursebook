@@ -21,7 +21,7 @@ while( *src ) { *dest = *src; src ++; dest++; }
 \end{lstlisting}
 
 Note that it is also common to see the following kind of implementation, which does everything inside the expression test, including copying the NUL byte.
-However, this is not good style, as a result of doing multiple operations in the same line.
+However, this is bad style, as a result of doing multiple operations in the same line.
 
 \begin{lstlisting}[language=C]
 while( (*dest++ = *src++ )) {};
@@ -98,7 +98,7 @@ int i = N, array[N];
 for( ; i >= 0; i--) array[i] = i;
 \end{lstlisting}
 
-C does not check if pointers are valid.
+C fails to check if pointers are valid.
 The above example writes into \keyword{array[10]} which is outside the array bounds.
 This can cause memory corruption because that memory location is probably being used for something else.
 In practice, this can be harder to spot because the overflow/underflow may occur in a library call.
@@ -145,5 +145,4 @@ void myfunct() {
   char *p = malloc(10);
 \end{lstlisting}
 
-Automatic (temporary variables) are not automatically initialized to zero.
-Heap allocations using malloc are not automatically initialized to zero.
+Automatic (temporary variables) and heap allocations may contain random bytes or garbage.

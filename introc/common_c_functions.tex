@@ -73,7 +73,7 @@ Common format specifiers are the following
 \item \keyword{\%d} prints the argument as an integer
   \item \keyword{\%p} print the argument as a memory address.
     \end{enumerate}
-By default, for performance, \keyword{printf} does not actually write anything out until its buffer is full or a newline is printed.
+For performance, \keyword{printf} buffers data until its cache is full or a newline is printed.
 Here is an example of printing things out.
 
 \begin{lstlisting}[language=C]
@@ -117,7 +117,7 @@ Just use \keyword{dprintf(int\ fd,\ char*\ format\_string,\ ...);}.
 
 To print data into a C string, use \keyword{sprintf} or better \keyword{snprintf}.
 \keyword{snprintf} returns the number of characters written excluding the terminating byte.
-We would use \keyword{sprintf} in cases where we know that the size of the string will not be anything more than a certain fixed amount -- think about printing an integer, it will never be more than 11 characters with the null byte.
+We would use \keyword{sprintf} the size of the printed string is less than the provided buffer -- think about printing an integer, it will never be more than 11 characters with the null byte.
 If printf is dealing with variadic input, it is safer to use the former function as shown in the following snippet.
 
 \begin{lstlisting}[language=C]
@@ -233,11 +233,11 @@ String.h functions are a series of functions that deal with how to manipulate an
 Most of them deal with C-strings.
 A C-string is a series of bytes delimited by a NUL character which is equal to the byte 0x00.
 \href{https://linux.die.net/man/3/string}{More information about all of these functions}.
-Any behavior not in the documentation, such as the result of \keyword{strlen(NULL)} is considered undefined behavior.
+Any behavior missing from the documentation, such as the result of \keyword{strlen(NULL)} is considered undefined behavior.
 
 \begin{itemize}
 
-	\item \keyword{int strlen(const char *s)} returns the length of the string not including the null byte
+	\item \keyword{int strlen(const char *s)} returns the length of the string.
 
 	\item \keyword{int strcmp(const char *s1, const char *s2)} returns an integer determining the lexicographic order of the strings.
     If s1 where to come before s2 in a dictionary, then a -1 is returned.
@@ -313,7 +313,7 @@ tricky
 
 	      Be careful though!
         Error handling is tricky because the function won't return an error code.
-        If passed a string that is not a number it will return 0.
+        If passed an invalid number string, it will return 0.
         The caller has to be careful from a valid 0 and an error.
         This often involves an errno trampoline as shown below.
 

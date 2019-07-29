@@ -388,12 +388,12 @@ TCP has many features that set it apart from the other transport protocol UDP.
 \item Congestion control.
   Congestion control is performed on the sender side.
   Congestion control is to avoid a sender from flooding the network with too many packets.
-  This is really important to make sure that each TCP connection is treated fairly.
+  This is important to make sure that each TCP connection is treated fairly.
   Meaning that two connections leaving a computer to google and youtube receive the same bandwidth and ping as each other.
   One can easily define a protocol that takes all the bandwidth and leaves other protocols in the dust, but this tends to be malicious because more often than not limiting a computer to a single TCP connection will yield the same result.
 
 \item Connection-Oriented/life cycle oriented.
-  You can really imagine a TCP connection as a series of bytes sent through a pipe.
+  You can imagine a TCP connection as a series of bytes sent through a pipe.
   There is a ``lifecycle'' to a TCP connection though. What this means is that a TCP connection has a series of states and certain packets received can or not received can move it to another state.
   TCP handles setting up the connection through SYN SYN-ACK ACK. This means the client will send a SYNchronization packet that tells TCP what starting sequence to start on. Then the receiver will send a SYN-ACK message acknowledging the synchronization number.
   Then the client will ACKnowledge that with one last packet.
@@ -684,7 +684,7 @@ Each has a specific purpose and should be called in roughly the above order
   \item \keyword{int socket(int domain, int socket\_type, int protocol)}
 
   To create an endpoint for networking communication.
-  A new socket by itself is not particularly useful.
+  A new socket by itself is not useful.
   Though we've specified either a packet or stream-based connections, it is not bound to a particular network interface or port.
   Instead, socket returns a network descriptor that can be used with later calls to bind, listen and accept.
 
@@ -1190,7 +1190,7 @@ That's the system's way of telling you that it's still busy sending the last chu
 There are a few ways to check that your IO has arrived.
 Let's see how to do it using \emph{select} and \emph{epoll}.
 The first interface we have is select.
-It really isn't preferred by many in the POSIX community if they have an alternative to it, and in most cases there is an alternative to it.
+It isn't preferred by many in the POSIX community if they have an alternative to it, and in most cases there is an alternative to it.
 
 \begin{lstlisting}[language=C]
 int select(int nfds,
