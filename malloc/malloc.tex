@@ -289,7 +289,7 @@ Some additional notes we make
 \item Worst fit may not need to scan the entire heap as well. Your heap could be represented with the max-heap data structure and each allocation call could simply pop the top off, reheapify, and possibly insert a split memory block.
   Using Fibonacci heaps, however, could be extremely inefficient.
 \item First fit needs to have a block ordering. Most of the time programmers will default to linked lists which is a fine choice. There aren't too many improvements you can make with a least recently used and most recently used linked list policy, but with address ordered linked lists you can speed up insertion from O(n) to O(log(n)) by using a randomized skip-list in conjunction with your singly-linked list.
-  Basically, an insert would use the skip list as shortcuts to find the right place to insert the block and removal would go through the list as normal.
+  An insert would use the skip list as shortcuts to find the right place to insert the block and removal would go through the list as normal.
 \item There are many placement strategies that we haven't talked about, one is next-fit which is first fit on the next fit block. This adds a deterministic randomness -- pardon the oxymoron. You won't be expected to know this algorithm, know as you are implementing a memory allocator as part of a machine problem, there are more than these.
   \end{enumerate}
 

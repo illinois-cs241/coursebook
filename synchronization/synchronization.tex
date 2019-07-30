@@ -422,7 +422,7 @@ If the swap wasn't, that means that the mutex was UNLOCKED and we tried to switc
 What is this memory order business?
 We were talking about memory fences earlier, here it is!
 We won't go into detail because it is outside the scope of this course but not the scope of \href{https://gcc.gnu.org/wiki/Atomic/GCCMM/AtomicSync}{this article}.
-Basically, we need consistency to make sure no loads or stores are ordered before or after.
+We need consistency to make sure no loads or stores are ordered before or after.
 A program need to create dependency chains for more efficient ordering.
 
 \subsection{Semaphore}
@@ -860,7 +860,7 @@ int main() {
 Before we fix the problems with semaphores.
 How would we fix the problems with condition variables?
 Try it out before you look at the code in the previous section.
-Basically, we need to wait in push and pop if our stack is full or empty respectively.
+We need to wait in push and pop if our stack is full or empty respectively.
 Attempted solution:
 
 \begin{lstlisting}[language=C]
