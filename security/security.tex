@@ -32,7 +32,7 @@ If not possible, try to go through the engineering steps
 \begin{enumerate}
 \item Figure out what the problem is that you are trying to solve.
   You can't solve a problem that you don't fully understand.
-\item Determine whether or not you need to ``hack'' the system.
+\item Determine whetheryou need to ``hack'' the system.
   A hack is defined generally as trying to use a system unintendedly.
   First, you should determine if your use is intended or unintended or somewhere in the middle -- get a decision for them.
   If you can't get that, make a reasonable judgement as to what the intended use.
@@ -90,7 +90,7 @@ int main(int argc, char *argv[]) {
 
 There is no checking on the bounds of strcpy!
 This means that we could potentially pass in a large string and get the program to do something unintended, usually via replacing the return address of the function with the address of malicious code.
-Most strings will just cause the program to exit with a segmentation fault
+Most strings will cause the program to exit with a segmentation fault
 
 \begin{lstlisting}
 $ ./a.out john
@@ -207,7 +207,7 @@ As such, the processor will fetch those instructions.
 Due to out-of-order instruction execution, while the value of \emph{i} is being fetched from memory, we have to force it not to be in a register.
 Then, the processor will try to dereference that address.
 This should result in a SEGFAULT.
-Since the address was never logically reached by the program, the result is just discarded.
+Since the address was never logically reached by the program, the result is discarded.
 
 Now here is the trick.
 Even though the value of the calculation would have resulted in a SEGFAULT, the bug doesn't clear the cache that refers to the physical memory where 0xCAFE is located. This is not an exact explanation, but essentially how it works.
@@ -241,7 +241,7 @@ This could include important information such as passwords, payment information,
   A page can either be written to or executed but not both.
   This is to prevent buffer overflows where attackers write arbitrary code, often stored on the stack or heap, and execute with the user's permissions.
 \item Firewall.
-  The Linux kernel provides the netfilter module as a way of deciding whether or not an incoming connection should be allowed and various other restrictions on connections.
+  The Linux kernel provides the netfilter module as a way of deciding whetheran incoming connection should be allowed and various other restrictions on connections.
   This can help with a DDOS attack (explained later).
 \item AppArmor.
   AppArmor is a suite of operating system tools at the userspace level to restrict applications to certain operations.

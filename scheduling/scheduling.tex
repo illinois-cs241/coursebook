@@ -10,7 +10,7 @@ No, no, no, no, no, no, no!}{Alice in Wonderland}
 
 CPU Scheduling is the problem of efficiently selecting which process to run on a system's CPU cores.
 In a busy system, there will be more ready-to-run processes than there are CPU cores, so the system kernel must evaluate which processes should be scheduled to run and which processes should be executed later.
-The system must also decide whether or not it should take a particular process and pause its execution -- along with any associated threads.
+The system must also decide whetherit should take a particular process and pause its execution -- along with any associated threads.
 The balance comes from stopping processes often enough where you have a responsive computer but infrequently enough where the programs themselves are not spending a lot of cycles context switching.
 It is a hard balance to get right.
 
@@ -37,7 +37,7 @@ At the operating system level, you generally have this type of flowchart, descri
 Note, please don't memorize all the states.
 
 \begin{enumerate}
-\item New is the initial state. A process has just been requested to schedule. All process requests come from fork or clone. At this point the operating system knows it needs to create a new process.
+\item New is the initial state. A process has been requested to schedule. All process requests come from fork or clone. At this point the operating system knows it needs to create a new process.
 \item A process moves from the new state to the ready. This means any structs in the kernel are allocated. From there, it can go into ready suspended or running.
 \item Running is the state that we hope most of our processes are in, meaning they are doing useful work. A process could either get preempted, blocked, or terminate. Preemption brings the process back to the ready state. If a process is blocked, that means it could be waiting on a mutex lock, or it could've called sleep -- either way, it willingly gave up control.
 \item On the blocked state the operating system can either turn the process ready or it can go into a deeper state called blocked suspended.
@@ -120,7 +120,7 @@ Here are measures of efficiency and their mathematical equations
 The convoy effect is when a process takes up a lot of the CPU time, leaving all other processes with potentially smaller resource needs following like a Convoy Behind them.
 
 Suppose the CPU is currently assigned to a CPU intensive task and there is a set of I/O intensive processes that are in the ready queue.
-These processes require just a tiny amount of CPU time but they are unable to proceed because they are waiting for the CPU-intensive task to be removed from the processor.
+These processes require a tiny amount of CPU time but they are unable to proceed because they are waiting for the CPU-intensive task to be removed from the processor.
 These processes are starved until the CPU bound process releases the CPU.
 But, the CPU will rarely be released.
 For example, in the case of an FCFS scheduler, we must wait until the process is blocked due to an I/O request.
@@ -426,7 +426,7 @@ All results are from Jorma Virtamo's lectures on the matter \cite{virtamo}.
   \[
   E[R] = E[N] * E[S] = \lambda * E[W] * E[S]
   \]
-  The response time is simple to calculate, it is just the expected number of people ahead of the process in the queue times the expected time to service each of those processes.
+  The response time is simple to calculate, it is the expected number of people ahead of the process in the queue times the expected time to service each of those processes.
   From Little's Law above, we can substitute that for this. Since we already know the value of the waiting time, we can reason about the response time as well.
 \item A discussion of the results is shows something very cool discovered by Conway and Al \cite{conway1967theory}.
   Any scheduling discipline that isn't preemptive and doesn't take into account the run time of the process or a priority will have the same wait, response, and turnaround time.

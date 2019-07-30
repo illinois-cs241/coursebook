@@ -64,7 +64,7 @@ GFP_ATOMIC - Allocation will not sleep. May use emergency pools. For example, us
 \end{lstlisting}
 
 You'll note that some flags are marked as potentially causing sleeps.
-This tells us whether or not we can use those flags in special scenarios, like interrupt contexts, where speed is of the essence, and operations that may block or wait for another process may never complete.
+This tells us whetherwe can use those flags in special scenarios, like interrupt contexts, where speed is of the essence, and operations that may block or wait for another process may never complete.
 
 %* How to add a new system call?
 %* What are processes and threads according to the kernel?

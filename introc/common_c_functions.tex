@@ -178,7 +178,7 @@ free(buffer);
 \end{lstlisting}
 
 In addition to those functions, we have \keyword{perror} that has a two-fold meaning.
-Let's say that a function call just failed using the errno convention.
+Let's say that a function call failed using the errno convention.
 \keyword{perror(const\ char*\ message)} will print the English version of the error to stderr.
 
 \begin{lstlisting}[language=C]
@@ -196,7 +196,7 @@ To have a library function parse input in addition to reading it, use \keyword{s
 All of those functions will return how many items were parsed.
 It is a good idea to check if the number is equal to the amount expected.
 Also naturally like \keyword{printf}, \keyword{scanf} functions require valid pointers.
-Instead of just pointing to valid memory, they need to also be writable.
+Instead of pointing to valid memory, they need to also be writable.
 It's a common source of error to pass in an incorrect pointer value.
 For example,
 
@@ -213,7 +213,7 @@ However, we passed the address of the data pointer, not what the pointer is poin
 So \keyword{sscanf} will change the pointer itself.
 The pointer will now point to address 10 so this code will later fail when free(data) is called.
 
-Now, scanf will just keep reading characters until the string ends.
+Now, scanf will keep reading characters until the string ends.
 To stop scanf from causing a buffer overflow, use a format specifier.
 Make sure to pass one less than the size of the buffer.
 

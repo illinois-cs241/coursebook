@@ -9,7 +9,7 @@
 \gls{Deadlock} is defined as when a system cannot make and forward progress.
 We define a system for the rest of the chapter as a set of rules by which a set of processes can move from one state to another, where a state is either working or waiting for a particular resource.
 Forward progress is defined as if there is at least one process working or we can award a process waiting for a resource that resource.
-In a lot of systems, Deadlock is just avoided by ignoring the entire concept \cite[P.237]{silberschatz2006operating}.
+In a lot of systems, Deadlock is avoided by ignoring the entire concept \cite[P.237]{silberschatz2006operating}.
 Have you heard about turn it on and off again?
 For products where the stakes are low (User Operating Systems, Phones), it may be more efficient to allow deadlock.
 But in the cases where ``failure is not an option'' - Apollo 13, you need a system that tracks, breaks, or prevents deadlocks.
@@ -213,7 +213,7 @@ Deadlock prevention is making sure that deadlock cannot happen, meaning that a s
 This works the best inside a single program and the software engineer making the choice to break a certain Coffman condition. Consider the 
 \href{https://en.wikipedia.org/wiki/Banker's\_algorithm}{Banker's Algorithm} \cite{Dijkstra:1965:CSP:1102034}.
 It is another algorithm for deadlock avoidance.
-The whole implementation is outside the scope of this class, just know that there are more generalized algorithms for operating systems.
+The whole implementation is outside the scope of this class, know that there are more generalized algorithms for operating systems.
 
 \subsection{Extra: Banker's Algorithm}
 

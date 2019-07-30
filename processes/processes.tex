@@ -158,7 +158,7 @@ int assumed_to_be_zero;
 
           It is not an error to assume that this will be zero; otherwise, we would have a security risk involving isolation from other processes.
 
-          They just get put in a different section to speed up process start up time.
+          They get put in a different section to speed up process start up time.
 
           This section starts at the end of the data segment and is also static in size because the amount of globals is known at compile time.
           
@@ -221,7 +221,9 @@ According to the POSIX specification, a process only needs a thread and address 
 Process forking is a powerful and dangerous tool.
 If you make a mistake resulting in a fork bomb, \textbf{you can bring down an entire system}.
 To reduce the chances of this, limit your maximum number of processes to a small number e.g. 40 by typing \keyword{ulimit\ -u\ 40} into a command line.
-Note, this limit is only for the user, which means if you fork bomb, then you won't be able to kill all of the processes you just created since calling \keyword{killall} requires your shell to \keyword{fork()} \ldots{} isn't this ironic? One solution is to spawn another shell instance as another user (for example root) beforehand and kill processes from there.
+Note, this limit is only for the user, which means if you fork bomb, then you won't be able to kill all created process since calling \keyword{killall} requires your shell to \keyword{fork()} \ldots{}
+Quite unfortunate.
+One solution is to spawn another shell instance as another user (for example root) beforehand and kill processes from there.
 
 Another is to use the built-in \keyword{exec} command to kill all the user processes (you only have one attempt at this).
 
@@ -236,7 +238,7 @@ Fork can be \textbf{extremely} dangerous if you aren't prepared for it. \textbf{
 The \keyword{fork} system call clones the current process to create a new process, called a child process.
 This occurs by duplicating the state of the existing process with a few minor differences.
 \begin{itemize}
-    \item The child process does not start from main. Instead, it executes the next line after the \keyword{fork()} just as the parent process does.
+    \item The child process does not start from main. Instead, it executes the next line after the \keyword{fork()} as the parent process does.
     \item Just as a side remark, in older UNIX systems, the entire address space of the parent process was directly copied regardless of whether the resource was modified or not. The current behavior is for the kernel to perform a \href{https://en.wikipedia.org/wiki/Copy-on-write}{copy-on-write}, which saves a lot of resources, while being very time efficient \cite[Copy-on-write section]{Bovet:2005:ULK:1077084}.
 \end{itemize}
 
@@ -396,7 +398,7 @@ int main(){
 \end{lstlisting}
 
 We misspelled \keyword{ehco}, so the \keyword{exec} call fails.
-What does this mean? Instead of creating 10 processes, we just created \emph{1024 processes, fork bombing our machine}. \textbf{How could we prevent this? Add an exit right after exec, so that if exec fails, we won't end up calling fork an unbounded number of times.}
+What does this mean? Instead of creating 10 processes, we created \emph{1024 processes, fork bombing our machine}. \textbf{How could we prevent this? Add an exit right after exec, so that if exec fails, we won't end up calling fork an unbounded number of times.}
 There are various other ways. What if we removed the \keyword{echo} binary? What if the binary itself creates a fork bomb?
 
 \subsection{Signals}
@@ -582,7 +584,7 @@ What should you take away from this long-winded example to avoid undefined behav
 \end{enumerate}
 
 So how would we fix the code?
-We'd just have to flush the file before forking and refrain from using it until after the \keyword{wait} call -- more on the specifics of this next section.
+We would have to flush the file before forking and refrain from using it until after the \keyword{wait} call -- more on the specifics of this next section.
 
 \begin{lstlisting}[language=C]
 size_t buffer_cap = 0;
@@ -657,7 +659,7 @@ Here is the behavior of \keyword{waitpid}:
 \item The last parameter to waitpid is an option parameter.
 The options are listed below:
   \begin{enunmerate}
-      \item WNOHANG - Return whether or not the searched process has exited
+      \item WNOHANG - Return whetherthe searched process has exited
       \item WNOWAIT - Wait, but leave the child wait-able by another wait call
       \item WEXITED - Wait for exited children
       \item WSTOPPED - Wait for stopped children
@@ -698,7 +700,7 @@ Remember: these macros only make sense if the precondition is met.
 For example, a process' exit status won't be defined if the process isn't signaled.
 The macros will not do the checking for the program, so it's up to the programmer to make sure the logic is correct.
 As an example above, the program should use the \keyword{WIFSTOPPED} to check if a process was stopped and then the \keyword{WSTOPSIG} to find the signal that stopped it.
-As such, there is no need to memorize the following. This is just a high-level overview of how information is stored inside the status variables. From the \keyword{sys/wait.h} of an old Berkeley Standard Distribution(BSD) kernel \cite{sys/wait.h}:
+As such, there is no need to memorize the following. This is a high-level overview of how information is stored inside the status variables. From the \keyword{sys/wait.h} of an old Berkeley Standard Distribution(BSD) kernel \cite{sys/wait.h}:
 
 \begin{lstlisting}[language=C]
 /* If WIFEXITED(STATUS), the low-order 8 bits of the status. */
@@ -895,7 +897,7 @@ int main(int argc, char**argv) {
 The \keyword{system} call will fork, execute the command passed by parameter and the original parent process will wait for this to finish.
 This also means that \keyword{system} is a blocking call.
 The parent process can't continue until the process started by \keyword{system} exits.
-Also, \keyword{system} actually creates a shell that is then given the string, which is more overhead than just using \keyword{exec} directly.
+Also, \keyword{system} actually creates a shell that is then given the string, which is more overhead than using \keyword{exec} directly.
 The standard shell will use the \keyword{PATH} environment variable to search for a filename that matches the command.
 Using system will usually be sufficient for many simple run-this-command problems but can quickly become limiting for more complex or subtle problems, and it hides the mechanics of the fork-exec-wait pattern, so we encourage you to learn and use \keyword{fork} \keyword{exec} and \keyword{waitpid} instead.
 It also tends to be a huge security risk.
@@ -1027,7 +1029,7 @@ Note that we aren't expecting you to memorize the man page.
     \item
           What signal is sent when you press \keyword{CTRL-C}?
     \item
-          My terminal is anchored to PID = 1337 and has just become unresponsive. Write me the terminal command and the C code to send \keyword{SIGQUIT} to it.
+          My terminal is anchored to PID = 1337 and has become unresponsive. Write me the terminal command and the C code to send \keyword{SIGQUIT} to it.
     \item
           Can one process alter another processes memory through normal means? Why?
     \item

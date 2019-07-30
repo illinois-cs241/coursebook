@@ -77,7 +77,7 @@ Since that can get unruly, we can omit the zeros "1F45::". A machine can have an
 There are special IP Addresses.
 One such in IPv4 is \keyword{127.0.0.1}, IPv6 as \keyword{0:0:0:0:0:0:0:1} or \keyword{::1} also known as localhost.
 Packets sent to 127.0.0.1 will never leave the machine; the address is specified to be the same machine.
-There are a lot of others that are denoted by certain octets being zeros or 255, the maximum value. You won't need to know all the terminology, just keep in mind that the actual number of IP addresses that a machine can have globally over the Internet is smaller than the number of ``raw'' addresses.
+There are a lot of others that are denoted by certain octets being zeros or 255, the maximum value. You won't need to know all the terminology, keep in mind that the actual number of IP addresses that a machine can have globally over the Internet is smaller than the number of ``raw'' addresses.
 For the purposes of the class, you need to know at this layer that IP deals with routing, fragmenting, and reassembling upper-level protocols. A more in-depth aside follows.
 
 \subsection{Extra: In-depth IPv4 Specification}
@@ -330,7 +330,7 @@ This may be to be efficient with machines.
 If Google or Facebook has a single server routing \textit{all} of their incoming requests to other computers, they'd have to spend massive amounts of money on that computer or data center.
 Instead, they can give different regions different IP addresses and have a computer pick.
 It isn't bad to access a website through the non-preferred IP address.
-You may just get slower loading times.
+The page may load slower.
 
 \section{Layer 4: TCP and Client}
 
@@ -436,7 +436,7 @@ The inverse functions (\keyword{ntohs}, \keyword{ntohl}) convert network ordered
 So, is host-ordering little-endian or big-endian?
 The answer is - it depends on your machine!
 It depends on the actual architecture of the host running the code.
-If the architecture happens to be the same as network ordering then the result of these functions is just the argument.
+If the architecture happens to be the same as network ordering then the functions return identical integers.
 For x86 machines, the host and network ordering are different.
 
 Unless agreed otherwise, whenever you read or write the low level C network structures, i.e. port and address information, remember to use the above functions to ensure correct conversion to/from a machine format.
@@ -499,7 +499,7 @@ if(result) {
 The socket call creates a network socket and returns a descriptor that can be used with \keyword{read} and \keyword{write}.
 In this sense, it is the network analog of \keyword{open} that opens a file stream -- except that we haven't connected the socket to anything yet!
 
-Sockets are created with a domain \keyword{AF\_INET} for \keyword{IPv4} or \keyword{AF\_INET6} for \keyword{IPv6}, \keyword{socket\_type} is whether to use UDP, TCP, or other some other socket type, the \keyword{protocol} is an optional choice of protocol configuration for our examples this we can just leave this as 0 for default.
+Sockets are created with a domain \keyword{AF\_INET} for \keyword{IPv4} or \keyword{AF\_INET6} for \keyword{IPv6}, \keyword{socket\_type} is whether to use UDP, TCP, or other some other socket type, the \keyword{protocol} is an optional choice of protocol configuration for our examples this we can leave this as 0 for default.
 This call creates a socket object in the kernel with which one can communicate with the outside world/network.
 You can use the result of \keyword{getaddressinfo} to fill in the \keyword{socket} parameters, or provide them manually.
 
@@ -780,7 +780,7 @@ int client_id = accept(passive_socket,
   Use \keyword{close} when your process no longer needs the socket file descriptor.
 
   If you \keyword{fork}-ed after creating a socket file descriptor, all processes need to close the socket before the socket resources can be reused.
-  If you shutdown a socket for further read, all processes are affected because you've changed the socket, not just the file descriptor.
+  If you shutdown a socket for further read, all processes are affected because you've changed the socket, not the file descriptor.
   Well written code will \keyword{shutdown} a socket before calling \keyword{close} it.
 
 \end{enumerate}
@@ -917,7 +917,7 @@ A streaming video signal may send picture updates using UDP
 \item Simple
   The UDP protocol is supposed to have much less fluff than TCP.
   Meaning that for TCP there are a lot of configurable parameters and a lot of edge cases in the implementation.
-  UDP is just fire and forget.
+  UDP is fire and forget.
 \item Stateless/Transaction
   The UDP protocol does not keep a ``state'' of the connection.
   This makes the protocol more simple and lets the protocol represent simple transactions like requesting or responding to queries.
@@ -935,7 +935,7 @@ The full gory description is available at the original RFC \cite{rfc768}.
 
 While it may seem that you never want to use UDP for situations that you don't want to lose data, a lot of protocols base their communication based on UDP that require complete data.
 Take a look at the Trivial File Transfer Protocol that reliably transmits a file over the wire using UDP only.
-Of course, there is more configuration involved, but choosing between UDP over TCP isn't just the above factors.
+Of course, there is more configuration involved, but choosing between UDP over TCP involves more than the above factors.
 
 \subsection{UDP Client}
 
@@ -1031,7 +1031,7 @@ We could have also specified a service name instead of a numeric port value.
 
 So far, the calls have been similar to a TCP server.
 For a stream-based service, we would call \keyword{listen} and accept.
-For our UDP-server, we can just start waiting for the arrival of a packet on the socket.
+For our UDP-server, the program can start waiting for the arrival of a packet.
 
 \begin{lstlisting}[language=C]
 struct sockaddr_storage addr;
@@ -1262,7 +1262,7 @@ It even gives you a way to store a small amount of data with each descriptor, li
 
 First, you must create a special file descriptor with \href{http://linux.die.net/man/2/epoll_create}{epoll\_create()}.
 You won't read or write to this file descriptor.
-You'll just pass it to the other epoll\_xxx functions and call close() on it at the end.
+You'll pass it to the other epoll\_xxx functions and call close() on it at the end.
 
 \begin{lstlisting}[language=C]
 int epfd = epoll_create(1);
@@ -1488,7 +1488,7 @@ To marshal a struct, decide which fields need to be serialized.
 It may not be necessary to send all data items.
 For example, some items may be irrelevant to the specific RPC or can be re-computed by the server from the other data items present.
 
-To marshal a linked list, it is unnecessary to send the link pointers, just stream the values.
+To marshal a linked list, it is unnecessary to send the link pointers, stream the values.
 As part of unmarshaling, the server can recreate a linked list structure from the byte sequence.
 
 By starting at the head node/vertex, a simple tree can be recursively visited to create a serialized version of the data.

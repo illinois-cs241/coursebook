@@ -213,12 +213,12 @@ The actual intra-block reading times don't change.
 
 \subsection{Directory Implementation}
 
-A directory is just a mapping of names to inode numbers.
-It is typically just a normal file, but with some special bits set in its inode and a very specific structure for its contents.
+A directory is a mapping of names to inode numbers.
+It is typically a normal file, but with some special bits set in its inode and a very specific structure for its contents.
 POSIX provides a small set of functions to read the filename and inode number for each entry, which we will talk about in depth later in this chapter.
 
-Let's think about what it looks like in the actual file system.
-Theoretically, directories are just like actual files.
+Let's think about what directories looks like in the actual file system.
+Theoretically, they are files.
 The disk blocks will contain \emph{directory entries} or \emph{dirents}.
 What that means is that our disk block can look like this
 
@@ -270,7 +270,7 @@ Additional facts about name-related conventions:
 
 While interacting with a file in C is typically done by using \keyword{open} to open the file and then \keyword{read} or \keyword{write} to interact with the file before calling \keyword{close} to release resources, directories have special calls such as, \keyword{opendir}, \keyword{closedir} and \keyword{readdir}.
 There is no function \keyword{writedir} since typically that implies creating a file or link.
-The program would just use something like \keyword{open} or \keyword{mkdir}.
+The program would use something like \keyword{open} or \keyword{mkdir}.
 
 To explore these functions, let's write a program to search the contents of a directory for a particular file.
 The code below has a bug, try to spot it!
@@ -405,7 +405,7 @@ link("file1.txt", "blip.txt");
         Note when people generally talk about a link without specifying hard or soft, they are referring to a hard link.
 
         To create a symbolic link in the shell, use \keyword{ln -s}.
-        To read the contents of the link as just a file, use \keyword{readlink}.
+        To read the contents of the link as a file, use \keyword{readlink}.
         These are both demonstrated below.
 
 \begin{verbatim}
@@ -577,11 +577,11 @@ if (0 == stat(name, &s)) {
 \section{Permissions and bits}
 
 Permissions are a key part of the way UNIX systems provide security in a filesystem.
-You may have noticed that the \keyword{st\_mode} field in \keyword{struct stat} contains more than just the file type.
+You may have noticed that the \keyword{st\_mode} field in \keyword{struct stat} contains more than the file type.
 It also contains the mode, a description detailing what a user can and can't do with a given file.
 There are usually three sets of permissions for any file.
 Permissions for the \emph{user}, the \emph{group} and \emph{other} (everyone not covered by the first two categories).
-For each of the three categories, we need to keep track of whether or not the user is allowed to read the file, write to the file, and execute the file.
+For each of the three categories, we need to keep track of whetherthe user is allowed to read the file, write to the file, and execute the file.
 Since there are three categories and three permissions, permissions are usually represented as a 3-digit octal number.
 For each digit, the least significant byte corresponds to read privileges, the middle one to write privileges and the final byte to execute privileges.
 They are always presented as \emph{User}, \emph{Group}, \emph{Other} (\emph{UGO}).
@@ -602,9 +602,9 @@ Here are the bit conventions:
 
 It is worth noting that the \keyword{rwx} bits have a slightly different meaning for directories.
 Write access to a directory that will allow a program to create or delete new files or directories inside.
-You can think about this as just having write access to the directory entry (dirent) mappings.
+You can think about this as having write access to the directory entry (dirent) mappings.
 Read-access to a directory will allow a program to list a directory's contents.
-This is just read access to the directory entry (dirent) mapping.
+This is read access to the directory entry (dirent) mapping.
 Execute will allow a program to enter the directory using cd.
 Without the execute bit, it is not possible to create or remove files or directories since you cannot access them.
 You can, however, list the contents of the directory.
@@ -1092,7 +1092,7 @@ In practice, this is more likely to cause a failure because one disk is being us
 
 A single disk failure will not result in data loss because there is sufficient data to rebuild the array from the remaining disks.
 Data-loss will occur when two disks are unusable because there is no longer sufficient data to rebuild the array.
-We can calculate the probability of a two disk failure based on the repair time which includes not just the time to insert a new disk but the time required to rebuild the entire contents of the array.
+We can calculate the probability of a two disk failure based on the repair time which factors both the time to insert a new disk and the time required to rebuild the entire contents of the array.
 
 \begin{verbatim}
 MTTF = mean time to failure
@@ -1116,7 +1116,7 @@ The one drawback is that you need more disks to have this setup, and there are m
 Failure is common.
 Google reports 2-10\% of disks fail per year.
 Multiplying that by 60,000+ disks in a single warehouse.
-Services must survive failure of not just a disk, but a rack of servers or even a whole data center.
+Services must survive single disk, rack of servers, or whole data center failures.
 
 \subsection{Solutions}
 Simple redundancy (2 or 3 copies of each file) e.g., Google GFS (2001).
@@ -1245,14 +1245,14 @@ If we pretend that the example above is a directory.
 We know that we will be adding at most one directory entry at a time.
 Meaning that we have to have enough space for one directory entry in our data blocks.
 Luckily the last data block that we have has enough free space.
-This means we just need to find the number of the last data block as we did above, go to where the data ends, and write one directory entry.
+This means we need to find the number of the last data block as we did above, go to where the data ends, and write one directory entry.
 Don't forget to update the size of the directory so that the next creation doesn't overwrite your file!
 
 Some more questions: 
 
 \begin{itemize}
     \item How would would a program perform a write when the last data block is already full?
-    \item How about when all the direct blocks have just been filled up and the inode doesn't have an indirect block?
+    \item How about when all the direct blocks have been filled up and the inode doesn't have an indirect block?
     \item What about when the first indirect entry (\#4) is full?
 \end{itemize}
 
@@ -1263,7 +1263,7 @@ A filesystem decreases the hard link count of the inode and if the count reaches
 In many operating systems, several fields in the inode get overwritten.
 
 If the inode is a directory, the filesystem checks if it is empty.
-If not, then the kernel will most likely just mark an error.
+If not, then the kernel will most likely mark an error.
 
 \section{Extra: Modern Filesystems}
 
@@ -1279,7 +1279,7 @@ While the API for most filesystems have stayed the same on POSIX over the years,
 \item Efficient Backups. Many of us have data that we can't store on the cloud for one reason or another. It is useful that when a filesystems is either being used as a backup medium or is the source to the backup that it is able to calculate what has changed efficiently, compress files, and sync between the external drive.
 \item Integriy and Bootability. File systems need to be resillient to bit flipping. Most readers have their operating system installed on the same paritition as the file system that they used to do different operations. The file system needs to make sure a stray read or write doesn't destroy the boot sector -- meaning your computer can't start up again.
 \item Fragmentation. Just like a memory allocator, allocating space for a file leads to both internal and external fragmentation. The same caching benefit occurs when disk blocks for a single file are located next to each other. File systems need to perform well under low, high, and possible fragmentation usage.
-\item Distributed. Sometimes, the filesystem should be single machine fault tolerant. Hadoop and other distributed file system allow you to do just that.
+\item Distributed. Sometimes, the filesystem should be single machine fault tolerant. Hadoop and other distributed file system allow you to do that.
 \end{itemize}
 
 \subsection{Extra: Cutting Edge File systems}

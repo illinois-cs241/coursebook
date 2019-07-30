@@ -153,7 +153,7 @@ void *countgold(void *param) {
   int i;
 
   //Same thread that locks the mutex must unlock it
-  //Critical section is just 'sum += 1'
+  //Critical section is 'sum += 1'
   //However locking and unlocking a million times
   //has significant overhead
 
@@ -212,7 +212,7 @@ return NULL;
 }
 \end{lstlisting}
 
-If you know the Gaussian sum, you can avoid race conditions altogether, but this is just for illustration.
+If you know the Gaussian sum, you can avoid race conditions altogether, but this is for illustration.
 
 Starting with the gotchas.
 Firstly, C Mutexes do not lock variables.
@@ -281,7 +281,7 @@ For the time being, we'll avoid the condition that other threads are able to unl
 // Version 1 (Incorrect!)
 
 void lock(mutex_t *m) {
-  while(m->locked) { /*Locked? Never-mind - just loop and check again!*/ }
+  while(m->locked) { /*Locked? Never-mind - loop and check again!*/ }
 
   m->locked = 1;
 }
@@ -379,7 +379,7 @@ What does the \emph{weak} part mean?
 Atomic instructions are prone to \textbf{spurious failures} meaning that there are two versions to these atomic functions a \emph{strong} and a \emph{weak} part, strong guarantees the success or failure while weak may fail even when the operation succeeds.
 These are the same spurious failures that you'll see in condition variables below.
 We are using weak because weak is faster, and we are in a loop!
-That means we are okay if it fails a little bit more often because we will just keep spinning around anyway.
+That means we are okay if it fails a little bit more often because we will keep spinning around anyway.
 
 Inside the while loop, we have failed to grab the lock!
 We reset zero to unlocked and sleep for a little while.
@@ -483,7 +483,7 @@ sem_wait(&s);
 sem_post(&s);
 
 // Thread 2
-// Some threads just want to see the world burn
+// Some threads want to see the world burn
 sem_post(&s);
 
 // Thread 3
@@ -682,7 +682,7 @@ We say a data structure operation is atomic if it happens all at once and succes
 
 As such, we can use synchronization primitives to make our data structures thread-safe.
 For the most part, we will be using mutexes because they carry more semantic meaning than a binary semaphore.
-Note, this is just an introduction.
+Note, this is an introduction.
 Writing high-performance thread-safe data structures requires its own book!
 Take for example the following thread-unsafe stack.
 
@@ -1062,7 +1062,7 @@ void push(double v) {
 }
 \end{lstlisting}
 
-Rather than just giving you the answer, we'll let you think about this.
+Rather than giving you the answer, we'll let you think about this.
 Is this a permissible way to lock and unlock?
 Is there a series of operations that could cause a race condition?
 How about deadlock?
@@ -1693,7 +1693,7 @@ int main() {
 
 Note, we will never dereference this pointer value as an actual memory location.
 
-We will just cast it straight back to an integer.
+We will cast it straight back to an integer.
 
 \begin{lstlisting}[language=C]
 void *calc(void *ptr) {
@@ -2395,7 +2395,7 @@ int main() {
 \end{lstlisting}
 
 What the code does in main is initialize a process shared mutex using a piece of \keyword{shared} memory.
-You will find out what this call to \keyword{mmap} does later -- just assume for the time being that it creates memory that is shared between processes.
+You will find out what this call to \keyword{mmap} does later -- assume for the time being that it creates memory that is shared between processes.
 We can initialize a \keyword{pthread\_mutex\_t} in that special piece of memory and use it as normal.
 To counter \keyword{write} failing, we have put the \keyword{write} call inside a while loop that keeps writing so long as there are bytes left to write.
 Now if all the other system calls function, there should be more race conditions.
@@ -2564,7 +2564,7 @@ func main() {
 \end{lstlisting}
 
 Although there is a bit more boilerplate code, we don't have mutexes anymore!
-If we wanted to scale this operation and do other things like increment by a number, or write to a file, we can just have that particular actor take care of it.
+If we wanted to scale this operation and do other things like increment by a number, or write to a file, we can have that particular actor take care of it.
 This differentiation of responsibilities is important to make sure your design scales well.
 There are even libraries that handle all of the boilerplate code as well.
 
@@ -2701,7 +2701,7 @@ if(not_ready){
 \item
   Write up a Producer/Consumer queue, How about a producer consumer stack?
 \item
-  Give me an implementation of a reader-writer lock with condition variables, make a struct with whatever you need, it just needs to be able to support the following functions
+  Give me an implementation of a reader-writer lock with condition variables, make a struct with whatever you need, it needs to be able to support the following functions
 
 \begin{lstlisting}[language=C]
 typedef struct {

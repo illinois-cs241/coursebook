@@ -67,7 +67,7 @@ To access a particular byte in a frame, an MMU goes from the start of the frame 
 A \textbf{page table} is a map from a number to a particular frame.
 For example Page 1 might be mapped to frame 45, page 2 mapped to frame 30.
 Other frames might be currently unused or assigned to other running processes or used internally by the operating system.
-You can imagine a page table just as that
+Implied from the name, imagine a page table as a table.
 
 \begin{figure}[H]
   \centering
@@ -183,7 +183,7 @@ However, for processes with only tiny memory needs, we only need to specify entr
 
 Thus, the total memory overhead for our multi-level page table has shrunk from 4MiB for the single-level implementation to three page tables of memory or 2KiB for the top-level and 4KiB for the two intermediate levels or 10KiB.
 Here's why.
-We need at least one frame for the high-level directory and two frames for just two sub-tables.
+We need at least one frame for the high-level directory and two frames for two sub-tables.
 One sub-table is necessary for the low addresses -- program code, constants and possibly a tiny heap.
 The other sub-table is for higher addresses used by the environment and stack.
 In practice, real programs will likely need more sub-table entries, as each subtable can only reference 1024*4KiB = 4MiB of address space.
@@ -307,7 +307,7 @@ The other is to ask the kernel to map two pages of memory to the same virtual me
 
 \section{mmap}
 
-\keyword{mmap} is a trick of virtual memory of instead of mapping a page to just a frame, that frame can be backed by a file on disk, or the frame can be shared among processes.
+\keyword{mmap} is a trick of virtual memory of instead of mapping a page to a frame, that frame can be backed by a file on disk, or the frame can be shared among processes.
 We can use that to read from a file on disk efficiently or sync changes to the file.
 One of the big optimizations is that this does not mean that the file is allocated to memory right away.
 Take the following code for example.
@@ -328,7 +328,7 @@ They let the operating system take control of when a file is used.
 
 \subsection{mmap Definitions}
 
-\keyword{mmap} does more than just take a file and map it to memory.
+\keyword{mmap} does more than take a file and map it to memory.
 It is the general interface for creating shared memory among processes.
 Currently it only supports regular files and POSIX \keyword{shmem} \cite{mmap_2018}.
 Naturally, you can read all about it in the reference above, which references the current working group POSIX standard.
@@ -474,7 +474,7 @@ The parent process writes two integers to the first two slots.
 To avoid a data race, the child sleeps for a second and then prints out the stored values.
 This is not a perfect way to protect against data races.
 We could use a mutex across processes mentioned in the synchronization section.
-But for this simple example, it works just fine.
+But for this simple example, it works fine.
 Note that each process should call munmap when done using the piece of memory.
 
 Sharing anonymous memory is a very efficient form of inter-process communication because there is no copying, system call, or disk-access overhead - the two processes literally share the same physical frame of main memory.
@@ -694,7 +694,7 @@ $ cat /dev/urandom | head -n 20
 \end{lstlisting}
 Which grabs 20 lines of input from urandom. \keyword{head} will terminate after 20 newline characters have been read.
 What about \keyword{cat}?
-\keyword{cat} needs to receive a SIGPIPE informing it that the program just tried to write to a pipe that no one is listening on.
+\keyword{cat} needs to receive a SIGPIPE informing it that the program tried to write to a pipe that no one is listening on.
 
 \subsection{Other pipe facts}
 
@@ -781,7 +781,9 @@ int main() {
   fclose(f);
 \end{lstlisting}
 
-For writing to files this is unnecessary - just use \keyword{fopen} which does the same as \keyword{open} and \keyword{fdopen} However for pipes, we already have a file descriptor - so this is a great time to use \keyword{fdopen}
+For writing to files, this is unnecessary.
+Use \keyword{fopen} which does the same as \keyword{open} and \keyword{fdopen}.
+However for pipes, we already have a file descriptor, so this is a great time to use \keyword{fdopen}
 
 Here's a complete example using pipes that almost works!
 Can you spot the error?
@@ -838,7 +840,7 @@ Named pipes take up virtually no space on disk.
 This means the actual contents of the pipe aren't printed to the file and read from that same file.
 What the operating system tells you when you have a named pipe is that it will create an unnamed pipe that refers to the named pipe, and that's it!
 There is no additional magic.
-This is just for programming convenience if processes are started without forking meaning that there would be no way to get the file descriptor to the child process for an unnamed pipe.
+This is for programming convenience if processes are started without forking meaning that there would be no way to get the file descriptor to the child process for an unnamed pipe.
 
 \subsection{Why is my named pipe hanging?}
 

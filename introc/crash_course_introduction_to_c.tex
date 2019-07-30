@@ -68,7 +68,7 @@ char buffer[10]
 There are side effects to the preprocessor though.
 One problem is that the preprocessor needs to be able to \gls{tokenize} properly, meaning trying to redefine the internals of the C language with a preprocessor may be impossible.
 Another problem is that they can't be \gls{nested} infinitely - there is a bounded depth where they need to stop.
-Macros are also just simple text substitutions, without semantics.
+Macros are also simple text substitutions, without semantics.
 For example, look at what can happen if a macro tries to perform an inline modification.
 
 \begin{lstlisting}[language=C]

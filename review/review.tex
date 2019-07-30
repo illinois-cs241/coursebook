@@ -287,7 +287,7 @@ void* func(void* mesg) {
 int main(int argc, char** argv){
   pthread_t tid1;
   pthread_create(&tid1, NULL, func, "A");
-  func("B"); // no need to create another thread - just use the main thread
+  func("B"); // no need to create another thread - use the main thread
   return 0;
 }
 \end{lstlisting}

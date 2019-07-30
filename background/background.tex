@@ -26,7 +26,7 @@ Serious implications arise for race conditions and atomic operations.
 An operation is atomic if no other processor should interrupt it. Take for example the above assembly code to add one to a register.
 In the architecture, it may actually have a few different steps on the circuit.
 The operation may start by fetching the value of the memory from the stick of ram, then storing it in the cache or a register, and then finally writing back \cite{schweizer2015evaluating} -- under the description for \textit{fetch-and-add} though your micro-architecture may vary.
-Or depending on performance operations, it may keep that value in cache or in a register which is local to that process -- try dumping the \keyword{-O2} optimized assembly of incrementing a variable and printing it out on most modern compilers, which will probably just use a register.
+Or depending on performance operations, it may keep that value in cache or in a register which is local to that process -- try dumping the \keyword{-O2} optimized assembly of incrementing a variable.
 The problem comes in if two processors try to do it at the same time.
 The two processors could at the same time copy the value of the memory address, add one, and store the same result back, resulting in the value only being incremented once.
 That is why we have a special set of instructions on modern systems called atomic operations.
@@ -52,7 +52,7 @@ If a particular address is already in the cache when reading or writing, the pro
 If it isn't, the processor requests a chunk of memory from the memory chip and stores it in the cache, kicking out the least recently used page -- this depends on caching policy, but Intel's does use this.
 This is done because the l3 processor cache is roughly three times faster to reach than the memory in terms of time \cite[p. 22]{levinthal2009performance} though exact speeds will vary based on the clock speed and architecture.
 Naturally, this leads to problems because there are two different copies of the same value, in the cited paper this refers to an unshared line.
-This isn't a class about caching, just know how this could impact your code.
+This isn't a class about caching, know how this could impact your code.
 A short but non-complete list could be
 
 \begin{enumerate}
@@ -231,7 +231,8 @@ This means emacs can house a terminal, gdb session, ssh session, code and a whol
 It would not be fitting any other way to introduce you to the gnu-emacs any other way than the gnu-docs \url{https://www.gnu.org/software/emacs/tour/}.
 Just note that emacs is \textit{insanely} powerful.
 You can do almost anything with it.
-There are a fair number of students who like the IDE-aspect of other programming languages, just know you can set up emacs to be an IDE, but you have to learn a bit of lisp \url{http://martinsosic.com/development/emacs/2017/12/09/emacs-cpp-ide.html}.
+There are a fair number of students who like the IDE-aspect of other programming languages.
+Know that you can set up emacs to be an IDE, but you have to learn a bit of Lisp \url{http://martinsosic.com/development/emacs/2017/12/09/emacs-cpp-ide.html}.
 
 Then there are those of you who like to use your own editors. That is completely fine.
 For this, we require sshfs which has ports on many different machines.
@@ -300,7 +301,7 @@ The \keyword{DEBUG} macro will disable all assertions, so don't forget to set th
 
 Here is a quick example with an assert.
 Let's say that we are writing code using memcpy.
-We would want to put an assert before that checks whether or not my two memory regions overlap.
+We would want to put an assert before that checks whethermy two memory regions overlap.
 If they do overlap, memcpy runs into undefined behavior, so we want to catch that problem than later.
 
 \begin{lstlisting}[language=C]
@@ -812,7 +813,7 @@ Here are the rough stages of compiling for gcc.
 \item The program is run.
 \end{enumerate}
 
-Further classes will teach you about parsing and assembly -- preprocessing is just an extension of parsing.
+Further classes will teach you about parsing and assembly -- preprocessing is an extension of parsing.
 Most classes won't teach you about the two different types of linking though.
 Static linking a library is not too big of a stretch of the imagination.
 To create a static library, a compiler combines different object files to create one executable.
@@ -901,7 +902,10 @@ The virtual machine-in-your-browser and the videos you need for HW0 are here:
 Questions? Comments? Use the current semester's CS241 Piazza:
 \url{https://piazza.com/}
 
-The in-browser virtual machine runs entirely in JavaScript and is fastest in Chrome. Note the VM and any code you write is reset when you reload the page, \textbf{so copy your code to a separate document.} The post-video challenges are not part of homework 0 but you learn the most by doing rather than just passively watching - so we suggest you have some fun with each end-of-video challenge.
+The in-browser virtual machine runs entirely in JavaScript and is fastest in Chrome.
+Note the VM and any code you write is reset when you reload the page, \textbf{so copy your code to a separate document.}
+The post-video challenges are not part of homework 0, but you learn the most by doing rather than passively watching.
+You have some fun with each end-of-video challenge.
 
 HW0 questions are below. Copy your answers into a text document because you'll need to submit them later in the course.
 
@@ -1030,7 +1034,7 @@ Explain why this may be insufficient to generate a new build.
 \item What does \keyword{git commit} do? What's a \keyword{sha} in the context of git?
 \item What does \keyword{git log} show you?
 \item What does \keyword{git status} tell you and how would the contents of \keyword{.gitignore} change its output?
-\item What does \keyword{git push} do? Why is it not just sufficient to commit with \keyword{git commit -m 'fixed all bugs' }?
+\item What does \keyword{git push} do? Why is it insufficient to commit with \keyword{git commit -m 'fixed all bugs' }?
 \item What does a non-fast-forward error \keyword{git push} reject mean? What is the most common way of dealing with this?
 \end{enumerate}
 

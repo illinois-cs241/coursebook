@@ -4,7 +4,7 @@ The C memory model is probably unlike most that you've seen before. Instead of a
 
 \subsection{Structs}
 
-In low-level terms, a struct is just a piece of contiguous memory, nothing more.
+In low-level terms, a struct is a piece of contiguous memory, nothing more.
 Just like an array, a struct has enough space to keep all of its members.
 But unlike an array, it can store different types. Consider the contact struct declared above.
 
@@ -18,7 +18,8 @@ struct contact {
 struct contact bhuvan;
 \end{lstlisting}
 
-We will often use the following typedef so we can just write contact contact1. One can also declare it in a single statement. 
+We will often use the following typedef, so we can write use the struct name as the full type.
+
 \begin{lstlisting}[language=C]
 typedef struct contact contact;
 contact bhuvan;
@@ -104,14 +105,14 @@ strcmp(bhuvan_name->c_str, "bhuvan") == 0 //The strings are equal!
 
 What that zero length array does is point to the \textbf{end of the struct} this means that the compiler will leave room for all of the elements calculated with respect to their size on the operating system (ints, chars, etc).
 The zero length array will take up no bytes of space.
-Since structs are just continuous pieces of memory, we can allocate \textbf{more} space than required and use the extra space as a place to store extra bytes.
+Since structs are continuous pieces of memory, we can allocate \textbf{more} space than required and use the extra space as a place to store extra bytes.
 Although this seems like a parlor trick, it is an important optimization because to have a variable length string any other way, one would need to have two different memory allocation calls.
 This is highly inefficient for doing something as common in programming as is string manipulation.
 
 \subsubsection{Extra: Struct packing}
 
 Structs may require something called \href{http://www.catb.org/esr/structure-packing/}{padding} (tutorial).
-\textbf{We do not expect you to pack structs in this course, just know that it is there}.
+\textbf{We do not expect you to pack structs in this course, know that compilers perform it}.
 This is because in the early days (and even now) loading an address in memory happens in 32-bit or 64-bit blocks.
 This also meant requested addresses had to be multiples of block sizes.
 
@@ -199,7 +200,7 @@ A string in C is defined as a bunch of bytes ended by `\0' or the NUL Byte.
 \subsection{Places for strings}
 
 Whenever you define a string literal - one in the form \keyword{char*\ str\ =\ "constant"} -- that string is stored in the \emph{data} section. Depending on your architecture, it is \textbf{read-only}, meaning that any attempt to modify the string will cause a SEGFAULT.
-One can also declare strings to be either in the writable data segment or the stack. To do so, just specify a length for the string or put brackets instead of a pointer \keyword{char str[] = "mutable"} and put in the global scope or the function scope for the data segment or the stack respectively.
+One can also declare strings to be either in the writable data segment or the stack. To do so, specify a length for the string or put brackets instead of a pointer \keyword{char str[] = "mutable"} and put in the global scope or the function scope for the data segment or the stack respectively.
 If one, however, \keyword{malloc}'s space, one can change that string to be whatever they want.
 Forgetting to NUL terminate a string has a big effect on the strings! Bounds checking is important.
 The heartbleed bug mentioned earlier in the book is partially because of this.

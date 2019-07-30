@@ -1,6 +1,6 @@
 \chapter{Threads}
 
-\epigraph{If you think your programs were not working before, just wait until they crash ten times as fast}{Bhuvy}
+\epigraph{If you think your programs were not working before, wait until they crash ten times as fast}{Bhuvy}
 
 A thread is short for `thread-of-execution'.
 It represents the sequence of instructions that the CPU has and will execute.
@@ -41,7 +41,8 @@ We will store them in memory using a stack and keep track of how large the stack
 If the thread calls another function, we move our stack pointer down, so that we have more space for parameters and automatic variables.
 Once it returns from a function, we can move the stack pointer back up to its previous value.
 We keep a copy of the old stack pointer value - on the stack!
-This is why returning from a function is very quick - it's easy to `free' the memory used by automatic variables - we just need to change the stack pointer.
+This is why returning from a function is quick.
+It's easy to `free' the memory used by automatic variables because the program needs to change the stack pointer.
 
 In a multi-threaded program, there are multiple stacks but only one address space. The pthread library allocates some stack space and uses the \keyword{clone} function call to start the thread at that stack address.
 
@@ -129,7 +130,7 @@ Here are some common pthread functions.
 \begin{itemize}
 \item \keyword{pthread\_create}.
 Creates a new thread.
-Every thread that gets created gets a new stack.
+Every thread gets a new stack.
 If a program calls \keyword{pthread\_create} twice, Your process will contain three stacks - one for each thread.
 The first thread is created when the process start, the other two after the create.
 Actually, there can be more stacks than this, but let's keep it simple.
@@ -275,7 +276,7 @@ We need to come up with a software solution to this problem.
 Here is another small race condition.
 The following code is supposed to start ten threads with the integers 0 through 9 inclusive.
 However, when run prints out \keyword{1 7 8 8 8 8 8 8 8 10}!
-Or very seldom does it print out what we expect.
+Or seldom does it print out what we expect.
 Can you see why?
 
 \begin{lstlisting}[language=C]
@@ -321,8 +322,8 @@ int main() {
 }
 \end{lstlisting}
 
-Race conditions aren't just in our code.
-they can be in provided code
+Race conditions aren't in our code.
+They can be in provided code
 Some functions like \keyword{asctime}, \keyword{getenv}, \keyword{strtok}, \keyword{strerror} not thread-safe.
 Let's look at a simple function that is also not `thread-safe'.
 The result buffer could be stored in global memory.
@@ -412,7 +413,7 @@ int main() {
 \end{verbatim}
 
 In practice, creating threads before forking can lead to unexpected errors because (as demonstrated above) the other threads are immediately terminated when forking.
-Another thread might have just locked a mutex like by calling malloc and never unlock it again.
+Another thread might have locked a mutex like by calling malloc and never unlock it again.
 Advanced users may find \keyword{pthread\_atfork} useful however we suggest a program avoid creating threads before forking unless you fully understand the limitations and difficulties of this approach.
 
 \subsection{Embarrassingly Parallel Problems}
@@ -529,7 +530,7 @@ Since this is the C standard library, it has to be implemented in all operating 
 This means there is first-class portability when using threads.
 
 We won't drone on about the functions.
-Most of them are just renaming of pthread functions anyway.
+Most of them are renaming of pthread functions anyway.
 If you ask why we don't teach these, there are a few reasons
 
 \begin{enumerate}
@@ -547,9 +548,9 @@ If you ask why we don't teach these, there are a few reasons
 
 \subsection{Extra: Lightweight Processes?}
 
-In the beginning of the chapter, we mentioned that threads are just processes.
+In the beginning of the chapter, we mentioned that threads are processes.
 What do we mean by that?
-You can create a thread just like a process
+You can create a thread like a process
 Take a look at the example code below
 
 \begin{lstlisting}[language=C]
@@ -579,7 +580,7 @@ int main() {
   }
   printf("Child pid %ld\n", (long) pid);
 
-  // Wait just like any child
+  // Wait like any child
   if (waitpid(pid, NULL, 0) == -1) {
     perror("waitpid");
     exit(1);
@@ -596,11 +597,11 @@ In addition, pthreads are part of the POSIX standard and have defined functional
 Pthreads let a program set various attributes -- some that resemble the option in clone -- to customize your thread.
 But as we mentioned earlier, with each later of abstraction for portability reasons we lose some functionality.
 clone can do some neat things like keeping different parts of your heap the same while creating copies of other pages.
-A program has finer control of scheduling because it is a process, just with the same mappings.
+A program has finer control of scheduling because it is a process with the same mappings.
 
 At no time in this course should you be using clone.
 But in the future, know that it is a perfectly viable alternative to fork.
-You just have to be careful and researh edge cases.
+You have to be careful and research edge cases.
 
 \subsection{Further Reading}
 

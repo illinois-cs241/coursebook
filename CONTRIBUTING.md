@@ -168,7 +168,7 @@ To make sure the book has a consistent tone among authors, we'll use the general
 * Only use 'you' to refer to things that a _human_ can do. A human can read the man page, but a human cannot access a memory location.
 * Aim for resolute rather than pedantic language
 * Avoid negative language "This does not print" to "Hello stays is unwritten"
-* Avoid using filler words like "really"
+* Avoid using filler words like "really" and "just"
 
 # Code Style
 
