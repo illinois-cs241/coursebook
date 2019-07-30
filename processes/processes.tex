@@ -60,13 +60,13 @@ Although these were mentioned in the last chapter, we are going to give a quick 
 A zine from Julia Evans gives some more details \cite{evans_2018}.
 
 The kernel keeps track of the file descriptors and what they point to.
-Later we will learn two things: that file descriptors need not point to actual files and that the operating system keeps track of them.
+Later we will learn two things: that file descriptors point to more than files and that the operating system keeps track of them.
 
 Notice that file descriptors may be reused between processes, but inside of a process, they are unique.
 File descriptors may have a notion of position. These are known as seekable streams.
 A program can read a file on disk completely because the OS keeps track of the position in the file, an attribute that belongs to your process as well.
 
-Other file descriptors point to network sockets and various other pieces of information, that are not seekable streams.
+Other file descriptors point to network sockets and various other pieces of information, that are unseekable streams.
 
 \section{Processes}
 
@@ -89,7 +89,7 @@ That means that by default, no process can communicate with another process.
 
 This is important because in complex systems (like the University of Illinois Engineering Workstations), it is likely that different processes will have different privileges.
 One certainly doesn't want the average user to be able to bring down the entire system, by either purposely or accidentally modifying a process.
-As most of you have realized by now, if you stuck the following code snippet into a program, the variables would not be shared between two parallel invocations of the program.
+As most of you have realized by now, if you stuck the following code snippet into a program, the variables are unshared between two parallel invocations of the program.
 
 \begin{lstlisting}[language=C]
 int secrets;
@@ -156,7 +156,7 @@ int global = 1;
 int assumed_to_be_zero;
 \end{lstlisting}
 
-          It is not an error to assume that this will be zero; otherwise, we would have a security risk involving isolation from other processes.
+          This variable will be zeroed; otherwise, we would have a security risk involving isolation from other processes.
 
           They get put in a different section to speed up process start up time.
 
@@ -206,7 +206,7 @@ Processes could also contain the following information:
     \item File Descriptors - A list of mappings from integers to real devices (files, USB flash drives, sockets)
     \item Permissions - What \keyword{user} the file is running on and what \keyword{group} the process belongs to.
           The process can then only perform operations based on the permissions given to the \keyword{user} or \keyword{group}, such as accessing files.
-          There are tricks to make a program not be the user who started the program i.e. \keyword{sudo} takes a program that a \keyword{user} starts and executes it as \keyword{root}.
+          There are tricks to make a program take a different user than who started the program i.e. \keyword{sudo} takes a program that a \keyword{user} starts and executes it as \keyword{root}.
           More specifically, a process has a real user ID (identifies the owner of the process), an effective user ID (used for non-privileged users trying to access files only accessible by superusers), and a saved user ID (used when privileged users perform non-privileged actions).
     \item Arguments - a list of strings that tell your program what parameters to run under.
     \item Environment Variables - a list of key-value pair strings in the form \keyword{NAME=VALUE} that one can modify. These are often used to specify paths to libraries and binaries, program configuration settings, etc.
@@ -238,7 +238,7 @@ Fork can be \textbf{extremely} dangerous if you aren't prepared for it. \textbf{
 The \keyword{fork} system call clones the current process to create a new process, called a child process.
 This occurs by duplicating the state of the existing process with a few minor differences.
 \begin{itemize}
-    \item The child process does not start from main. Instead, it executes the next line after the \keyword{fork()} as the parent process does.
+    \item The child process  executes the next line after the \keyword{fork()} as the parent process does.
     \item Just as a side remark, in older UNIX systems, the entire address space of the parent process was directly copied regardless of whether the resource was modified or not. The current behavior is for the kernel to perform a \href{https://en.wikipedia.org/wiki/Copy-on-write}{copy-on-write}, which saves a lot of resources, while being time efficient \cite[Copy-on-write section]{Bovet:2005:ULK:1077084}.
 \end{itemize}
 
@@ -322,7 +322,7 @@ Another example is below.
 This is the amazing parallel apparent-O(N) \emph{sleepsort} is today's silly winner.
 First published on \href{https://dis.4chan.org/read/prog/1295544154}{4chan in 2011}.
 A version of this awful but amusing sorting algorithm is shown below.
-This sorting algorithm is not guaranteed to produce the correct output.
+This sorting algorithm may fail to produce the correct output.
 
 \begin{lstlisting}[language=C]
 int main(int c, char **v) {
@@ -533,47 +533,7 @@ while((nread = getline(&buffer, &buffer_cap, file) != -1) {
 
 The initial thought may be that it prints the file line by line with some extra forking.
 It is actually undefined behavior because we didn't prepare the file descriptors.
-
-To parse the \href{http://pubs.opengroup.org/onlinepubs/9699919799.2008edition/functions/V2_chap02.html}{POSIX documentation}, we'll have to go deep into the terminology.
-The sentence that sets the expectation is the following
-
-\begin{quote}
-The result of function calls involving any one handle (the "active handle") is defined elsewhere in this volume of POSIX.1-2008, but if two or more handles are used, and any one of them is a stream, the application shall ensure that their actions are coordinated as described below. If this is not done, the result is undefined.
-\end{quote}
-
-What this means is that if we don't follow POSIX to the letter when using two file descriptors that refer to the same description across processes, we get undefined behavior.
-To be technical, the file descriptor must have a ``position'' meaning that it needs to have a beginning and an end like a file, not like an arbitrary stream of bytes.
-POSIX then goes on to introduce the idea of an active handle, where a handle may be a file descriptor or a \keyword{FILE*} pointer.
-File handles don't have a flag called ``active''.
-An active file descriptor is one that is currently being used for reading and writing and other operations (such as \keyword{exit}).
-The standard says that before a \keyword{fork} that the \textit{application} or your code must execute a series of steps to prepare the state of the file.
-In simplified terms, the descriptor needs to be closed, flushed, or read to its entirety -- the gory details are explained later.
-
-\begin{quote}
-For a handle to become the active handle, the application shall ensure that the actions below are performed between the last use of the handle (the current active handle) and the first use of the second handle (the future active handle). The second handle then becomes the active handle. All activity by the application affecting the file offset on the first handle shall be suspended until it again becomes the active file handle. (If a stream function has as an underlying function one that affects the file offset, the stream function shall be considered to affect the file offset.)
-\end{quote}
-
-Summarizing as if two file descriptors are actively being used, the behavior is undefined.
-The other note is that after a fork, the library code must prepare the file descriptor as if the other process were to make the file active at any time.
-The last bullet point concerns itself with how a process prepares a file descriptor in our case.
-
-\begin{quote}
-If the stream is open with a mode that allows reading and the underlying open file description refers to a device that is capable of seeking, the application shall either perform an fflush(), or the stream shall be closed.
-\end{quote}
-
-The documentation says that the child needs to perform an fflush or close the stream because the file descriptor needs to be prepared in case the parent process needs to make it active.
-glibc is in a no-win situation if it closes a file descriptor that the parent may expect to be open, so it'll opt for the fflush on exit because exit in POSIX terminology counts as accessing a file.
-That means that for our parent process, this clause gets triggered.
-
-\begin{quote}
-If any previous active handle has been used by a function that explicitly changed the file offset, except as required above for the first handle, the application shall perform an lseek() or fseek() (as appropriate to the type of handle) to an appropriate location.
-\end{quote}
-
-Since the child calls fflush and the parent didn't prepare, the operating system chooses to where the file gets reset.
-Different file systems will do different things which are supported by the standard.
-The OS may look at modification times and conclude that the file hasn't changed so no resets are needed or may conclude that exit denotes a change and needs to rewind the file back to the beginning.
-
-What should you take away from this long-winded example to avoid undefined behavior?
+To make a long story short, here is what to do to avoid the example.
 
 \begin{enumerate}
 \item You as the programmer need to make sure that all of your file descriptors are prepared before forking.
@@ -622,6 +582,47 @@ if(child == 0) {
 }
 waitpid(child, NULL, 0);
 \end{lstlisting}
+
+\subsubsection{Extra: Explanation of the Fork-FILE Problem}
+
+To parse the \href{http://pubs.opengroup.org/onlinepubs/9699919799.2008edition/functions/V2_chap02.html}{POSIX documentation}, we'll have to go deep into the terminology.
+The sentence that sets the expectation is the following
+
+\begin{quote}
+The result of function calls involving any one handle (the "active handle") is defined elsewhere in this volume of POSIX.1-2008, but if two or more handles are used, and any one of them is a stream, the application shall ensure that their actions are coordinated as described below. If this is not done, the result is undefined.
+\end{quote}
+
+What this means is that if we don't follow POSIX to the letter when using two file descriptors that refer to the same description across processes, we get undefined behavior.
+To be technical, the file descriptor must have a ``position'' meaning that it needs to have a beginning and an end like a file, not like an arbitrary stream of bytes.
+POSIX then goes on to introduce the idea of an active handle, where a handle may be a file descriptor or a \keyword{FILE*} pointer.
+File handles don't have a flag called ``active''.
+An active file descriptor is one that is currently being used for reading and writing and other operations (such as \keyword{exit}).
+The standard says that before a \keyword{fork} that the \textit{application} or your code must execute a series of steps to prepare the state of the file.
+In simplified terms, the descriptor needs to be closed, flushed, or read to its entirety -- the gory details are explained later.
+
+\begin{quote}
+For a handle to become the active handle, the application shall ensure that the actions below are performed between the last use of the handle (the current active handle) and the first use of the second handle (the future active handle). The second handle then becomes the active handle. All activity by the application affecting the file offset on the first handle shall be suspended until it again becomes the active file handle. (If a stream function has as an underlying function one that affects the file offset, the stream function shall be considered to affect the file offset.)
+\end{quote}
+
+Summarizing as if two file descriptors are actively being used, the behavior is undefined.
+The other note is that after a fork, the library code must prepare the file descriptor as if the other process were to make the file active at any time.
+The last bullet point concerns itself with how a process prepares a file descriptor in our case.
+
+\begin{quote}
+If the stream is open with a mode that allows reading and the underlying open file description refers to a device that is capable of seeking, the application shall either perform an fflush(), or the stream shall be closed.
+\end{quote}
+
+The documentation says that the child needs to perform an fflush or close the stream because the file descriptor needs to be prepared in case the parent process needs to make it active.
+glibc is in a no-win situation if it closes a file descriptor that the parent may expect to be open, so it'll opt for the fflush on exit because exit in POSIX terminology counts as accessing a file.
+That means that for our parent process, this clause gets triggered.
+
+\begin{quote}
+If any previous active handle has been used by a function that explicitly changed the file offset, except as required above for the first handle, the application shall perform an lseek() or fseek() (as appropriate to the type of handle) to an appropriate location.
+\end{quote}
+
+Since the child calls fflush and the parent didn't prepare, the operating system chooses to where the file gets reset.
+Different file systems will do different things which are supported by the standard.
+The OS may look at modification times and conclude that the file hasn't changed so no resets are needed or may conclude that exit denotes a change and needs to rewind the file back to the beginning.
 
 \section{Waiting and Executing}
 
@@ -740,7 +741,7 @@ The init process automatically waits for all of its children, thus removing thes
 
 \subsection{Extra: Asynchronously Waiting}
 
-Warning: This section uses signals which we have not yet fully introduced.
+Warning: This section uses signals which are partially introduced.
 The parent gets the signal SIGCHLD when a child completes, so the signal handler can wait for the process.
 A slightly simplified version is shown below.
 

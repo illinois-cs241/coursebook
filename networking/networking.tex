@@ -334,7 +334,6 @@ The page may load slower.
 
 \section{Layer 4: TCP and Client}
 
-
 \begin{figure}[H]
   \centering
 \includegraphics[width=.8\textwidth]{networking/drawings/tcp_header.eps}
@@ -343,7 +342,8 @@ The page may load slower.
 
 Most services on the Internet today use \gls{TCP} because it efficiently hides the complexity of the lower, packet-level nature of the Internet.
 TCP or Transport Control Protocol is a connection-based protocol that is built on top of IPv4 and IPv6 and therefore can be described as ``TCP/IP'' or ``TCP over IP''.
-TCP creates a \emph{pipe} between two machines and abstracts away the low-level packet-nature of the Internet. Thus, under most conditions, bytes sent over a TCP connection will not be lost or corrupted.
+TCP creates a \emph{pipe} between two machines and abstracts away the low-level packet-nature of the Internet. Thus, under most conditions, bytes sent over a TCP connection deliverd and uncorrupted.
+High performance and error prone code won't even assume that!
 
 TCP has many features that set it apart from the other transport protocol UDP.
 
@@ -382,19 +382,19 @@ TCP has many features that set it apart from the other transport protocol UDP.
 \item Flow Control.
   Flow control is performed on the receiver side.
   This may be done so that a slow receiver doesn't get overwhelmed with packets.
-  Servers that handle 10000 or 10 million concurrent connections may need to tell receivers to slow down, but not disconnect due to load.
-  There are also other problem of making sure the local network is not overwhelmed
+  Servers that handle 10000 or 10 million concurrent connections may need to tell receivers to slow down, but remain connected due to load.
+  There are also other problem of making sure the local network's traffic is stable.
 
 \item Congestion control.
   Congestion control is performed on the sender side.
   Congestion control is to avoid a sender from flooding the network with too many packets.
   This is important to make sure that each TCP connection is treated fairly.
   Meaning that two connections leaving a computer to google and youtube receive the same bandwidth and ping as each other.
-  One can easily define a protocol that takes all the bandwidth and leaves other protocols in the dust, but this tends to be malicious because more often than not limiting a computer to a single TCP connection will yield the same result.
+  One can easily define a protocol that takes all the bandwidth and leaves other protocols in the dust, but this tends to be malicious because many times limiting a computer to a single TCP connection will yield the same result.
 
 \item Connection-Oriented/life cycle oriented.
   You can imagine a TCP connection as a series of bytes sent through a pipe.
-  There is a ``lifecycle'' to a TCP connection though. What this means is that a TCP connection has a series of states and certain packets received can or not received can move it to another state.
+  There is a ``lifecycle'' to a TCP connection though.
   TCP handles setting up the connection through SYN SYN-ACK ACK. This means the client will send a SYNchronization packet that tells TCP what starting sequence to start on. Then the receiver will send a SYN-ACK message acknowledging the synchronization number.
   Then the client will ACKnowledge that with one last packet.
   The connection is now open for both reading and writing on both ends
@@ -404,17 +404,18 @@ TCP has many features that set it apart from the other transport protocol UDP.
   This packet can be altered with bits that only close the read or write end of a particular connection. When all ends are closed then the connection is over.
 \end{enumerate}
 
-There are a list of things that TCP doesn't provide though
+TCP doesn't provide many things, though.
 
 \begin{enumerate}
 \item Security.
-  This means that if you connect to an IP address that says that it is a certain website, TCP does not verify that this website is in fact that IP address.
+  Connecting to an IP address claiming to be a certain website does not verify the claim (like in TLS).
   You could be sending packets to a malicious computer.
 \item Encryption.
   Anybody can listen in on plain TCP.
-  The packets in transport are in plain text meaning that important things like your passwords could easily be skimmed by servers and regularly are.
-\item Session Reconnection.
-  This is handled by a higher protocol, but if a TCP connection dies then a whole new one must be created and the transmission has to be started over again.
+  The packets in transport are in plain text.
+  Important things like your passwords could easily be skimmed by onlookers.
+\item Session Reconnection. If a TCP connection dies then a whole new one must be created, and the transmission has to be started over again.
+  This is handled by a higher protocol.
 \item Delimiting Requests.
   TCP is naturally connection-oriented.
   Applications that are communicating over TCP need to find a unique way of telling each other that this request or response is over.
@@ -619,7 +620,7 @@ free(buffer);
 
 The last piece of code is the driver code that sends the request.
 Feel free to use the following code if you want to open the file descriptor as a FILE object for convenience functions.
-Just be careful not to forget to set the buffering to zero otherwise you may double buffer the input, which would lead to performance needs.
+Just be careful not to forget to set the buffering to zero otherwise you may double buffer the input, which would lead to performance problems.
 
 \begin{lstlisting}[language=C]
 void send_request(host_info *info) {
@@ -684,14 +685,14 @@ Each has a specific purpose and should be called in roughly the above order
   \item \keyword{int socket(int domain, int socket\_type, int protocol)}
 
   To create an endpoint for networking communication.
-  A new socket by itself is not useful.
-  Though we've specified either a packet or stream-based connections, it is not bound to a particular network interface or port.
+  A new socket by itself is stores bytes.
+  Though we've specified either a packet or stream-based connections, it is unbound to a particular network interface or port.
   Instead, socket returns a network descriptor that can be used with later calls to bind, listen and accept.
 
   As one gotcha, these sockets must be declared passive.
-  Passive server sockets do not actively try to connect to another host.
+  Passive server sockets wait for another host to connect.
   Instead, they wait for incoming connections.
-  Additionally, server sockets are not closed when the peer disconnects.
+  Additionally, server sockets remain open when the peer disconnects.
   Instead, the client communicates with a separate active socket on the server that is specific to that connection.
 
   Since a TCP connection is defined by the sender address and port along with a receiver address and port, a particular server port there can be one passive server socket but multiple active sockets.
@@ -704,7 +705,7 @@ Each has a specific purpose and should be called in roughly the above order
   It is possible to call bind on a TCP client.
   The port information used by bind can be set manually (many older IPv4-only C code examples do this), or be created using \keyword{getaddrinfo}.
 
-  By default, a port is not immediately released when the server socket is closed.
+  By default, a port is released after a period of time when the server socket is closed.
   Instead, the port enters a ``TIMED-WAIT'' state.
   This can lead to significant confusion during development because the timeout can make valid networking code appear to fail.
 
@@ -722,7 +723,7 @@ bind(...);
   \item \keyword{int listen(int sockfd, int backlog);}
 
     The \keyword{listen} call specifies the queue size for the number of incoming, unhandled connections.
-    There are the connections that have not yet been assigned a network descriptor by \keyword{accept}.
+    There are the connections unassigned to a file descriptor by \keyword{accept}.
     Typical values for a high-performance server are 128 or more.
 
   \item \keyword{int accept(int sockfd, struct sockaddr *addr, socklen\_t *addrlen);}
@@ -805,7 +806,7 @@ There are a few gotchas to creating a server.
 \subsection{Example Server}
 
 A working simple server example is shown below.
-Note this example is incomplete - for example it does not close either socket descriptor, or free up memory created by \keyword{getaddrinfo}
+Note this example is incomplete - for example the socket file descriptor remains open and memory created by \keyword{getaddrinfo} remains allocated.
 First, we get the address info for our current machine.
 
 \begin{lstlisting}[language=C]
@@ -887,7 +888,7 @@ while bytes_read isn't count {
 }
 \end{lstlisting}
 
-We can assure you that the following code \textit{will not work}.
+We can assure you that the following code \textit{experience errors}.
 Can you see why?
 On the surface, it does restart a call after a read or write.
 But what else happens when the error is EINTR?
@@ -911,15 +912,14 @@ A streaming video signal may send picture updates using UDP
 
 \begin{itemize}
 \item Unreliable Datagram Protocol
-  Packets sent through UDP are not guaranteed to reach their destination.
-  The probability that the packet gets delivered goes down over time.
-  This can especially be confusing because if you only test on your loop-back device -- this is localhost or 127.0.0.1 for most users -- then there will seldom be lost because no network packets are sent.
+  Packets sent through UDP may be dropped on their way to the destination.
+  This can especially be confusing because if you only test on your loop-back device -- this is localhost or 127.0.0.1 for most users -- then packets will seldom be lost because no network packets are sent.
 \item Simple
   The UDP protocol is supposed to have much less fluff than TCP.
   Meaning that for TCP there are a lot of configurable parameters and a lot of edge cases in the implementation.
   UDP is fire and forget.
 \item Stateless/Transaction
-  The UDP protocol does not keep a ``state'' of the connection.
+  The UDP protocol is stateless.
   This makes the protocol more simple and lets the protocol represent simple transactions like requesting or responding to queries.
   There is also less overhead to sending a UDP message because there is no three-way handshake.
 \item Manual Flow/Congestion Control
@@ -1122,11 +1122,11 @@ Common layer 7 protocols are the following
 
 Remember when we were talking before about converting a website to an IP address?
 A system called ``DNS'' (Domain Name Service) is used.
-If a machine does not hold the answer locally then it sends a UDP packet to a local DNS server.
+If the IP address is missing form a machine's cache then it sends a UDP packet to a local DNS server.
 This server may query other upstream DNS servers.
 
-DNS by itself is fast but not secure.
-DNS requests are not encrypted and susceptible to `man-in-the-middle' attacks.
+DNS by itself is fast but insecure.
+DNS requests are unencrypted and susceptible to `man-in-the-middle' attacks.
 For example, a coffee shop internet connection could easily subvert your DNS requests and send back different IP addresses for a particular domain.
 The way this is usually subverted is that after the IP address is obtained then a connection is usually made over HTTPS.
 HTTPS uses what is called the TLS (formerly known as SSL) to secure transmissions and verify that the hostname is recognized by a Certificate Authority.
@@ -1151,8 +1151,8 @@ For example, the Illinois DNS server handles both \keyword{cs.illinois.edu} and 
 
 \section{Non Blocking IO}
 
-When you call \keyword{read()} if the data is not available yet it will wait until the data is ready before the function returns.
-When you're reading data from a disk, that delay may not be long, but when you're reading from a slow network connection, it may take a long time for that data to arrive.
+When you call \keyword{read()} if the data is unavailable, it will wait until the data is ready before the function returns.
+When you're reading data from a disk, that delay is short, but when you're reading from a slow network connection, requests long time.
 And the data may never arrive, leading to an unexpected close.
 
 POSIX lets you set a flag on a file descriptor such that any call to \keyword{read()} on that file descriptor will return immediately, whether it has finished or not.
@@ -1485,7 +1485,7 @@ Even a simple integer has several common choices.
 \end{enumerate}
 
 To marshal a struct, decide which fields need to be serialized.
-It may not be necessary to send all data items.
+It may be unnecessary to send all data items.
 For example, some items may be irrelevant to the specific RPC or can be re-computed by the server from the other data items present.
 
 To marshal a linked list, it is unnecessary to send the link pointers, stream the values.

@@ -15,7 +15,7 @@ In modern systems, this is no longer the case.
 Instead, each process is isolated, and there is a translation process between the address of a particular CPU instruction or piece of data of a process and the actual byte of physical memory (``RAM'').
 Memory addresses no longer map to physical addresses
 The process runs inside virtual memory.
-Virtual memory not only keeps processes safe because one process cannot directly read or modify another process's memory.
+Virtual memory keeps processes safe because one process cannot directly read or modify another process's memory.
 Virtual memory also allows the system to efficiently allocate and reallocate portions of memory to different processes.
 The modern process of translating memory is as follows.
 
@@ -137,7 +137,7 @@ We'll take about this below. There is one last piece of terminology that needs t
 
 Multi-level pages are one solution to the page table size issue for 64-bit architectures.
 We'll look at the simplest implementation - a two-level page table.
-Each table is a list of pointers that point to the next level of tables, not all sub-tables need to exist.
+Each table is a list of pointers that point to the next level of tables, som sub-tables may be omitted.
 An example, two-level page table for a 32-bit architecture is shown below.
 
 \begin{figure}[H]
@@ -201,7 +201,7 @@ To overcome this overhead, the MMU includes an associative cache of recently-use
 This cache is called the TLB (``translation lookaside buffer'').
 Every time a virtual address needs to be translated into a physical memory location, the TLB is queried in parallel to the page table.
 For most memory accesses of most programs, there is a significant chance that the TLB has cached the results.
-However if a program does not have good cache coherence, the TLB will not have the result cache and now the MMU must use the much slower page table to determine the physical frame.
+However if a program has inadequate cache coherence, the address will be missing in the TLB, meaning the MMU must use the much slower page table translation.
 
 \subsection{MMU Algorithm}
 
@@ -267,18 +267,17 @@ This bit is useful because it prevents stack overflow or code injection attacks 
 Further reading: \href{http://en.wikipedia.org/wiki/NX\_bit\#Hardware\_background}{background}
 
 \item The dirty bit allows for performance optimization.
-A page on disk that is paged into physical memory then read from, and subsequently paged out again does not needs to be written back to disk, since the page hasn't changed.
+A page exclusively read from can be discarded without syncing to disk, since the page hasn't changed.
 However, if the page was written to after it's paged in, its dirty bit will be set, indicating that the page must be written back to the backing store.
 This strategy requires that the backing store retain a copy of the page after it is paged into memory.
-When a dirty bit is not used, the backing store need only be as large as the instantaneous total size of all paged-out pages at any moment.
+When a dirty bit is omitted, the backing store need only be as large as the instantaneous total size of all paged-out pages at any moment.
 When a dirty bit is used, at all times some pages will exist in both physical memory and the backing store.
 \item There are plenty of other bits. Take a look at your favorite architecture and see what other bits are associated!
 \end{enumerate}
 
 \subsection{Page Faults}
 
-A page fault is when a running program tries to access some virtual memory in its address space that is not mapped to physical memory.
-Page faults will also occur in other situations.
+A page fault may happen when a process accesses an address in a frame missing in memory.
 There are three types of Page Faults
 
 \begin{enumerate}
@@ -286,8 +285,8 @@ There are three types of Page Faults
   This could be memory asked for by \keyword{sbrk(2)} but not written to yet meaning that the operating system can wait for the first write before allocating space -- if it was read from, the operating system could short circuit the operation to read 0.
   The OS simply makes the page, loads it into memory, and moves on.
 
-\item \textbf{Major} If the mapping to the page is not in memory but on disk.
-  What this will do is swap the page into memory and swap another page out.
+\item \textbf{Major} If the mapping to the page is exclusively on disk.
+  The operting system will swap the page into memory and swap another page out.
   If this happens frequently enough, your program is said to \emph{thrash} the MMU.
 
 \item \textbf{Invalid} When a program tries to write to a non-writable memory address or read to a non-readable memory address.
@@ -309,7 +308,7 @@ The other is to ask the kernel to map two pages of memory to the same virtual me
 
 \keyword{mmap} is a trick of virtual memory of instead of mapping a page to a frame, that frame can be backed by a file on disk, or the frame can be shared among processes.
 We can use that to read from a file on disk efficiently or sync changes to the file.
-One of the big optimizations is that this does not mean that the file is allocated to memory right away.
+One of the big optimizations is a file may be lazily to allocated to memory.
 Take the following code for example.
 
 \begin{lstlisting}[language=C]
@@ -321,10 +320,9 @@ addr[0] = 'l';
 The kernel sees that the program wants to mmap the file into memory, so it will reserve some space in your address space that is the length of the file.
 That means when the program writes to \keyword{addr[0]} that it writes to the first byte of the file.
 The kernel can actually do some optimizations too.
-Instead of loading the file into memory, it may only load pages at a time because if the file is 1024 pages.
+Instead of loading the whole file into memory, it may only load pages at a time.
 A program may only access 3 or 4 pages making loading the entire file a waste of time.
-That is why page faults are so powerful.
-They let the operating system take control of when a file is used.
+Page faults are so powerful because let the operating system take control of when a file is used.
 
 \subsection{mmap Definitions}
 
@@ -472,7 +470,7 @@ This piece of code allocates space for a 100 integers and creates a piece of mem
 The code then forks.
 The parent process writes two integers to the first two slots.
 To avoid a data race, the child sleeps for a second and then prints out the stored values.
-This is not a perfect way to protect against data races.
+This is an imperfect way to protect against data races.
 We could use a mutex across processes mentioned in the synchronization section.
 But for this simple example, it works fine.
 Note that each process should call munmap when done using the piece of memory.
@@ -646,7 +644,7 @@ then a write(2) will cause a SIGPIPE signal to be generated for the calling proc
 Tip: Notice only the writer (not a reader) can use this signal.
 To inform the reader that a writer is closing their end of the pipe, a program could write your own special byte (e.g.~0xff) or a message (\keyword{"Bye!"})
 
-Here's an example of catching this signal that does not work! Can you see why?
+Here's an example of catching this signal that fails! Can you see why?
 
 \begin{lstlisting}[language=C]
 #include <stdio.h>
@@ -698,7 +696,7 @@ What about \keyword{cat}?
 
 \subsection{Other pipe facts}
 
-A pipe gets filled up when the writer writes too much to the pipe without the reader reading any of it. When the pipes become full, all writes fail until a read occurs. Even then, a write may partial fail if the pipe has a little bit of space left but not enough for the entire message. Usually, two things are done to avoid this. Either increase the size of the pipe. Or more commonly, fix your program design so that the pipe is constantly being read from.
+A pipe gets filled up when the writer writes too much to the pipe without the reader reading any of it. When the pipes become full, all writes fail until a read occurs. Even then, a write may partially fail if the pipe has a little bit of space left but not enough for the entire message. Usually, two things are done to avoid this. Either increase the size of the pipe. Or more commonly, fix your program design so that the pipe is constantly being read from.
 
 As hinted at before, Pipe writes are atomic up to the size of the pipe. Meaning that if two processes try to write to the same pipe, the kernel has internal mutexes with the pipe that it will lock, do the write, and return. The only gotcha is when the pipe is about to become full. If two processes are trying to write and the pipe can only satisfy a partial write, that pipe write is not atomic -- be careful about that!
 
@@ -824,7 +822,7 @@ to:       fprintf(writer, "Score %d\n", 10 + 10);
 If you want your bytes to be sent to the pipe immediately, you'll need to fflush!
 Remember back to the introduction section that shows the difference between terminal vs non-terminal outputs of stdout.
 
-\textbf{Even though we have a section on it, it is highly not recommended to fdopen() anything that doesn't point to an underlying file descriptors}.
+\textbf{Even though we have a section on it, it is highly not recommended to use the file descriptor API for non-seekable files}.
 The reason being is that while we get conveniences we also get annoyances like the buffering example we mentioned, caching, etc.
 The basic C library motto is that any device a program can properly \keyword{fseek} or move to an arbitrary position, it should be able to \keyword{fdopen}.
 Files satisfy this behavior, shared memory also, terminals, etc.
@@ -911,7 +909,7 @@ But here is an invalid series of operations that cause a race condition.
 On Linux, there are two abstractions with files. The first is the Linux \keyword{fd} level abstraction.
 
  \begin{itemize}
-\item \keyword{open} takes a path to a file and creates a file descriptor entry in the process table. If the file is not available, it errors out.
+\item \keyword{open} takes a path to a file and creates a file descriptor entry in the process table. If the file is unaccessible, it errors out.
 \item \keyword{read} takes a number of bytes that the kernel has received and reads them into a user space buffer. If the file is not open in read mode, this will break.
 \item \keyword{write} outputs a number of bytes to a file descriptor. If the file is not open in write mode, this will break. This may be buffered internally.
 \item \keyword{close} removes a file descriptor from a process' file descriptors. This always succeeds on a valid file descriptor.
@@ -936,7 +934,7 @@ On different operating systems, C uses the low-level functions to create a wrapp
 
 But programs don't get the expressiveness that Linux gives with system calls.
 A program can convert back and forth between them with \keyword{int\ fileno(FILE*\ stream)} and \keyword{FILE*\ fdopen(int\ fd...)}.
-Also, C files are \textbf{buffered} meaning that their contents may not be written right away by default.
+Also, C files are \textbf{buffered} meaning that their contents may be written to the backing after the call returns.
 You can change that with C options.
 
 \textbf{Danger} With portability you lose something important, the ability to tell an error.
@@ -970,10 +968,11 @@ All future reads and writes in the parent or child processes will honor this pos
 Note writing or reading from the file will change the current position.
 See the man pages for fseek and ftell for more information.
 
-\subsection{But don't do this}
+\subsection{Use stat instead}
 
-\textbf{Note: This is not recommended in the usual case because of a quirk with the C language}.
-That quirk is that longs only need to be \textbf{4 Bytes big} meaning that the maximum size that \keyword{ftell} can return is a little under 2 Gibibytes which we know nowadays our files could be hundreds of gibibytes or even terabytes on a distributed file system.
+This only works on some architectures and compilers
+That quirk is that longs only need to be \textbf{4 Bytes big} meaning that the maximum size that \keyword{ftell} can return is a little under 2 Gibibytes.
+Nowadays, our files could be hundreds of gibibytes or even terabytes on a distributed file system.
 What should we do instead? Use \keyword{stat}! We will cover stat in a later part but here is some code that will tell a program the size of the file
 
 \begin{lstlisting}[language=C]

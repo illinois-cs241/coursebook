@@ -41,7 +41,7 @@ Why don't we do this for everything?
 It makes commands slower! If every time a computer does something it has to make sure that the other cores or processors aren't doing anything, it'll be much slower.
 Most of the time we differentiate these with special consideration.
 Meaning, we will tell you when we use something like this.
-Most of the time you can assume the instructions are not locked.
+Most of the time you can assume the instructions are unlocked.
 
 \subsection{Caching}
 
@@ -56,8 +56,8 @@ This isn't a class about caching, know how this could impact your code.
 A short but non-complete list could be
 
 \begin{enumerate}
-\item Race Conditions! If a value is stored in two different processor caches, then that value may not be shared.
-\item Speed. With a cache, your program may look slower or faster and you may not know why. Just assume that reads and writes that either happened recently or are next to each other in memory are fast.
+\item Race Conditions! If a value is stored in two different processor caches, then that value should be accessed by a single thread.
+\item Speed. With a cache, your program may look faster mysteriously. Just assume that reads and writes that either happened recently or are next to each other in memory are fast.
 \item Side effects. Every read or write effects the cache state. While most of the time this doesn't help or hurt, it is important to know. Check the Intel programmer guide on the lock prefix for more information.
 \end{enumerate}
 
@@ -288,7 +288,7 @@ void selection_sort(int *a, long len);
 \end{lstlisting}
 
 And the error is specifically in one function.
-In the end, we are not a class about refactoring/debugging your code.
+In the end, this class is about writing system programs, not a class about refactoring/debugging your code.
 In fact, most kernel code is so atrocious that you don't want to read it -- the defense there is that it needs to be.
 But for the sake of debugging, it may benefit you in the long run to adopt some of these practices.
 
@@ -296,7 +296,7 @@ But for the sake of debugging, it may benefit you in the long run to adopt some 
 
 Use assertions to make sure your code works up to a certain point -- and importantly, to make sure you don't break it later.
 For example, if your data structure is a doubly-linked list, you can do something like \keyword{assert(node == node->next->prev)} to assert that the next node has a pointer to the current node.
-You can also check the pointer is pointing to an expected range of memory address, not null, -\textgreater{}size is reasonable, etc.
+You can also check the pointer is pointing to an expected range of memory address, non-null, -\textgreater{}size is reasonable, etc.
 The \keyword{DEBUG} macro will disable all assertions, so don't forget to set that once you finish debugging \cite{cplusplus_assert}.
 
 Here is a quick example with an assert.
@@ -330,8 +330,8 @@ Suppose we have a simple program like this:
 
 void dummy_function() {
 	int* x = malloc(10 * sizeof(int));
-	x[10] = 0;        // error 1:as you can see here we write to an out of bound memory address
-}                    // error 2: memory leak the allocated x not freed
+	x[10] = 0;        // error 1: Out of bounds write, as you can see here we write to an out of bound memory address.
+}                    // error 2: Memory Leak, x is allocated at function exit.
 
 int main(void) {
 	dummy_function();
@@ -377,7 +377,7 @@ Let's see what Valgrind will output.
 
 \textbf{Definitely lost}: Memory leak --- you probably forgot to free a memory block.
 
-Valgrind is a effective tool to check for errors at runtime. C is special when it comes to such behavior, so after compiling your program you can use Valgrind to fix errors that your compiler may not catch and that usually happens when your program is running.
+Valgrind is a effective tool to check for errors at runtime. C is special when it comes to such behavior, so after compiling your program you can use Valgrind to fix errors that your compiler may miss and that usually happens when your program is running.
 
 For more information, you can refer to the manual \cite{valgrind}
 
@@ -625,7 +625,7 @@ There are a whole load more resources on the web, here are a few specific ones t
 
 \subsection{Shell}
 
-What do you actually use to run your program? A shell! A shell is a programming language that is running inside your terminal. A terminal is merely a window to input commands. Now, on POSIX we usually have one shell called \keyword{sh} that is linked to a POSIX compliant shell called \keyword{dash}. Most of the time, you use a shell called \keyword{bash} that is not entirely POSIX compliant but has some nifty built-in features. If you want to be even more advanced, \keyword{zsh} has some more powerful features like tab complete on programs and fuzzy patterns, but that is neither here nor there.
+What do you actually use to run your program? A shell! A shell is a programming language that is running inside your terminal. A terminal is merely a window to input commands. Now, on POSIX we usually have one shell called \keyword{sh} that is linked to a POSIX compliant shell called \keyword{dash}. Most of the time, you use a shell called \keyword{bash} that is somewhat POSIX compliant but has some nifty built-in features. If you want to be even more advanced, \keyword{zsh} has some more powerful features like tab complete on programs and fuzzy patterns.
 
 \subsection{Undefined Behavior Sanitizer}
 
@@ -655,7 +655,7 @@ And in addition to the make output, you will get static build warnings.
 \subsection{strace and ltrace}
 
 strace and ltrace are two programs that trace the system calls and library calls respectively of a running program or command.
-These may not be installed on your system already so to install feel free to do so
+These may be missing on your system so to install feel free to run the following.
 
 \begin{lstlisting}[language=bash]
 $ sudo apt install strace ltrace
@@ -722,7 +722,7 @@ read(3, "# C Datastructures\n\n[![Build Sta"..., 8192) = 1250
 
 Newer versions of strace can actually inject faults into your program.
 This is useful when you want to occasionally make reads and writes fail for example in a networking application, which your program should handle.
-The problem is as of early 2019, that version is not in any ubuntu apt repositories.
+The problem is as of early 2019, that version is missing from Ubuntu repositories.
 Meaning that you'll have to install it from the source.
 
 \subsection{printfs}
@@ -815,7 +815,7 @@ Here are the rough stages of compiling for gcc.
 
 Further classes will teach you about parsing and assembly -- preprocessing is an extension of parsing.
 Most classes won't teach you about the two different types of linking though.
-Static linking a library is not too big of a stretch of the imagination.
+Static linking a library is similar to combining object files.
 To create a static library, a compiler combines different object files to create one executable.
 A static library is literally is an archive of object files.
 These libraries are useful when you want your executable to be secure, you know all the code that is being included into your executable, and portable, all the code is bundled with your executable meaning no additional installs.
@@ -1006,7 +1006,7 @@ Create functions to create and destroy a Person (Person's and their names should
   The name should be copied onto the heap.
   Use malloc to reserve sufficient memory for everyone having up to ten friends.
   Be sure initialize all fields (why?).
-\item \keyword{destroy()} should free up not only the memory of the person struct, but also free all of its attributes that are stored on the heap. Destroying one person should not destroy any other.
+\item \keyword{destroy()} should free up both the memory of the person struct and all of its attributes that are stored on the heap. Destroying one person keeps other people in tact any other.
 \end{enumerate}
 
 \subsection{Chapter 5}
@@ -1052,7 +1052,7 @@ Explain why this may be insufficient to generate a new build.
 \subsection{Piazza}
 
 TAs and student assistants get a ton of questions.
-Some are well-researched, and some...are not.
+Some are well-researched, and some \ldots{} are not.
 This is a handy guide that'll help you move away from the latter and towards the former.
 Oh, and did I mention that this is an easy way to score points with your internship managers? Ask yourself...
 
@@ -1066,7 +1066,7 @@ Oh, and did I mention that this is an easy way to score points with your interns
 \item Did I try commenting out, printing, and/or stepping through parts of the code bit by bit to find out precisely where the error occurs?
 \item \textbf{Did I commit my code to git in case the TAs need more context?}
 \item Did I include the console/GDB/Valgrind output **AND** code surrounding the bug in my Piazza post?
-\item Have I fixed other segmentation faults not related to the issue I'm having?
+\item Have I fixed other segmentation faults unrelated to the issue I'm having?
 \item Am I following good programming practice? (i.e. encapsulation, functions to limit repetition, etc)
 \end{enumerate}
 

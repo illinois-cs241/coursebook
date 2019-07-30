@@ -12,42 +12,51 @@ The disk is still slower than memory by an order of magnitude at the least.
 
 Some terminology before we begin this chapter.
 A \textbf{filesystem}, as we'll define more concretely later, is anything that satisfies the API of a filesystem.
-It may not be a hard disk.
+A filesystem is backed by a storage medium, such as a hard disk drive, solid state drive, RAM, etc.
 A disk is either a \textbf{hard disk drive (HDD)} which includes a spinning metallic platter and a head which can zap the platter to encode a 1 or a 0, or a \keyword{solid-state drive (SSD)} that can flip certain NAND gates on a chip or standalone drive to store a 1 or a 0.
 As of 2019, SSDs are an order of magnitude faster than the standard HDD.
 These are typical backings for a filesystem.
 A filesystem is implemented on top of this backing, meaning that we can either implement something like EXT, MinixFS, NTFS, FAT32, etc. on a commercially available hard disk.
 This filesystem tells the operating system how to organize the 1s and 0s to store file information as well as directory information, but more on that later.
+To avoid being pedantic, we'll say that a filesystem like EXT or NTFS implements the filesystem API directly (open, close, etc).
+Often, operating systems will add a layer of abstraction and require that the operating system satisfy its API instead (think imaginary functions linux\_open, linux\_close etc).
+The two benefits are that one filesystem can be implemented for multiple operating system APIs and adding a new OS filesystem call doesn't require all of the underlying file systems to change their API.
+For example, in the next iteration of linux if there was a new system call to create a backup of a file, the OS can implement that with the internal API rather than requiring all filesystem drivers to change their code.
 
 \textbf{The last piece of background is an important one.} In this chapter, we will refer to sizes of files in the ISO-compliant KiB or Kibibyte.
 The *iB family is short for power of two storage.
 That means the following:
 
+\begin{center}
 \begin{tabular}{ | c | c | }
 Prefix & Byte Value \\ \hline
 KiB & 1024B \\
 MiB & 1024 * 1024 B \\
 GiB & 1024\^3 B
 \end{tabular}
+\end{center}
 
 The standard notational prefixes mean the following:
 
+\begin{center}
 \begin{tabular}{ | c | c | }
 Prefix & Byte Value \\ \hline
 KB & 1000B \\
 MB & 1000 * 1000 B \\
 GB & 1000\^3 B
 \end{tabular}
+\end{center}
 
 We will do this in the book and in the Networking chapter for the sake of consistency and to not confuse anyone.
-What is confusing is that in the real world there is a different convention.
-That convention is that when a file is stored on a traditional file system, \textbf{KB is the same as KiB}.
-When we are talking about computer networks \textbf{KB is not the same as KiB} and is the ISO / Metric Definition above.
+\textbf{Confusingly in the real world, there is a different convention.}
+That convention is that when a file is displayed in the operating system, \textbf{KB is the same as KiB}.
+When we are talking about computer networks, CDs, other storage \textbf{KB is not the same as KiB} and is the ISO / Metric Definition above.
 This is a historical quirk was brought by a clash between network developers and memory/hard storage developers.
 Hard storage and memory developers found that if a bit could take one of two states, it would be natural to call a Kilo- prefix 1024 because it was about 1000.
 Network developers had to deal with bits, real-time signal processing, and various other factors, so they went with the already accepted convention that Kilo- means 1000 of something \cite{iec}.
 What you need to know is if you see KB in the wild, that it may be 1024 based on the context.
-If any time in this class (CS 241 @ Illinois) you see KB or any of the family refer to a filesystems question, you can safely infer that they are referring to 1024 as the base unit.
+If any time in this class you see KB or any of the family refer to a filesystems question, you can safely infer that they are referring to 1024 as the base unit.
+Though when you are pushing production code, make sure to ask about the difference!
 
 \section{What is a filesystem?}
 
@@ -69,7 +78,7 @@ In this class, we will mostly talk about filesystems that serve to allow users t
 Here are some common features of a filesystem:
 
 \begin{enumerate}
-    \item They not only deal with storing local files, but handle special devices that allow for safe communication between the kernel and user space.
+    \item They deal with both storing local files and handle special devices that allow for safe communication between the kernel and user space.
     \item They deal with failures, scalability, indexing, encryption, compression, and performance.
     \item They handle the abstraction between a file that contains data and how exactly that data is stored on disk, partitioned, and protected.
 \end{enumerate}
@@ -107,8 +116,8 @@ Some of them are listed below:
 \end{itemize}
 
 Not every filesystem supports all the possible callback functions.
-For example, many filesystems do not implement \keyword{ioctl} or \keyword{link}.
-Many filesystems aren't \keyword{seekable} meaning that they do not provide random access.
+For example, many filesystems omit \keyword{ioctl} or \keyword{link}.
+Many filesystems aren't \keyword{seekable} meaning that they exclusively provide sequential access.
 A program cannot move to an arbitrary point in the file.
 This is analogous to \keyword{seekable stream}s.
 In this chapter, we will not be examining each filesystem callback.
@@ -135,7 +144,7 @@ While its size is sometimes determined by some property of the underlying hardwa
 
 A filesystem has a special block denoted as a \emph{superblock} that stores metadata about the filesystem such as a journal (which logs changes to the filesystem), a table of inodes, the location of the first inode on disk, etc.
 The important thing about a superblock is that it is in a known location on disk.
-If not, your computer may not be able to boot up!
+If not, your computer may fail to boot!
 Consider a simple ROM programmed into your motherboard.
 If your processor can't tell the motherboard to start reading and decipher a disk block to start the boot sequence, you are out of luck.
 
@@ -249,7 +258,7 @@ In standard UNIX filesystems, the following entries are specially added on reque
   \item \keyword{\textasciitilde} is the name of the home directory usually
 \end{enumerate}
 
-Counterintuitively, \keyword{...} does not refer to the `grandparent' directory (parent of the parent).
+Counterintuitively, \keyword{...} could be the name of a file, not the grandparent directory.
 Only the current directory and the parent directory have special aliases involving \keyword{.} (namely , \keyword{.} and \keyword{..}).
 However, \keyword{...} \emph{could} however be the name of a file or directory on disk (You can try this with \keyword{mkdir ...}).
 Confusingly, the shell \keyword{zsh} does interpret \keyword{...} as a handy shortcut to the grandparent directory (should it exist) while expanding shell commands.
@@ -257,10 +266,10 @@ Confusingly, the shell \keyword{zsh} does interpret \keyword{...} as a handy sho
 Additional facts about name-related conventions:
 
 \begin{enumerate}
-    \item Files that start with '.' (a period) on disk are conventionally considered 'hidden' and will not be listed by programs like \keyword{ls} without additional flags (\keyword{-a}).
+    \item Files that start with '.' (a period) on disk are conventionally considered 'hidden' and will be omitted by programs like \keyword{ls} without additional flags (\keyword{-a}).
         This is not a feature of the filesystem, and programs may choose to ignore this.
     \item Some files may also start with a NUL byte.
-            These are usually \emph{abstract UNIX sockets} and are used to prevent cluttering up the filesystem since they will be effectively hidden by any program not expecting them.
+            These are usually \emph{abstract UNIX sockets} and are used to prevent cluttering up the filesystem since they will be effectively hidden by any unexpecting program.
             They will, however, be listed by tools that detail information about sockets, so this is not a feature providing security.
     \item If you want to annoy your neighbor, create a file with the terminal bell character.
         Every single time the file is listed (by calling `ls', for example), an audible bell will be heard.
@@ -399,8 +408,7 @@ link("file1.txt", "blip.txt");
 
     \item \keyword{Soft Links}
         The second kind of link is called a soft link, symbolic link, or symlink.
-        A symbolic link is different because it does not deal with inode numbers directly.
-        Instead, a symbolic link is a file on disk with a special bit set and stores a path to another file.
+        A symbolic link is different because it is a file with a special bit set and stores a path to another file.
         Quite simply, without the special bit, it is nothing more than a text file with a file path inside.
         Note when people generally talk about a link without specifying hard or soft, they are referring to a hard link.
 
@@ -453,14 +461,14 @@ symlink(const char *target, const char *symlink);
 
         However, symlinks have a key disadvantage, they as slower than regular files and directories.
         When the link's contents are read, they must be interpreted as a new path to the target file, resulting in an additional call to open and read since the real file must be opened and read.
-        Another disadvantage is that POSIX will not let you hard link directories whereas soft links are allowed.
+        Another disadvantage is that POSIX forbids hard linking directories where as soft links are allowed.
         The \keyword{ln} command will only allow root to do this and only if you provide the \keyword{-d} option.
         However, even root may not be able to perform this because most filesystems prevent it!
 \end{enumerate}
 
 The integrity of the file system assumes the directory structure is an acyclic tree that is reachable from the root directory.
 It becomes expensive to enforce or verify this constraint if directory linking is allowed.
-Breaking these assumptions can cause file integrity tools to not be able to repair the file system.
+Breaking these assumptions can leave file integrity tools unable to repair the file system.
 Recursive searches potentially never terminate and directories can have more than one parent but ``..'' can only refer to a single parent.
 All in all, a bad idea.
 Soft links are merely ignored, which is why we can use them to reference directories.
@@ -580,7 +588,7 @@ Permissions are a key part of the way UNIX systems provide security in a filesys
 You may have noticed that the \keyword{st\_mode} field in \keyword{struct stat} contains more than the file type.
 It also contains the mode, a description detailing what a user can and can't do with a given file.
 There are usually three sets of permissions for any file.
-Permissions for the \emph{user}, the \emph{group} and \emph{other} (everyone not covered by the first two categories).
+Permissions for the \emph{user}, the \emph{group} and \emph{other} (every user falling outside the first two categories).
 For each of the three categories, we need to keep track of whetherthe user is allowed to read the file, write to the file, and execute the file.
 Since there are three categories and three permissions, permissions are usually represented as a 3-digit octal number.
 For each digit, the least significant byte corresponds to read privileges, the middle one to write privileges and the final byte to execute privileges.
@@ -606,7 +614,7 @@ You can think about this as having write access to the directory entry (dirent) 
 Read-access to a directory will allow a program to list a directory's contents.
 This is read access to the directory entry (dirent) mapping.
 Execute will allow a program to enter the directory using cd.
-Without the execute bit, it is not possible to create or remove files or directories since you cannot access them.
+Without the execute bit, it any attempt create or remove files or directories will fail since you cannot access them.
 You can, however, list the contents of the directory.
 
 There are several command line utilities for interacting with a file's mode.
@@ -680,7 +688,7 @@ Example: \keyword{chmod 755 myfile}
 \subsection{Understanding the `umask'}
 
 The umask \emph{subtracts} (reduces) permission bits from \keyword{777} and is used when new files and new directories are created by open, mkdir etc.
-By default, the umask is set to \keyword{022} (octal), which means that group and other privileges will not include the writable bit.
+By default, the umask is set to \keyword{022} (octal), which means that group and other privileges will be exclusively readable.
 Each process has a current umask value.
 When forking, the child inherits the parent's umask value.
 
@@ -739,14 +747,14 @@ These functions can allow one to write a program that can only be run by a privi
 
 \subsection{The `sticky' bit}
 
-Sticky bits as we use them today do not serve the same purpose as their initial introduction.
+Sticky bits as we use them today serve a different purpose from initial introduction.
 Sticky bits were a bit that could be set on an executable file that would allow a program's text segment to remain in swap even after the end of the program's execution.
 This made subsequent executions of the same program faster.
 Today, this behavior is no longer supported and the sticky bit only holds meaning when set on a directory,
 
 When a directory's sticky bit is set only the file's owner, the directory's owner, and the root user can rename or delete the file.
 This is useful when multiple users have write access to a common directory.
-A common use of the sticky bit is for the shared and writable \keyword{/tmp} directory where many user's files may be stored, but users should not be able to access files belonging to other users.
+A common use of the sticky bit is for the shared and writable \keyword{/tmp} directory where many users' files may be stored, but users should not be able to access files belonging to other users.
 
 To set the sticky bit, use \keyword{chmod +t}.
 
@@ -772,9 +780,8 @@ Note that in the example above, the username is prepended to the prompt, and the
 \section{Virtual filesystems and other filesystems}
 
 POSIX systems, such as Linux and Mac OS X (which is based on BSD) include several virtual filesystems that are mounted (available) as part of the file-system.
-Files inside these virtual filesystems do not exist on the disk.
-They are generated dynamically by the kernel when a process requests a directory listing.
-Linux provides 3 main virtual filesystems:
+Files inside these virtual filesystems may be generated dynamically or stored in ram.
+Linux provides 3 main virtual filesystems.
 
 \begin{tabular}{ | c | c | }
 Device & Use Case \\ \hline
@@ -813,7 +820,7 @@ This leads to several vulnerabilities that are based on a race condition.
 Another user replaces \keyword{mystuff} with a hard link to an existing file or directory owned by the second user, then they would be able to read and control the contents of the \keyword{mystuff} directory.
 Oh no - our secrets are no longer secret!
 
-However in this specific example, the \keyword{/tmp} directory has the sticky bit set, so other users may not delete the \keyword{mystuff} directory, and the simple attack scenario described above is impossible.
+However in this specific example, the \keyword{/tmp} directory has the sticky bit set, so only the owner may delete the \keyword{mystuff} directory, and the simple attack scenario described above is impossible.
 This does not mean that creating the directory and then later making the directory private is secure!
 A better version is to atomically create the directory with the correct permissions from its inception.
 
@@ -858,80 +865,80 @@ This means the speed of the transfer is unaffected by hardware power.
 
 \subsection{Updating Modification Time}
 
-The \keyword{touch} executable creates a file if it does not exist and also updates the file's last modified time to be the current time.
-For example, we can make a new private file with the current time:
+        The \keyword{touch} executable creates a file if it is non-existant and also updates the file's last modified time to be the current time.
+        For example, we can make a new private file with the current time:
 
-\begin{lstlisting}[language=bash]
-$ umask 077       # all future new files will mask out all r,w,x bits for group and other access
-$ touch file123   # create a file if it does not exist, and update its modified time
-$ stat file123
-  File: `file123'
-  Size: 0           Blocks: 0          IO Block: 65536  regular empty file
-Device: 21h/33d Inode: 226148      Links: 1
-Access: (0600/-rw-------)  Uid: (395606/ angrave)   Gid: (61019/     ews)
-Access: 2014-11-12 13:42:06.000000000 -0600
-Modify: 2014-11-12 13:42:06.001787000 -0600
-Change: 2014-11-12 13:42:06.001787000 -0600
-\end{lstlisting}
+        \begin{lstlisting}[language=bash]
+        $ umask 077       # all future new files will mask out all r,w,x bits for group and other access
+        $ touch file123   # create a file if it non-existant, and update its modified time
+        $ stat file123
+          File: `file123'
+          Size: 0           Blocks: 0          IO Block: 65536  regular empty file
+        Device: 21h/33d Inode: 226148      Links: 1
+        Access: (0600/-rw-------)  Uid: (395606/ angrave)   Gid: (61019/     ews)
+        Access: 2014-11-12 13:42:06.000000000 -0600
+        Modify: 2014-11-12 13:42:06.001787000 -0600
+        Change: 2014-11-12 13:42:06.001787000 -0600
+        \end{lstlisting}
 
-An example use of touch is to force make to recompile a file that is unchanged after modifying the compiler options inside the makefile.
-Remember that make is `lazy' - it will compare the modified time of the source file with the corresponding output file to see if the file needs to be recompiled.
+        An example use of touch is to force make to recompile a file that is unchanged after modifying the compiler options inside the makefile.
+        Remember that make is `lazy' - it will compare the modified time of the source file with the corresponding output file to see if the file needs to be recompiled.
 
-\begin{lstlisting}[language=bash]
-$ touch myprogram.c   # force my source file to be recompiled
-$ make
-\end{lstlisting}
+        \begin{lstlisting}[language=bash]
+        $ touch myprogram.c   # force my source file to be recompiled
+        $ make
+        \end{lstlisting}
 
-\subsection{Managing Filesystems}
+        \subsection{Managing Filesystems}
 
-To manage filesystems on your machine, use \keyword{mount}.
-Using mount without any options generates a list (one filesystem per line) of mounted filesystems including networked, virtual and local (spinning disk / SSD-based) filesystems.
-Here is a typical output of mount
+        To manage filesystems on your machine, use \keyword{mount}.
+        Using mount without any options generates a list (one filesystem per line) of mounted filesystems including networked, virtual and local (spinning disk / SSD-based) filesystems.
+        Here is a typical output of mount
 
-\begin{lstlisting}[language=bash]
-$ mount
-/dev/mapper/cs241--server_sys-root on / type ext4 (rw)
-proc on /proc type proc (rw)
-sysfs on /sys type sysfs (rw)
-devpts on /dev/pts type devpts (rw,gid=5,mode=620)
-tmpfs on /dev/shm type tmpfs (rw,rootcontext="system_u:object_r:tmpfs_t:s0")
-/dev/sda1 on /boot type ext3 (rw)
-/dev/mapper/cs241--server_sys-srv on /srv type ext4 (rw)
-/dev/mapper/cs241--server_sys-tmp on /tmp type ext4 (rw)
-/dev/mapper/cs241--server_sys-var on /var type ext4 (rw)rw,bind)
-/srv/software/Mathematica-8.0 on /software/Mathematica-8.0 type none (rw,bind)
-engr-ews-homes.engr.illinois.edu:/fs1-homes/angrave/linux on /home/angrave type nfs (rw,soft,intr,tcp,noacl,acregmin=30,vers=3,sec=sys,sloppy,addr=128.174.252.102)
-\end{lstlisting}
+        \begin{lstlisting}[language=bash]
+        $ mount
+        /dev/mapper/cs241--server_sys-root on / type ext4 (rw)
+        proc on /proc type proc (rw)
+        sysfs on /sys type sysfs (rw)
+        devpts on /dev/pts type devpts (rw,gid=5,mode=620)
+        tmpfs on /dev/shm type tmpfs (rw,rootcontext="system_u:object_r:tmpfs_t:s0")
+        /dev/sda1 on /boot type ext3 (rw)
+        /dev/mapper/cs241--server_sys-srv on /srv type ext4 (rw)
+        /dev/mapper/cs241--server_sys-tmp on /tmp type ext4 (rw)
+        /dev/mapper/cs241--server_sys-var on /var type ext4 (rw)rw,bind)
+        /srv/software/Mathematica-8.0 on /software/Mathematica-8.0 type none (rw,bind)
+        engr-ews-homes.engr.illinois.edu:/fs1-homes/angrave/linux on /home/angrave type nfs (rw,soft,intr,tcp,noacl,acregmin=30,vers=3,sec=sys,sloppy,addr=128.174.252.102)
+        \end{lstlisting}
 
-Notice that each line includes the filesystem type source of the filesystem and mount point.
-To reduce this output, we can pipe it into \keyword{grep} and only see lines that match a regular expression.
+        Notice that each line includes the filesystem type source of the filesystem and mount point.
+        To reduce this output, we can pipe it into \keyword{grep} and only see lines that match a regular expression.
 
-\begin{lstlisting}[language=bash]
->mount | grep proc  # only see lines that contain 'proc'
-proc on /proc type proc (rw)
-none on /proc/sys/fs/binfmt_misc type binfmt_misc (rw)
-\end{lstlisting}
+        \begin{lstlisting}[language=bash]
+        >mount | grep proc  # only see lines that contain 'proc'
+        proc on /proc type proc (rw)
+        none on /proc/sys/fs/binfmt_misc type binfmt_misc (rw)
+        \end{lstlisting}
 
-\subsubsection{Filesystem Mounting}
+        \subsubsection{Filesystem Mounting}
 
-Suppose you had downloaded a bootable Linux disk image from the \href{https://www.archlinux.org/download/}{arch linux download page}
+        Suppose you had downloaded a bootable Linux disk image from the \href{https://www.archlinux.org/download/}{arch linux download page}
 
-\begin{lstlisting}[language=bash]
-$ wget $URL
-\end{lstlisting}
+        \begin{lstlisting}[language=bash]
+        $ wget $URL
+        \end{lstlisting}
 
-Before putting the filesystem on a CD, we can mount the file as a filesystem and explore its contents.
-Note: mount requires root access, so let's run it using sudo
+        Before putting the filesystem on a CD, we can mount the file as a filesystem and explore its contents.
+        Note: mount requires root access, so let's run it using sudo
 
-\begin{lstlisting}[language=bash]
-$ mkdir arch
-$ sudo mount -o loop archlinux-2015.04.01-dual.iso ./arch
-$ cd arch
-\end{lstlisting}
+        \begin{lstlisting}[language=bash]
+        $ mkdir arch
+        $ sudo mount -o loop archlinux-2015.04.01-dual.iso ./arch
+        $ cd arch
+        \end{lstlisting}
 
-Before the mount command, the arch directory is new and obviously empty.
-After mounting, the contents of \keyword{arch/} will be drawn from the files and directories stored in the filesystem stored inside the \keyword{archlinux-2014.11.01-dual.iso} file.
-The \keyword{loop} option is required because we want to mount a regular file, not a block device such as a physical disk.
+        Before the mount command, the arch directory is new and obviously empty.
+        After mounting, the contents of \keyword{arch/} will be drawn from the files and directories stored in the filesystem stored inside the \keyword{archlinux-2014.11.01-dual.iso} file.
+        The \keyword{loop} option is required because we want to mount a regular file, not a block device such as a physical disk.
 
 The loop option wraps the original file as a block device.
 In this example, we will find out below that the file system is provided under \keyword{/dev/loop0}.
@@ -960,10 +967,11 @@ In this chapter, we'll briefly explore \keyword{mmap} as a filesystem operation.
 \keyword{mmap} takes a file and maps its contents into memory.
 This allows a user to treat the entire file as a buffer in memory for easier semantics while programming, and to avoid having to read a file as discrete chunks explicitly.
 
-Not all filesystems support using \keyword{mmap} for IO, but amongst those that do, not all have the same behavior.
+Not all filesystems support using \keyword{mmap} for IO.
+Those that do have varying behavior.
 Some will simply implement \keyword{mmap} as a wrapper around \keyword{read} and \keyword{write}.
 Others will add additional optimizations by taking advantage of the kernel's page cache.
-Of course, such optimization can be used in the implementation of \keyword{read} and \keyword{write} as well, so often using \keyword{mmap} does not impact performance.
+Of course, such optimization can be used in the implementation of \keyword{read} and \keyword{write} as well, so often using \keyword{mmap} has identical performance.
 
 \keyword{mmap} is used to perform some operations such as loading libraries and processes into memory.
 If many programs only need read-access to the same file, then the same physical memory can be shared between multiple processes.
@@ -1046,9 +1054,10 @@ Thus, operating systems can often use a read-ahead strategy to amortize the read
 By issuing an I/O request for the next disk block before the user application requires the next disk block, the apparent disk I/O latency can be reduced.
 
 If your data is important and needs to be force written to disk, call \keyword{sync} to request that a filesystem's changes be written (flushed) to disk.
-However, not all operating systems honor this request.
+However, operating systems may ignore this request.
 Even if the data is evicted from the kernel buffers, the disk firmware may use an internal on-disk cache or may not yet have finished changing the physical media.
 Note, you can also request that all changes associated with a particular file descriptor are flushed to disk using \keyword{fsync(int fd)}.
+There is a fiery debate about this call being useless, initiated by PostgresQL's team \url{https://lwn.net/Articles/752063/}
 
 If your operating system fails in the middle of an operation, most modern file systems do something called \textbf{journaling} to work around this.
 What the file system does is before it completes a potentially expensive operation, is that it writes what it is going to do down in a journal.
@@ -1090,7 +1099,7 @@ One disadvantage of RAID-3 is that whenever a disk block is written, the parity 
 This means that there is effectively a bottleneck in a separate disk.
 In practice, this is more likely to cause a failure because one disk is being used 100\% of the time and once that disk fails then the other disks are more prone to failure.
 
-A single disk failure will not result in data loss because there is sufficient data to rebuild the array from the remaining disks.
+A single disk failure is recoverable because there is sufficient data to rebuild the array from the remaining disks.
 Data-loss will occur when two disks are unusable because there is no longer sufficient data to rebuild the array.
 We can calculate the probability of a two disk failure based on the repair time which factors both the time to insert a new disk and the time required to rebuild the entire contents of the array.
 
@@ -1140,7 +1149,7 @@ After the superblock, we'll keep a map of which inodes are being used.
 The nth bit is set if the nth inode -- $0$ being the inode root -- is being used.
 Similarly, we store a map recording which data blocks are used.
 Finally, we have an array of inodes followed by the rest of the disk - implicitly partitioned into data blocks.
-It's important to note that there may not be any real distinction from one data block to the next from the perspective of the hardware components of the disk.
+One data block may be identical to the next from the perspective of the hardware components of the disk.
 Thinking about the disk as an array of data blocks is simply something we do so that we have a way to describe where files live on disk.
 
 Below, we have an example of how an inode that describes a file may look.
@@ -1161,10 +1170,10 @@ The file presented above is interesting since it uses all of its direct blocks, 
 
 The following subsections will all refer to the file presented above.
 
-\subsection{How big is our file?}
-The size of a file is not something that we can compute by staring at its structure.
-We need additional information that is typically stored in the inode.
-This is because the filesystem isn't aware of the actual contents of what is in a file - that data is considered the user's and should only be manipulated by the user.
+\subsection{File Size vs Space on Disk}
+
+Our file's size must be stored in the inode.
+The filesystem isn't aware of the actual contents of what is in a file - that data is considered the user's and should only be manipulated by the user.
 However, we can compute upper and lower bounds on the filesize by only looking at how many blocks the file uses.
 
 There are two full direct blocks, which together store $2*sizeof(data\_block)=2*4KiB=8KiB$.
@@ -1178,12 +1187,12 @@ second block referenced by the indirect block.
 With this information, we can work out the lower bound to be $2*4KiB+4KiB+1=12KiB+1B$.
 
 Note that our calculations so far have been to determine how much data the user is storing on disk.
-We have not considered the \textit{overhead} of storing this data incurred while using this filesystem.
+What about the \textit{overhead} of storing this data incurred while using this filesystem?
 You'll notice that we use an indirect block to store the disk block numbers of blocks used beyond the two direct blocks.
-While doing our above calculations, we did not take this block into account while computing the file size.
+While doing our above calculations, we omitted this block.
 This would instead be counted as the overhead of the file, and thus the total overhead of storing this file on disk is $sizeof(indirect\_block)=4KiB)$.
 
-Now that we're thinking about overhead, a related calculation could be to determine the max/min disk usage per file in this filesystem.
+Thinking about overhead, a related calculation could be to determine the max/min disk usage per file in this filesystem.
 
 Trivially a file of size $0$ has no associated data blocks and takes up no space on disk (ignoring the space required for the inode since these are located in a fixed size array somewhere on disk).
 How about the disk usage of the smallest non-empty file? That is, consider a file of size $1B$.
@@ -1200,7 +1209,7 @@ This means that an additional $4KiB$ of overhead will be used to account for the
 Note that when only using direct blocks, completely filling up a direct block implies that our filesize and our disk usage are the same thing!
 While it would seem like we always want this ideal scenario, it puts a restrictive limit on the maximum filesize.
 Attempting to remedy this by increasing the number of direct blocks seems promising, but note that this requires increasing the size of an inode and reducing the amount of space available to store user data -- a tradeoff you will have to evaluate for yourself.
-Alternatively always trying to split your data up into chunks that never use indirect blocks is also not necessarily wise since it could exhaust the limited pool of available inodes.
+Alternatively always trying to split your data up into chunks that never use indirect blocks is may exhaust the limited pool of available inodes.
 
 
 \subsection{Performing Reads}

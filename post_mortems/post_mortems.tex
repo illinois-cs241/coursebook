@@ -109,7 +109,7 @@ Required Sections: Synchronization
 \href{https://en.wikipedia.org/wiki/Northeast_blackout_of_2003}{2003}
 
 A race condition triggered a series of undefined events in a system that caused the blackout of most of the northeastern part of North America for quite some time.
-This bug also turned off or caused the backup system and logging systems to fail so people didn't even know of the bug for an hour. The exact bits that were flipped are not known, but patches have been put into place.
+This bug also turned off or caused the backup system and logging systems to fail so people didn't even know of the bug for an hour. The exact bits that were flipped are unknown, but patches have been put into place.
 
 Lessons Learned: Modularize your code to localize failures (i.e. keeping race conditions different between processes). If you need to synchronize among processes make sure your failure detection system is not interlaced with your system.
 
@@ -151,11 +151,11 @@ Sony knew that it didn't have the computing power to police all the interwebs or
 So what did they do?
 With 22 million Music CDs, they required users to install a rootkit on their operating system, so Sony can monitor the device for unethical activities.
 
-Privacy concerns aside, and believe me there are a lot of them, the big problem was that this rootkit is a backdoor for everyone's systems if not programmed correctly.
+Privacy concerns aside, and believe me there are a lot of them, the big problem was that this rootkit is a backdoor for everyone's systems if programmed incorrectly.
 A rootkit is a piece of code usually installed kernel-side that keeps track of almost anything that a user does.
 What websites visited, what clicks or keys typed etc.
 If a hacker finds out about this and there is a way to access that API from the user space level, that means any program can find out important information about your device.
-Needless to say, people were not pleased.
+Needless to say, people were angry.
 
 Lessons Learned: Get an antivirus and/or apparmor and make sure that an application is only requesting permissions that make sense. If you are torn, try something like Windows sandbox or keep a Sacrificial VM around to see if installing it makes your computer horrible. Don't trust certificates trust code.
 
@@ -197,13 +197,12 @@ Required Sections: Intro to C/Malloc
 
 \href{https://techblog.appnexus.com/2013-09-17-outage-postmortem-586b19ae4307}{Double Free}
 
-It may not be as simple as it sounds.
-Appnexus uses an asynchronous garbage collector that reclaims different parts of the heap as it believes that objects are not being used anymore.
+Appnexus uses an asynchronous garbage collector that reclaims different parts of the heap when it believes that objects are unused.
 The architecture is that an element is in the unavailable list and then it is taken out to a to-be-freed list.
-After a certain time if that element was not used, it is freed and added to the free list.
+After a certain time if that element was unused, it is freed and added to the free list.
 This is fine until two thread try to delete the same object at once, adding to the list twice. After less time, one of the objects was deleted, the delete was announced to other computers.
 
-Lessons Learned: Try not to make hacky software if you need to. Modularize, and set memory limits, and monitor different parts of your code and optimize by hand. There is no general catch-all garbage collector that fits everyone. Even highly tested ones like the JVM need some nudges if you want to get performance out of them.
+Lessons Learned: Avoid making hacky software if you need to. Modularize, and set memory limits, and monitor different parts of your code and optimize by hand. There is no general catch-all garbage collector that fits everyone. Even highly tested ones like the JVM need some nudges if you want to get performance out of them.
 
 \section{ATT Cascading Failures - 1990}
 

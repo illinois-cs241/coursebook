@@ -24,7 +24,7 @@ If \keyword{malloc} can either return a pointer to at least that much free space
 That means that malloc can return NULL even if there is some spaces.
 Robust programs should check the return value.
 If your code assumes \keyword{malloc} succeeds, and it does not, then your program will likely crash (segfault) when it tries to write to address 0.
-Also, malloc may not zero out memory because of performance -- check your code to make sure that a program is not using uninitialized values.
+Also, malloc leave garbage in memory because of performance -- check your code to make sure that a program all program values are initialized.
 
 \item \keyword{realloc(void *space, size\_t bytes)} allows a program to resize an existing memory allocation that was previously allocated on the heap (via malloc, calloc, or realloc) \cite[P. 349]{jones2010wg14}.
 The most common use of realloc is to resize memory used to hold an array of values.
@@ -55,9 +55,9 @@ int main() {
 }
 \end{lstlisting}
 
-The above code is not robust.
-If \keyword{realloc} fails then the array is a memory leak.
-Robust code checks for the return value and only reassigns the original pointer if not null.
+The above code is fragile.
+If \keyword{realloc} fails then the program leaks memory.
+Robust code checks for the return value and only reassigns the original pointer if not NULL.
 
 \begin{lstlisting}[language=C]
 int main() {
@@ -117,7 +117,7 @@ If a program uses a piece of memory after it is freed - that is undefined behavi
 
 \subsection{Heaps and sbrk}
 
-The heap is part of the process memory, and it does not have a fixed size.
+The heap is part of the process memory and varies in size.
 Heap memory allocation is performed by the C library when a program calls \keyword{malloc} (\keyword{calloc}, \keyword{realloc}) and \keyword{free}.
 By calling \keyword{sbrk} the C library can increase the size of the heap as your program demands more heap memory.
 As the heap and stack need to grow, we put them at opposite ends of the address space.
@@ -142,7 +142,7 @@ printf("The top of heap went from %p to %p \n", top_of_heap, top_of_heap2);
 \end{lstlisting}
 
 Note that the memory that was newly obtained by the operating system must be zeroed out.
-If the operating system did not zero out the contents of physical RAM, it might be possible for one process to learn about the memory of another process that had previously used the memory.
+If the operating system left the contents of physical RAM as-is, it might be possible for one process to learn about the memory of another process that had previously used the memory.
 This would be a security leak.
 Unfortunately, this means that for \keyword{malloc} requests before any memory has been freed is \emph{often} zero.
 This is unfortunate because many programmers mistakenly write C programs that assume allocated memory will \emph{always} be zero.
@@ -193,7 +193,7 @@ It is considerably faster to do the above and throw the entire block of memory a
 
 During program execution, memory is allocated and deallocated, so there will be a gap in the heap memory that can be re-used for future memory requests.
 The memory allocator needs to keep track of which parts of the heap are currently allocated and which are parts are available.
-Suppose our current heap size is 64K, though not all of it is in use because some earlier allocated memory has already been freed by the program.
+Suppose our current heap size is 64K.
 Let's say that our heap looks like the following table.
 
 \begin{figure}[H]
@@ -239,7 +239,7 @@ For example, our first fit allocator could've returned the original block unbrok
 Notice that this would lead to about 14KiB of space to be unused by the user and the allocator.
 We call this internal fragmentation.
 
-To introduce another concept, external fragmentation is that even though we have enough memory in the heap, it may be divided up in a way that we are not able to give the full amount.
+In contrast, external fragmentation is that even though we have enough memory in the heap, it may be divided up in a way so a continuous block of that size is unavailable.
 In our previous example, of the 64KiB of heap memory, 17KiB is allocated, and 47KiB is free.
 However, the largest available block is only 30KiB because our available unallocated heap memory is fragmented into smaller pieces.
 
@@ -285,8 +285,8 @@ Here are some summarized takeaways
 Some additional notes we make
 
 \begin{enumerate}
-\item Best fit may not require a full scan of the heap. When a block of perfect size or of perfect size within a threshold is found, that can be returned, depending on what edge-case policy you have.
-\item Worst fit may not need to scan the entire heap as well. Your heap could be represented with the max-heap data structure and each allocation call could simply pop the top off, reheapify, and possibly insert a split memory block.
+\item Best fit may take less time than a full heap scan. When a block of perfect size or of perfect size within a threshold is found, that can be returned, depending on what edge-case policy you have.
+\item Worst fit follows this as well. Your heap could be represented with the max-heap data structure and each allocation call could simply pop the top off, reheapify, and possibly insert a split memory block.
   Using Fibonacci heaps, however, could be extremely inefficient.
 \item First fit needs to have a block ordering. Most of the time programmers will default to linked lists which is a fine choice. There aren't too many improvements you can make with a least recently used and most recently used linked list policy, but with address ordered linked lists you can speed up insertion from O(n) to O(log(n)) by using a randomized skip-list in conjunction with your singly-linked list.
   An insert would use the skip list as shortcuts to find the right place to insert the block and removal would go through the list as normal.
@@ -327,7 +327,7 @@ A minimal metadata implementation would simply have the size of the block.
 
 Since we write integers and pointers into memory that we already control, we can later consistently hop from one address to the next.
 This internal information represents some overhead.
-Meaning even if we had requested 1024 KiB of contiguous memory from the system, we will not be able to provide all of it to the running program.
+Meaning even if we had requested 1024 KiB of contiguous memory from the system, we an allocation of that size will fail.
 
 Our heap memory is a list of blocks where each block is either allocated or unallocated.
 Thus there is conceptually a list of free blocks, but it is implicit in the form of block size information that we store as part of each block.
@@ -356,11 +356,11 @@ They are internal to the implementation of the memory allocator.
 As an example, suppose your allocator is asked to reserve 80 bytes (\keyword{malloc(80)}) and requires 8 bytes of internal header data.
 The allocator would need to find an unallocated space of at least 88 bytes.
 After updating the heap data it would return a pointer to the block.
-However, the returned pointer does not point to the start of the block because that's where the internal size data is stored!
+However, the returned pointer points to the usable space, not the internal data!
 Instead, we would return the start of the block + 8 bytes.
 In the implementation, remember that pointer arithmetic depends on type. For example, \keyword{p\ +=\ 8} adds \keyword{8\ *\ sizeof(p)}, not necessarily 8 bytes!
 
-\subsection{Implementing malloc}
+\subsection{Implementing a Memory Allocator}
 
 The simplest implementation uses first fit.
 Start at the first block, assuming it exists, and iterate until a block that represents unallocated space of sufficient size is found, or we've checked all the blocks.
@@ -419,7 +419,7 @@ This is before alignment concerns as well.
 
 Many architectures expect multibyte primitives to be aligned to some multiple of 2 (4, 16, etc).
 For example, it's common to require 4-byte types to be aligned to 4-byte boundaries and 8-byte types on 8-byte boundaries.
-If multi-byte primitives are not stored on a reasonable boundary then the performance can be significantly impacted because it may require two memory read requests instead of one.
+If multi-byte primitives are stored on an unreasonable boundary, the performance can be significantly impacted because it may require an additional memory read.
 On some architectures the penalty is even greater - the program will crash with a \href{http://en.wikipedia.org/wiki/Bus_error\#Unaligned_access}{bus error}.
 Most of you have experienced this in your architecture classes if there was no memory protection.
 

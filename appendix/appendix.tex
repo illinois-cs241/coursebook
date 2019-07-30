@@ -119,7 +119,7 @@ $ ./program 2>&1 > /dev/null # don't care about any output
 The pipe operator has a fascinating history.
 The UNIX philosophy is writing small programs and chaining them together to do new and interesting things.
 Back in the early days, hard disk space was limited and write times were slow.
-Brian Kernighan wanted to maintain the philosophy while also not having to write a bunch of intermediate files that take up hard drive space.
+Brian Kernighan wanted to maintain the philosophy while omitting intermediate files that take up hard drive space.
 So, the UNIX pipe was born.
 A pipe takes the \keyword{stdout} of the program on its left and feeds it to the \keyword{stdin} of the program on its write.
 Consider the command \keyword{tee}.
