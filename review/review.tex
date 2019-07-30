@@ -151,7 +151,7 @@ char* toString(int a, char*mesg, double val, void* ptr) {
 
 \item Write a complete program that uses \keyword{getline}. Ensure your program has no memory leaks.
 
-\item When would you use calloc not malloc? When would realloc be useful?
+\item When would you use calloc instead of malloc? When would realloc be useful?
 
 \item What mistake did the programmer make in the following code? Is it possible to fix it
 
@@ -227,7 +227,7 @@ void *format(int v) {
 }
 \end{lstlisting}
 
-\item Which one of the following does not cause a process to exit?
+\item Which one of the following may leave a process in running?
 
 \begin{enumerate}
 \item Returning from the pthread's starting function in the last running thread.
@@ -260,7 +260,7 @@ int main(int argv, char** argc) {
 }
 \end{lstlisting}
 
-\item Complete the following code. The following code is supposed to print alternating \keyword{A} and \keyword{B}. It represents two threads that take turns to execute. Add condition variable calls to \keyword{func} so that the waiting thread does not need to continually check the \keyword{turn} variable. Q: Is pthread\_cond\_broadcast necessary or is pthread\_cond\_signal sufficient?
+\item Complete the following code. The following code is supposed to print alternating \keyword{A} and \keyword{B}. It represents two threads that take turns to execute. Add condition variable calls to \keyword{func} so that the waiting thread need not to continually check the \keyword{turn} variable. Q: Is pthread\_cond\_broadcast necessary or is pthread\_cond\_signal sufficient?
 
 \begin{lstlisting}[language=C]
 pthread_cond_t cv = PTHREAD_COND_INITIALIZER;

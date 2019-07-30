@@ -42,7 +42,7 @@ int main() {
 \end{lstlisting}
 
 A typical output of the above code is \keyword{ARGGGH sum is <some number less than expected>} because there is a race condition.
-The code does not stop two threads from reading and writing \keyword{sum} at the same time.
+The code allows two threads to read and write \keyword{sum} at the same time.
 For example, both threads copy the current value of sum into CPU that runs each thread (let's pick 123).
 Both threads increment one to their own copy.
 Both threads write back the value (124).
@@ -216,7 +216,7 @@ If you know the Gaussian sum, you can avoid race conditions altogether, but this
 
 Starting with the gotchas.
 Firstly, C Mutexes do not lock variables.
-A mutex is not that smart.
+A mutex is a simple data structure.
 It works with code, not data.
 If a mutex is locked, the other threads will continue.
 It's only when a thread attempts to lock a mutex that is already locked, will the thread have to wait.
@@ -298,7 +298,7 @@ If two threads both called \keyword{lock} concurrently, it is possible that both
 Thus both threads would believe they have exclusive access to the lock and both threads will continue.
 
 We might attempt to reduce the CPU overhead a little by calling \keyword{pthread\_yield()} inside the loop - pthread\_yield suggests to the operating system that the thread does not use the CPU for a short while, so the CPU may be assigned to threads that are waiting to run.
-But does not fix the race-condition.
+This still leaves the race-condition.
 We need a better implementation.
 We will talk about this later in the critical section part of this chapter.
 For now, we will talk about semaphores.
@@ -387,7 +387,7 @@ When we wake up we try to grab the lock again.
 Once we successfully swap, we are in the critical section!
 We set the mutex's owner to the current thread for the unlock method and return successfully.
 
-How does this guarantee mutual exclusion, when working with atomics we are not entirely sure!
+How does this guarantee mutual exclusion? When working with atomics we are unsure!
 But in this simple example, we can because the thread that can successfully expect the lock to be UNLOCKED (0) and swap it to a LOCKED (1) state is considered the winner.
 How do we implement unlock?
 
@@ -421,7 +421,7 @@ If the swap wasn't, that means that the mutex was UNLOCKED and we tried to switc
 
 What is this memory order business?
 We were talking about memory fences earlier, here it is!
-We won't go into detail because it is outside the scope of this course but not the scope of \href{https://gcc.gnu.org/wiki/Atomic/GCCMM/AtomicSync}{this article}.
+We won't go into detail because it is outside the scope of this course but in the scope of \href{https://gcc.gnu.org/wiki/Atomic/GCCMM/AtomicSync}{this article}.
 We need consistency to make sure no loads or stores are ordered before or after.
 A program need to create dependency chains for more efficient ordering.
 
@@ -515,7 +515,7 @@ Also, binary semaphores are different than mutexes because one thread can unlock
 \subsubsection{Signal Safety}
 
 Also, \keyword{sem\_post} is one of a handful of functions that can be correctly used inside a signal handler \keyword{pthread\_mutex\_unlock} is not.
-W can release a waiting thread that can now make all of the calls that we were not allowed to call inside the signal handler itself e.g. \keyword{printf}.
+We can release a waiting thread that can now make all of the calls that we disallowed to call inside the signal handler itself e.g. \keyword{printf}.
 Here is some code that utilizes this;
 
 \begin{lstlisting}[language=C]
@@ -562,7 +562,7 @@ Threads don't wake threads other directly like by id.
 Instead, a thread `signal's the condition variable, which then will wake up one (or all) threads that are sleeping inside the condition variable.
 
 Condition variables are also used with a mutex and with a loop, so when woken up they have to check a condition in a critical section.
-If a thread needs to be woken up not in a critical section, there are other ways to do this in POSIX.
+If a thread needs to be woken up outside of a critical section, there are other ways to do this in POSIX.
 Threads sleeping inside a condition variable are woken up by calling \keyword{pthread\_cond\_broadcast} (wake up all) or \keyword{pthread\_cond\_signal} (wake up one).
 Note despite the function name, this has nothing to do with POSIX \keyword{signal}s!
 
@@ -705,7 +705,7 @@ int is_empty() {
 }
 \end{lstlisting}
 
-Version 1 of the stack is not thread-safe because if two threads call push or pop at the same time then the results or the stack can be inconsistent.
+Version 1 of the stack is thread-unsafe because if two threads call push or pop at the same time then the results or the stack can be inconsistent.
 For example, imagine if two threads call pop at the same time then both threads may read the same value, both may read the original count value.
 
 To turn this into a thread-safe data structure we need to identify the \emph{critical sections} of our code, meaning we need to ask which section(s) of the code must only have one thread at a time.
@@ -751,11 +751,11 @@ Take a moment to see if you can the error(s) and work out the consequence(s).
 
 If three threads called \keyword{push()} at the same time, the lock \keyword{m1} ensures that only one thread at time manipulates the stack on push or is\_empty -- Two threads will need to wait until the first thread completes
 A similar argument applies to concurrent calls to \keyword{pop}.
-However, version 2 does not prevent push and pop from running at the same time because \keyword{push} and \keyword{pop} use two different mutex locks.
+However, Version 2 does not prevent push and pop from running at the same time because \keyword{push} and \keyword{pop} use two different mutex locks.
 The fix is simple in this case - use the same mutex lock for both the push and pop functions.
 
 The code has a second error.
-\keyword{is\_empty} returns after the comparison and will not unlock the mutex.
+\keyword{is\_empty} returns after the comparison and leaves the mutex unlocked.
 However, the error would not be spotted immediately.
 For example, suppose one thread calls \keyword{is\_empty} and a second thread later calls \keyword{push}.
 This thread would mysteriously stop.
@@ -1178,7 +1178,7 @@ Each thread or process gets exclusive access to the Critical Section.
 However, both threads/processes must take a strict turn-based approach to use the critical section.
 They are forced into an alternating critical section access pattern.
 If thread 1 wishes to read a hash table every millisecond, but another thread writes to a hash table every second, then the reading thread would have to wait another 999ms before being able to read from the hash table again.
-This `solution' is not effective because our threads should be able to make progress and enter the critical section if no other thread is currently in the critical section.
+This `solution' is ineffective because our threads should be able to make progress and enter the critical section if no other thread is currently in the critical section.
 
 \subsection{Turn and Flag solutions}
 

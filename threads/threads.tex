@@ -1,6 +1,6 @@
 \chapter{Threads}
 
-\epigraph{If you think your programs were not working before, wait until they crash ten times as fast}{Bhuvy}
+\epigraph{If you think your programs crashing before, wait until they crash ten times as fast}{Bhuvy}
 
 A thread is short for `thread-of-execution'.
 It represents the sequence of instructions that the CPU has and will execute.
@@ -137,9 +137,9 @@ Actually, there can be more stacks than this, but let's keep it simple.
 The important idea is that each thread requires a stack because the stack contains automatic variables and the old CPU PC register, so that it can go back to executing the calling function after the function is finished.
 
 \item \keyword{pthread\_cancel} stops a thread.
-Note the thread may not actually be stopped immediately.
+Note the thread may still continue.
 For example, it can be terminated when the thread makes an operating system call (e.g. \keyword{write}).
-In practice, \keyword{pthread\_cancel} is rarely used because it does not allows a thread to clean up after itself (for example, it may have opened some files).
+In practice, \keyword{pthread\_cancel} is rarely used because a thread won't clean up open resources like files.
 An alternative implementation is to use a boolean (int) variable whose value is used to inform other threads that they should finish and clean up.
 
 \item \keyword{pthread\_exit(void *)} stops the calling thread meaning the thread never returns after calling \keyword{pthread\_exit}.

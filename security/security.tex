@@ -14,7 +14,7 @@ There is some terminology that needs to be explained to get someone who has litt
 
 \begin{enumerate}
 \item An \textbf{Attacker} is typically the user who is trying to break into the system. Breaking into the system means performing an action that the developer of the system didn't intend. It could also mean accessing a system you shouldn't have access to.
-\item A \textbf{Defender} is typically the user who is preventing the attacker from breaking into the system. This may or may not be the developer of the system.
+\item A \textbf{Defender} is typically the user who is preventing the attacker from breaking into the system. This may be the developer of the system.
 \item There are different types of attackers. There are \textbf{white hat} hackers who attempt to hack a defender with their consent. This is commonly a form of pre-emptive testing -- in case a not-so-friendly attack comes along. The \textbf{black hat} hackers are hackers who hack without permission and the intent to use the information obtained for any purpose. Gray hat hacking differs because the hacker's intent is to inform the defender of the vulnerability -- though this can be hard to judge at times.
 \end{enumerate}
 
@@ -59,7 +59,7 @@ There are three commonly accepted goals to help understand if a system is secure
 \begin{enumerate}
 \item Information Confidentiality means that only authorized parties are allowed to see a piece of information
 \item Information Integrity means that only authorized parties are allowed the modify a piece of information, regardless of whether they are allowed to see it.
-  It ensures that information has not been tampered with in transit.
+  It ensures that information remains in complete during transit.
 \item Information Availability means information, or a service, is available when it is needed.
 \item The triad above forms the Confidentiality, Integrity, and Availability (CIA) triad, often authenticity is added as well.
 \end{enumerate}
@@ -167,11 +167,11 @@ Out of order execution is an amazing development that has been recently adopted 
 Processors now instead of executing a sequence of instructions (let's say assigning a variable and then another variable) execute instructions before the current one is done \cite[P. 45]{guide2011intel}.
 This is because modern processors spend a lot of time waiting for memory accesses and other I/O driven applications.
 This means that a processor, while it is waiting for an operation to complete, will execute the next few operations.
-If any of the operations would possibly alter the final result, there is a barrier, or if the re-ordering violates the data dependencies of the instructions, the processor will not reorder the instructions \cite[P. 296]{guide2011intel}.
+If any of the operations would possibly alter the final result, there is a barrier, or if the re-ordering violates the data dependencies of the instructions, the processor keep the instructions in the stated order \cite[P. 296]{guide2011intel}.
 
-Naturally, not only has this allowed CPUs to become more energy-efficient while executing more instructions in real-time, it has also resulted in increased but naturally comes with security risks and more complex architectures.
-What system programmers are worried about is that operation with mutex locks among threads are out of order -- meaning that a pure software implementation of a mutex will not work without copious memory barriers.
-Therefore, the programmer has to acknowledge that updates may not be seen among a series of threads, given that there is no barrier, on modern processors.
+Naturally, this allowed CPUs to become more energy-efficient while executing more instructions in real-time and increased security risks from complex architectures.
+What system programmers are worried about is that operation with mutex locks among threads are out of order -- meaning that a pure software implementation of a mutex will fail without copious memory barriers.
+Therefore, the programmer has to acknowledge that updates may be missed among a series of threads, given that there is no barrier, on modern processors.
 
 One of the most prominent bugs concerning this is Spectre \cite{kocher2018spectre}.
 Spectre is a bug where instructions that otherwise wouldn't be executed are speculatively executed due to out-of-order instruction execution.
@@ -210,7 +210,7 @@ This should result in a SEGFAULT.
 Since the address was never logically reached by the program, the result is discarded.
 
 Now here is the trick.
-Even though the value of the calculation would have resulted in a SEGFAULT, the bug doesn't clear the cache that refers to the physical memory where 0xCAFE is located. This is not an exact explanation, but essentially how it works.
+Even though the value of the calculation would have resulted in a SEGFAULT, the bug doesn't clear the cache that refers to the physical memory where 0xCAFE is located. This is an inexact explanation, but essentially how it works.
 Since it is still in the cache, if you again trick the processor to read form the cache using \keyword{val} then you will read a memory value that you wouldn't be able to read normally.
 This could include important information such as passwords, payment information, etc.
 
@@ -320,12 +320,12 @@ A common example of this is comparing two strings.
 Let's say that you are guessing the Cross-Site Request Forgery (CSRF) token on a website.
 If the programmed server returns the request immediately after the token doesn't match the server's, that is a security bug.
 If the token matches none of the characters, an attacker now know that a quick response means that the first few characters were off.
-If the token matches some of the characters but not all, an attacker knows that this request will take slightly longer.
+If the token matches some of the characters, an attacker knows that this request will take slightly longer.
 It is important to balance speed and security.
 If correct authentication parameters are supplied, the action should succeed immediately.
 However, if there is a mismatch, there should be no difference in time or content of the response for different reasons of failure, nor should any information be given to the user about the source of error.
 This is often accomplished by using a standard delay for responses to unsuccessful authentication attempts.
-We want to use a fast \keyword{memcmp} but it may not be secure.
+We want to use a fast \keyword{memcmp}, but it may be insecure.
 
 \section{Cyber Security}
 
@@ -336,7 +336,7 @@ More and more of our systems are hacked over the web, it is important to underst
 
 \begin{enumerate}
 \item Encryption.
-  \textbf{TCP is not encrypted!} This means any data that is sent over a TCP connection is in plain text.
+  \textbf{TCP is unencrypted!} This means any data that is sent over a TCP connection is in plain text.
   If one needs to send encrypted data, one needs to use a higher level protocol such as HTTPs or develop their own.
 \item Identity Verification.
   In TCP, there is no way to verify the identity of who the program is connecting to.

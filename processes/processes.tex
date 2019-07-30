@@ -540,7 +540,7 @@ To make a long story short, here is what to do to avoid the example.
 \item If it is a file descriptor or an unbuffered \keyword{FILE*}, it is already prepared.
 \item If the \keyword{FILE*} is open for reading and has been read fully, it is already prepared.
 \item Otherwise, the \keyword{FILE*} \textbf{must} be \keyword{fflush}'ed or closed to be prepared.
-\item If the file descriptor is prepared, it must not be active in the parent process if the child process is using it or vice versa. A process is using it if it is read or written or if that process \textit{for whatever reason} calls \keyword{exit}. If a process uses it when the other process is as well, the whole application's behavior is undefined.
+\item If the file descriptor is prepared, it must unactive in the parent process if the child process is using it or vice versa. A process is using it if it is read or written or if that process \textit{for whatever reason} calls \keyword{exit}. If a process uses it when the other process is as well, the whole application's behavior is undefined.
 \end{enumerate}
 
 So how would we fix the code?

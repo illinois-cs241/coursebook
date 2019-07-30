@@ -199,7 +199,7 @@ You can't SIGKILL any process!
 \section{Handling Signals}
 
 There are strict limitations on the executable code inside a \gls{signal handler}.
-Most library and system calls are not \keyword{async-signal-safe}, meaning they may not be used inside a signal handler because they are not re-entrant.
+Most library and system calls are \keyword{async-signal-unsafe}, meaning they may not be used inside a signal handler because they are not re-entrant.
 Re-entrant safety means that your function can be frozen at any point and executed again, can you guarantee that your function wouldn't fail?
 Let's take the following
 
@@ -225,7 +225,7 @@ Guaranteeing that your functions are signal handler safe can't be solved by remo
 You must also think about multithreading and synchronization -- what happens when I double lock a mutex?
 You also have to make sure that each function call is reentrant safe.
 Suppose your original program was interrupted while executing the library code of \keyword{malloc}.
-The memory structures used by malloc will not be in a consistent state.
+The memory structures used by malloc will be inconsistent.
 Calling \keyword{printf}, which uses \keyword{malloc} as part of the signal handler, is unsafe and will result in \textbf{undefined behavior}.
 A safe way to avoid this behavior is to set a variable and let the program resume operating.
 The design pattern also helps us in designing programs that can receive signals twice and operate correctly.
@@ -251,7 +251,7 @@ The above code might appear to be correct on paper.
 However, we need to provide a hint to the compiler and the CPU core that will execute the \keyword{main()} loop.
 We need to prevent compiler optimization.
 The expression \keyword{\!pleaseStop} doesn't get changed in the body of the loop, so some compilers will optimize it to \keyword{true} \todo{citation needed}.
-Secondly, we need to ensure that the value of \keyword{pleaseStop} is not cached using a CPU register and instead always read from and written to main memory.
+Secondly, we need to ensure that the value of \keyword{pleaseStop} is uncached using a CPU register and instead always read from and written to main memory.
 The \keyword{sig\_atomic\_t} type implies that all the bits of the variable can be read or modified as an \keyword{atomic operation} - a single uninterruptible operation.
 It is impossible to read a value that is composed of some new bit values and old bit values.
 
@@ -311,7 +311,7 @@ sigaction(SIGALRM, &sa, NULL)
 
 However, we typically may also set the mask and the flags field.
 The mask is a temporary signal mask used during the signal handler execution.
-If the thread serving the signal is interrupted in the middle of a system call, the \keyword{SA\_RESTART} flag will automatically restart some (but not all) system calls that otherwise would have returned early with EINTR error.
+If the thread serving the signal is interrupted in the middle of a system call, the \keyword{SA\_RESTART} flag will automatically restart some system calls that otherwise would have returned early with EINTR error.
 The latter means we can simplify the rest of code somewhat because a restart loop may no longer be required.
 
 \begin{lstlisting}[language=C]
@@ -319,7 +319,7 @@ sigfillset(&sa.sa_mask);
 sa.sa_flags = SA_RESTART; /* Restart functions if interrupted by handler */
 \end{lstlisting}
 
-It is often better to have your code check for the error and restart itself because not every system call is covered under restart.
+It is often better to have your code check for the error and restart itself due to the selective nature of the flag.
 
 \section{Blocking Signals}
 
@@ -373,7 +373,7 @@ Notice that the thread signal mask is set first (and will be inherited by new th
 The mask prevents signals from being \emph{delivered} so they will remain in a pending state until sigwait is called.
 Also notice the same set \keyword{sigset\_t} variable is used by sigwait - except rather than setting the set of blocked signals it is used as the set of signals that sigwait can catch and return.
 
-One advantage of writing a custom signal handling thread (such as the example below) rather than a callback function is that you can now use many more C library and system functions that otherwise could not be safely used in a signal handler because they are not async signal-safe.
+One advantage of writing a custom signal handling thread (such as the example below) rather than a callback function is that you can now use many more C library and system functions safely.
 
 Based on sigmask code \cite{pthread_sigmask}
 
@@ -462,7 +462,7 @@ pthread_sigmask(SIG_BLOCK, &set, NULL) - add the signal set to the thread's mask
 pthread_sigmask(SIG_UNBLOCK, &set, NULL) - remove the signal set from the thread's mask
 \end{lstlisting}
 
-A signal then can be delivered to any signal thread that is not blocking that signal.
+A signal then can be delivered to any signal thread that is willing to accept that signal.
 If the two or more threads can receive the signal then which thread will be interrupted is arbitrary!
 A common practice is to have one thread that can receive all signals or if there is a certain signal that requires special logic, have multiple threads for multiple signals.
 Even though programs from the outside can't send signals to specific threads, you can do that internally with \keyword{pthread\_kill(pthread\_t thread, int sig)}.
