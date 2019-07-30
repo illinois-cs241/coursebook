@@ -1733,7 +1733,7 @@ A reminder, a condition variable is similar to a house! Threads go there to slee
 A threa can choose to wake up one thread (\keyword{pthread\_cond\_signal}) or all of them (\keyword{pthread\_cond\_broadcast}).
 If there are no threads currently waiting then these two calls have no effect.
 
-A condition variable version is usually very similar to a busy loop incorrect solution - as we will show next.
+A condition variable version is usually similar to a busy loop incorrect solution - as we will show next.
 First, let's add a mutex and condition global variables and don't forget to initialize them in \keyword{main}.
 
 \begin{lstlisting}[language=C]
@@ -2087,7 +2087,7 @@ void *dequeue() { /* Remove one item to the end of the queue.*/
 
 \subsection{Ring Buffer Gotchas}
 
-It's very tempting to write the enqueue or dequeue method in the following compact form.
+It's tempting to write the enqueue or dequeue method in the following compact form.
 
 \begin{lstlisting}[language=C]
 // N is the capacity of the buffer
@@ -2466,7 +2466,7 @@ This model was introduced so that there can be an Acquire/Release/Consume model 
 There are a \textit{lot} of other methods of concurrency than described in this book.
 Posix threads are the finest grained thread construct, allowing for tight control of the threads and the CPU.
 Other languages have their abstractions.
-We'll talk about a language go that is very similar to C in terms of simplicity and design, go or golang
+We'll talk about a language go that is similar to C in terms of simplicity and design, go or golang
 To get the 5 minute introduction, feel free to read \href{https://learnxinyminutes.com/docs/go/}{the learn x in y guide} for go.
 Here is how we create a "thread" in go.
 

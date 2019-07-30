@@ -136,7 +136,7 @@ Standard input or stdin oriented functions read from stdin directly.
 Most of these functions have been deprecated due to them being poorly designed. These functions treat stdin as a file from which we can read bytes.
 One of the most notorious offenders is \keyword{gets}.
 \keyword{gets} is deprecated in C99 standard and has been removed from the latest C standard (C11).
-The reason that it was deprecated was that there is no way to control the length being read, therefore buffers could get overrun very easily.
+The reason that it was deprecated was that there is no way to control the length being read, therefore buffers could get overrun easily.
 When this is done maliciously to hijack program control flow, this is known as a buffer overflow.
 
 Programs should use \keyword{fgets} or \keyword{getline} instead.
@@ -223,7 +223,7 @@ scanf("%9s", buffer); // reads up to 9 characters from input (leave room for the
 \end{lstlisting}
 
 One last thing to note is if system calls are expensive, the \keyword{scanf} family is much more expensive due to compatibility reasons.
-Since it needs to be able to process all of the printf specifiers correctly, the code isn't very efficient \todo{citation needed}.
+Since it needs to be able to process all of the printf specifiers correctly, the code isn't efficient \todo{citation needed}.
 For highly performant programs, one should write the parsing themselves.
 If it is a one-off program or script, feel free to use scanf.
 

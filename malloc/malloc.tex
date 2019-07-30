@@ -4,7 +4,7 @@
 
 \section{Introduction}
 
-Memory allocation is very important!
+Memory allocation is important!
 Allocating and deallocating heap memory is one of the most common operations in any application.
 The heap at the system level is contiguous series of addresses that the program can expand or contract and use as its own accord \cite{mallocinternals}.
 In POSIX, this is called the system break.
@@ -260,13 +260,13 @@ First, we will have a more mathematical, one-shot approach to each of these algo
 The paper describes a scenario where you have a certain number of bins, and a certain number of allocations, and you are trying to fit the allocations in as few bins as possible, hence using as little memory as possible.
 The paper discusses theoretical implications and puts a nice limit on the ratios in the long run between the ideal memory usage and the actual memory usage.
 For those who are interested, the paper concludes that actual memory usage over ideal memory usage as the number of bins increases -- the bins can have any distribution -- is about 1.7 for first fit and lower bounded by 1.7 for best fit.
-The problem with this analysis is that very few real-world applications need this type of one-shot allocation.
+The problem with this analysis is that few real-world applications need this type of one-shot allocation.
 Video game object allocations will typically designate a different subheap for each level and fill up that subheap if they need a quick memory allocation scheme that they can throw away.
 
 In practice, we'll be using the result from a more rigorous survey conducted in 2005 \cite{10.1007/3-540-60368-9_19}.
 The survey makes sure to note that memory allocation is a moving target.
 A good allocation scheme to one program may not be a good allocation scheme for another program.
-Programs don't uniformly follow the distribution of allocations, so very.
+Programs don't uniformly follow the distribution of allocations.
 The survey talks about all the allocation schemes that we have introduced as well as a few extra ones.
 Here are some summarized takeaways
 
@@ -443,7 +443,7 @@ The additional constant ensures incomplete units are rounded up. Note, real code
 Another added effect could be internal fragmentation happens when the given block is larger than their allocation size.
 Let's say that we have a free block of size 16B (not including metadata).
 If they allocate 7 bytes, the allocator may want to round up to 16B and return the entire block.
-This gets very sinister when implementing coalescing and splitting.
+This gets sinister when implementing coalescing and splitting.
 If the allocator doesn't implement either, it may end up returning a block of size 64B for a 7B allocation!
 There is a \emph{lot} of overhead for that allocation which is what we are trying to avoid.
 

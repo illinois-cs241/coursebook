@@ -7,7 +7,7 @@ Costello: Naturally. \\
 Abbott: Well, that's it - say it that way. \\
 Costello: That's what I said.}{Abbott and Costello on Effective Communication}
 
-In very simple embedded systems and early computers, processes directly access memory -- ``Address 1234'' corresponds to a particular byte stored in a particular part of physical memory.
+In simple embedded systems and early computers, processes directly access memory -- ``Address 1234'' corresponds to a particular byte stored in a particular part of physical memory.
 For example, the IBM 709 had to read and write directly to tape with no level of abstraction \cite[P. 65]{ibm709}.
 Even in systems after that, it was hard to adopt virtual memory because virtual memory required the whole fetch cycle to be altered through hardware -- a change many manufacturers still thought was expensive.
 In the PDP-10, a workaround was used by using different registers for each process and then virtual memory was added later \cite{ricm}.
@@ -477,7 +477,7 @@ We could use a mutex across processes mentioned in the synchronization section.
 But for this simple example, it works fine.
 Note that each process should call munmap when done using the piece of memory.
 
-Sharing anonymous memory is a very efficient form of inter-process communication because there is no copying, system call, or disk-access overhead - the two processes literally share the same physical frame of main memory.
+Sharing anonymous memory is a efficient form of inter-process communication because there is no copying, system call, or disk-access overhead - the two processes literally share the same physical frame of main memory.
 On the other hand, shared memory, like in a multithreading context, creates room for data races.
 Processes that share writable memory might need to use synchronization primitives like mutexes to prevent these from happening.
 
@@ -487,8 +487,8 @@ You've seen the virtual memory way of IPC, but there are more standard versions 
 One of the big utilities is POSIX pipes.
 A pipe simply takes in a stream of bytes and spits out a sequence of bytes.
 
-One of the big starting points of pipes was way back in the PDP-10 days. In those days, a write to the disk or even your terminal was very slow as it may have to be printed out.
-The Unix programmers still wanted to create small, portable programs that did one thing very well and could be composed.
+One of the big starting points of pipes was way back in the PDP-10 days. In those days, a write to the disk or even your terminal was slow as it may have to be printed out.
+The Unix programmers still wanted to create small, portable programs that did one thing well and could be composed.
 As such, pipes were invented to take the output of one program
 and feed it to the input of another program though they have other uses today -- you can read more \href{https://en.wikipedia.org/wiki/Pipeline\_\%28Unix\%29}{At the wikipedia page}
 Consider if you type the following into your terminal.
@@ -919,7 +919,7 @@ On Linux, there are two abstractions with files. The first is the Linux \keyword
 \item \keyword{fcntl} is the catch-all function for file descriptors. Set file locks, read, write, edit permissions, etc \ldots{}
  \end{itemize}
 
-The Linux interface is very powerful and expressive, but sometimes we need portability for example if we are writing for a Macintosh or windows.
+The Linux interface is powerful and expressive, but sometimes we need portability for example if we are writing for a Macintosh or windows.
 This is where C's abstraction comes into play.
 On different operating systems, C uses the low-level functions to create a wrapper around files used everywhere, meaning that C on Linux uses the above calls.
 

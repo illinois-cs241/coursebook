@@ -428,7 +428,7 @@ All results are from Jorma Virtamo's lectures on the matter \cite{virtamo}.
   \]
   The response time is simple to calculate, it is the expected number of people ahead of the process in the queue times the expected time to service each of those processes.
   From Little's Law above, we can substitute that for this. Since we already know the value of the waiting time, we can reason about the response time as well.
-\item A discussion of the results is shows something very cool discovered by Conway and Al \cite{conway1967theory}.
+\item A discussion of the results is shows something cool discovered by Conway and Al \cite{conway1967theory}.
   Any scheduling discipline that isn't preemptive and doesn't take into account the run time of the process or a priority will have the same wait, response, and turnaround time.
   We will often use this as a baseline.
 \end{enumerate}
@@ -624,7 +624,7 @@ We will also introduce an additional term $C_i$ which denotes the variation amon
   If lower priorities jobs come in at a higher service time variance, that means our average response times could go down, but not if they make up most of the jobs that come in.
   Think of the extreme cases.
   If 99\% of the jobs are high priority and the rest make up the other percent, then the other jobs will get frequently interrupted, but high priority jobs will make up most of the jobs, so the expectation is still low.
-  The other extreme is if one percent of jobs are high priority and they come in a very low variance.
+  The other extreme is if one percent of jobs are high priority and they come in a low variance.
   That means the chances the system getting a high priority jobs that will take a long time is low, thus making our response times lower on average.
   We only run into trouble if high priority jobs make up a non-negligible amount, and they have a high variance in service times.
   This brings down response times as well as wait times.

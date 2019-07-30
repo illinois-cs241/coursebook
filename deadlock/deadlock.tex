@@ -444,7 +444,7 @@ This prioritizes philosophers that have already eaten but can be made fairer by 
 
 \begin{proof} Dijkstra's Solution Doesn't Deadlock
 
-The proof is very similar to the previous proof.
+The proof is similar to the previous proof.
 Let's number the philosophers $\{p_0, p_1, .., p_{n-1}\}$ and the resources $\{r_0, r_1, .., r_{n-1}\}$.
 A philosopher $p_i$ needs resource $r_{i-1 \mod n}$ and $r_{i + 1 \mod n}$.
 Each philosopher will grab $r_{i-1 \mod n}$ then $r_{i + 1 \mod n}$ but the last philosopher will grab in the reverse order.
@@ -479,7 +479,7 @@ We won't detail the proof here because it is a little more involved, but feel fr
 \subsection{Extra: Actor Model}
 
 The actor model is another form of synchronization that doesn't have to do anything with negotiating locks or waiting.
-The idea is very simple.
+The idea is simple.
 Each actor can either perform work, create more actors, send messages, or respond to messages.
 Any time an actor needs something from another actor, it sends a message.
 Most importantly, an actor is only responsible for one thing.
@@ -490,7 +490,7 @@ The servicing actor may send a data request message the database actor and a dat
 While this seems like the perfect solution there are drawbacks.
 The first is the actual library of communication needs to be synchronized.
 If you don't have a framework that does this already -- like the Message Passing Interface or MPI for High-Performance Computing -- then the framework will have to be built and would most likely be as much work to build efficiently compared to direct synchronization.
-Also, the messages now encounter additional overhead for serializing and deserializing or at the very least.
+Also, the messages now encounter additional overhead for serializing and deserializing or at the least.
 And a final drawback is that an actor could take an arbitrarily long time to respond to a message, spurring the need for shadow actors who service the same job.
 
 As mentioned, there are frameworks like \href{https://en.wikipedia.org/wiki/Message\_Passing\_Interface}{Message passing interface} that is somewhat based on the actor model and allows distributed systems in high performance computing to work effectively, but your mileage may vary

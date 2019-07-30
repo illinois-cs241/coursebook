@@ -131,7 +131,7 @@ It may seem overwhelming, but by the end of this chapter, we will be able to mak
 
 To reason about data on some form of storage -- spinning disks, solid state drives, magnetic tape -- it is common practice to first consider the medium of storage as a collection of \emph{blocks}.
 A block can be thought of as a contiguous region on disk.
-While its size is sometimes determined by some property of the underlying hardware, it is more frequently determined based on the size of a page of memory for a given system, so that data from the disk can be cached in memory for faster access -- a very important feature of many filesystems.
+While its size is sometimes determined by some property of the underlying hardware, it is more frequently determined based on the size of a page of memory for a given system, so that data from the disk can be cached in memory for faster access -- a important feature of many filesystems.
 
 A filesystem has a special block denoted as a \emph{superblock} that stores metadata about the filesystem such as a journal (which logs changes to the filesystem), a table of inodes, the location of the first inode on disk, etc.
 The important thing about a superblock is that it is in a known location on disk.
@@ -198,7 +198,7 @@ Except for the problem of too many layers of indirection.
 To solve this problem, we introduce \keyword{indirect blocks}.
 A single indirect block is a block that stores pointers to more data blocks.
 Similarly, a double indirect block stores pointers to single indirect blocks, and the concept can be generalized to arbitrary levels of indirection.
-This is a very important concept, as inodes are stored in the superblock, or some other structure in a well known location with a constant amount of space, indirection allows exponential increases in the amount of space an inode can keep track of.
+This is a important concept, as inodes are stored in the superblock, or some other structure in a well known location with a constant amount of space, indirection allows exponential increases in the amount of space an inode can keep track of.
 
 As a worked example, suppose we divide the disk into 4KiB blocks and we want to address up to $2^{32}$ blocks.
 The maximum disk size is $4KiB *2^{32} = 16TiB$ remember $2^{10} = 1024$.
@@ -214,7 +214,7 @@ The actual intra-block reading times don't change.
 \subsection{Directory Implementation}
 
 A directory is a mapping of names to inode numbers.
-It is typically a normal file, but with some special bits set in its inode and a very specific structure for its contents.
+It is typically a normal file, but with some special bits set in its inode and a specific structure for its contents.
 POSIX provides a small set of functions to read the filename and inode number for each entry, which we will talk about in depth later in this chapter.
 
 Let's think about what directories looks like in the actual file system.
@@ -307,7 +307,7 @@ If both the parent and the child use the above, the behavior is undefined.
 
 There are two main gotchas and one consideration.
 The \keyword{readdir} function returns ``.'' (current directory) and ``..'' (parent directory).
-The other is programs need to explicity exclude subdirectories from a search, otherwise the search may take a very long time.
+The other is programs need to explicity exclude subdirectories from a search, otherwise the search may take a long time.
 
 For many applications, it's reasonable to check the current directory first before recursively searching sub-directories.
 This can be achieved by storing the results in a linked list, or resetting the directory struct to restart from the beginning.
@@ -1132,10 +1132,10 @@ As such, you may end up designing a filesystem yourself someday.
 In this section, we will go over one of a fake filesystems and ``walk through'' some examples of how things work.
 
 So, what does our hypothetical filesystem look like? 
-We will base it off of the \keyword{minixfs}, a very simple filesystem that happens to be the first filesystem that Linux ran on.
+We will base it off of the \keyword{minixfs}, a simple filesystem that happens to be the first filesystem that Linux ran on.
 It is laid out sequentially on disk, and the first section is the superblock.
 The superblock stores important metadata about the entire filesystem.
-Since we want to be able to read this block before we know anything else about the data on disk, this needs to be in a well-known location so the very start of the disk is a good choice.
+Since we want to be able to read this block before we know anything else about the data on disk, this needs to be in a well-known location so the start of the disk is a good choice.
 After the superblock, we'll keep a map of which inodes are being used.
 The nth bit is set if the nth inode -- $0$ being the inode root -- is being used.
 Similarly, we store a map recording which data blocks are used.
@@ -1198,7 +1198,7 @@ However, on disk we also store the indirect block itself.
 This means that an additional $4KiB$ of overhead will be used to account for the indirect block, so the total disk usage will be $4MiB + 12KiB$.
 
 Note that when only using direct blocks, completely filling up a direct block implies that our filesize and our disk usage are the same thing!
-While it would seem like we always want this ideal scenario, it puts a very restrictive limit on the maximum filesize.
+While it would seem like we always want this ideal scenario, it puts a restrictive limit on the maximum filesize.
 Attempting to remedy this by increasing the number of direct blocks seems promising, but note that this requires increasing the size of an inode and reducing the amount of space available to store user data -- a tradeoff you will have to evaluate for yourself.
 Alternatively always trying to split your data up into chunks that never use indirect blocks is also not necessarily wise since it could exhaust the limited pool of available inodes.
 
@@ -1271,7 +1271,7 @@ While the API for most filesystems have stayed the same on POSIX over the years,
 
 \begin{itemize}
 \item Data Integrity. File systems use journaling and sometimes checksums to ensure that the data written to is valid. Journalling is a simple invention where the file system writes an operation in a journal. If the filesystem crashes before the operation is complete, it can resume the operation when booted up again using the partial journal.
-\item Caching. Linux does a very good job of caching file system operations like finding inodes. This makes disk operations seem nearly instant. If you want to see a slow system, look at Windows with FAT/NTFS. Disk operations need to be cached by the application, or it will burn through the CPU.
+\item Caching. Linux does a good job of caching file system operations like finding inodes. This makes disk operations seem nearly instant. If you want to see a slow system, look at Windows with FAT/NTFS. Disk operations need to be cached by the application, or it will burn through the CPU.
 \item Speed. On spinning disk machines, data that is toward the end of a metallic platter will spin faster (angular velocity is farther from the center). Programs used this to reduce time loading large files like movies in a video editing piece of software. SSDs don't have this problem because there is no spinning disk, but they will portion off a section of their space to be used as "swap space" for fiels.
 \item Parallelism. Filesystems with multiple heads (for physical hard disks) or multiple controllers (for SSDs) can utilize parallelism by multiplexing the PCIe slot with data, always serving some data to the application whenever possible.
 \item Encryption. Data can be encrypted with one or more keys. A good example of this is Apple's APFS file systems.

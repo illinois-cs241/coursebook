@@ -8,7 +8,7 @@ Most of us nowadays can't stand a place without WiFi or any connectivity, so it 
 Although it may sound complicated, POSIX has defined nice standards that make connecting to the outside world easy.
 POSIX also lets you peer underneath the hood and optimize all the little parts of each connection to write highly performant programs.
 
-As an addendum that you'll read more about in the next chapter, we will be very strict in our notation for sizes.
+As an addendum that you'll read more about in the next chapter, we will be strict in our notation for sizes.
 That means that when we refer to the SI prefixes of Kilo-, Mega-, etc, then we are always referring to a power of 10.
 A kilobyte is one thousand bytes, a megabyte is a thousand kilobytes and so on.
 If we need to refer to \keyword{1024} bytes, we will use the more accurate term Kibibyte. Mibibyte and Gibibyte are the analogs of Megabyte and Gigabyte respectively.
@@ -66,11 +66,11 @@ A significant limitation of IPv4 is that source and destination addresses are li
 IPv4 was designed at a time when the idea of 4 billion devices connected to the same network was unthinkable or at least not worth making the packet size larger.
 \gls{IPv4 addresses} are written typically in a sequence of four octets delimited by periods "255.255.255.0" for example.
 
-Each IPv4 \gls{datagram} includes a very small header - typically 20 \gls{octets}, that includes a source and destination address.
+Each IPv4 \gls{datagram} includes a small header - typically 20 \gls{octets}, that includes a source and destination address.
 Conceptually the source and destination addresses can be split into two: a network number the upper bits and lower bits represent a particular host number on that network.
 
 A newer packet protocol \gls{IPv6} solves many of the limitations of IPv4 like making routing tables simpler and 128-bit addresses.
-However, very little web traffic is IPv6 based on comparison as of 2018 \cite{internet_society_2018}
+However, little web traffic is IPv6 based on comparison as of 2018 \cite{internet_society_2018}
 We write IPv6 addresses in a sequence of eight, four hexadecimal delimiters like "1F45:0000:0000:0000:0000:0000:0000:0000".
 Since that can get unruly, we can omit the zeros "1F45::". A machine can have an IPv6 address and an IPv4 address.
 
@@ -866,7 +866,7 @@ printf("%s\n", buffer);
 
 \subsection{Sorry To Interrupt}
 
-One concept that we need to make very clear is that you need to handle interrupts in your networking code.
+One concept that we need to make clear is that you need to handle interrupts in your networking code.
 That means that the sockets or accepted file descriptors that you read to or write to may have their calls interrupted -- most of the time you will get an interrupt or two.
 In reality, any of your system calls could get interrupted.
 The reason we bring this up now is that you are usually waiting for the network.
@@ -897,7 +897,7 @@ What other problems can you spot?
 \section{Layer 4: UDP}
 
 UDP is a connectionless protocol that is built on top of IPv4 and IPv6.
-It's very simple to use.
+It's simple to use.
 Decide the destination address and port and send your data packet!
 However, the network makes no guarantee about whether the packets will arrive.
 Packets may be dropped if the network is congested.

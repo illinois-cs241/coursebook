@@ -83,11 +83,11 @@ A program consists of the following:
     \item Libraries to link and where to fill in the address of those libraries
 \end{itemize}
 
-Processes are very powerful, but they are isolated!
+Processes are powerful, but they are isolated!
 
 That means that by default, no process can communicate with another process.
 
-This is very important because in complex systems (like the University of Illinois Engineering Workstations), it is likely that different processes will have different privileges.
+This is important because in complex systems (like the University of Illinois Engineering Workstations), it is likely that different processes will have different privileges.
 One certainly doesn't want the average user to be able to bring down the entire system, by either purposely or accidentally modifying a process.
 As most of you have realized by now, if you stuck the following code snippet into a program, the variables would not be shared between two parallel invocations of the program.
 
@@ -239,10 +239,10 @@ The \keyword{fork} system call clones the current process to create a new proces
 This occurs by duplicating the state of the existing process with a few minor differences.
 \begin{itemize}
     \item The child process does not start from main. Instead, it executes the next line after the \keyword{fork()} as the parent process does.
-    \item Just as a side remark, in older UNIX systems, the entire address space of the parent process was directly copied regardless of whether the resource was modified or not. The current behavior is for the kernel to perform a \href{https://en.wikipedia.org/wiki/Copy-on-write}{copy-on-write}, which saves a lot of resources, while being very time efficient \cite[Copy-on-write section]{Bovet:2005:ULK:1077084}.
+    \item Just as a side remark, in older UNIX systems, the entire address space of the parent process was directly copied regardless of whether the resource was modified or not. The current behavior is for the kernel to perform a \href{https://en.wikipedia.org/wiki/Copy-on-write}{copy-on-write}, which saves a lot of resources, while being time efficient \cite[Copy-on-write section]{Bovet:2005:ULK:1077084}.
 \end{itemize}
 
-Here is a very simple example:
+Here is a simple example:
 
 \begin{minted}{C}
 printf("I'm printed once!\n");
@@ -353,7 +353,7 @@ In essence, this program outsources the actual sorting to the operating system.
 
 A `fork bomb' is what we warned you about earlier.
 This occurs when there is an attempt to create an infinite number of processes.
-This will often bring a system to a near-standstill, as it attempts to allocate CPU time and memory to a very large number of processes that are ready to run.
+This will often bring a system to a near-standstill, as it attempts to allocate CPU time and memory to a large number of processes that are ready to run.
 System administrators don't like them and may set upper limits on the number of processes each user can have, or revoke login rights because they create disturbances in the Force for other users' programs.
 A program can limit the number of child processes created by using \keyword{setrlimit()}.
 
@@ -403,7 +403,7 @@ There are various other ways. What if we removed the \keyword{echo} binary? What
 
 \subsection{Signals}
 
-We won't fully explore signals until the very end of the course, but it is relevant to broach the subject now because various semantics related to fork and other function calls detail what a signal is.
+We won't fully explore signals until the end of the course, but it is relevant to broach the subject now because various semantics related to fork and other function calls detail what a signal is.
 
 A signal can be thought of as a software interrupt. This means that a process that receives a signal stops the execution of the current program and makes the program respond to the signal.
 
@@ -438,7 +438,7 @@ To note, it is generally poor programming practice to use signals in program log
 The reason: signals have no time frame of delivery and no assurance that they will be delivered.
 There are better ways to communicate between two processes.
 
-If you want to read more, feel free to skip ahead to the chapter on POSIX signals and read it over. It isn't very long and gives you the long and short about how to deal with signals in processes.
+If you want to read more, feel free to skip ahead to the chapter on POSIX signals and read it over. It isn't long and gives you the long and short about how to deal with signals in processes.
 
 \subsection{POSIX Fork Details}
 

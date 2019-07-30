@@ -63,7 +63,7 @@ A short but non-complete list could be
 
 \subsection{Interrupts}
 
-Interrupts are a very important part of system programming.
+Interrupts are a important part of system programming.
 An interrupt is internally an electrical signal that is delivered to the processor when something happens -- this is a hardware interrupt \cite{redhat_hardware_int}.
 Then the hardware decides if this is something that it should handle (i.e. handling keyboard or mouse input for older keyboard and mouses) or it should pass to the operating system.
 The operating system then decides if this is something that it should handle (i.e. paging a memory table from disk) or something the application should handle (i.e. a SEGFAULT).
@@ -223,7 +223,7 @@ This takes you into the editor.
 You start off in normal mode.
 In this mode, you can move around with many keys with the most common ones being \keyword{jklh}.
 To exit vim from this mode, you need to type \keyword{:q} which quits.
-If you have any unsaved edits, you must either save them \keyword{:w}, save and quit \keyword{:wq}, or discard changes \keyword{:q!}. To make edits you can either type \keyword{i} to change you into insert mode or \keyword{a} to change to insert mode \textbf{a}fter the cursor. This is the very basics when it comes to vim
+If you have any unsaved edits, you must either save them \keyword{:w}, save and quit \keyword{:wq}, or discard changes \keyword{:q!}. To make edits you can either type \keyword{i} to change you into insert mode or \keyword{a} to change to insert mode \textbf{a}fter the cursor. This is the basics when it comes to vim
 
 Emacs is more of a way of life, and I don't mean that figuratively.
 A lot of people say that emacs is a powerful operating system lacking a decent text editor.
@@ -259,7 +259,7 @@ Many people will argue that editor gurus spend more time editing their editors a
 \subsection{Clean Code}
 
 Make your code modular using helper functions. If there is a repeated task (getting the pointers to contiguous blocks in the malloc MP, for example), make them helper functions.
-And make sure each function does one thing very well so that you don't have to debug twice.
+And make sure each function does one thing well so that you don't have to debug twice.
 Let's say that we are doing selection sort by finding the minimum element each iteration like so,
 
 \begin{lstlisting}[language=C]
@@ -377,7 +377,7 @@ Let's see what Valgrind will output.
 
 \textbf{Definitely lost}: Memory leak --- you probably forgot to free a memory block.
 
-Valgrind is a very effective tool to check for errors at runtime. C is very special when it comes to such behavior, so after compiling your program you can use Valgrind to fix errors that your compiler may not catch and that usually happens when your program is running.
+Valgrind is a effective tool to check for errors at runtime. C is special when it comes to such behavior, so after compiling your program you can use Valgrind to fix errors that your compiler may not catch and that usually happens when your program is running.
 
 For more information, you can refer to the manual \cite{valgrind}
 
@@ -439,7 +439,7 @@ GDB is short for the GNU Debugger. GDB is a program that helps you track down er
 \paragraph{Setting breakpoints programmatically}
 
 A breakpoint is a line of code where you want the execution to stop and give control back to the debugger.
-A very useful trick when debugging complex C programs with GDB is setting breakpoints in the source code.
+A useful trick when debugging complex C programs with GDB is setting breakpoints in the source code.
 
 \begin{lstlisting}[language=C]
 int main() {
@@ -784,7 +784,7 @@ And then use as appropriately.
 \section{Extra: Compiling and Linking}
 
 This is a high-level overview from the time you compile your program to the time you run your program.
-We often know that compiling your program is very easy.
+We often know that compiling your program is easy.
 You run the program through an IDE or a terminal, and it just works.
 
 \begin{lstlisting}[language=bash]
