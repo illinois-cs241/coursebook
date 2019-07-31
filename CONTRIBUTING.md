@@ -165,15 +165,27 @@ To make sure the book has a consistent tone among authors, we'll use the general
 * Opt for citations rather than links because they allow for smoother reading.
 * Break each sentence into its own line.
 * Don't use 'I' ever
-* Only use 'you' to refer to things that a _human_ can do. A human can read the man page, but a human cannot access a memory location.
+* Only use 'you' to refer to things that a _human_ can do. A human can read the man page or change code, but a human cannot access a memory location.
 * Aim for resolute rather than pedantic language
-* Avoid negative language "This does not print" to "Hello stays is unwritten"
+* Avoid negative language
+    * "This function does not work"
+    * "This function fails"
 * Avoid using filler words the following is a shortlist
     * "really"
     * "just"
     * "very"
     * "basically"
 * Avoid using ellipses when not in a quote or a mathematical argument. It is otherwise viewed as informal.
+    * Let S = {1, 2, ...}
+    * "He was right ... she couldn't have it all"
+* Pronouns should refer to the non-object noun of the previous sentence or clause unless completely unambiguous, but makes for confusing prose.
+    * She and I were walking on the sidewalk. We thought it was a nice day.
+    * She and I were walking on the sidewalk. It was hard and rocky.
+* Introduce Abbreviations before using them
+    * Hyper Text Markup Language (HTML) is ... HTML is the backbone of the web.
+* Use plural antecedents to avoid gendering unless needed
+    * "Programmers love readable code. They edit that code quickly."
+    * "The banker keeps track of the number of resources. She makes a list of resources"
 
 # Code Style
 
