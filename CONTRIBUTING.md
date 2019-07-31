@@ -173,6 +173,7 @@ To make sure the book has a consistent tone among authors, we'll use the general
     * "just"
     * "very"
     * "basically"
+* Avoid using ellipses when not in a quote or a mathematical argument. It is otherwise viewed as informal.
 
 # Code Style
 

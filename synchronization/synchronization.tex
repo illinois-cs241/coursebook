@@ -2082,7 +2082,7 @@ As data is added (enqueued) to the front of the queue or removed (dequeued) from
 A simple (single-threaded) implementation is shown below.
 Note, enqueue and dequeue do not guard against underflow or overflow.
 It's possible to add an item when the queue is full and possible to remove an item when the queue is empty.
-If we added 20 integers (1,2,3\ldots{}) to the queue and did not dequeue any items then values, \keyword{17,18,19,20} would overwrite the \keyword{1,2,3,4}.
+If we added 20 integers (1, 2, 3, \ldots{}, 20) to the queue and did not dequeue any items then values, \keyword{17,18,19,20} would overwrite the \keyword{1,2,3,4}.
 We won't fix this problem right now, instead of when we create the multi-threaded version we will ensure enqueue-ing and dequeue-ing threads are blocked while the ring buffer is full or empty respectively.
 
 \begin{lstlisting}[language=C]

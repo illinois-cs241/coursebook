@@ -924,7 +924,7 @@ On Linux, there are two abstractions with files. The first is the Linux \keyword
 \item \keyword{write} outputs a number of bytes to a file descriptor. If the file is not open in write mode, this will break. This may be buffered internally.
 \item \keyword{close} removes a file descriptor from a process' file descriptors. This always succeeds on a valid file descriptor.
 \item \keyword{lseek} takes a file descriptor and moves it to a certain position. Can fail if the seek is out of bounds.
-\item \keyword{fcntl} is the catch-all function for file descriptors. Set file locks, read, write, edit permissions, etc \ldots{}
+\item \keyword{fcntl} is the catch-all function for file descriptors. Set file locks, read, write, edit permissions, etc.
  \end{itemize}
 
 The Linux interface is powerful and expressive, but sometimes we need portability for example if we are writing for a Macintosh or windows.
