@@ -25,6 +25,8 @@ matrix:
 install:
 - export COMMITTER_EMAIL="$(git log -1 $TRAVIS_COMMIT --pretty="%cE")"
 - export AUTHOR_NAME="$(git log -1 $TRAVIS_COMMIT --pretty="%aN")"
+- export TRAVIS_EMAIL="build@travis.com"
+- export TRAVIS_NAME="Travis CI"
 - bash _scripts/install.sh
 script:
 - bash _scripts/script.sh

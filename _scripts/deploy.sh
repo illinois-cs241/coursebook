@@ -40,7 +40,7 @@ else
 
     # Git add commit
     git add -A;
-    git commit -m "Adding build on $(date)";
+    git commit -m "Adding build on $(date)" --author "$TRAVIS_NAME <$TRAVIS_EMAIL>" || true
 
     # Swap the https origin for the ssh origin so we can push
     OLD_ORIGIN=`git remote get-url origin`;
