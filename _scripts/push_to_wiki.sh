@@ -22,7 +22,7 @@ cp _wiki/* ${WIKI_DIR}
 cd ${WIKI_DIR}
 
 git add -A
-git commit -m "Updating wiki to ${DOCS_SHA}" || true
+git commit -m "Updating wiki to ${DOCS_SHA}" --author "$AUTHOR_NAME <$COMMITTER_EMAIL>" || true
 git push origin
 
 cd ${TRAVIS_BUILD_DIR}

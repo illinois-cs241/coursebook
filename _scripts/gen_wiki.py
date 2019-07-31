@@ -89,6 +89,11 @@ This book is an introduction to programming in C, and system programming (proces
 {% endfor %}
 """
 
+sidebar_templ = """
+{% for chapter in chapters %}
+{{loop.index}}. [{{chapter.meta['name']}}](./{{chapter.bare_title}}){% endfor %}
+"""
+
 def gen_home_page(files_meta, out_file):
     """
     Generates the home page given metadata and output file
@@ -102,6 +107,21 @@ def gen_home_page(files_meta, out_file):
     logger.info("Making {}".format(out_file))
     with open(out_file, "w") as f:
         f.write(rendered)
+
+def gen_sidebar(files_meta, out_file):
+    """
+    Generates the sidebar
+
+    :param files_meta List[ConvertableTexFiles]: Convertable tex file metadata in order
+    :param out_file str: Output home directory file
+    """
+
+    tmpl = Template(sidebar_templ)
+    rendered = tmpl.render(chapters=files_meta)
+    logger.info("Making {}".format(out_file))
+    with open(out_file, "w") as f:
+        f.write(rendered)
+
 
 def generate_tex_meta(order, outdir, meta_file_name, chapter=None):
     """
@@ -251,8 +271,10 @@ def main(args):
 
     if args.chapter is None:
         # 3. Generate Home Page
-        home_file = outdir + '/Home.md'
+        home_file = os.path.join(outdir, 'Home.md')
+        sidebar_file = os.path.join(outdir, '_Sidebar.md')
         gen_home_page(files_meta, home_file)
+        gen_sidebar(files_meta, sidebar_file)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(help_text)
