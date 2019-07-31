@@ -75,25 +75,19 @@
                   \csname iffalse\endcsname
 \fi
 
-\ifepub
-\include{github_redefinitions}
-\usepackage{filecontents}
-\begin{filecontents}{title.tex}
-%% These are not the droids you are looking for
-\end{filecontents}
-\fi
-
 \begin{document}
 
 \raggedbottom
 
 %% The title so that it isn't included in the chapters
+%% Introduction, background, then the book starts
+\setcounter{chapter}{0}
 
+\frontmatter
 \include{title}
 \fancyhf{}
 
-%% Introduction, background, then the book starts
-\setcounter{chapter}{-2}
+\mainmatter
 \input{order.tex}
 
 %% Add glossaries back in when a number of terms have been defined

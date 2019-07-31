@@ -368,6 +368,9 @@ We will be evaluating this in the context of a random process timing, meaning th
 
 Just a refresher, here are the terms.
 
+\begin{center}
+\begin{table}[h]
+\caption{Scheduling Variables}
 \begin{tabular}{|c|c|}
   Concept & Meaning \\ \hline
   Start time & The time the scheduler first started work \\
@@ -375,15 +378,22 @@ Just a refresher, here are the terms.
   Arrival time & When the job first arrived at the scheduler \\
   Run time & How long does the process take to run if there is no preemption
 \end{tabular}
+\end{table}
+\end{center}
 
 And here are the measures we are trying to optimize.
 
+\begin{center}
+\begin{table}[h]
+\caption{Scheduling Measures of Efficiency}
 \begin{tabular}{|c|c|}
   Measure & Formula \\ \hline
   Response Time & Start time minus Arrival time\\
   Turnaround time & End time minus Arrival time\\
   Wait time & End time minus Arrival time minus Run time \\
 \end{tabular}
+\end{table}
+\end{center}
 
 Different use cases will be discussed after.
 Let the maximum amount of time that a process run be equal to $S$.

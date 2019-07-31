@@ -52,6 +52,8 @@ A few of the possible different orderings are below.
 Permissible Pattern
 \\
 \begin{center}
+\begin{table}[h]
+\caption{Good Thread Access Pattern}
 \begin{tabular}{ l | r }
   Thread 1 & Thread 2 \\ \hline
   Load Addr, Add 1 (i=1 locally) & ...  \\
@@ -59,29 +61,36 @@ Permissible Pattern
   ... & Load Addr, Add 1 (i=2 locally)  \\
   ... & Store (i=2 globally)  \\
 \end{tabular}
+\end{table}
 \end{center}
 \\
 Partial Overlap
 
 \\
 \begin{center}
+\begin{table}[h]
+\caption{Bad Thread Access Pattern}
 \begin{tabular}{ l | r }
 Thread 1 & Thread 2 \\ \hline
 Load Addr, Add 1 (i=1 locally) & ... \\
 Store (i=1 globally) & Load Addr, Add 1 (i=1 locally) \\
 ... & Store (i=1 globally) \\
 \end{tabular}
+\end{table}
 \end{center}
 \\
 
 Full Overlap
 \\
 \begin{center}
+\begin{table}[h]
+\caption{Horrible Thread Access Pattern}
 \begin{tabular}{ l | r }
 Thread 1 & Thread 2 \\ \hline
 Load Addr, Add 1 (i=1 locally) & Load Addr, Add 1 (i=1 locally) \\
 Store (i=1 globally) & Store (i=1 globally) \\
 \end{tabular}
+\end{table}
 \end{center}
 \\
 We would like the first pattern of the code being mutually exclusive.
@@ -595,6 +604,8 @@ pthread_cond_signal(cv);
 
 \\
 \begin{center}
+\begin{table}[h]
+\caption{Signaling without Mutex}
 \begin{tabular}{|c|c|}
   Thread 1 & Thread 2 \\ \hline
   while(answer < 42) & \\
@@ -602,6 +613,7 @@ pthread_cond_signal(cv);
   & pthread\_cond\_signal(cv) \\
   pthread\_cond\_wait(cv)
 \end{tabular}
+\end{table}
 \end{center}
 \\
 The problem here is that a programmer expects the signal to wake up the waiting thread.
@@ -1149,12 +1161,15 @@ Suppose two threads wish to enter the critical section at the same time.
 
 \\
 \begin{center}
+\begin{table}[h]
+\caption{Candidate Solution \#2 Analysis}
 \begin{tabular}{|l|c|c|}
 Time & Thread 1 & Thread 2 \\ \hline
 1 & Raise Flag & \\
 2 & & Raise Flag \\
 3 & Wait & Wait \\
 \end{tabular}
+\end{table}
 \end{center}
 \\
 
@@ -1209,6 +1224,8 @@ The second thread can immediately continue into the Critical Section!
 
 \\
 \begin{center}
+\begin{table}[h]
+\caption{Candidate Solution \#4}
 \begin{tabular}{|l|l|l|l|}
 Time & Turn & Thread \# 1 & Thread \# 2 \\ \hline
 1 & 2 & Raise my flag & \\
@@ -1216,6 +1233,7 @@ Time & Turn & Thread \# 1 & Thread \# 2 \\ \hline
 3 & 2 & // Do Critical Section Stuff & If your flag is raised, wait until my turn (TRUE!) \\
 4 & 2 & // Do Critical Section Stuff & Do Critical Section Stuff - OOPS \\
 \end{tabular}
+\end{table}
 \end{center}
 \\
 

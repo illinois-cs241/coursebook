@@ -28,23 +28,29 @@ The *iB family is short for power of two storage.
 That means the following:
 
 \begin{center}
+\begin{table}[h]
+\caption{Kibibyte Values}
 \begin{tabular}{ | c | c | }
 Prefix & Byte Value \\ \hline
 KiB & 1024B \\
 MiB & 1024 * 1024 B \\
 GiB & 1024\^3 B
 \end{tabular}
+\end{table}
 \end{center}
 
 The standard notational prefixes mean the following:
 
 \begin{center}
+\begin{table}[h]
+\caption{Kilobyte Values}
 \begin{tabular}{ | c | c | }
 Prefix & Byte Value \\ \hline
 KB & 1000B \\
 MB & 1000 * 1000 B \\
 GB & 1000\^3 B
 \end{tabular}
+\end{table}
 \end{center}
 
 We will do this in the book and in the Networking chapter for the sake of consistency and to not confuse anyone.
@@ -602,11 +608,16 @@ Here are the bit conventions:
 \item \keyword{x} means that the set of people can execute
 \end{enumerate}
 
+\begin{center}
+\begin{table}[h]
+\caption{Permissions Table}
 \begin{tabular}{|c|c|c|c|}
   Octal Code & User & Group & Others \\ \hline
   755 & \keyword{rwx} & \keyword{r-x} & \keyword{r-x} \\
   644 & \keyword{rw-} & \keyword{r--} & \keyword{r--}
 \end{tabular}
+\end{table}
+\end{center}
 
 It is worth noting that the \keyword{rwx} bits have a slightly different meaning for directories.
 Write access to a directory that will allow a program to create or delete new files or directories inside.
@@ -783,12 +794,17 @@ POSIX systems, such as Linux and Mac OS X (which is based on BSD) include severa
 Files inside these virtual filesystems may be generated dynamically or stored in ram.
 Linux provides 3 main virtual filesystems.
 
+\begin{center}
+\begin{table}[h]
+\caption{Virtual Filesystem list}
 \begin{tabular}{ | c | c | }
 Device & Use Case \\ \hline
 \keyword{/dev} & A list of physical and virtual devices (for example network card, cdrom, random number generator \\
 \keyword{/proc} & A list of resources used by each process and (by tradition) set of system information \\
 \keyword{/sys} & An organized list of internal kernel entities
 \end{tabular}
+\end{table}
+\end{center}
 
 If we want a continuous stream of 0s, we can run \keyword{cat /dev/zero}.
 

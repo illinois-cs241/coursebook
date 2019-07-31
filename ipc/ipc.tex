@@ -887,6 +887,9 @@ This may never print hello because of a race condition.
 Since a program opened the pipe in the first process under both permissions, open won't wait for a reader because the program told the operating system that it is a reader!
 Sometimes it looks like it works because the execution of the code looks something like this.
 
+\begin{center}
+\begin{table}[h]
+\caption{Fine Pipe Access Pattern}
 \begin{tabular}{|c|c|c|}
   & Process 1 & Process 2 \\ \hline
   Time 1 & open(O\_RDWR) \& write() & \\
@@ -894,15 +897,22 @@ Sometimes it looks like it works because the execution of the code looks somethi
   Time 3 & close() \& exit() & \\
   Time 4 & print() \& exit() & \\
 \end{tabular}
+\end{table}
+\end{center}
 
 But here is an invalid series of operations that cause a race condition.
 
+\begin{center}
+\begin{table}[h]
+\caption{Pipe Race Condition}
 \begin{tabular}{|c|c|c|}
   & Process 1 & Process 2 \\ \hline
   Time 1 & open(O\_RDWR) \& write() & \\
   Time 2 & close() \& exit() & \\
   Time 3 & & open(O\_RDONLY) (Blocks Indefinitely) \\
 \end{tabular}
+\end{table}
+\end{center}
 
 \section{Files}
 
