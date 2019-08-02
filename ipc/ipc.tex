@@ -840,7 +840,7 @@ What the operating system tells you when you have a named pipe is that it will c
 There is no additional magic.
 This is for programming convenience if processes are started without forking meaning that there would be no way to get the file descriptor to the child process for an unnamed pipe.
 
-\subsection{Why is my named pipe hanging?}
+\subsection{Hanging Named Pipes}
 
 A named pipe \keyword{mkfifo} is a pipe that a program calls \keyword{open(2)} on with read and/or write permissions.
 This is useful if you want to have a pipe between two processes without one processing having to fork the other process.
@@ -1004,7 +1004,7 @@ Remember, everything is copied over when a child is created, even the relative p
 As you might have observed with using \keyword{fork}, there is a quirk of the implementation of files and their caches on Ubuntu that will rewind a file descriptor once a file has been closed.
 As such, make sure to close before forking or at least don't trigger a cache inconsistency which is much harder.
 
-\section{IPC Alternativs}
+\section{IPC Alternatives}
 
 Okay so now you have a list of tools in your toolbox to tackle communicating between processes, so what should you use?
 
