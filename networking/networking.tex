@@ -78,7 +78,7 @@ There are special IP Addresses.
 One such in IPv4 is \keyword{127.0.0.1}, IPv6 as \keyword{0:0:0:0:0:0:0:1} or \keyword{::1} also known as localhost.
 Packets sent to 127.0.0.1 will never leave the machine; the address is specified to be the same machine.
 There are a lot of others that are denoted by certain octets being zeros or 255, the maximum value. You won't need to know all the terminology, keep in mind that the actual number of IP addresses that a machine can have globally over the Internet is smaller than the number of ``raw'' addresses.
-For the class, you need to know at this layer that IP deals with routing, fragmenting, and reassembling upper-level protocols. A more in-depth aside follows.
+This book covers how IP deals with routing, fragmenting, and reassembling upper-level protocols. A more in-depth aside follows.
 
 \subsection{Extra: In-depth IPv4 Specification}
 
@@ -94,7 +94,7 @@ Datagrams are formatted as such
 \begin{enumerate}
   \item The first octet is the version number, either 4 or 6
   \item The next octet is how long the header is.
-    Although it may seem that the header is of constant size, you can include optional parameters to augment the path that is taken or other instructions.
+    Although it may seem that the header is a constant size, you can include optional parameters to augment the path that is taken or other instructions.
   \item The next two octets specify the total length of the datagram.
     This means this is the header, the data, the footer, and the padding.
     This is given in multiple of octets, meaning that a value of 20 means 20 octets.
@@ -129,7 +129,7 @@ Datagrams are formatted as such
 
 The Internet Protocol routing is an amazing intersection of theory and application.
 We can imagine the entire Internet as a set of graphs.
-Most peers are connected to what we call "peering points" these are the WiFi routers and Ethernet ports that one finds in their house, work, or the public.
+Most peers are connected to what we call "peering points" -- these are the WiFi routers and Ethernet ports that one finds at home, at work, and in public.
 These peering points are then connected to a wired network of routers, switches, and servers that all route themselves.
 At a high level there are two types of routing
 
@@ -547,7 +547,7 @@ Keep in mind if you are connected to a website, you want to conform to the HTTP 
 There are libraries to do this.
 Usually, you don't connect at the socket level.
 The number of bytes read or written may be smaller than expected.
-Thus it is important to check the return value of `read` and `write`.
+Thus, it is important to check the return value of \keyowrd{read} and \keyword{write}.
 A simple HTTP client that sends a request to a compliant URL is below.
 First, we'll start with the boring stuff and the parsing code.
 
@@ -774,7 +774,7 @@ int client_id = accept(passive_socket,
   \item \keyword{int close(int fd)} and \keyword{int shutdown(int fd, int how)}
 
   Use the \keyword{shutdown} call when you no longer need to read any more data from the socket, write more data, or have finished doing both.
-  When you shut down a socket for further writing or reading, that information is also sent to the other end of the connection.
+  When you call \keyword{shutdown} on socket on the read and/or write ends, that information is also sent to the other end of the connection.
   If you shut down the socket for further writing at the server end, then a moment later, a blocked \keyword{read} call could return 0 to indicate that no more bytes are expected.
   Similarly, a write to a TCP connection that has been shut down for reading will generate a SIGPIPE
 
@@ -806,7 +806,7 @@ There are a few gotchas to creating a server.
 \subsection{Example Server}
 
 A working simple server example is shown below.
-Note this example is incomplete - for example, the socket file descriptor remains open and memory created by \keyword{getaddrinfo} remains allocated.
+Note: this example is incomplete. For example, the socket file descriptor remains open and memory created by \keyword{getaddrinfo} remains allocated.
 First, we get the address info for our current machine.
 
 \begin{lstlisting}[language=C]
@@ -1145,11 +1145,11 @@ If you want the full bits and pieces, feel free to look at the Wikipedia page.
 In essence, there is a hierarchy of DNS servers.
 First, there is the dot hierarchy.
 This hierarchy first resolves top-level domains \keyword{.edu} \keyword{.gov} etc.
-Then resolves the next level i.e. \keyword{illinois.edu}.
+Next, it resolves the next level i.e. \keyword{illinois.edu}.
 Then the local resolvers can resolve any number of URLs.
 For example, the Illinois DNS server handles both \keyword{cs.illinois.edu} and \keyword{cs241.cs.illinois.edu}. There is a limit on how many subdomains you can have, but this is often used to route requests to different servers to avoid having to buy many high performant servers to route requests.
 
-\section{ Non-Blocking IO}
+\section{Non-Blocking IO}
 
 When you call \keyword{read()} if the data is unavailable, it will wait until the data is ready before the function returns.
 When you're reading data from a disk, that delay is short, but when you're reading from a slow network connection, requests take a long time.
@@ -1417,7 +1417,7 @@ So what are the benefits?
 \item The unified system call for all types.
   kqueue is the truest sense of underlying descriptor agnostic.
   One can add files, sockets, pipes to it and get full or near full performance.
-  You can add the same to epoll, but Linux's whole ecosystem with async file input-output has been messed up with A I/O, meaning that since there is no unified interface, you run into weird edge cases.
+  You can add the same to epoll, but Linux's whole ecosystem with async file input-output has been messed up with \keyword{aio}, meaning that since there is no unified interface, you run into weird edge cases.
 \end{enumerate}
 
 
@@ -1469,7 +1469,7 @@ int getHighScore(char* game) {
 \end{lstlisting}
 
 Using a string format may be a little inefficient.
-A good example of this marshaling is Go's grpc or google RPC. There is a version in C as well if you want to check that out.
+A good example of this marshaling is Golang's gRPC or Google RPC. There is a version in C as well if you want to check that out.
 
 The server stub code will receive the request, unmarshal the request into a valid in-memory data call the underlying implementation and send the result back to the caller.
 Often the underlying library will do this for you.
@@ -1567,7 +1567,7 @@ If your application ever becomes CPU bound parsing XML, JSON or YAML, switch to 
 \item
   What is IPv4? IPv6? What are the differences between them?
 \item
-  What is the TCP? UDP? Give me the advantages and disadvantages of both of them.
+  What is the TCP? The UDP? Give me the advantages and disadvantages of both of them.
   What is a scenario of using one over the other?
 \item
   Which protocol is connectionless and which one is connection based?
