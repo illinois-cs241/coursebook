@@ -1311,6 +1311,8 @@ To shut down an epoll instance, close its file descriptor.
 close(epfd);
 \end{lstlisting}
 
+Note that epoll may return an event on a closed file descriptor. To avoid this, explicitly call \keyword{epoll_ctl(EPOLL_CTL_DEL)} before calling \keyword{close(epfd)}.
+
 Also to non-blocking \keyword{read()} and \keyword{write()}, any calls to \keyword{connect()} on a non-blocking socket will also be non-blocking.
 To wait for the connection to complete, use \keyword{select()} or epoll to wait for the socket to be writable.
 There are reasons to use epoll over select but due to interface, there are fundamental problems with doing so.
