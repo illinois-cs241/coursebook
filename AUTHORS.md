@@ -1,5 +1,4 @@
 Lawrence Angrave <angrave@illinois.edu>
-Bhuvan Venkatesh <bhuvan.venkatesh21@gmail.com>
 joebenassi <joebenassi@gmail.com>
 jakebailey <zikaeroh@gmail.com>
 Ebrahim Byagowi <ebrahim@gnu.org>

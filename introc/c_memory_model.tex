@@ -15,14 +15,14 @@ struct contact {
   unsigned int phone;
 };
 
-struct contact bhuvan;
+struct contact person;
 \end{lstlisting}
 
 We will often use the following typedef, so we can write use the struct name as the full type.
 
 \begin{lstlisting}[language=C]
 typedef struct contact contact;
-contact bhuvan;
+contact person;
 
 typedef struct optional_name {
   ...
@@ -32,10 +32,10 @@ typedef struct optional_name {
 If you compile the code without any optimizations and reordering, you can expect the addresses of each of the variables to look like this.
 
 \begin{lstlisting}[language=C]
-&bhuvan           // 0x100
-&bhuvan.firstname // 0x100 = 0x100+0x00
-&bhuvan.lastname  // 0x114 = 0x100+0x14
-&bhuvan.phone     // 0x128 = 0x100+0x28
+&person           // 0x100
+&person.firstname // 0x100 = 0x100+0x00
+&person.lastname  // 0x114 = 0x100+0x14
+&person.phone     // 0x128 = 0x100+0x28
 \end{lstlisting}
 
 All your compiler does is say "reserve this much space".
@@ -52,12 +52,12 @@ typedef struct {
   char c_str[0];
 } string;
 
-const char* to_convert = "bhuvan";
+const char* to_convert = "person";
 int length = strlen(to_convert);
 
 // Let's convert to a c string
-string* bhuvan_name;
-bhuvan_name = malloc(sizeof(string) + length+1);
+string* person;
+person = malloc(sizeof(string) + length+1);
 \end{lstlisting}
 
 Currently, our memory looks like the following image.
@@ -76,7 +76,7 @@ We will assume that our machine is big endian.
 This means that the least significant byte is last.
 
 \begin{lstlisting}[language=C]
-bhuvan_name->length = length;
+person->length = length;
 \end{lstlisting}
 
 \begin{figure}[H]
@@ -88,19 +88,19 @@ bhuvan_name->length = length;
 Now, we can write a string to the end of our struct with the following call.
 
 \begin{minted}{C}
-strcpy(bhuvan_name->c_str, to_convert);
+strcpy(person->c_str, to_convert);
 \end{minted}
 
 \begin{figure}[H]
 \centering
 \includegraphics[width=.7\textwidth]{introc/drawings/memory_model_full.eps}
-\caption{Struct pointing to 11 boxes, 4 filled with 0006, 7 the stirng ``bhuvan''}
+\caption{Struct pointing to 11 boxes, 4 filled with 0006, 7 the stirng ``person''}
 \end{figure}
 
 We can even do a sanity check to make sure that the strings are equal.
 
 \begin{minted}{C}
-strcmp(bhuvan_name->c_str, "bhuvan") == 0 //The strings are equal!
+strcmp(person->c_str, "person") == 0 //The strings are equal!
 \end{minted}
 
 What that zero length array does is point to the \textbf{end of the struct} this means that the compiler will leave room for all of the elements calculated with respect to their size on the operating system (ints, chars, etc).
@@ -229,8 +229,8 @@ Two string literals may share the same space in memory.
 An example follows.
 
 \begin{lstlisting}[language=C]
-char *str1 = "Bhuvy likes books";
-char *str2 = "Bhuvy likes books";
+char *str1 = "Mark Twain likes books";
+char *str2 = "Mark Twain likes books";
 \end{lstlisting}
 
 The strings pointed to by \keyword{str1} and \keyword{str2} may actually reside in the same location in memory.
@@ -239,8 +239,8 @@ Char arrays, however, contain the literal value which has been copied from the c
 These following char arrays reside in different memory locations.
 
 \begin{lstlisting}[language=C]
-char arr1[] = "Bhuvy also likes to write";
-char arr2[] = "Bhuvy also likes to write";
+char arr1[] = "Mark Twain also likes to write";
+char arr2[] = "Mark Twain also likes to write";
 \end{lstlisting}
 
 Here are some common ways to initialize a string include. Where do they reside in memory?

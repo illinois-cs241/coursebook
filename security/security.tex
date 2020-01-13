@@ -296,7 +296,7 @@ Here are some simple examples of security provided through virtualization
 \item chroot is a contrived way of creating a virtualization environment.
   chroot is short for change root.
   This changes where a program believes that (/) is mounted on the system.
-  For example with chroot, one can make a hello world program believe \keyword{/home/bhuvan/} is actually the root directory.
+  For example with chroot, one can make a hello world program believe \keyword{/home/user/} is actually the root directory.
   This is useful because no other files are exposed.
   This is contrived because Linux still needs additional tools (think the c standard library) to come from different directories such as \keyword{/usr/lib} which means those could still be vulnerable.
 \item namespaces are Linux's better way to create a virtualization environment.

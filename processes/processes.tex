@@ -955,7 +955,7 @@ In Bash, some are already defined
 
 \begin{lstlisting}[language=bash]
 $ echo $HOME
-/home/bhuvy
+/home/user
 $ echo $PATH
 /usr/local/sbin:/usr/bin:...
 \end{lstlisting}
@@ -964,8 +964,8 @@ How would a program later these in C?
 They can call \keyword{getenv} and \keyword{setenv} function respectively.
 
 \begin{lstlisting}[language=C]
-char* home = getenv("HOME"); // Will return /home/bhuvy
-setenv("HOME", "/home/bhuvan", 1 /*set overwrite to true*/ );
+char* home = getenv("HOME"); // Will return /home/user
+setenv("HOME", "/home/user", 1 /*set overwrite to true*/ );
 \end{lstlisting}
 
 Environment variables are important because they are inherited between processes and can be used to specify a standard set of behaviors \cite{env_std_2018}, although you don't need to memorize the options.

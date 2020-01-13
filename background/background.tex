@@ -1,6 +1,6 @@
 \chapter{Background}
 
-\epigraph{Sometimes the journey of a thousand steps begins by learning to walk}{Bhuvy}
+\epigraph{Sometimes the journey of a thousand steps begins by learning to walk}{}
 
 \section{Systems Architecture}
 
@@ -245,7 +245,7 @@ For this, we require sshfs which has ports on many different machines.
 
 At that point, the files on your VM are synced with the files on your machine and edits can be made and will be synced.
 
-At the time of writing, Bhuvy (That's me!) likes to use spacemacs \url{http://spacemacs.org/} which marries both vim and emacs and both of their difficulties.
+At the time of writing, an author likes to use spacemacs \url{http://spacemacs.org/} which marries both vim and emacs and both of their difficulties.
 I'll give my soapbox for why I like it, but be warned that if you are starting from absolutely no vim or emacs experience the learning curve along with this course may be too much.
 \begin{enumerate}
 \item Extensible. Spacemacs has a clean design written in lisp. There are 100s of packages ready to be installed by editing your spacemacs config and reloading that do everything from syntax checking, automatic static analyzing, etc.
@@ -715,7 +715,7 @@ You can also trace files or targets.
 
 \begin{lstlisting}[language=bash]
 $ strace -e trace=read,write -P README.md head README.md
-strace: Requested path 'README.md' resolved into '/mnt/c/Users/bhuvy/personal/libds/README.md'
+strace: Requested path 'README.md' resolved into '/mnt/c/Users/user/personal/libds/README.md'
 read(3, "# C Datastructures\n\n[![Build Sta"..., 8192) = 1250
 
 \end{lstlisting}
