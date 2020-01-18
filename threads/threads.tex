@@ -460,41 +460,7 @@ int *map(int (*func)(int), int *arr, size_t len){
 Since none of the elements depend on any other element, how would you go about parallelizing this?
 What do you think would be the best way to split up the work between threads.
 
-\subsection{Extra: Scheduling}
-
-There are a few ways to split up the work.
-These are common to the OpenMP framework \cite{silberschatz2005operating}.
-
-\begin{itemize}
-\item \keyword{static scheduling} breaks up the problems into fixed-size chunks (predetermined) and have each thread work on each of the chunks.
-  This works well when each of the subproblems takes roughly the same time because there is no additional overhead.
-  All you need to do is write a loop and give the map function to each sub-array.
-\item \keyword{dynamic scheduling} as a new problem becomes available to have a thread serve it.
-  This is useful when you don't know how long the scheduling will take
-\item \keyword{guided scheduling} This is a mix of the above with a mix of the benefits and tradeoffs.
-  You start with static scheduling and move slowly to dynamic if needed
-\item \keyword{runtime scheduling} You have absolutely no idea how long the problems are going to take.
-  Instead of deciding it yourself, let the program decide what to do!
-\end{itemize}
-
-No need to memorize any of the scheduling routines though.
-Openmp is a standard that is an alternative to pthreads.
-For example, here is how to parallelize a for loop
-
-\begin{lstlisting}[language=C]
-#pragma omp parallel for
-for (int i = 0; i < n; i++) {
-  // Do stuff
-}
-
-// Specify the scheduling as follows
-// #pragma omp parallel for scheduling(static)
-\end{lstlisting}
-
-Static scheduling will divide the problem into fixed-size chunks
-Dynamic scheduling will give a job once the loop is over
-Guided scheduling is Dynamic with chunks
-Runtime is a whole bag of worms.
+Check out thread scheduling in the appendix for more ways to schedule.
 
 \subsection{Other Problems}
 
@@ -518,35 +484,7 @@ From \href{https://en.wikipedia.org/wiki/Embarrassingly_parallel}{Wikipedia}
 \item Discrete Fourier Transform where each harmonic is independently calculated.
 \end{itemize}
 
-\subsection{Extra: threads.h}
-
-We have a lot of threading libraries discussed in the extra section.
-We have the standard POSIX threads, OpenMP threads, we also have a new C11 threading library that is built into the standard.
-This library provides restricted functionality.
-
-Why use restricted functionality?
-The key is in the name.
-Since this is the C standard library, it has to be implemented in all operating systems that are compliant which are pretty much all of them.
-This means there is first-class portability when using threads.
-
-We won't drone on about the functions.
-Most of them are renaming of pthread functions anyway.
-If you ask why we don't teach these, there are a few reasons
-
-\begin{enumerate}
-\item They are pretty new. Even though the standard came out in roughly 2011, POSIX threads have been around forever.
-  A lot of their quirks have been ironed out.
-\item You lose expressivity.
-  This is a concept that we'll talk about in later chapters, but when you make something portable, you lose some expressivity with the host hardware.
-  That means that the threads.h library is pretty bare bones.
-  It is hard to set CPU affinities.
-  Schedule threads together.
-  Efficiently look at the internals for performance reasons.
-\item A lot of legacy code is already written with POSIX threads in mind.
-  Other libraries like OpenMP, CUDA, MPI will either use POSIX processes or POSIX threads with a begrudging port to Windows.
-\end{enumerate}
-
-\subsection{Extra: Lightweight Processes?}
+\subsection{Advanced: Lightweight Processes?}
 
 In the beginning of the chapter, we mentioned that threads are processes.
 What do we mean by that?

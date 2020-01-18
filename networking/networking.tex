@@ -80,108 +80,6 @@ Packets sent to 127.0.0.1 will never leave the machine; the address is specified
 There are a lot of others that are denoted by certain octets being zeros or 255, the maximum value. You won't need to know all the terminology, keep in mind that the actual number of IP addresses that a machine can have globally over the Internet is smaller than the number of ``raw'' addresses.
 This book covers how IP deals with routing, fragmenting, and reassembling upper-level protocols. A more in-depth aside follows.
 
-\subsection{Extra: In-depth IPv4 Specification}
-
-The Internet Protocol deals with routing, fragmentation, and reassembly of fragments.
-Datagrams are formatted as such
-
-\begin{figure}[H]
-  \centering
-\includegraphics[width=.8\textwidth]{networking/drawings/ip_datagram.eps}
-\caption{IP Datagram divisibility}
-\end{figure}
-
-\begin{enumerate}
-  \item The first octet is the version number, either 4 or 6
-  \item The next octet is how long the header is.
-    Although it may seem that the header is a constant size, you can include optional parameters to augment the path that is taken or other instructions.
-  \item The next two octets specify the total length of the datagram.
-    This means this is the header, the data, the footer, and the padding.
-    This is given in multiple of octets, meaning that a value of 20 means 20 octets.
-  \item The next two are Identification number.
-    IP handles taking packets that are too big to be sent over the physical wire and chunks them up.
-    As such, this number identifies what datagram this originally belonged to.
-  \item The next octet is various bit flags that can be set.
-  \item The next octet and half is fragment number.
-    If this packet was fragmented, this is the number this fragment represents
-  \item The next octet is time to live.
-    So this is the number of "hops" (travels over a wire) a packet is allowed to go.
-    This is set because different routing protocols could cause packets to go in circles, the packets must be dropped at some point.
-  \item The next octet is the protocol number.
-    Although protocols between different layers of the OCI model are supposed to be black boxes, this is included, so that hardware can peer into the underlying protocol efficiently.
-    Take for example IP over IP (yes you can do that!).
-    Your ISP wraps IPv4 packets sent from your computer to the ISP in another IP layer and sends the packet off to be delivered to the website.
-    On the reverse trip, the packet is "unwrapped" and the original IP datagram is sent to your computer.
-    This was done because we ran out of IP addresses, and this adds additional overhead but it is a necessary fix.
-    Other common protocols are TCP, UDP, etc.
-  \item The next two octets is an internet checksum.
-    This is a CRC that is calculated to make sure that a wide variety of bit errors are detected.
-  \item The source address is what people generally refer to as the IP address.
-    There is no verification of this, so one host can pretend to be any IP address possible
-  \item The destination address is where you want the packet to be sent to.
-    Destinations are crucial to the routing process.
-  \item Additional options: Hosts of additional options, this is variadic in size.
-  \item Footer: A bit of padding to make sure your data is a multiple of 4 octets.
-  \item After: Your data! All data of higher-order protocols are put following the header.
-\end{enumerate}
-
-\subsection{Extra: Routing}
-
-The Internet Protocol routing is an amazing intersection of theory and application.
-We can imagine the entire Internet as a set of graphs.
-Most peers are connected to what we call "peering points" -- these are the WiFi routers and Ethernet ports that one finds at home, at work, and in public.
-These peering points are then connected to a wired network of routers, switches, and servers that all route themselves.
-At a high level there are two types of routing
-
-\begin{enumerate}
-\item Internal Routing Protocols.
-  Internal protocols are routing designed for within an ISP's network.
-  These protocols are meant to be fast and more trusting because all computers, switches, and routers are part of an ISP.
-  communication between two routers.
-\item External Routing Protocols.
-  These typically happen to be ISP to ISP protocol.
-  Certain routers are designated as border routers.
-  These routers talk to routers from ISPs who have different policies from accepting or receiving packets.
-  If an evil ISP is trying to dump all network traffic onto your ISP, these routers would deal with that.
-  These protocols also deal with gathering information about the outside world to each router.
-  In most routing protocols using link state or OSPF, a router must necessarily calculate the shortest path to the destination.
-  This means it needs information about the "foreign" routers which is disseminated according to these protocols.
-\end{enumerate}
-
-These two protocols have to interplay with each other nicely to make sure that packets are mostly delivered.
-Also, ISPs need to be nice to each other.
-Theoretically, an ISP can handle a smaller load by forwarding all packets to another ISP.
-If everyone does that then, no packets get delivered at all which won't make customers happy at all.
-These two protocols need to be fair so the result works
-
-If you want to read more about this, look at the Wikipedia page for routing here \href{https://en.wikipedia.org/wiki/Routing}{Routing}.
-
-\subsection{Extra: Fragmentation/Reassembly}
-
-Lower layers like WiFi and Ethernet have maximum transmission sizes.
-The reason being is
-
-\begin{enumerate}
-  \item One host shouldn't crowd the medium for too long
-  \item If an error occurs, we want some sort of "progress bar" on how far the communication has gone instead of retransmitting the entire stream.
-  \item There are physical limitations, keeping a laser beam in optics working continuously may cause bit errors.
-\end{enumerate}
-
-If the Internet Protocol receives a packet that is too big for the maximum size, it must chunk it up.
-TCP calculates how many datagrams that it needs to construct a packet and ensures that they are all transmitted and reconstructed at the end receiver.
-The reason that we barely use this feature is that if any fragment is lost, the entire packet is lost.
-Meaning that, assuming the probability of receiving a packet assuming each fragment is lost with an independent percentage, the probability of successfully sending a packet drops off exponentially as packet size increases.
-
-As such, TCP slices its packets so that it fits inside on IP datagram.
-The only time that this applies is when sending UDP packets that are too big, but most people who are using UDP optimize and set the same packet size as well.
-
-\subsection{Extra: IP Multicast}
-
-A little known feature is that using the IP protocol one can send a datagram to all devices connected to a router in what is called a multicast.
-Multicasts can also be configured with groups, so one can efficiently slice up all connected routers and send a piece of information to all of them efficiently.
-To access this in a higher protocol, you need to use UDP and specify a few more options.
-Note that this will cause undue stress on the network, so a series of multicasts could flood the network fast.
-
 \subsection{What's the deal with IPv6?}
 
 \begin{figure}[H]
@@ -1398,28 +1296,7 @@ There are several problems with using epoll. Here we will detail a few.
 \item Epoll using level-triggered mode could starve certain file descriptors because it is unknown how much data the application will read from each descriptor.
 \end{enumerate}
 
-Read more at \keyword{man 7 epoll}
-
-\subsection{Extra: kqueue}
-
-When it comes to Event-Driven IO, the name of the game is to be fast.
-One extra system call is considered slow.
-OpenBSD and FreeBSD have an arguably better model of asynchronous IO from the kqueue model.
-Kqueue is a system call that is exclusive the BSDs and MacOs.
-It allows you to modify file descriptor events and read file descriptors all in a single call under a unified interface.
-So what are the benefits?
-
-\begin{enumerate}
-\item No more differentiation between file descriptors and kernel objects. In the epoll section, we had to discuss this distinction otherwise you may wonder why closed file descriptors are getting returned on epoll. No problem here.
-\item How often do you call epoll to read file descriptors, get a server socket, and need to add another file descriptor?
-  In a high-performance server, this can easily happen 1000s of times a second.
-  As such, having one system call to register and grab events saves the overhead of having a system call.
-\item The unified system call for all types.
-  kqueue is the truest sense of underlying descriptor agnostic.
-  One can add files, sockets, pipes to it and get full or near full performance.
-  You can add the same to epoll, but Linux's whole ecosystem with async file input-output has been messed up with \keyword{aio}, meaning that since there is no unified interface, you run into weird edge cases.
-\end{enumerate}
-
+Read more at \keyword{man 7 epoll} or check out a better version called \keyword{kqueue} in the appendix.
 
 \section{Remote Procedure Calls}
 

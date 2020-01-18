@@ -307,26 +307,6 @@ Here are some simple examples of security provided through virtualization
   This helps the performance and increases the security of virtualized environments.
 \end{enumerate}
 
-\subsection{Extra: Security through scrubbing}
-
-Security isn't just about making sure that a program cannot be manipulated to a malicious user's ends.
-Some times, security is making sure that the program can't be crashed or effectively timed with input.
-An example of the former is any attack where the attacker threatens to shut a system down due to a leak.
-This means that the system has a flaw where the user can input a value and cause the system to fail.
-One can imagine in mission-critical systems -- power grids, medical devices, etc -- this isn't a lightly taken threat.
-
-Also, a lot of novice programmers neglect making a program look similar given all inputs.
-A common example of this is comparing two strings.
-Let's say that you are guessing the Cross-Site Request Forgery (CSRF) token on a website.
-If the programmed server returns the request immediately after the token doesn't match the server's, that is a security bug.
-If the token matches none of the characters, an attacker now know that a quick response means that the first few characters were off.
-If the token matches some of the characters, an attacker knows that this request will take slightly longer.
-It is important to balance speed and security.
-If correct authentication parameters are supplied, the action should succeed immediately.
-However, if there is a mismatch, there should be no difference in time or content of the response for different reasons of failure, nor should any information be given to the user about the source of error.
-This is often accomplished by using a standard delay for responses to unsuccessful authentication attempts.
-We want to use a fast \keyword{memcmp}, but it may be insecure.
-
 \section{Cyber Security}
 
 Cyber Security is arguably the most popular area of security.

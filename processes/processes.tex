@@ -583,46 +583,7 @@ if(child == 0) {
 waitpid(child, NULL, 0);
 \end{lstlisting}
 
-\subsubsection{Extra: Explanation of the Fork-FILE Problem}
-
-To parse the \href{http://pubs.opengroup.org/onlinepubs/9699919799.2008edition/functions/V2_chap02.html}{POSIX documentation}, we'll have to go deep into the terminology.
-The sentence that sets the expectation is the following
-
-\begin{quote}
-The result of function calls involving any one handle (the "active handle") is defined elsewhere in this volume of POSIX.1-2008, but if two or more handles are used, and any one of them is a stream, the application shall ensure that their actions are coordinated as described below. If this is not done, the result is undefined.
-\end{quote}
-
-What this means is that if we don't follow POSIX to the letter when using two file descriptors that refer to the same description across processes, we get undefined behavior.
-To be technical, the file descriptor must have a ``position'' meaning that it needs to have a beginning and an end like a file, not like an arbitrary stream of bytes.
-POSIX then goes on to introduce the idea of an active handle, where a handle may be a file descriptor or a \keyword{FILE*} pointer.
-File handles don't have a flag called ``active''.
-An active file descriptor is one that is currently being used for reading and writing and other operations (such as \keyword{exit}).
-The standard says that before a \keyword{fork} that the \textit{application} or your code must execute a series of steps to prepare the state of the file.
-In simplified terms, the descriptor needs to be closed, flushed, or read to its entirety -- the gory details are explained later.
-
-\begin{quote}
-For a handle to become the active handle, the application shall ensure that the actions below are performed between the last use of the handle (the current active handle) and the first use of the second handle (the future active handle). The second handle then becomes the active handle. All activity by the application affecting the file offset on the first handle shall be suspended until it again becomes the active file handle. (If a stream function has as an underlying function one that affects the file offset, the stream function shall be considered to affect the file offset.)
-\end{quote}
-
-Summarizing as if two file descriptors are actively being used, the behavior is undefined.
-The other note is that after a fork, the library code must prepare the file descriptor as if the other process were to make the file active at any time.
-The last bullet point concerns itself with how a process prepares a file descriptor in our case.
-
-\begin{quote}
-If the stream is open with a mode that allows reading and the underlying open file description refers to a device that is capable of seeking, the application shall either perform an fflush(), or the stream shall be closed.
-\end{quote}
-
-The documentation says that the child needs to perform an fflush or close the stream because the file descriptor needs to be prepared in case the parent process needs to make it active.
-glibc is in a no-win situation if it closes a file descriptor that the parent may expect to be open, so it'll opt for the fflush on exit because exit in POSIX terminology counts as accessing a file.
-That means that for our parent process, this clause gets triggered.
-
-\begin{quote}
-If any previous active handle has been used by a function that explicitly changed the file offset, except as required above for the first handle, the application shall perform an lseek() or fseek() (as appropriate to the type of handle) to an appropriate location.
-\end{quote}
-
-Since the child calls fflush and the parent didn't prepare, the operating system chooses to where the file gets reset.
-Different file systems will do different things which are supported by the standard.
-The OS may look at modification times and conclude that the file hasn't changed so no resets are needed or may conclude that exit denotes a change and needs to rewind the file back to the beginning.
+If you are interested in how this works, check out the appendix for a description of the Fork-file problem.
 
 \section{Waiting and Executing}
 
@@ -739,7 +700,7 @@ Therefore, these children would see \keyword{getppid()} return a value of 1.
 These orphans will eventually finish and for a brief moment become a zombie.
 The init process automatically waits for all of its children, thus removing these zombies from the system.
 
-\subsection{Extra: Asynchronously Waiting}
+\subsection{Advanced: Asynchronously Waiting}
 
 Warning: This section uses signals which are partially introduced.
 The parent gets the signal SIGCHLD when a child completes, so the signal handler can wait for the process.
