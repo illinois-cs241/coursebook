@@ -176,43 +176,7 @@ The operating system chooses a random resource to break \keyword{hold-and-wait}.
 Now even though a user can craft a program where breaking hold and wait on each resource will result in a livelock, this doesn't happen as often on machines that run programs in practice or the livelock that does happen happens for a couple of cycles.
 These systems are good for products that need to maintain a non-deadlocked state but can tolerate a small chance of livelock for a short time.
 
-\subsection{Extra: Banker's Algorithm}
-
-We can start with a single resource Banker's Algorithm.
-Consider a banker, who has a finite amount of money.
-With a finite amount of money, she wants to make loans and eventually get her money back.
-Let's say that we have a set of $n$ people where each of them has a set amount or a limit $a_i$ ($i$ being the $i$th process) that they need to obtain before they can do any work.
-The banker keeps track of how much she has given to each person $l_i$. She maintains an amount of money $p$ with her, at all times.
-For people to request money, they do the following:
-Consider the state of the system $(A=\{a_1, a_2, ...\}, L_t=\{l_{t,1}, l_{t,2}, ...\}, p)$ at time $t$.
-A precondition is that we have $p \geq min(A)$, or we have enough money to suit at least one person.
-Also, each person will work for a finite period and give back our money.
-
-\begin{itemize}
-	\item A person $j$ requests $m$ from me
-	      \begin{itemize}
-	      	\item if $m \geq p$, they are denied.
-	      	\item if $m + l_j > a_i$ they are denied
-	      	\item Pretend we are in a new state $(A, L_{t+1}=\{.., l_{t+1, j} = l_{t, j} + m, ...\}, p - m)$ where the process is granted the resource.
-	      \end{itemize}
-	\item if now person $j$ is either satisfied ($l_{t+1,j} == a_j$) or $min(a_i - l_{t+1, i}) \leq p$. In other words, we have enough money to suit one other person. If either, consider the transaction safe and give them the money.
-\end{itemize}
-
-Why does this work? Well at the start we are in a safe state -- defined by we have enough money to suit at least one person.
-Each of these "loans" results in a safe state.
-If we have exhausted our reserve, one person is working and will give us money greater than or equal to our previous "loan", thus putting us in a safe state again.
-Since we can always make one additional move, the system can never deadlock.
-Now, there is no guarantee that the system won't livelock.
-If the process we hope to request something never does, no work will be done -- but not due to deadlock.
-This analogy expands to higher orders of magnitude but requires that either a process can do its work entirely or there exists a process whose combination of resources can be satisfied, which makes the algorithm a little more tricky (an additional for loop) but nothing too bad.
-There are some notable downsides.
-
-\begin{itemize}
-	\item The program first needs to know how much of each resource a process needs. A lot of times that is impossible or the process requests the wrong amount because the programmer didn't foresee it.
-	\item The system could livelock.
-	\item We know in most systems that resources vary, pipes and sockets for example. This could mean that the runtime of the algorithm could be slow for systems with millions of resources.
-	\item Also, this can't keep track of the resources that come and go. A process may delete a resource as a side effect or create a resource. The algorithm assumes a static allocation and that each process performs a non-destructive operation.
-\end{itemize}
+In addition, we have the \textit{Banker's Algorithm}. Which the basic premise is the bank never runs dry, which prevents livelock. Feel free to check out the appendix for more details.
 
 \section{Dining Philosophers}
 
@@ -426,36 +390,7 @@ This prioritizes philosophers that have already eaten but can be made fairer by 
 	\caption{Stalling solution partial deadlock}
 \end{figure}
 
-\subsection{Extra: Clean/Dirty Forks (Chandy/Misra Solution)}
-
-There are many more advanced solutions.
-One such solution is by Chandy and Misra \cite{Chandy:1984:DPP:1780.1804}.
-This is not a true solution to the dining philosophers problem because it has the requirement that philosophers can speak to each other.
-It is a solution that ensures fairness for some notion of fairness.
-In essence, it defines a series of rounds that a philosopher must eat in a given round before going to the next one.
-
-We won't detail the proof here because it is a little more involved, but feel free to read more.
-
-\subsection{Extra: Actor Model}
-
-The actor model is another form of synchronization that doesn't have to do anything with negotiating locks or waiting.
-The idea is simple.
-Each actor can either perform work, create more actors, send messages, or respond to messages.
-Any time an actor needs something from another actor, it sends a message.
-Most importantly, an actor is only responsible for one thing.
-If we were implementing a real-world application, we may have an actor that handles the database, one that handles the incoming connections, one that services the connections, etc.
-These actors would pass messages to each other like ``there is a new connection'' from the incoming connection actor to the servicing actor.
-The servicing actor may send a data request message to the database actor and a data response message comes back.
-
-While this seems like the perfect solution there are drawbacks.
-The first is the actual library of communication needs to be synchronized.
-If you don't have a framework that does this already -- like the Message Passing Interface or MPI for High-Performance Computing -- then the framework will have to be built and would most likely be as much work to build efficiently compared to direct synchronization.
-Also, the messages now encounter additional overhead for serializing and deserializing or at the least.
-And a final drawback is that an actor could take an arbitrarily long time to respond to a message, spurring the need for shadow actors who service the same job.
-
-As mentioned, there are frameworks like \href{https://en.wikipedia.org/wiki/Message\_Passing\_Interface}{Message passing interface} that is somewhat based on the actor model and allows distributed systems in high-performance computing to work effectively, but your mileage may vary
-If you want to read further on the model, feel free to glance over the Wikipedia page listed below.
-\href{https://en.wikipedia.org/wiki/Actor\_model}{Further reading on the actor model}
+There are a few other solutions (clean/dirty forks and the actor model) in the appendix.
 
 \section{Topics}
 
