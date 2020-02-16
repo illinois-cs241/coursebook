@@ -11,7 +11,7 @@
 </p>
 
 Welcome to the systems programming coursebook!
-This repository houses a high-quality, open-source introductory systems programming textbook used by the [CS 241 Systems Programming](http://cs241.cs.illinois.edu/) course at the [University of Illinois at Urbana-Champaign](https://illinois.edu/)
+This repository houses a high-quality, open-source introductory systems programming textbook used by the [CS 241: System Programming](http://cs241.cs.illinois.edu/) course at the [University of Illinois at Urbana-Champaign](https://illinois.edu/)
 The book assumes that you have taken a programming language course and are familiar with assembly instructions.
 All of the code and instruction will be in C, as it is the de-facto language of the Linux Kernel.
 
