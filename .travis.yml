@@ -31,10 +31,8 @@ install:
 script:
 - bash _scripts/script.sh
 before_deploy:
-- openssl aes-256-cbc -K $encrypted_0a73d3c4e754_key -iv $encrypted_0a73d3c4e754_iv
-  -in deploy_wiki.enc -out /tmp/deploy_wiki -d
-- openssl aes-256-cbc -K $encrypted_0a73d3c4e754_key -iv $encrypted_0a73d3c4e754_iv
-  -in deploy_site.enc -out /tmp/deploy_site -d
+- gpg --passphrase $pradyumna_gpg_passphrase --output /tmp/deploy_site --decrypt pradyumna-website-deploy.enc
+- gpg --passphrase $pradyumna_gpg_passphrase --output /tmp/deploy_wiki --decrypt pradyumna-coursebook-deploy.enc
 - eval "$(ssh-agent -s)"
 - chmod 600 /tmp/deploy_wiki
 - chmod 600 /tmp/deploy_site
