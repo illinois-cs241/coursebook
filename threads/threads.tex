@@ -209,9 +209,8 @@ The following is the canonical race condition.
 
 \begin{lstlisting}[language=C]
 void *thread_main(void *p) {
-  int x = *p;
-  x += x;
-  *p = x;
+  int *x = (int*) p;
+  *x = *x + *x;
   return NULL;
 }
 
