@@ -103,6 +103,9 @@ If one thread is currently inside a critical section we would like another threa
 A mutex isn't a primitive in the truest sense, though it is one of the smallest that has useful threading API.
 A mutex also isn't a data structure.
 It is an abstract data type.
+
+Let's think about a duck satisfying the mutex api. If someone has the duck then they are allowed to access a shared resource! We call it the mutex duck. Everyone else has to waddle around and wait. Once someone let's go of the duck, they have to stop interacting with the resource and the next grabber can interact with the shared resource. Now you know the origins of the duck.
+
 There are many ways to implement a mutex, and we'll give a few in this chapter.
 For right now let's use the black box that the pthread library gives us.
 Here is how we declare a mutex.
