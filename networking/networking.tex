@@ -27,7 +27,7 @@ The 7 layer model is as follows
 
 \item Layer 2: The Link Layer.
   This is how each of the agents reacts to certain events (error detection, noisy channels, etc).
-  This is where \gls{Ethernet} and \gls{WiFi} live.
+  This is where Ethernet and WiFi live.
 
 \item Layer 3: The Network Layer.
   This is the heart of the Internet.
@@ -47,7 +47,7 @@ The 7 layer model is as follows
   For example, portability between different operating systems like translating newlines to windows newlines.
 
 \item Layer 7: The Application Layer.
-  \gls{HTTP} and \gls{FTP} are both defined at this level.
+  HTTP and FTP are both defined at this level.
   This is typically where we define protocols across the Internet.
   As programmers, we only go lower when we think we can create algorithms that are more suited to our needs than all of the below.
 
@@ -55,21 +55,21 @@ The 7 layer model is as follows
 
 This book won't cover networking in depth.
 We will focus on some aspects of layers 3, 4, and 7 because they are essential to know if you are going to be doing something with the Internet, which at some point in your career you will be.
-As for another definition, a protocol is a set of specifications put forward by the \gls{Internet Engineering Task Force} that govern how implementers of a protocol have their program or circuit behave under specific circumstances.
+As for another definition, a protocol is a set of specifications put forward by the Internet Engineering Task Force that govern how implementers of a protocol have their program or circuit behave under specific circumstances.
 
 \section{Layer 3: The Internet Protocol}
 
 The following is a short introduction to internet protocol (IP), the primary way to send datagrams of information from one machine to another.
-``IP4'', or more precisely, \gls{IPv4} is version 4 of the Internet Protocol that describes how to send \gls{packets} of information across a network from one machine to another.
+``IP4'', or more precisely, IPv4 is version 4 of the Internet Protocol that describes how to send packets of information across a network from one machine to another.
 Even as of 2018, IPv4 still dominates Internet traffic, but google reports that 24 countries now supply 15\% of their traffic through IPv6 \cite{internet_society_2018}.
 A significant limitation of IPv4 is that source and destination addresses are limited to 32 bits.
 IPv4 was designed at a time when the idea of 4 billion devices connected to the same network was unthinkable or at least not worth making the packet size larger.
-\gls{IPv4 addresses} are written typically in a sequence of four octets delimited by periods "255.255.255.0" for example.
+IPv4 addresses are written typically in a sequence of four octets delimited by periods "255.255.255.0" for example.
 
-Each IPv4 \gls{datagram} includes a small header - typically 20 \gls{octets}, that includes a source and destination address.
+Each IPv4 datagram includes a small header - typically 20 octets, that includes a source and destination address.
 Conceptually the source and destination addresses can be split into two: a network number the upper bits and lower bits represent a particular host number on that network.
 
-A newer packet protocol \gls{IPv6} solves many of the limitations of IPv4 like making routing tables simpler and 128-bit addresses.
+A newer packet protocol IPv6 solves many of the limitations of IPv4 like making routing tables simpler and 128-bit addresses.
 However, little web traffic is IPv6 based on comparison as of 2018 \cite{internet_society_2018}
 We write IPv6 addresses in a sequence of eight, four hexadecimal delimiters like "1F45:0000:0000:0000:0000:0000:0000:0000".
 Since that can get unruly, we can omit the zeros "1F45::". A machine can have an IPv6 address and an IPv4 address.
@@ -221,8 +221,8 @@ Just replace the ai\_family attribute in the above code with the following.
 hints.ai_family = AF_UNSPEC
 \end{lstlisting}
 
-If you are wondering how the computer maps \gls{hostnames} to addresses, we will talk about that in Layer 7.
-Spoiler: It is a service called \gls{DNS}.
+If you are wondering how the computer maps hostnames to addresses, we will talk about that in Layer 7.
+Spoiler: It is a service called DNS.
 Before we move onto the next section, it is important to note that a single website can have multiple IP addresses.
 This may be to be efficient with machines.
 If Google or Facebook has a single server routing \textit{all} of their incoming requests to other computers, they'd have to spend massive amounts of money on that computer or data center.
@@ -238,7 +238,7 @@ The page may load slower.
 \caption{Extra: TCP Header Specification}
 \end{figure}
 
-Most services on the Internet today use \gls{TCP} because it efficiently hides the complexity of the lower, packet-level nature of the Internet.
+Most services on the Internet today use TCP because it efficiently hides the complexity of the lower, packet-level nature of the Internet.
 TCP or Transport Control Protocol is a connection-based protocol that is built on top of IPv4 and IPv6 and therefore can be described as ``TCP/IP'' or ``TCP over IP''.
 TCP creates a \emph{pipe} between two machines and abstracts away the low-level packet-nature of the Internet. Thus, under most conditions, bytes sent over a TCP connection delivered and uncorrupted.
 High performance and error-prone code won't even assume that!
@@ -246,19 +246,19 @@ High performance and error-prone code won't even assume that!
 TCP has many features that set it apart from the other transport protocol UDP.
 
 \begin{enumerate}
-  \item \gls{Ports}
+  \item Ports
   With IP, you are only allowed to send packets to a machine.
   If you want one machine to handle multiple flows of data, you have to do it manually with IP.
   TCP gives the programmer a set of virtual sockets.
   Clients specify the socket that you want the packet sent to and the TCP protocol makes sure that applications that are waiting for packets on that port receive that.
   A process can listen for incoming packets on a particular port.
-  However, only processes with \gls{super-user} (root) access can listen on ports less than 1024.
+  However, only processes with super-user (root) access can listen on ports less than 1024.
   Any process can listen on ports 1024 or higher.
   A frequently used port is number 80.
   It is used for unencrypted HTTP requests or web pages.
   For example, if a web browser connects to \keyword{http://www.bbc.com/} then it will be connecting to port 80.
 
-\item \gls{Retransmission}
+\item Retransmission
   Packets can get dropped due to network errors or congestion.
   As such, they need to be retransmitted.
   At the same time, the retransmission shouldn't cause packets more packets to be dropped.

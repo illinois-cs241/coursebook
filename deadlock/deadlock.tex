@@ -6,7 +6,7 @@
 	\\But if you try sometimes you find
 	\\You get what you need}{The philosophers Jagger \& Richards}
 
-\gls{Deadlock} is defined as when a system cannot make and forward progress.
+Deadlock is defined as when a system cannot make and forward progress.
 We define a system for the rest of the chapter as a set of rules by which a set of processes can move from one state to another, where a state is either working or waiting for a particular resource.
 Forward progress is defined as if there is at least one process working or we can award a process waiting for a resource that resource.
 In a lot of systems, Deadlock is avoided by ignoring the entire concept \cite[P.237]{silberschatz2006operating}.
@@ -28,7 +28,7 @@ Even though it is a common statistical phrase that all models are wrong, the mor
 	\label{ragfigure}
 \end{figure}
 
-One such way is modeling the system with a resource allocation graph (\gls{RAG}).
+One such way is modeling the system with a resource allocation graph (RAG).
 A resource allocation graph tracks which resource is held by which process and which process is waiting for a resource of a particular type.
 It is a simple yet powerful tool to illustrate how interacting processes can deadlock.
 If a process is \emph{using} a resource, an arrow is drawn from the resource node to the process node.
@@ -77,18 +77,18 @@ Surely cycles in RAGs happen all the time in an OS, so why doesn't it grind to a
 You may not see deadlock because the OS may \textbf{preempt} some processes breaking the cycle but there is still a chance that your three lonely processes could deadlock.
 
 There are four \emph{necessary} and \emph{sufficient} conditions for deadlock -- meaning if these conditions hold then there is a non-zero probability that the system will deadlock at any given iteration.
-These are known as the \gls{Coffman Conditions} \cite{coffman1971system}.
+These are known as the Coffman Conditions \cite{coffman1971system}.
 
 \begin{itemize}
 	\tightlist
 	\item
-	      \gls{Mutual Exclusion}: No two processes can obtain a resource at the same time.
+	      Mutual Exclusion: No two processes can obtain a resource at the same time.
 	\item
-	      \gls{Circular Wait}: There exists a cycle in the Resource Allocation Graph, or there exists a set of processes \{P1, P2,\ldots{}\} such that P1 is waiting for resources held by P2, which is waiting for P3,\ldots{}, which is waiting for P1.
+	      Circular Wait: There exists a cycle in the Resource Allocation Graph, or there exists a set of processes \{P1, P2,\ldots{}\} such that P1 is waiting for resources held by P2, which is waiting for P3,\ldots{}, which is waiting for P1.
 	\item
-	      \gls{Hold and Wait}: Once a resource is obtained, a process keeps the resource locked.
+	      Hold and Wait: Once a resource is obtained, a process keeps the resource locked.
 	\item
-	      No \gls{pre-emption}: Nothing can force the process to give up a resource.
+	      No pre-emption: Nothing can force the process to give up a resource.
 \end{itemize}
 
 \begin{proof} Deadlock can happen if and only if the four Coffman conditions are satisfied.
@@ -140,7 +140,7 @@ Breaking hold and wait could be that the students try to get the pen and then th
 This introduces a new problem called \textit{livelock} which will be discussed later.
 Breaking preemption means that if the two students are in deadlock the teacher can come in and break up the deadlock by giving one of the students a held item or tell both students to put the items down.
 
-\gls{livelock} relates to deadlock.
+livelock relates to deadlock.
 Consider the breaking hold-and-wait solution as above.
 Though deadlock is avoided, if the philosopher picks up the same device again and again in the same pattern, no work will be done.
 Livelock is generally harder to detect because the processes generally look like they are working to the outside operating system whereas in deadlock the operating system generally knows when two processes are waiting on a system-wide resource.
@@ -152,7 +152,7 @@ There are even better systems that prove bounded waits; a system can only be liv
 \section{Approaches to Solving Livelock and Deadlock}
 
 Ignoring deadlock is the most obvious approach.
-Quite humorously, the name for this approach is called the \gls{ostrich algorithm}.
+Quite humorously, the name for this approach is called the ostrich algorithm.
 Though there is no apparent source, the idea for the algorithm comes from the concept of an ostrich sticking its head in the sand.
 When the operating system detects deadlock, it does nothing out of the ordinary, and any deadlock usually goes away.
 An operating system preempts processes when stopping them for context switches.
