@@ -261,7 +261,6 @@ In standard UNIX filesystems, the following entries are specially added on reque
 \begin{enumerate}
   \item \keyword{.} represents the current directory
   \item \keyword{..} represents the parent directory
-  \item \keyword{\textasciitilde} is the name of the home directory usually
 \end{enumerate}
 
 Counterintuitively, \keyword{...} could be the name of a file, not the grandparent directory.
@@ -272,6 +271,7 @@ Confusingly, the shell \keyword{zsh} does interpret \keyword{...} as a handy sho
 Additional facts about name-related conventions:
 
 \begin{enumerate}
+    \item \keyword{\textasciitilde} is usually expanded to the home directory by the shell
     \item Files that start with '.' (a period) on disk are conventionally considered 'hidden' and will be omitted by programs like \keyword{ls} without additional flags (\keyword{-a}).
         This is not a feature of the filesystem, and programs may choose to ignore this.
     \item Some files may also start with a NUL byte.
