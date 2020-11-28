@@ -6,7 +6,7 @@
 	\\But if you try sometimes you find
 	\\You get what you need}{The philosophers Jagger \& Richards}
 
-Deadlock is defined as when a system cannot make and forward progress.
+Deadlock is defined as when a system cannot make any forward progress.
 We define a system for the rest of the chapter as a set of rules by which a set of processes can move from one state to another, where a state is either working or waiting for a particular resource.
 Forward progress is defined as if there is at least one process working or we can award a process waiting for a resource that resource.
 In a lot of systems, Deadlock is avoided by ignoring the entire concept \cite[P.237]{silberschatz2006operating}.
@@ -361,7 +361,7 @@ They have to choose between fork $1$ and $n$.
 fork $1$ is already held up by philosopher $1$, so they can't pick up that fork, meaning he won't pick up fork $n$.
 We have broken \keyword{circular wait}! Meaning deadlock isn't possible.
 
-Some problems are that an entity either needs to know the finite set of resources in advance or be able to produce a consistent partial order suck that circular wait cannot happen.
+Some problems are that an entity either needs to know the finite set of resources in advance or be able to produce a consistent partial order such that circular wait cannot happen.
 This also implies that there needs to be some entity, either the operating system or another process, deciding on the number and all of the philosophers need to agree on the number as new resources come in.
 As we have also seen with previous solutions, this relies on context switching.
 This prioritizes philosophers that have already eaten but can be made fairer by introducing random sleeps and waits.
