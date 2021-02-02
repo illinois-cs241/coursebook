@@ -532,7 +532,7 @@ As you may realize, all of them are either integers or floating point numbers an
 \begin{enumerate}
 \item \keyword{char} Represents exactly one byte of data.
   The number of bits in a byte might vary.
-  \keyword{unsigned char} and \keyword{signed char} means the exact same thing.
+  \keyword{unsigned char} and \keyword{signed char} are always the same size, which is true for the \keyword{unsigned} and \keyword{signed} versions of all data types.
   This must be aligned on a boundary (meaning you cannot use bits in between two addresses).
   The rest of the types will assume 8 bits in a byte.
 \item \keyword{short (short int)} must be at least two bytes.
@@ -556,7 +556,7 @@ Operators are language constructs in C that are defined as part of the grammar o
 These operators are listed in order of precedence.
 
 \begin{itemize}
-	\item \keyword{[]} is the subscript operator. \keyword{a[n] == (a + n)*} where \keyword{n} is a number type and \keyword{a} is a pointer type.
+	\item \keyword{[]} is the subscript operator. \keyword{a[n] == *(a + n)} where \keyword{n} is a number type and \keyword{a} is a pointer type.
 	\item \keyword{->} is the structure dereference (or arrow) operator. If you have a pointer to a struct \keyword{*p}, you can use this to access one of its elements. \keyword{p->element}.
 	\item \keyword{.} is the structure reference operator. If you have an object \keyword{a} then you can access an element \keyword{a.element}.
 	\item \keyword{+/-a} is the unary plus and minus operator. They either keep or negate the sign, respectively, of the integer or float type underneath.
