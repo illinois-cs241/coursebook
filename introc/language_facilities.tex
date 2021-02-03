@@ -579,7 +579,7 @@ unsigned short uns = -127; // 1111111110000001
 short sig = 1; // 0000000000000001
 uns << 2; // 1111111000000100
 sig << 2; // 0000000000000100
-uns >> 2; // 1111111111100000
+uns >> 2; // 0011111111100000
 sig >> 2; // 0000000000000000
 \end{lstlisting}
     Note that shifting by the word size (e.g. by 64 in a 64-bit architecture) results in undefined behavior.
