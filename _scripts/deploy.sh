@@ -40,11 +40,11 @@ else
 
     # Git add commit
     git add -A;
-    git commit -m "Adding build on $(date)" --author "$TRAVIS_NAME <$TRAVIS_EMAIL>" || true
+    git commit -m "Adding build on $(date)" --author "$COMMITTER_EMAIL <$AUTHOR_NAME>" || true
 
     # Swap the https origin for the ssh origin so we can push
     OLD_ORIGIN=`git remote get-url origin`;
-    git remote set-url origin git@github.com:${TRAVIS_REPO_SLUG}.git;
+    git remote set-url origin git@github.com:${GITHUB_REPOSITORY}.git;
     git push origin --force $BRANCH;
 
     # Swap it back

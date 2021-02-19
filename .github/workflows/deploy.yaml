@@ -1,0 +1,47 @@
+name: Coursebook Deploy
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        build_focus: [WIKI, EPUB, PDF]
+    env:
+      BUILD_FOCUS: ${{ matrix.build_focus }}
+
+    steps:
+    - name: Checkout repo
+      uses: actions/checkout@v2
+
+    - name: Setup python
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.6
+
+    - name: Install
+      run: |
+        bash _scripts/install.sh
+
+    - name: Build coursebook
+      run: |
+        bash _scripts/script.sh
+
+    - name: Deploy site
+      env:
+        GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
+      run: |
+        # https://github.community/t/github-actions-bot-email-address/17204/6
+        export COMMITTER_EMAIL=41898282+github-actions[bot]@users.noreply.github.com
+        export AUTHOR_NAME=Github Actions
+        gpg --passphrase env.GPG_PASSPHRASE --output /tmp/deploy_site --decrypt coursebook-deploy.enc
+        gpg --passphrase env.GPG_PASSPHRASE --output /tmp/deploy_wiki --decrypt coursebook-deploy.enc
+        eval "$(ssh-agent -s)"
+        chmod 600 /tmp/deploy_site
+        chmod 600 /tmp/deploy_wiki
+        bash _scripts/deploy.sh
