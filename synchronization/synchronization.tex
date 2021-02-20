@@ -166,7 +166,7 @@ void *countgold(void *param) {
 
   //Same thread that locks the mutex must unlock it
   //Critical section is 'sum += 1'
-  //However locking and unlocking a million times
+  //However locking and unlocking ten million times
   //has significant overhead
 
   pthread_mutex_lock(&m);
