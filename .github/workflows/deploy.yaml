@@ -44,8 +44,8 @@ jobs:
 
         # Needed to add the --no-tty --batch --yes flags to get gpg to work in Github Actions
         # Based on this: https://discuss.circleci.com/t/error-sending-to-agent-inappropriate-ioctl-for-device/17465/3
-        gpg --no-tty --batch --yes --passphrase ${{ secrets.GPG_PASSPHRASE }} --output /tmp/deploy_site --decrypt coursebook-deploy.enc
-        gpg --no-tty --batch --yes --passphrase ${{ secrets.GPG_PASSPHRASE }} --output /tmp/deploy_wiki --decrypt coursebook-deploy.enc
+        gpg --no-tty --batch --yes --passphrase ${{ secrets.GPG_PASSPHRASE }} --output /tmp/deploy_site --decrypt site-deploy.enc
+        gpg --no-tty --batch --yes --passphrase ${{ secrets.GPG_PASSPHRASE }} --output /tmp/deploy_wiki --decrypt wiki-deploy.enc
 
         eval "$(ssh-agent -s)"
         chmod 600 /tmp/deploy_site
