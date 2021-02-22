@@ -28,7 +28,7 @@ else
 
     # Grab an orphaned branch, so git doesn't calculate diffs
     #git checkout --orphan $BRANCH;
-    git checkout -b $BRANCH;
+    git checkout -b --orphan $BRANCH;
 
     # Set up ssh 
     git config --global core.sshCommand "ssh -i /tmp/deploy_wiki -F /dev/null";

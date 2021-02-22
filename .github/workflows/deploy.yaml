@@ -12,7 +12,8 @@ jobs:
 
     strategy:
       matrix:
-        build_focus: [WIKI, EPUB, PDF]
+        #build_focus: [WIKI, EPUB, PDF]
+        build_focus: [EPUB]
     env:
       BUILD_FOCUS: ${{ matrix.build_focus }}
 
