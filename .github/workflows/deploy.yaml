@@ -33,8 +33,6 @@ jobs:
         bash _scripts/script.sh
 
     - name: Deploy site
-      env:
-        GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
       run: |
         # https://github.community/t/github-actions-bot-email-address/17204/6
         export COMMITTER_EMAIL=41898282+github-actions[bot]@users.noreply.github.com
