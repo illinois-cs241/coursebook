@@ -18,10 +18,12 @@ else
     if test $BUILD_FOCUS = "PDF"
     then
         find . -maxdepth 2 -iname "*.pdf" -exec mv {} $TMP_DIR \;
-        BRANCH="pdf_deploy"
+        #BRANCH="pdf_deploy"
+        BRANCH="pdf_deploy_test"
     else
         find . -iname "*.epub" -exec mv {} $TMP_DIR \;
-        BRANCH="epub_deploy"
+        #BRANCH="epub_deploy"
+        BRANCH="epub_deploy_test"
     fi
 
     # Grab an orphaned branch, so git doesn't calculate diffs
