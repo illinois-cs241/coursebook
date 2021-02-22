@@ -36,8 +36,8 @@ jobs:
     - name: Deploy site
       run: |
         # https://github.community/t/github-actions-bot-email-address/17204/6
-        export COMMITTER_EMAIL=41898282+github-actions[bot]@users.noreply.github.com
-        export AUTHOR_NAME=Github Actions
+        export COMMITTER_EMAIL="41898282+github-actions[bot]@users.noreply.github.com"
+        export AUTHOR_NAME="Github Actions Bot"
 
         # Needed to add the --no-tty --batch --yes flags to get gpg to work in Github Actions
         # Based on this: https://discuss.circleci.com/t/error-sending-to-agent-inappropriate-ioctl-for-device/17465/3
