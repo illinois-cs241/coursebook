@@ -39,9 +39,14 @@ jobs:
         # https://github.community/t/github-actions-bot-email-address/17204/6
         export COMMITTER_EMAIL=41898282+github-actions[bot]@users.noreply.github.com
         export AUTHOR_NAME=Github Actions
-        gpg --passphrase env.GPG_PASSPHRASE --output /tmp/deploy_site --decrypt coursebook-deploy.enc
-        gpg --passphrase env.GPG_PASSPHRASE --output /tmp/deploy_wiki --decrypt coursebook-deploy.enc
+
+        # Needed to add the --no-tty --batch --yes flags to get gpg to work in Github Actions
+        # Based on this: https://discuss.circleci.com/t/error-sending-to-agent-inappropriate-ioctl-for-device/17465/3
+        gpg --no-tty --batch --yes --passphrase ${{ secrets.GPG_PASSPHRASE }} --output /tmp/deploy_site --decrypt coursebook-deploy.enc
+        gpg --no-tty --batch --yes --passphrase ${{ secrets.GPG_PASSPHRASE }} --output /tmp/deploy_wiki --decrypt coursebook-deploy.enc
+
         eval "$(ssh-agent -s)"
         chmod 600 /tmp/deploy_site
         chmod 600 /tmp/deploy_wiki
+
         bash _scripts/deploy.sh
