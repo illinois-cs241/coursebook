@@ -13,7 +13,7 @@ jobs:
     strategy:
       matrix:
         #build_focus: [WIKI, EPUB, PDF]
-        build_focus: [EPUB]
+        build_focus: [EPUB, PDF]
     env:
       BUILD_FOCUS: ${{ matrix.build_focus }}
 
@@ -40,7 +40,7 @@ jobs:
         git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
         git config --global user.name "Github Actions Bot"
 
-        export COMMITTER_EMAIL="github-actions.github.com"
+        export COMMITTER_EMAIL="github-actions@github.com"
         export AUTHOR_NAME="Github Actions"
 
         # Needed to add the --no-tty --batch --yes flags to get gpg to work in Github Actions
