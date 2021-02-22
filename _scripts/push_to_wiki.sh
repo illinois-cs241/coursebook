@@ -23,10 +23,7 @@ cd ${WIKI_DIR}
 
 git add -A
 git commit -m "Updating wiki to ${DOCS_SHA}" --author "$COMMITTER_EMAIL <$AUTHOR_NAME>" || true
-#git push origin
-
-# For testing, don't push, just test out the SSH key
-ssh -i /tmp/deploy_wiki -T git@github.com || true
+git push origin
 
 cd ${GITHUB_WORKSPACE}
 
