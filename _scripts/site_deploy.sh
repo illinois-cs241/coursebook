@@ -14,4 +14,4 @@ git commit --allow-empty -m "Updating docs to ${DOCS_SHA}"
 git push origin develop
 
 # Go back to the build dir
-cd ${TRAVIS_BUILD_DIR}
+cd ${GITHUB_WORKSPACE}
