@@ -263,9 +263,8 @@ In standard UNIX filesystems, the following entries are specially added on reque
   \item \keyword{..} represents the parent directory
 \end{enumerate}
 
-Counterintuitively, \keyword{...} could be the name of a file, not the grandparent directory.
+Counterintuitively, \keyword{...} could be the name of a file or directory on disk (You can try this with \keyword{mkdir ...}), not the grandparent directory.
 Only the current directory and the parent directory have special aliases involving \keyword{.} (namely , \keyword{.} and \keyword{..}).
-However, \keyword{...} \emph{could} however be the name of a file or directory on disk (You can try this with \keyword{mkdir ...}).
 Confusingly, the shell \keyword{zsh} does interpret \keyword{...} as a handy shortcut to the grandparent directory (should it exist) while expanding shell commands.
 
 Additional facts about name-related conventions:
@@ -376,7 +375,7 @@ See the \href{https://linux.die.net/man/3/readdir}{man page of readdir} for more
 
 \subsection{Linking}
 
-Links are what force us to model a filesystem as a tree rather than a graph.
+Links are what force us to model a filesystem as a graph rather than a tree.
 
 While modeling the filesystem as a tree would imply that every inode has a unique parent directory, links allow inodes to present themselves as files in multiple places, potentially with different names, thus leading to an inode having multiple parent directories.
 There are two kinds of links:
