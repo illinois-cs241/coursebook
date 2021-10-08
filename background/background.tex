@@ -17,9 +17,8 @@ For example, the following in the widely used x86 Assembly language add one to t
 add BYTE PTR [0x20], 1
 \end{lstlisting}
 
-Why do we mention this? Because it is important that although you are going to be doing most of this class in C.
-That this is what the code is translated into.
-Serious implications arise for race conditions and atomic operations.
+Why do we mention this? Because it is important that although you are going to be doing most of this class in C, that this is what the code is translated into.
+Serious implications arise for \hyperref[sec_race_conditions]{race conditions} and atomic operations.
 
 \subsection{Atomic Operations}
 
@@ -56,7 +55,7 @@ This isn't a class about caching, know how this could impact your code.
 A short but non-complete list could be
 
 \begin{enumerate}
-\item Race Conditions! If a value is stored in two different processor caches, then that value should be accessed by a single thread.
+\item \hyperref[sec_race_conditions]{Race Conditions}! If a value is stored in two different processor caches, then that value should be accessed by a single thread.
 \item Speed. With a cache, your program may look faster mysteriously. Just assume that reads and writes that either happened recently or are next to each other in memory are fast.
 \item Side effects. Every read or write effects the cache state. While most of the time this doesn't help or hurt, it is important to know. Check the Intel programmer guide on the lock prefix for more information.
 \end{enumerate}
@@ -218,12 +217,17 @@ Here are some links that can help you out
 Some people take this as an opportunity to learn a new editor, others not so much. The first part is those of you who want to learn a new editor. In the editor war that spans decades, we have come to the battle of vim vs emacs.
 
 Vim is a text editor and a Unix-like utility.
-You enter vim by typing \keyword{vim [file]}.
-This takes you into the editor.
+You enter vim by typing \keyword{vim [file]}, which takes you into the editor.
+There are three most commonly used modes: normal mode, insert mode, and command mode.
 You start off in normal mode.
-In this mode, you can move around with many keys with the most common ones being \keyword{jklh}.
-To exit vim from this mode, you need to type \keyword{:q} which quits.
-If you have any unsaved edits, you must either save them \keyword{:w}, save and quit \keyword{:wq}, or discard changes \keyword{:q!}. To make edits you can either type \keyword{i} to change you into insert mode or \keyword{a} to change to insert mode \textbf{a}fter the cursor. This is the basics when it comes to vim
+In this mode, you can move around with many keys with the most common ones being \keyword{hjkl} (corresponding to left, down, up, and right respectively).
+To exit vim from this mode, you can enter command mode by typing \keyword{:}.
+For instance, to quit vim, simply type \keyword{:q} (q stands for quit).
+If you have any unsaved edits, you must either save them \keyword{:w}, save and quit \keyword{:wq}, or discard changes \keyword{:q!}.
+To make edits you can either type \keyword{i} to change you into insert mode or \keyword{a} to change to insert mode \textbf{a}fter the cursor.
+This is the basics when it comes to vim.
+In addition to the countless great resources out there on the internet, vim also has its own built-in tutorials set up for beginners.
+To access the interactive tutorial, enter \keyword{vimtutor}, and you are all set!
 
 Emacs is more of a way of life, and I don't mean that figuratively.
 A lot of people say that emacs is a powerful operating system lacking a decent text editor.
@@ -301,7 +305,7 @@ The \keyword{DEBUG} macro will disable all assertions, so don't forget to set th
 
 Here is a quick example with an assert.
 Let's say that we are writing code using memcpy.
-We would want to put an assert before that checks whethermy two memory regions overlap.
+We would want to put an assert before that checks whether my two memory regions overlap.
 If they do overlap, memcpy runs into undefined behavior, so we want to catch that problem than later.
 
 \begin{lstlisting}[language=C]
