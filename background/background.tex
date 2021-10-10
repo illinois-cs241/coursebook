@@ -18,7 +18,7 @@ add BYTE PTR [0x20], 1
 \end{lstlisting}
 
 Why do we mention this? Because it is important that although you are going to be doing most of this class in C, that this is what the code is translated into.
-Serious implications arise for \hyperref[sec_race_conditions]{race conditions} and atomic operations.
+Serious implications arise for race conditions and atomic operations.
 
 \subsection{Atomic Operations}
 
@@ -221,13 +221,13 @@ You enter vim by typing \keyword{vim [file]}, which takes you into the editor.
 There are three most commonly used modes: normal mode, insert mode, and command mode.
 You start off in normal mode.
 In this mode, you can move around with many keys with the most common ones being \keyword{hjkl} (corresponding to left, down, up, and right respectively).
-To exit vim from this mode, you can enter command mode by typing \keyword{:}.
+To run commands in vim, you can first type \keyword{:} and then a command after it.
 For instance, to quit vim, simply type \keyword{:q} (q stands for quit).
-If you have any unsaved edits, you must either save them \keyword{:w}, save and quit \keyword{:wq}, or discard changes \keyword{:q!}.
+If you have any unsaved edits, you must either save them \keyword{:w}, save and quit \keyword{:wq}, or quit and discard changes \keyword{:q!}.
 To make edits you can either type \keyword{i} to change you into insert mode or \keyword{a} to change to insert mode \textbf{a}fter the cursor.
 This is the basics when it comes to vim.
 In addition to the countless great resources out there on the internet, vim also has its own built-in tutorials set up for beginners.
-To access the interactive tutorial, enter \keyword{vimtutor}, and you are all set!
+To access the interactive tutorial, enter \keyword{vimtutor} in the command line (not inside of vim), and you are all set!
 
 Emacs is more of a way of life, and I don't mean that figuratively.
 A lot of people say that emacs is a powerful operating system lacking a decent text editor.
