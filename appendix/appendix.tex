@@ -887,7 +887,7 @@ void cond_broadcast(cond_t *cv) {
 So how does this work?
 Instead of allocating space which could lead to deadlock.
 We keep the data structures or the linked list nodes on each thread's stack.
-The linked list in the wait function is created \textbf{While the thread has the mutex lock} this is important because we may have a race condition on the insert and removal.
+The linked list in the wait function is created \textbf{while the thread has the mutex lock.} This is important because we may have a race condition on the insert and removal.
 A more robust implementation would have a mutex per condition variable.
 
 What is the note about (dynamic)?
@@ -897,7 +897,7 @@ Hence, the beginning and end of wait (everything besides the while loop) are mut
 After the last thread leaves, meaning when head is NULL, then the binding is lost.
 
 The signal and broadcast functions merely tell either one thread or all threads respectively that they should be woken up.
-\textbf{It doesn't modify the linked lists because there is no mutex to prevent corruption if two threads call signal or broadcast}
+\textbf{It doesn't modify the linked lists because there is no mutex to prevent corruption if two threads call signal or broadcast.}
 
 Now an advanced point.
 Do you see how a broadcast could cause a spurious wakeup in this case? Consider this series of events.
