@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - master
-      - fix-genwiki-script
 
 jobs:
   deploy:
@@ -28,7 +27,21 @@ jobs:
     - name: Install
       run: |
         bash _scripts/install.sh
-
     - name: Build coursebook
       run: |
         bash _scripts/script.sh
+    - name: Deploy site
+      run: |
+        # https://github.community/t/github-actions-bot-email-address/17204/6
+        git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+        git config --global user.name "Github Actions Bot"
+        export COMMITTER_EMAIL="github-actions@github.com"
+        export AUTHOR_NAME="Github Actions"
+        # Needed to add the --no-tty --batch --yes flags to get gpg to work in Github Actions
+        # Based on this: https://discuss.circleci.com/t/error-sending-to-agent-inappropriate-ioctl-for-device/17465/3
+        gpg --no-tty --batch --yes --passphrase ${{ secrets.GPG_PASSPHRASE }} --output /tmp/deploy_site --decrypt site-deploy.enc
+        gpg --no-tty --batch --yes --passphrase ${{ secrets.GPG_PASSPHRASE }} --output /tmp/deploy_wiki --decrypt wiki-deploy.enc
+        eval "$(ssh-agent -s)"
+        chmod 600 /tmp/deploy_site
+        chmod 600 /tmp/deploy_wiki
+        bash _scripts/deploy.sh
