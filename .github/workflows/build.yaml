@@ -27,6 +27,7 @@ jobs:
     - name: Install
       run: |
         bash _scripts/install.sh
+
     - name: Build coursebook
       run: |
         bash _scripts/script.sh
