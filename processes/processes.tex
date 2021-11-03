@@ -157,31 +157,23 @@ int assumed_to_be_zero;
 \end{lstlisting}
 
           This variable will be zeroed; otherwise, we would have a security risk involving isolation from other processes.
-
           They get put in a different section to speed up process start up time.
-
           This section starts at the end of the data segment and is also static in size because the amount of globals is known at compile time.
-          
           Currently, both the initialized and BSS data segments are combined and referred to as the data segment \cite[P. 124]{van1994expert}, despite being somewhat different in purpose.
+
+\end{itemize}
 
     \item \textbf{A Text Segment}.
           This is where all executable instructions are stored, and is readable (function pointers) but not writable.
-
           The program counter moves through this segment executing instructions one after the other.
-
           It is important to note that this is the only executable section of the program, by default.
-
           If a program's code while it's running, the program most likely will SEGFAULT.
-
           There are ways around it, but we will not be exploring these in this course.
-
           Why doesn't it always start at zero?
           This is because of a security feature called \href{https://en.wikipedia.org/wiki/Address_space_layout_randomization}{address space layout randomization}.
-
           The reasons for and explanation about this is outside the scope of this class, but it is good to know about its existence.
-
           Having said that, this address can be made constant, if a program is compiled with the DEBUG flag.
-\end{itemize}
+
 \end{itemize}
 
 
