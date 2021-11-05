@@ -109,7 +109,8 @@ When a process starts, it gets its own address space.
 Each process gets the following.
 
 \begin{itemize}
-\item \textbf{A Stack}.
+\item \textbf{A Stack}
+
 The stack is the place where automatically allocated variables and function call return addresses are stored.
 Every time a new variable is declared, the program moves the stack pointer down to reserve space for the variable.
 This segment of the stack is writable but not executable.
@@ -118,7 +119,8 @@ This behavior is controlled by the no-execute (NX) bit, sometimes called the W\^
 If the stack grows too far -- meaning that it either grows beyond a preset boundary or intersects the heap -- the program will stack overflow error, most likely resulting in a SEGFAULT.
 \textbf{The stack is statically allocated by default; there is only a certain amount of space to which one can write.}
 
-\item \textbf{A Heap}.
+\item \textbf{A Heap}
+
 The heap is a contiguous, expanding region of memory \cite{mallocinternals}.
 If a program wants to allocate an object whose lifetime is manually controlled or whose size cannot be determined at compile-time, it would want to create a heap variable.
 
@@ -130,8 +132,8 @@ One can run out of heap memory if the system is constrained or if a program run 
 
 \item \textbf{A Data Segment}
 
-  This segment contains two parts, an initialized data segment, and an uninitialized segment.
-  Furthermore, the initialized data segment is divided into a readable and writable section.
+This segment contains two parts, an initialized data segment, and an uninitialized segment.
+Furthermore, the initialized data segment is divided into a readable and writable section.
 
 \begin{itemize}
     \item \textbf{Initialized Data Segment}
@@ -157,31 +159,24 @@ int assumed_to_be_zero;
 \end{lstlisting}
 
           This variable will be zeroed; otherwise, we would have a security risk involving isolation from other processes.
-
           They get put in a different section to speed up process start up time.
-
           This section starts at the end of the data segment and is also static in size because the amount of globals is known at compile time.
-          
           Currently, both the initialized and BSS data segments are combined and referred to as the data segment \cite[P. 124]{van1994expert}, despite being somewhat different in purpose.
 
-    \item \textbf{A Text Segment}.
-          This is where all executable instructions are stored, and is readable (function pointers) but not writable.
-
-          The program counter moves through this segment executing instructions one after the other.
-
-          It is important to note that this is the only executable section of the program, by default.
-
-          If a program's code while it's running, the program most likely will SEGFAULT.
-
-          There are ways around it, but we will not be exploring these in this course.
-
-          Why doesn't it always start at zero?
-          This is because of a security feature called \href{https://en.wikipedia.org/wiki/Address_space_layout_randomization}{address space layout randomization}.
-
-          The reasons for and explanation about this is outside the scope of this class, but it is good to know about its existence.
-
-          Having said that, this address can be made constant, if a program is compiled with the DEBUG flag.
 \end{itemize}
+
+\item \textbf{A Text Segment}
+
+This is where all executable instructions are stored, and is readable (function pointers) but not writable.
+The program counter moves through this segment executing instructions one after the other.
+It is important to note that this is the only executable section of the program, by default.
+If a program's code while it's running, the program most likely will SEGFAULT.
+There are ways around it, but we will not be exploring these in this course.
+Why doesn't it always start at zero?
+This is because of a security feature called \href{https://en.wikipedia.org/wiki/Address_space_layout_randomization}{address space layout randomization}.
+The reasons for and explanation about this is outside the scope of this class, but it is good to know about its existence.
+Having said that, this address can be made constant, if a program is compiled with the DEBUG flag.
+
 \end{itemize}
 
 
@@ -202,14 +197,14 @@ Every process has a parent, that parent could be \keyword{init.d}.
 Processes could also contain the following information:
 
 \begin{itemize}
-    \item Running State - Whether a process is getting ready, running, stopped, terminated, etc. (more on this is covered in the chapter on Scheduling).
-    \item File Descriptors - A list of mappings from integers to real devices (files, USB flash drives, sockets)
-    \item Permissions - What \keyword{user} the file is running on and what \keyword{group} the process belongs to.
+    \item \textbf{Running State} - Whether a process is getting ready, running, stopped, terminated, etc. (more on this is covered in the chapter on Scheduling).
+    \item \textbf{File Descriptors} - A list of mappings from integers to real devices (files, USB flash drives, sockets)
+    \item \textbf{Permissions} - What \keyword{user} the file is running on and what \keyword{group} the process belongs to.
           The process can then only perform operations based on the permissions given to the \keyword{user} or \keyword{group}, such as accessing files.
           There are tricks to make a program take a different user than who started the program i.e. \keyword{sudo} takes a program that a \keyword{user} starts and executes it as \keyword{root}.
           More specifically, a process has a real user ID (identifies the owner of the process), an effective user ID (used for non-privileged users trying to access files only accessible by superusers), and a saved user ID (used when privileged users perform non-privileged actions).
-    \item Arguments - a list of strings that tell your program what parameters to run under.
-    \item Environment Variables - a list of key-value pair strings in the form \keyword{NAME=VALUE} that one can modify. These are often used to specify paths to libraries and binaries, program configuration settings, etc.
+    \item \textbf{Arguments} - a list of strings that tell your program what parameters to run under.
+    \item \textbf{Environment Variables} - a list of key-value pair strings in the form \keyword{NAME=VALUE} that one can modify. These are often used to specify paths to libraries and binaries, program configuration settings, etc.
 \end{itemize}
 
 According to the POSIX specification, a process only needs a thread and address space, but most kernel developers and users know that only these aren't enough \cite{process_def}.
