@@ -169,7 +169,7 @@ def generate_tex_meta(order, outdir, meta_file_name, chapter=None):
 
     # Load that file back up
     with open(meta_file_name, 'r') as f:
-        metadata = yaml.load(f)
+        metadata = yaml.load(f, Loader=yaml.Loader)
 
     # Convert that meta to our datastructures so we aren't referencing magic keys
     ret = []
