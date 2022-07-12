@@ -71,7 +71,7 @@ The application then decides if it is an error (SEGFAULT) or not (SIGPIPE for ex
 Applications can also send signals to the kernel and to the hardware as well.
 This is an oversimplification because there are certain hardware faults that can't be ignored or masked away, but this class isn't about teaching you to build an operating system.
 
-An important application of this is this is how system calls are served!
+An important application of this is how system calls are served!
 There is a well-established set of registers that the arguments go in according to the kernel as well as a system call ``number'' again defined by the kernel.
 Then the operating system triggers an interrupt which the kernel catches and serves the system call \cite{garg_2006}.
 
