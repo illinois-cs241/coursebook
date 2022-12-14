@@ -47,7 +47,7 @@ bool is_cyclic(const graph* g) {
   set visited_vertices = set_create();
   for (each vertex in g) {
     set current_path = set_create();
-    if (_graph_contains_cycle(g, vertex, &visited_vertices, &current_path)) {
+    if (_is_cyclic(g, vertex, &visited_vertices, &current_path)) {
       /* deallocate resources */
       return true;
     }
