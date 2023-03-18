@@ -1461,7 +1461,7 @@ We can do better!
 Let's use a condition variable and then we will use a broadcast/signal functions to wake up the sleeping threads.
 
 A reminder, a condition variable is similar to a house! Threads go there to sleep (\keyword{pthread\_cond\_wait}).
-A threa can choose to wake up one thread (\keyword{pthread\_cond\_signal}) or all of them (\keyword{pthread\_cond\_broadcast}).
+A thread can choose to wake up one thread (\keyword{pthread\_cond\_signal}) or all of them (\keyword{pthread\_cond\_broadcast}).
 If there are no threads currently waiting then these two calls have no effect.
 
 A condition variable version is usually similar to a busy loop incorrect solution - as we will show next.
