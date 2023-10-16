@@ -19,10 +19,11 @@ jobs:
     - name: Checkout repo
       uses: actions/checkout@v2
 
-    - name: Setup python
+    - name: Setup python (3.7.17)
       uses: actions/setup-python@v2
       with:
-        python-version: 3.6.15
+        python-version: 3.7.17
+         #3.6.15
 
     - name: Install
       run: |
