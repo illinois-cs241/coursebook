@@ -940,19 +940,16 @@ On different operating systems, C uses the low-level functions to create a wrapp
 	\item \keyword{fprintf} Write a formatted string to a file
 	\item \keyword{fclose} Close a file handle
 	\item \keyword{fflush} Take any buffered changes and flush them to a file
+	\item \keyword{feof} Returns true if you are at the end of a file
+ 	\item \keyword{ferror} Returns true if an error occured reading, writing or seeking.
+  	\item \keyword{setvbuf} Sets the buffering (None,Line or Full) and the memory used for buffering
 \end{itemize}
 	 
 But programs don't get the expressiveness that Linux gives with system calls.
 A program can convert back and forth between them with \keyword{int\ fileno(FILE*\ stream)} and \keyword{FILE*\ fdopen(int\ fd...)}.
 Also, C files are \textbf{buffered} meaning that their contents may be written to the backing after the call returns.
 You can change that with C options.
-	 
-\textbf{Danger} With portability you lose something important, the ability to tell an error.
-A program can \keyword{fopen} a file descriptor and get a \keyword{FILE*} object but \textbf{it won't be the same as a file} meaning that certain calls will fail or act weirdly.
-The C API reduces this weirdness, but for example a program cannot \keyword{fseek} to a part of the file, or perform any operations with its buffering.
-The problem is the API won't give a lot of warning because C needs to maintain compatibility with other operating systems.
-To keep things simple, use the C API of files when dealing with a file on disk, which will work fine. Otherwise, be in for a rough ride for portability's sake.
-	 
+	  
 \subsection{Determining File Length}
 	 
 For files less than the size of a long, using fseek and ftell is a
