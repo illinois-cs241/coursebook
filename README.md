@@ -3,7 +3,7 @@
 [![Build Status](https://github.com/illinois-cs241/coursebook/actions/workflows/deploy.yaml/badge.svg?branch=master)](https://github.com/illinois-cs241/coursebook/actions/workflows/deploy.yaml)
 [![Current Pdf Link](https://img.shields.io/badge/current-pdf-blue.svg)](https://github.com/illinois-cs241/coursebook/blob/pdf_deploy/main.pdf)
 [![Current Wiki Link](https://img.shields.io/badge/current-wiki-blue.svg)](https://github.com/illinois-cs241/coursebook/wiki)
-[![Current HTML Link](https://img.shields.io/badge/current-html-blue.svg)](http://cs241.cs.illinois.edu/coursebook/index.html)
+[![Current HTML Link](https://img.shields.io/badge/current-html-blue.svg)](http://cs341.cs.illinois.edu/coursebook/index.html)
 [![Current Epub Link](https://img.shields.io/badge/current-epub-blue.svg)](https://github.com/illinois-cs241/coursebook/blob/epub_deploy/main.epub)
 
 <p align="center">
@@ -11,7 +11,7 @@
 </p>
 
 Welcome to the systems programming coursebook!
-This repository houses a high-quality, open-source introductory systems programming textbook used by the [CS 241: System Programming](http://cs241.cs.illinois.edu/) course at the [University of Illinois at Urbana-Champaign](https://illinois.edu/)
+This repository houses a high-quality, open-source introductory systems programming textbook used by the [CS 341: System Programming](http://cs341.cs.illinois.edu/) course at the [University of Illinois at Urbana-Champaign](https://illinois.edu/)
 The book assumes that you have taken a programming language course and are familiar with assembly instructions.
 All of the code and instruction will be in C, as it is the de-facto language of the Linux Kernel.
 
