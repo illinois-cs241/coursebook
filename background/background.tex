@@ -57,7 +57,7 @@ A short but non-complete list could be
 \begin{enumerate}
 \item Race Conditions! If a value is stored in two different processor caches, then that value should be accessed by a single thread.
 \item Speed. With a cache, your program may look faster mysteriously. Just assume that reads and writes that either happened recently or are next to each other in memory are fast.
-\item Side effects. Every read or write effects the cache state. While most of the time this doesn't help or hurt, it is important to know. Check the Intel programmer guide on the lock prefix for more information.
+\item Side effects. Every read or write affects the cache state. While most of the time this doesn't help or hurt, it is important to know. Check the Intel programmer guide on the lock prefix for more information.
 \end{enumerate}
 
 \subsection{Interrupts}
