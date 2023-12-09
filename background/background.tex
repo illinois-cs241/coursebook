@@ -309,7 +309,7 @@ We would want to put an assert before that checks whether my two memory regions 
 If they do overlap, memcpy runs into undefined behavior, so we want to discover that problem sooner rather than later.
 
 \begin{lstlisting}[language=C]
-assert(!(src < dest+n && dest < src+n)); //Checks overlap
+assert( src+n < dest || src >= dest + n); // source should finish before the destination or the source starts after the end of destination
 memcpy(dest, src, n);
 \end{lstlisting}
 
