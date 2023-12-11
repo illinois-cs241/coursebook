@@ -36,34 +36,49 @@ If a process is \emph{requesting} a resource, an arrow is drawn from the process
 If there is a cycle in the Resource Allocation Graph and each resource in the cycle provides only one instance, then the processes will deadlock.
 For example, if process 1 holds resource A, process 2 holds resource B and process 1 is waiting for B and process 2 is waiting for A, then processes 1 and 2 will be deadlocked \ref{ragfigure}.
 We'll make the distinction that the system is in deadlock by definition if all workers cannot perform an operation other than waiting.
-We can detect a deadlock by traversing the graph and searching for a cycle using a graph traversal algorithm, such as the Depth First Search (DFS).
-This graph is considered as a directed graph and we can treat both the processes and resources as nodes.
 
-\begin{minted}{C}
-	typedef struct {
-		int node_id; // Node in this particular graph
-		Graph **reachable_nodes; // List of nodes that can be reached from this node
-		int size_reachable_nodes; // Size of the List
-	} Graph;
-	
-	// isCyclic() traverses a graph using DFS and detects whether it has a cycle
-	// isCyclic() uses a recursive approach
-	// G points to a node in a graph, which can be either a resource or a process
-	// is_visited is an array indexed with node_id and initialized with zeros (false) to record whether a particular node has been visited
-	int isCyclic(Graph *G, int* is_visited) {
-		if (this graph has been visited) {
-			// Oh! the cycle is found
-			return true;
-			} else {
-			1. Mark this node as visited
-			2. Traverse through all nodes in the reachable_nodes
-			3. Call isCyclic() for each node
-			4. Evaluate the return value of isCyclic()
-		}
-		// Nope, this graph is acyclic
-		return false;
-	}
-\end{minted}
+This graph is considered as a directed graph and we can treat both the processes and resources as nodes.
+We can detect a deadlock by traversing the directed graph and searching for a cycle using a graph traversal algorithm, such as the Depth First Search (DFS).
+
+\begin{lstlisting}[language=C]
+// is_cyclic() traverses a graph using DFS and detects whether it has a cycle
+// a node in the graph can be either a resource or a process
+bool is_cyclic(const graph* g) {
+  set visited_vertices = set_create();
+  for (each vertex in g) {
+    set current_path = set_create();
+    if (_is_cyclic(g, vertex, &visited_vertices, &current_path)) {
+      /* deallocate resources */
+      return true;
+    }
+    /* deallocate resources */
+  }
+  /* deallocate resources */
+  return false;
+}
+
+bool _is_cyclic(const graph* g, const void* root, set* visited, set* current_path) {
+  // if the vertex has already been visited, don't visit it again
+  // the graph is cyclic if and only if the vertex is in the current path, i.e. a back edge exists
+  if (set_contains(visited, root)) return set_contains(current_path, root);
+
+  set_add(visited, root);
+  set_add(current_path, root);
+
+  for (each neighbor of root) {
+    if (_is_cyclic(graph, neighbor, visited, current_path)) {
+      /* deallocate resources */
+      return true;
+    }
+  });
+
+  // pop the vertex from the current path when we are done with it
+  set_remove(current_path, root);
+
+  /* deallocate resources */
+  return false;
+}
+\end{lstlisting}
 
 \begin{figure}[H]
 	\centering
