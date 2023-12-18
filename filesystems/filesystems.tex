@@ -912,15 +912,15 @@ This means the speed of the transfer is unaffected by hardware power.
 
         \begin{lstlisting}[language=bash]
         $ mount
-        /dev/mapper/cs241--server_sys-root on / type ext4 (rw)
+        /dev/mapper/cs341--server_sys-root on / type ext4 (rw)
         proc on /proc type proc (rw)
         sysfs on /sys type sysfs (rw)
         devpts on /dev/pts type devpts (rw,gid=5,mode=620)
         tmpfs on /dev/shm type tmpfs (rw,rootcontext="system_u:object_r:tmpfs_t:s0")
         /dev/sda1 on /boot type ext3 (rw)
-        /dev/mapper/cs241--server_sys-srv on /srv type ext4 (rw)
-        /dev/mapper/cs241--server_sys-tmp on /tmp type ext4 (rw)
-        /dev/mapper/cs241--server_sys-var on /var type ext4 (rw)rw,bind)
+        /dev/mapper/cs341--server_sys-srv on /srv type ext4 (rw)
+        /dev/mapper/cs341--server_sys-tmp on /tmp type ext4 (rw)
+        /dev/mapper/cs341--server_sys-var on /var type ext4 (rw)rw,bind)
         /srv/software/Mathematica-8.0 on /software/Mathematica-8.0 type none (rw,bind)
         engr-ews-homes.engr.illinois.edu:/fs1-homes/angrave/linux on /home/angrave type nfs (rw,soft,intr,tcp,noacl,acregmin=30,vers=3,sec=sys,sloppy,addr=128.174.252.102)
         \end{lstlisting}
