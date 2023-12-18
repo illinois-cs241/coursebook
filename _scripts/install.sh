@@ -16,5 +16,6 @@ fi;
 
 if test $BUILD_FOCUS = "PDF"
 then
+    sudo apt update
     sudo apt install texlive-full
 fi;
