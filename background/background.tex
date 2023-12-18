@@ -306,10 +306,10 @@ The \keyword{DEBUG} macro will disable all assertions, so don't forget to set th
 Here is a quick example with an assert.
 Let's say that we are writing code using memcpy.
 We would want to put an assert before that checks whether my two memory regions overlap.
-If they do overlap, memcpy runs into undefined behavior, so we want to catch that problem than later.
+If they do overlap, memcpy runs into undefined behavior, so we want to discover that problem sooner rather than later.
 
 \begin{lstlisting}[language=C]
-assert(!(src < dest+n && dest < src+n)); //Checks overlap
+assert( src+n < dest || src >= dest + n); // source should finish before the destination or the source starts after the end of destination
 memcpy(dest, src, n);
 \end{lstlisting}
 
