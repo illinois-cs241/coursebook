@@ -22,7 +22,6 @@ Creating separate processes is useful when
 \item When you are running into synchronization primitives and each process is operating on something in the system.
 \item When you have too many threads -- the kernel tries to schedule all the threads near each other which could cause more harm than good.
 \item When you don't want to worry about race conditions
-\item If one thread blocks in a task (say IO) then all threads block. Processes don't have that same restriction.
 \item When the amount of communication is minimal enough that simple IPC needs to be used.
 \end{itemize}
 
