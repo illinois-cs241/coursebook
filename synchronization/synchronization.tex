@@ -111,7 +111,7 @@ For right now let's use the black box that the pthread library gives us.
 Here is how we declare a mutex.
 
 \begin{lstlisting}[language=C]
-pthread_mutex_t m = PTHREAD_MUTEX_INITIALIZER; // global variable
+pthread_mutex_t m = PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_lock(&m); // start of Critical Section
 // Critical section
 pthread_mutex_unlock(&m); //end of Critical Section
@@ -119,12 +119,15 @@ pthread_mutex_unlock(&m); //end of Critical Section
 
 \subsection{Mutex Lifetime}
 
-There are a few ways of initializing a mutex.
-A program can use the macro \keyword{PTHREAD\_MUTEX\_INITIALIZER} only for global (`static') variables.
-\keyword{m = PTHREAD\_MUTEX\_INITIALIZER} is functionally equivalent to the more general purpose \keyword{pthread\_mutex\_init(&m,NULL)}.
-The init version includes options to trade performance for additional error-checking and advanced sharing options.
-The init version also makes sure that the mutex is correctly initialized after the call, global mutexes are initialized on the first lock.
-A program can also call the init function inside of a program for a mutex located on the heap.
+For all mutexes, there are two ways of initializing a mutex:
+\begin{itemize}
+\item\keyword{PTHREAD\_MUTEX\_INITIALIZER}
+\item\keyword{pthread\_mutex\_init(pthread\_mutex\_t *mutex, pthread\_mutexattr\_t *attr)}
+\end{itemize}
+The macro \keyword{PTHREAD\_MUTEX\_INITIALIZER} is functionally equivalent to the more general purpose \keyword{pthread\_mutex\_init(&m,NULL)}.
+In other words, \keyword{PTHREAD\_MUTEX\_INITIALIZER} will create a mutex with default properties.
+The \keyword{attr} in the init version includes options to trade performance for additional error-checking, advanced sharing, and more.
+While we recommend using the init function inside of a program for a mutex located on the heap, you can use either method.
 
 \begin{lstlisting}[language=C]
 pthread_mutex_t *lock = malloc(sizeof(pthread_mutex_t));
@@ -136,15 +139,15 @@ free(lock);
 
 Once we are finished with the mutex we should also call \keyword{pthread\_mutex\_destroy(&m)} too.
 Note, a program can only destroy an unlocked mutex, destroy on a locked mutex is undefined behavior.
-Things to keep in mind about \keyword{init} and \keyword{destroy}
-A program doesn't need to destroy a mutex created with the global initializer.
+Things to keep in mind about initializing and destroying mutexes:
 
 \begin{enumerate}
-\item Multiple threads init/destroy has undefined behavior
-\item Destroying a locked mutex has undefined behavior
+\item Initializing an already initialized mutex is undefined behavior
+\item Destroying a locked mutex is undefined behavior
 \item Keep to the pattern of one and only one thread initializing a mutex.
 \item Copying the bytes of the mutex to a new memory location and then using the copy is \emph{not} supported.
   To reference a mutex, a program \emph{must} to have a pointer to that memory address.
+\item Global/Static mutexes need not be destroyed.
 \end{enumerate}
 
 \subsection{Mutex Usages}
@@ -156,7 +159,7 @@ Here is a complete example in the spirit of the earlier piece of code.
 #include <stdio.h>
 #include <pthread.h>
 
-// Create a mutex this ready to be locked!
+// Create a global mutex, this is ready to be locked!
 pthread_mutex_t m = PTHREAD_MUTEX_INITIALIZER;
 
 int sum = 0;
