@@ -146,7 +146,7 @@ char *ptr = "Can't change me"; // ptr points to some immutable memory
 strcpy(ptr, "Will not work");
 \end{lstlisting}
 
-String literals are character arrays stored in the code segment of the program, which is immutable.
+String literals are character arrays stored in the read-only data segment of the program, which is immutable.
 Two string literals may share the same space in memory.
 An example follows.
 
