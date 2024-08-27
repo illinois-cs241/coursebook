@@ -46,7 +46,7 @@ Most of the time you can assume the instructions are unlocked.
 
 Ah yes, Caching.
 One of computer science's greatest problems.
-Caching that we are referring is processor caching.
+The caching that we are referring to is processor caching.
 If a particular address is already in the cache when reading or writing, the processor will perform the operation on the cache such as adding and update the actual memory later because updating memory is slow \cite[Section 3.4]{intel2015improving}.
 If it isn't, the processor requests a chunk of memory from the memory chip and stores it in the cache, kicking out the least recently used page -- this depends on caching policy, but Intel's does use this.
 This is done because the l3 processor cache is roughly three times faster to reach than the memory in terms of time \cite[p. 22]{levinthal2009performance} though exact speeds will vary based on the clock speed and architecture.
