@@ -562,7 +562,7 @@ These operators are listed in order of precedence.
 	\item \keyword{+/-a} is the unary plus and minus operator. They either keep or negate the sign, respectively, of the integer or float type underneath.
 	\item \keyword{*a} is the dereference operator. If you have a pointer \keyword{*p}, you can use this to access the element located at this memory address. If you are reading, the return value will be the size of the underlying type. If you are writing, the value will be written with an offset.
 	\item \keyword{\&a} is the address-of operator. This takes an element and returns its address.
-	\item \keyword{++} is the increment operator. You can use it as a prefix or postfix, meaning that the variable that is being incremented can either be before or after the operator. \keyword{a = 0; ++a === 1} and \keyword{a = 1; a++ === 0}.
+	\item \keyword{++} is the increment operator. You can use it as a prefix or postfix, meaning that the variable that is being incremented can either be before or after the operator. \keyword{a = 0; ++a == 1} and \keyword{a = 1; a++ == 0}.
 	\item \keyword{-{}-} is the decrement operator. This has the same semantics as the increment operator except that it decreases the value of the variable by one.
 	\item \keyword{sizeof} is the sizeof operator, that is evaluated at the time of compilation. This is also mentioned in the keywords section.
 	\item \keyword{a <mop> b} where \keyword{<mop> in \{+, -, *, \%, /\}} are the arithmetic binary operators. If the operands are both number types, then the operations are plus, minus, times, modulo, and division respectively. If the left operand is a pointer and the right operand is an integer type, then only plus or minus may be used and the rules for pointer arithmetic are invoked.
@@ -607,7 +607,7 @@ sig >> 2; // 0000000000000000
     If a bit is set in the input, it will not be set in the output and vice versa.
 	\item \keyword{?:} is the ternary / conditional operator.
     You put a boolean condition before the \? and if it evaluates to non-zero the element before the colon is returned otherwise the element after is.
-    \keyword{1 ? a : b === a} and \keyword{0 ? a : b === b}.
+    \keyword{1 ? a : b == a} and \keyword{0 ? a : b == b}.
 	\item \keyword{a, b} is the comma operator.
     \keyword{a} is evaluated and then \keyword{b} is evaluated and \keyword{b} is returned.
     In a sequence of multiple statements delimited by commas, all statements are evaluated from left to right, and the right-most expression is returned.
