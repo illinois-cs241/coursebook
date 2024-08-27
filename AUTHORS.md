@@ -210,3 +210,4 @@ Pradyumna Shome <pradyumna.shome@gmail.com>
 Benjamin West Pollak <benjaminwpollak@gmail.com>
 姜芃越 Pengyue Jiang <pengyue3@illinois.edu>
 Andrew Orals <aorals2@illinois.edu>
+Elijah Mock <emock3@illinois.edu>
