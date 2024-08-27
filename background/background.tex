@@ -64,8 +64,8 @@ A short but non-complete list could be
 
 Interrupts are an important part of system programming.
 An interrupt is internally an electrical signal that is delivered to the processor when something happens -- this is a hardware interrupt \cite{redhat_hardware_int}.
-Then the hardware decides if this is something that it should handle (i.e. handling keyboard or mouse input for older keyboard and mouses) or it should pass to the operating system.
-The operating system then decides if this is something that it should handle (i.e. paging a memory table from disk) or something the application should handle (i.e. a SEGFAULT).
+Then the hardware decides if this is something that it should handle (e.g., handling keyboard or mouse input for older keyboard and mouses) or it should pass to the operating system.
+The operating system then decides if this is something that it should handle (e.g., paging a memory table from disk) or something the application should handle (e.g., a SEGFAULT).
 If the operating system decides that this is something that the process or program should take care of, it sends a \textbf{software fault} and that software fault is then propagated.
 The application then decides if it is an error (SEGFAULT) or not (SIGPIPE for example) and reports to the user.
 Applications can also send signals to the kernel and to the hardware as well.
