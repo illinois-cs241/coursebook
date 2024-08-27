@@ -87,9 +87,9 @@ While the core is waiting for one memory access to complete, it may perform a fe
 The overall result is more instructions executed in a shorter time.
 This potentially means that you can divide the number of cores you need to power smaller devices.
 
-There be dragons here though.
+There be dragons here, though.
 With hyperthreading, you must be wary of optimizations.
-A famous hyperthreading bug that caused programs to crash if at least two processes were scheduled on a physical core, using specific registers, in a tight loop.
+A famous hyperthreading bug caused programs to crash if at least two processes were scheduled on a physical core, using specific registers, in a tight loop.
 The actual problem is better explained through an architecture lens.
 But, the actual application was found through systems programmers working on OCaml's mainline \cite{leroy_2017}.
 
