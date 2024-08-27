@@ -51,7 +51,7 @@ If a particular address is already in the cache when reading or writing, the pro
 If it isn't, the processor requests a chunk of memory from the memory chip and stores it in the cache, kicking out the least recently used page -- this depends on caching policy, but Intel's does use this.
 This is done because the l3 processor cache is roughly three times faster to reach than the memory in terms of time \cite[p. 22]{levinthal2009performance} though exact speeds will vary based on the clock speed and architecture.
 Naturally, this leads to problems because there are two different copies of the same value, in the cited paper this refers to an unshared line.
-This isn't a class about caching, know how this could impact your code.
+This isn't a class about caching, but you should know how this could impact your code.
 A short but non-complete list could be
 
 \begin{enumerate}
