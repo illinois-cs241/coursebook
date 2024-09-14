@@ -114,7 +114,7 @@ Each process gets the following.
 The stack is the place where automatically allocated variables and function call return addresses are stored.
 Every time a new variable is declared, the program moves the stack pointer down to reserve space for the variable.
 This segment of the stack is writable but not executable.
-This behavior is controlled by the no-execute (NX) bit, sometimes called the W\^X (write XOR execute) bit, which helps prevent malicious code, such as \keyword{shellcode} from being run on the stack.
+		This behavior is controlled by the no-execute (NX) bit, sometimes called the W\^{}X (write XOR execute) bit, which helps prevent malicious code, such as \keyword{shellcode} from being run on the stack.
 
 If the stack grows too far -- meaning that it either grows beyond a preset boundary or intersects the heap -- the program will stack overflow error, most likely resulting in a SEGFAULT.
 \textbf{The stack is statically allocated by default; there is only a certain amount of space to which one can write.}
