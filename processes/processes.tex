@@ -628,7 +628,7 @@ Exit statuses or the value stored in the integer pointer for both of the calls a
 
 \subsection{Exit statuses}
 
-To find the return value of \keyword{main()} or value included in \keyword{exit()}, use the \keyword{Wait macros}. Typically, a program will use \keyword{WIFEXITED} and \keyword{WEXITSTATUS}.
+To find the return value of \keyword{main()} or value included in \keyword{exit()} from a child process, use the \keyword{Wait macros}. Typically, a program will use \keyword{WIFEXITED} and \keyword{WEXITSTATUS}.
 See \keyword{wait}/\keyword{waitpid} man page for more information.
 
 \begin{lstlisting}[language=C]
