@@ -444,7 +444,7 @@ Here is a summary of what is relevant:
 \begin{enumerate}
     \item Fork will return a non-negative integer on success.
     \item A child will inherit any open file descriptors of the parent.
-          That means if a parent half of the file and forks, the child will start at that offset.
+          That means if a parent reads half of the file and forks, the child will start at that offset.
           A read on the child's end will shift the parent's offset by the same amount.
           Any other flags are also carried over.
     \item Pending signals are not inherited.
