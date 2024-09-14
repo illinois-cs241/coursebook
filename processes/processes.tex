@@ -813,9 +813,9 @@ The example writes "Captain's Log" to a file then prints everything in /usr/incl
 There's no error checking in the above code (we assume close, open, chdir etc. work as expected).
 
 \begin{enumerate}
-    \item \keyword{open} -- will use the lowest available file descriptor (i.e. 1) ; so standard out(stdout) is now redirected to the log file.
-    \item \keyword{chdir} -- Change the current directory to /usr/include
-    \item \keyword{execl} -- Replace the program image with /bin/ls and call its main() method
+    \item \keyword{open} -- will use the lowest available file descriptor (i.e. 1), so standard out (stdout) is now redirected to the log file.
+    \item \keyword{chdir} -- Change the current directory to /usr/include.
+    \item \keyword{execl} -- Replace the program image with /bin/ls and call its main() method.
     \item \keyword{perror} -- We don't expect to get here - if we did then \keyword{exec} failed.
     \item We need the "return 0;" because compilers complain if we don't have it.
 \end{enumerate}
@@ -823,17 +823,17 @@ There's no error checking in the above code (we assume close, open, chdir etc. w
 \subsection{POSIX Exec Details}
 
 POSIX details all of the semantics that exec needs to cover \cite{exec_2018}.
-Note the following
+Note the following:
 
 \begin{enumerate}
 \item File descriptors are preserved after an exec. That means if a program open a file and doesn't to close it, it remains open in the child.
   This is a problem because usually the child doesn't know about those file descriptors. Nevertheless, they take up a slot in the file descriptor table and could possibly prevent other processes from accessing the file.
   The one exception to this is if the file descriptor has the Close-On-Exec flag set (O\_CLOEXEC) -- we will go over setting flags later.
-\item Various signal semantics. The executed processes preserve the signal mask and the pending signal set but does not preserve the signal handlers since it is a different program.
-\item Environment variables are preserved unless using an environ version of exec
-\item The operating system may open up 0, 1, 2 -- stdin, stdout, stderr, if they are closed after exec, most of the time they leave them closed.
+\item Various signal semantics: the executed processes preserve the signal mask and the pending signal set but do not preserve the signal handlers since it is a different program.
+\item Environment variables are preserved unless using an environ version of exec.
+\item The operating system may open up 0, 1, 2 -- stdin, stdout, stderr, if they are closed after exec; most of the time they leave them closed.
 \item The executed process runs as the same PID and has the same parent and process group as the previous process.
-\item The executed process is run on the same user and group with the same working directory
+\item The executed process is run on the same user and group with the same working directory.
 \end{enumerate}
 
 \subsection{Shortcuts}
@@ -907,7 +907,7 @@ It can proceed and execute another function, or it can also modify the state of 
 
 Environment variables are variables that the system keeps for all processes to use.
 Your system has these set up right now!
-In Bash, some are already defined
+In Bash, some are already defined.
 
 \begin{lstlisting}[language=bash]
 $ echo $HOME
