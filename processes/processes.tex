@@ -745,7 +745,7 @@ void cleanup(int signal) {
 
 \section{exec}
 
-To make the child process execute another program, use one of the \href{http://man7.org/linux/man-pages/man3/exec.3.html}{\keyword{exec}} functions after forking.
+To make the child process execute another program, use one of the \keyword{exec} functions after forking.
 The \keyword{exec} set of functions replaces the process image with that of the specified program.
 This means that any lines of code after the \keyword{exec} call are replaced with those of the executed program.
 Any other work a program wants the child process to do should be done before the \keyword{exec} call.
