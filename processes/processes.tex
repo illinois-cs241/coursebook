@@ -862,7 +862,8 @@ By allowing someone to access a shell version of the environment, the program ca
 
 \begin{lstlisting}[language=C]
 int main(int argc, char**argv) {
-  char *to_exec = asprintf("ls %s", argv[1]);
+  char *to_exec;
+  asprintf(&to_exec, "ls %s", argv[1]);
   system(to_exec);
 }
 \end{lstlisting}
