@@ -20,7 +20,7 @@ There is some terminology that needs to be explained to get someone who has litt
 
 \textbf{Danger Will Robinson} Before we let you go much further, it is important that we talk about ethics.
 Before you skip over this section, know that your career quite literally can be terminated over an unethical decision that you might make.
-The computer fraud and security act is a broad, and arguably terrible law, that casts any non-authorized use of a `protected computer' as a felony.
+The Computer Fraud and Abuse Act (CFAA) is a broad, and arguably terrible law, that casts non-authorized use of a `protected computer' as a crime.
 Since most computers are involved in some interstate/international commerce (the internet) most computers fall under this category.
 It is important to think about your actions and have some ladder of accountability before executing any attack or defense.
 To be more concrete, make sure supervisors in your organization have given you their blessing before trying to execute an attack.
@@ -40,7 +40,7 @@ If not possible, try to go through the engineering steps.
   Get that reasonable estimate checked out with a few engineers so they can highlight things that you may have missed.
   Try to get someone to sign off on the plan.
 \item Execute the plan with caution.
-  If at any point something seems wrong, weigh the risks and execute the plan.
+  If at any point something seems wrong, stop and weigh the risks again before continuing.
 \end{enumerate}
 
 If there isn't a certain ethical guideline for the current application, then create some.
@@ -231,7 +231,7 @@ This could include important information such as passwords, payment information,
 \item Address Space Layout Randomization (ASLR).
   ASLR causes the address spaces of important sections of a process, including the base address of the executable and the positions of the stack, heap and libraries, to start at randomized values, on every run.
   This is so that an attacker with a running executable has to randomly guess where sensitive information could be hidden.
-  For example, an attacker may use this to easily perform a \keyword{return-to-libc} attack.
+  Without ASLR, an attacker could, for example, easily perform a \keyword{return-to-libc} attack, because the address of each library function would be the same on every run.
 \item Stack Protectors.
   Let's say you've programmed a buffer overflow as above.
   In most cases, what happens?
@@ -266,7 +266,7 @@ An exhaustive list of features is at \url{https://www.openbsd.org/innovations.ht
   If you want to ensure that no user data is lost during an update (which is what happened with a Steam system update), then the system could only reveal the program's installation directory.
   If an attacker manages to find an exploit in the executable, it can only compromise the installation directory.
 \item sudo.
-  Sudo is an openBSD project that runs everywhere!
+  Sudo is not an OpenBSD invention, but its long-time maintainer is an OpenBSD developer, and it runs everywhere! (OpenBSD itself now ships a simpler replacement, \keyword{doas}.)
   Before, to run commands as root, one would have to drop to a root shell.
   Sometimes that would also mean giving users scary system capabilities.
   Sudo gives you access to perform commands as root for one-offs without giving a long list of capabilities to all of your users.
@@ -285,7 +285,7 @@ One form is virtual machines.
 These programs emulate \textit{all} forms of motherboard peripherals to create a full machine.
 Another form is containers.
 Virtual machines are good but are often bulky and programs only need a certain level of protection.
-Containers are virtual machines that don't emulate all motherboard peripherals and instead share with the host operating system, adding in additional layers of security.
+Containers are not virtual machines: instead of emulating motherboard peripherals, they share the host operating system's kernel and use kernel features (such as namespaces and control groups) to isolate programs from each other. They are much lighter-weight than virtual machines, but because they share a kernel with the host, they provide a weaker isolation boundary.
 
 Now, you can't have proper virtualization without security.
 One of the reasons to have virtualization is to ensure that the virtualized environment doesn't maliciously leak back into the host environment.

@@ -17,7 +17,7 @@ The reasons for this misnomer will be explained in the filesystems chapter.
 
 \section{The OSI Model}
 
-The Open Source Interconnection 7 layer model (OSI Model) is a sequence of segments that define standards for both infrastructure and protocols for forms of radio communication, in our case the Internet.
+The Open Systems Interconnection 7 layer model (OSI Model) is a sequence of segments that define standards for both infrastructure and protocols for forms of radio communication, in our case the Internet.
 The 7 layer model is as follows:
 
 \begin{enumerate}
@@ -214,7 +214,7 @@ Possible output.
 212.58.244.71
 \end{lstlisting}
 
-One can specify IPv4 or IPv6 with \keyword{AF\_UNSPEC}.
+Passing \keyword{AF\_UNSPEC} (unspecified) accepts either IPv4 or IPv6.
 Just replace the ai\_family attribute in the above code with the following.
 
 \begin{lstlisting}
@@ -239,7 +239,7 @@ The page may load slower.
 \end{figure}
 
 Most services on the Internet today use TCP because it efficiently hides the complexity of the lower, packet-level nature of the Internet.
-TCP or Transport Control Protocol is a connection-based protocol that is built on top of IPv4 and IPv6 and therefore can be described as ``TCP/IP'' or ``TCP over IP''.
+TCP or Transmission Control Protocol is a connection-based protocol that is built on top of IPv4 and IPv6 and therefore can be described as ``TCP/IP'' or ``TCP over IP''.
 TCP creates a \emph{pipe} between two machines and abstracts away the low-level packet-nature of the Internet. Thus, under most conditions, bytes sent over a TCP connection are delivered and uncorrupted.
 High performance and error-prone code won't even assume that!
 
@@ -376,7 +376,7 @@ hints.ai_family = AF_INET6; // Only want IPv6 (use AF_INET for IPv4)
 hints.ai_socktype = SOCK_STREAM; // Only want stream-based connection
 \end{lstlisting}
 
-The other modes for `family` are \keyword{AF\_INET4} and \keyword{AF\_UNSPEC} which mean IPv4 and unspecified respectively.
+The other modes for `family` are \keyword{AF\_INET} and \keyword{AF\_UNSPEC} which mean IPv4 and unspecified respectively.
 This could be useful if you are searching for a service that you aren't entirely sure which IP version.
 Naturally, you get the version in the field back if you specified UNSPEC.
 
@@ -588,9 +588,9 @@ Each has a specific purpose and should be called in roughly the above order.
   Instead, socket returns a network descriptor that can be used with later calls to bind, listen and accept.
 
   As one gotcha, these sockets must be declared passive.
-  Passive server sockets wait for another host to connect.
+  Passive server sockets do not send or receive data themselves.
   Instead, they wait for incoming connections.
-  Additionally, server sockets remain open when the peer disconnects.
+  Additionally, a passive server socket is not used to talk to any particular client, so it remains open when a peer disconnects.
   Instead, the client communicates with a separate active socket on the server that is specific to that connection.
 
   Since a TCP connection is defined by the sender address and port along with a receiver address and port, for a particular server port there can be one passive server socket but multiple active sockets.
@@ -600,23 +600,23 @@ Each has a specific purpose and should be called in roughly the above order.
   \item \keyword{int bind(int sockfd, const struct sockaddr *addr, socklen\_t addrlen);}
 
   The \keyword{bind} call associates an abstract socket with an actual network interface and port.
-  It is possible to call bind on a TCP client.
+  It is possible, though uncommon, to call bind on a TCP client; normally the operating system picks the client's port automatically.
   The port information used by bind can be set manually (many older IPv4-only C code examples do this), or be created using \keyword{getaddrinfo}.
 
-  By default, a port is released after some time when the server socket is closed.
-  Instead, the port enters a ``TIMED-WAIT'' state.
+  By default, a port is not released immediately when the server socket is closed.
+  Instead, the port enters a ``TIME-WAIT'' state.
   This can lead to significant confusion during development because the timeout can make valid networking code appear to fail.
 
-  To be able to immediately reuse a port, specify \keyword{SO\_REUSEPORT} before binding to the port.
+  To be able to immediately reuse a port, specify \keyword{SO\_REUSEADDR} before binding to the port.
 
   \begin{lstlisting}[language=C]
 int optval = 1;
-setsockopt(sfd, SOL_SOCKET, SO_REUSEPORT, &optval, sizeof(optval));
+setsockopt(sfd, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof(optval));
 
 bind(...);
   \end{lstlisting}
 
-  Here's \href{http://stackoverflow.com/questions/14388706/socket-options-so-reuseaddr-and-so-reuseport-how-do-they-differ-do-they-mean-t}{an extended stackoverflow introductory discussion of \keyword{SO\_REUSEPORT}}.
+  Here's \href{http://stackoverflow.com/questions/14388706/socket-options-so-reuseaddr-and-so-reuseport-how-do-they-differ-do-they-mean-t}{an extended stackoverflow introductory discussion of \keyword{SO\_REUSEADDR} and \keyword{SO\_REUSEPORT}}.
 
   \item \keyword{int listen(int sockfd, int backlog);}
 
@@ -858,7 +858,7 @@ Note that we pass \keyword{SOCK\_DGRAM} instead of \keyword{SOCK\_STREAM}.
 \begin{lstlisting}[language=C]
 int sockfd = socket(AF_INET, SOCK_DGRAM, 0);
 int optval = 1;
-setsockopt(sockfd, SOL_SOCKET, SO_REUSEPORT, &optval, sizeof(optval));
+setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof(optval));
 \end{lstlisting}
 
 Then, we can copy over our \keyword{hostent} struct into the \keyword{sockaddr\_in} struct.
@@ -1004,7 +1004,7 @@ Common layer 7 protocols are the following:
     Transfers a file from one computer to another.
   \item TFTP - Trivial File Transfer Protocol.
     Same as above but using UDP.
-  \item DNS - Domain Name Service.
+  \item DNS - Domain Name System.
     Translates hostnames to IP addresses.
   \item SMTP - Simple Mail Transfer Protocol.
     Allows one to send plain text emails to an email server.
@@ -1019,7 +1019,7 @@ Common layer 7 protocols are the following:
 \subsection{What's my name?}
 
 Remember when we were talking before about converting a website to an IP address?
-A system called ``DNS'' (Domain Name Service) is used.
+A system called ``DNS'' (Domain Name System) is used.
 If the IP address is missing from a machine's cache then it sends a UDP packet to a local DNS server.
 This server may query other upstream DNS servers.
 
@@ -1356,7 +1356,7 @@ Even a simple integer has several common choices.
 
 \begin{enumerate}
 \item Signed or unsigned?
-\item ASCII, Unicode Text Format 8, some other encoding?
+\item ASCII, Unicode Transformation Format 8 (UTF-8), some other encoding?
 \item Fixed number of bytes or variable depending on the magnitude.
 \item Little or Big endian binary format if using binary?
 \end{enumerate}

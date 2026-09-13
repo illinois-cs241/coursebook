@@ -115,19 +115,31 @@ To print to other file streams, use \keyword{fprintf(\ \_file\_\ ,\ "Hello\ \%s,
 There is a printf equivalent that works with file descriptors, called dprintf.
 Just use \keyword{dprintf(int\ fd,\ char*\ format\_string,\ ...);}.
 
-To print data into a C string, use \keyword{sprintf} or better \keyword{snprintf}.
-\keyword{snprintf} returns the number of characters written excluding the terminating byte.
-We would use \keyword{sprintf} if the size of the printed string is less than the provided buffer -- think about printing an integer, it will never be more than 11 characters with the NUL byte.
-If printf is dealing with variadic input, it is safer to use the former function as shown in the following snippet.
+To print data into a C string, use \keyword{sprintf}, or better \keyword{snprintf}, or best \keyword{asprintf}.
+\keyword{sprintf} does no bounds checking, so only use it when the output is guaranteed to fit in the buffer -- think about printing a 32-bit integer, it will never be more than 12 bytes including the sign and the NUL byte.
+\keyword{snprintf} is told the size of the buffer and never writes past it.
+It returns the number of characters that would have been written, excluding the terminating byte, so a return value greater than or equal to the buffer size means the output was truncated.
+\keyword{asprintf} is best: it allocates a buffer on the heap that is large enough for the entire result, so the output can never be truncated or overflow, at the cost of a heap allocation that the caller must later \keyword{free}.
 
 \begin{lstlisting}[language=C]
-// Fixed
+// Fixed length: sprintf is OK because the output always fits
 char int_string[20];
 sprintf(int_string, "%d", integer);
 
-// Variable length
+// Variable length: snprintf never overflows, but may truncate
 char result[200];
 int len = snprintf(result, sizeof(result), "%s:%d", name, score);
+if (len >= (int) sizeof(result)) {
+  // Output was truncated
+}
+
+// Variable length: asprintf allocates exactly enough memory
+char *message = NULL;
+if (asprintf(&message, "%s:%d", name, score) == -1) {
+  // Allocation failed
+}
+// ...
+free(message);
 \end{lstlisting}
 
 \subsection{stdin oriented functions}

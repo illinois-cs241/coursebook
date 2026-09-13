@@ -518,7 +518,7 @@ mutex_lock(&s);
 mutex_unlock(&s);
 \end{lstlisting}
 
-Also, binary semaphores are different than mutexes because one thread can unlock a mutex from a different thread.
+Also, binary semaphores are different than mutexes because a mutex must be unlocked by the thread that locked it, whereas any thread can call \keyword{sem\_post} on a semaphore, even one it never waited on.
 
 \subsubsection{Signal Safety}
 
@@ -843,7 +843,7 @@ Let's discuss it in the next section.
 
 Let's use a counting semaphore to keep track of how many spaces remain and another semaphore to track the number of items in the stack.
 We will call these two semaphores \keyword{sremain} and \keyword{sitems}.
-Remember \keyword{sem\_wait} will wait if the semaphore's count has been decremented to zero (by another thread calling sem\_post).
+Remember \keyword{sem\_wait} will wait if the semaphore's count has been decremented to zero (by other threads calling \keyword{sem\_wait}).
 
 \begin{lstlisting}[language=C]
 // Sketch #1
@@ -1279,12 +1279,12 @@ void sem_wait(sem_t *s) {
 \end{lstlisting}
 
 That is a complete implementation of a counting semaphore.
-Notice that we are calling \keyword{sem\_post} every single time.
+Notice that \keyword{sem\_post} calls \keyword{pthread\_cond\_signal} every single time.
 In practice, this means \keyword{sem\_post} would unnecessarily call \keyword{pthread\_cond\_signal} even if there are no waiting threads.
 A more efficient implementation would only call \keyword{pthread\_cond\_signal} when necessary i.e.
 
 \begin{lstlisting}[language=C]
-/* Did we increment from zero to one- time to signal a thread sleeping inside sem_post */
+/* Did we increment from zero to one- time to signal a thread sleeping inside sem_wait */
 if (s->count == 1) /* Wake up one waiting thread!*/
 pthread_cond_signal(&s->cv);
 \end{lstlisting}

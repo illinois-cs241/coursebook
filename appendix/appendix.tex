@@ -134,7 +134,7 @@ $ ((head output.txt) | wc) | head -n 1 # Same as above
 $ ./program | tee intermediate.txt | wc
 \end{lstlisting}
 
-The \keyword{\&\&} and \keyword{||} operator are operators that execute a command sequentially. \keyword{\&\&} only executes a command if the previous command succeeds, and \keyword{||} always executes the next command.
+The \keyword{\&\&} and \keyword{||} operators execute commands sequentially. \keyword{\&\&} only executes the next command if the previous command succeeds, and \keyword{||} only executes the next command if the previous command fails.
 
 \begin{lstlisting}[language=bash]
 $ false && echo "Hello!"

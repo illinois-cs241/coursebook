@@ -596,7 +596,7 @@ There are usually three sets of permissions for any file.
 Permissions for the \emph{user}, the \emph{group} and \emph{other} (every user falling outside the first two categories).
 For each of the three categories, we need to keep track of whether the user is allowed to read the file, write to the file, and execute the file.
 Since there are three categories and three permissions, permissions are usually represented as a 3-digit octal number.
-For each digit, the least significant byte corresponds to read privileges, the middle one to write privileges and the final byte to execute privileges.
+Each octal digit is three bits: the most significant bit (4) corresponds to read privileges, the middle bit (2) to write privileges and the least significant bit (1) to execute privileges.
 They are always presented as \emph{User}, \emph{Group}, \emph{Other} (\emph{UGO}).
 Below are some common examples.
 Here are the bit conventions:
@@ -642,8 +642,8 @@ They can be assigned capabilities - a way of describing the level of control a u
 For example, a group you may have run into is the \keyword{sudoers} group, a set of trusted users who are allowed to use the command \keyword{sudo} to temporarily gain higher privileges.
 We'll talk more about how \keyword{sudo} works in this chapter.
 Every file, upon creation, has an owner, the creator of the file.
-This owner's user ID (\keyword{uid}) can be found inside the \keyword{st\_mode} file of a \keyword{struct stat} with a call to \keyword{stat}.
-Similarly, the group ID (\keyword{gid}) is set as well.
+This owner's user ID (\keyword{uid}) can be found inside the \keyword{st\_uid} field of a \keyword{struct stat} with a call to \keyword{stat}.
+Similarly, the group ID (\keyword{gid}) is set as well, and stored in \keyword{st\_gid}.
 
 Every process can determine its \keyword{uid} and \keyword{gid} with \keyword{getuid} and \keyword{getgid}.
 When a process tries to open a file with a specific mode, its \keyword{uid} and \keyword{gid} are compared with the \keyword{uid} and \keyword{gid} of the file.

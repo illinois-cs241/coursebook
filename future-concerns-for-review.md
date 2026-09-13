@@ -23,34 +23,6 @@ file is the leftovers.
 
 ## Verified by hand
 
-### The PDF build cannot fail, so LaTeX errors accumulate silently
-
-`Makefile:45,51` invoke latexmk as:
-
-```
--@latexmk -interaction=nonstopmode -quiet -pdflatex=lualatex -f -pdf ... 2>&1 >/dev/null
-```
-
-Four separate things suppress failure: `-interaction=nonstopmode` does not
-stop on errors, `-f` forces latexmk past them, the leading `-` makes GNU make
-ignore the exit code, and `-quiet` plus the redirect hide the output. A
-chapter can therefore contain real LaTeX errors, produce a damaged PDF, and
-still show a green CI run.
-
-Two such errors are live right now (both confirmed present in body text, not
-inside listings):
-
-- `processes/processes.tex:618,624` — `\begin{enunmerate}` / `\end{enunmerate}`.
-  The environment `enunmerate` does not exist; this should be `enumerate`.
-- `networking/networking.tex:448` — `\keyowrd{read}`, a typo for `\keyword`.
-  Confirmed consequence: on page 254 of the published PDF the sentence reads
-  "check the return value of read and write" with `read` in body font instead
-  of code font, because LaTeX skipped the undefined macro.
-
-Both are fixed in the accompanying commit. The build behaviour is not, and is
-the more important issue: consider dropping `-f` and the leading `-` so that
-a broken chapter fails the build instead of shipping quietly.
-
 ### Two source files are orphaned — written, but never built
 
 - `introc/topics.tex` is never `\input`, and its content is duplicated
@@ -61,26 +33,6 @@ a broken chapter fails the build instead of shipping quietly.
 
 Decide whether each should be wired in or deleted; leaving unreferenced
 sources invites edits that silently do nothing.
-
-### The POSIX signals table is rendering broken in the published PDF
-
-`signals/signals.tex:70` declares `\begin{tabular}{|c|c|c|}` — three columns —
-but every row supplies four cells. That is a fatal "Extra alignment tab"
-error, swallowed by the build suppression described above.
-
-Confirmed consequence: on **page 307 of the published PDF** the fourth column
-breaks onto its own line for every row:
-
-```
-Name Portable Number Default Action
-Usual Use
-SIGINT 2 T erminate (Can be caught)
-Stop a process nicely
-```
-
-Fixed in the accompanying commit (declared four columns). Listed here because
-it is the third confirmed instance of a real LaTeX error surviving into the
-published book, which is the strongest argument for tightening the build.
 
 ### `honors/containers.tex` has three empty subsections
 
@@ -133,12 +85,6 @@ $ git clone https://github.com/illinois-cs-coursework/fa23_cs341_<netid>
 ```
 
 Hardcodes the FA23 semester prefix. For FA26 this should be `fa26_cs341_<netid>` (or be written generically). Flagged as requested; needs a human to confirm the semester naming scheme actually in use.
-
-### Wrong macro named for disabling assertions — background/background.tex:304
-
-> "The \keyword{DEBUG} macro will disable all assertions, so don't forget to set that once you finish debugging"
-
-The standard C macro that disables `assert()` is `NDEBUG`, not `DEBUG`. This looks like a genuine technical error (and elsewhere in the chapter, line 770, `DEBUG` is used to *enable* logging — the opposite sense). A human should confirm and correct.
 
 ### "Hyperthreading is a new technology" — background/background.tex:82
 
@@ -275,16 +221,9 @@ The relative clause is broken; needs rewriting by someone who knows the intended
 "The other use of \keyword{void} is when you are defining an \keyword{lvalue}." and "it can be promoted to any time to any other type."
 "any time" appears to be a typo for "any type", but the whole sentence (void* and lvalues) is technically confused, so I did not guess. Also "Pointer arithmetic with this pointer is undefined behavior" contradicts pointers.tex:147-148 which says gcc/clang permit it as a char*.
 
-### introc/language_facilities.tex:565 — increment operator example looks wrong
-"\keyword{a = 0; ++a == 1} and \keyword{a = 1; a++ == 0}."
-The second should presumably be `a = 0; a++ == 0` (or `a = 1; a++ == 1`). As written the postfix example is false.
-
 ### introc/common_c_functions.tex:12 — broken sentence
 "know that most functions in C handle errors return oriented."
 Probably "handle errors in a return-oriented way". Needs an author's wording.
-
-### introc/common_c_functions.tex:118-121 — sprintf/snprintf advice inverted
-"If printf is dealing with variadic input, it is safer to use the former function..." The "former" of "\keyword{sprintf} or better \keyword{snprintf}" is `sprintf`, but the safe one — and the one shown under "// Variable length" in the listing — is `snprintf`. Reads as a factual error.
 
 ### introc/common_c_functions.tex:198-199 — "Instead of" appears to be backwards
 "Also naturally like \keyword{printf}, \keyword{scanf} functions require valid pointers. Instead of pointing to valid memory, they need to also be writable."
@@ -352,20 +291,6 @@ The "Topics" itemize in introc.tex:25-73 is byte-for-byte the same list as intro
 ---
 
 ## processes
-
-### processes/processes.tex:618,624 — `\begin{enunmerate}` / `\end{enunmerate}` is not a real environment
-The nested option list under "The last parameter to waitpid is an option parameter." is wrapped in
-`\begin{enunmerate}` ... `\end{enunmerate}` (misspelled `enumerate`). This is an undefined LaTeX
-environment and will either fail to compile or be silently swallowed by a custom fallback. I did not
-touch it because it is a LaTeX command name rather than prose, and because whoever owns the build
-should confirm nothing else defines it.
-
-### processes/processes.tex:657 — likely inverted technical claim about exit-status macros
-"For example, a process' exit status won't be defined if the process isn't signaled." The exit status
-(`WEXITSTATUS`) is meaningful when the process *exited* (`WIFEXITED`), not when it was signaled; the
-signal number (`WTERMSIG`/`WSTOPSIG`) is what requires the signaled/stopped precondition. The next
-sentence talks about `WIFSTOPPED`/`WSTOPSIG`, so this looks like a mixed-up example. Needs an author
-decision, not a guess.
 
 ### processes/processes.tex:483,494 — example code calls `fork` without parentheses
 Both fork-and-FILEs snippets use `if(!fork) {`, which takes the address of the function (always
@@ -652,13 +577,9 @@ What are a few things that threads share in a process? What are a few things tha
 
 `synchronization/synchronization.tex:404-405` — "How does this guarantee mutual exclusion? When working with atomics we are unsure! But in this simple example, we can because the thread that can successfully expect the lock to be UNLOCKED (0) and swap it…". The sentence has no clear main clause ("we can" what?) and "successfully expect" is odd. Technical passage, left alone.
 
-### Semaphore wait/post description
-
-`synchronization/synchronization.tex:852` — "Remember \keyword{sem\_wait} will wait if the semaphore's count has been decremented to zero (by another thread calling sem\_post)." `sem_post` increments; a count reaches zero via `sem_wait`. Probably should read "by other threads calling sem\_wait".
-
 ### Semaphore-vs-mutex passage looks logically inverted
 
-`synchronization/synchronization.tex:472` and `:527` — "That is usually why a mutex is used to implement a semaphore and vice versa." reads as a non-sequitur after the warning about breaking the mutex abstraction. And line 527, "binary semaphores are different than mutexes because one thread can unlock a mutex from a different thread", states the opposite of the book's own earlier rule ("The thread that locks a mutex is the only thread that can unlock it"). Presumably it should say a thread can `sem_post` a semaphore it never waited on. Factual — not fixed.
+`synchronization/synchronization.tex:472` — "That is usually why a mutex is used to implement a semaphore and vice versa." reads as a non-sequitur after the warning about breaking the mutex abstraction. (The related line 527 claim about unlocking a mutex from another thread has been fixed.)
 
 ### Lock-inversion example explanation contradicts itself
 
@@ -683,10 +604,6 @@ What are a few things that threads share in a process? What are a few things tha
 ### Wrong type name in the semaphore struct
 
 `synchronization/synchronization.tex:1238` — `pthread_condition_t cv;` should be `pthread_cond_t`. Inside a listing, so not changed, but it will not compile as shown.
-
-### "Notice that we are calling sem_post every single time"
-
-`synchronization/synchronization.tex:1292` and `:1297` — the surrounding paragraph is about calling `pthread_cond_signal` unconditionally, so "calling \keyword{sem\_post} every single time" looks like the wrong function name. Also, the code comment in the optimisation snippet says "a thread sleeping inside sem\_post" where it means `sem_wait`.
 
 ### "Three actions" list only has two ordinals
 
@@ -850,16 +767,6 @@ All figures (lines 72-76, 95-99, 104-108, 112-116, 143-147, 161-165, 169-173, 50
 
 ## scheduling
 
-### FCFS "Disadvantages" list duplicates the "Advantages" list verbatim
-`scheduling/scheduling.tex:272-277`
-
-The Disadvantages block reads:
-
-> \item Simple algorithm and implementation
-> \item Context switches infrequent when there are long-running processes
-
-which is a word-for-word copy of the Advantages block at lines 266-270 (minus the third bullet). These are clearly not disadvantages of FCFS; the real ones (convoy effect, poor average response time for short jobs arriving behind long ones, no preemption) appear to have been lost. Needs an author to write the intended content — not a language fix. There is also a stray blank line before `\end{itemize}` at line 276.
-
 ### "Unless otherwise stated" is a dangling fragment
 `scheduling/scheduling.tex:134`
 
@@ -910,10 +817,6 @@ The point being made is about a process of *higher* priority than the running on
 
 ## networking
 
-### OSI acronym expanded incorrectly — networking/networking.tex:19
-
-"The Open Source Interconnection 7 layer model (OSI Model)". OSI stands for **Open Systems Interconnection**. This is a factual error in a definition students will memorize, but it is a technical claim so I did not change it.
-
 ### Outdated IPv4/IPv6 adoption statistics — networking/networking.tex:64, 73
 
 "Even as of 2018, IPv4 still dominates Internet traffic, but Google reports that 24 countries now supply 15\% of their traffic through IPv6" and "However, little web traffic is IPv6 based on comparison as of 2018". These 2018 figures are badly stale (Google's IPv6 adoption is far higher now). Needs a human to refresh the numbers and the `\cite{internet_society_2018}` reference.
@@ -930,10 +833,6 @@ Loose claim; IANA exhausted the free pool in 2011 and RIRs at various later date
 
 "We write IPv6 addresses in a sequence of eight, four hexadecimal delimiters like \"1F45:0000:...\"". "eight, four hexadecimal delimiters" is not meaningful — presumably "eight groups of four hexadecimal digits". Also "Since that can get unruly, we can omit the zeros \"1F45::\"" understates the `::`-may-appear-once rule. Technical wording, so left for a human.
 
-### TCP expanded incorrectly — networking/networking.tex:242
-
-"TCP or Transport Control Protocol". TCP is the **Transmission** Control Protocol. Factual naming error; not fixed per the technical-claims rule.
-
 ### "Ports" bullet says socket where it means port — networking/networking.tex:252-253
 
 "TCP gives the programmer a set of virtual sockets. Clients specify the socket that you want the packet sent to". The concept being introduced is the *port*; calling it a socket here conflicts with the socket API introduced later and will confuse students.
@@ -942,14 +841,6 @@ Loose claim; IANA exhausted the free pool in 2011 and RIRs at various later date
 
 Unclear as written — presumably means high-performance / error-tolerant code should not assume delivery. As phrased ("error-prone code") it reads as praising buggy code. Needs an author decision.
 
-### AF_INET4 does not exist — networking/networking.tex:379
-
-"The other modes for `family` are \keyword{AF\_INET4} and \keyword{AF\_UNSPEC}". The correct constant is `AF_INET` (used correctly elsewhere in the chapter). Identifier, so not touched.
-
-### AF_UNSPEC described backwards — networking/networking.tex:214
-
-"One can specify IPv4 or IPv6 with \keyword{AF\_UNSPEC}." `AF_UNSPEC` means *unspecified* — it does not specify a version, it accepts either. Reads as a technical error.
-
 ### Garbled HTTP body description — networking/networking.tex:557
 
 "The actual body of the request delimited by two new lines. The body of the request is either if the size is specified or until the receiver closes their connection." The second sentence is missing its predicate ("either read until the specified length..."). Needs an author rewrite.
@@ -957,21 +848,6 @@ Unclear as written — presumably means high-performance / error-tolerant code s
 ### HTTP version/RFC currency — networking/networking.tex:574
 
 "RFC 7231 has the most current specifications on the most common HTTP method today". RFC 7231 was obsoleted by RFC 9110 (HTTP Semantics, 2022), and the chapter's examples are all HTTP/1.0 while HTTP/1.1 and HTTP/2/3 dominate. A human should decide how much to update. Also line 553, "the HTTP/1.0 method" should probably be "protocol"/"version".
-
-### Passive-socket paragraphs appear to have lost their negations — networking/networking.tex:589-593
-
-Three consecutive "Instead" sentences with no preceding negative:
-- "Passive server sockets wait for another host to connect. Instead, they wait for incoming connections."
-- "Additionally, server sockets remain open when the peer disconnects. Instead, the client communicates with a separate active socket..."
-These read as self-contradictory; the first clause of each pair was probably meant to be negative ("do not send/receive data", "are not used for data transfer"). Text repair needs the author.
-
-### Same missing-negation problem for bind / TIME-WAIT — networking/networking.tex:602, 606-607
-
-"It is possible to call bind on a TCP client." (probably "possible but not usual/necessary") and "By default, a port is released after some time when the server socket is closed. Instead, the port enters a ``TIMED-WAIT'' state." — the "Instead" contradicts the sentence before it; presumably "is *not* released immediately". Also the state is conventionally written `TIME-WAIT`, not `TIMED-WAIT`.
-
-### SO_REUSEPORT vs SO_REUSEADDR — networking/networking.tex:611
-
-"To be able to immediately reuse a port, specify \keyword{SO\_REUSEPORT} before binding". The TIME-WAIT problem being described is normally solved with `SO_REUSEADDR` (which the chapter's own example at line ~527 uses); `SO_REUSEPORT` has different semantics (load-balancing multiple listeners). Potentially wrong advice — needs a human.
 
 ### Level-triggered epoll described in terms of the wrong call — networking/networking.tex:1286
 
@@ -1001,14 +877,6 @@ You send *packets*, not sockets. Likely "to send data over UDP sockets". I could
 
 `int getHighScore(char* game)` but the body does `asprintf(&buffer,"getHiscore(%s)!", name);` — `name` is undeclared (should be `game`), and the comment says `'getHiscore'` while the function is `getHighScore`. Also `read(fd, buffer, sizeof(buffer))` uses `sizeof` on a `char*`. In a code listing, so possibly deliberate — but if not, students will copy it.
 
-### "Unicode Text Format 8" — networking/networking.tex:1348
-
-UTF-8 is "Unicode **Transformation** Format". Small factual naming error inside a technical list.
-
-### DNS expanded as "Domain Name Service" — networking/networking.tex:1007, 1021
-
-Conventionally "Domain Name System". Also line 1032 writes "DNSSec"; the standard capitalization is DNSSEC, and "recently issued a request" is undated and likely stale.
-
 ### Comma splice left as-is — networking/networking.tex:1319
 
 "To marshal a linked list, it is unnecessary to send the link pointers, stream the values." Reads as a splice; the fix ("instead, stream the values") is a wording choice so I left it.
@@ -1025,23 +893,11 @@ Both `\includegraphics` figures (`ipv6_datagram.eps`, `tcp_header.eps`) carry on
 
 ## filesystems
 
-### Permission bits described as "bytes", and read/execute swapped — filesystems.tex:599
-
-> "For each digit, the least significant byte corresponds to read privileges, the middle one to write privileges and the final byte to execute privileges."
-
-Two problems, both technical so left untouched: (a) these are *bits*, not bytes; (b) the ordering is backwards — in an octal digit the least significant bit is execute (1) and the most significant is read (4). As written it contradicts the "read(4), write(2), execute(1)" line at filesystems.tex:688 and the `755`/`644` table. Needs an author to rewrite.
-
 ### Garbled enumerate item in the chmod 755 example — filesystems.tex:693
 
 > "\item r + w + x = digit * user has 4+2+1, full permission"
 
 The "= digit \*" fragment looks like a mangled sub-bullet or a lost line break; the item also mixes the general rule and the user-specific case. The following two items ("group has...", "all users have...") are fine. Needs an author to decide the intended wording.
-
-### uid said to live in `st_mode` — filesystems.tex:645
-
-> "This owner's user ID (\keyword{uid}) can be found inside the \keyword{st\_mode} file of a \keyword{struct stat}"
-
-The uid is in `st_uid`, not `st_mode`, and "file" should be "field". Both are technical/identifier changes, so not fixed here.
 
 ### `readdir` thread-safety advice appears inverted — filesystems.tex:370-371
 
@@ -1123,9 +979,6 @@ Two sentence fragments in a row ("If we pretend..." with no main clause, and "Me
 
 ## signals
 
-### signals.tex:66-81 — table has four column headers but only three declared columns
-`\begin{tabular}{|c|c|c|}` is followed by `Name & Portable Number & Default Action & Usual Use \\ \hline` and four-cell data rows. This is a LaTeX error (extra alignment tab) and will either fail to compile or render wrong. Also, lines 66 and 81 are bare `\\` in vertical mode outside any paragraph, and the `table` float is nested inside `center`. Fixing the column count is a structural/authorial decision, so left alone.
-
 ### signals.tex:219 — `\keyword(...)` uses parentheses instead of braces
 `\item We execute \keyword(func("Hello"))` — the macro argument delimiters are wrong (compare line 222, `\keyword{func("World")}`). Needs a human to confirm intended markup rather than a blind edit. Note also that lines 220 and 223 use bare `strcmp(...)` in prose without `\keyword{}`, inconsistent with the surrounding text.
 
@@ -1166,18 +1019,6 @@ Possessive of a singular noun ending in s-sound written as `process'`; elsewhere
 
 ## security
 
-### Wrong statute name — security/security.tex:23
-
-> "The computer fraud and security act is a broad, and arguably terrible law..."
-
-The US statute is the **Computer Fraud and Abuse Act** (CFAA), not the "computer fraud and security act". Also uncapitalized. I did not rename it because it is a factual/legal claim; a human should confirm the intended statute (and note the law was narrowed by *Van Buren v. United States*, 2021, which post-dates this text's framing of "any non-authorized use ... as a felony").
-
-### Ethics step 4 contradicts itself — security/security.tex:43
-
-> "Execute the plan with caution. If at any point something seems wrong, weigh the risks and execute the plan."
-
-The advice reads as "if something seems wrong, do it anyway". Almost certainly the intent was "weigh the risks and **halt**" / "re-evaluate before continuing". Needs an author decision on the intended verb.
-
 ### Step 2 refers to an antecedent that doesn't exist — security/security.tex:37
 
 > "First, you should determine if your use is intended or unintended or somewhere in the middle -- get a decision from them."
@@ -1201,27 +1042,9 @@ Several mismatches a student would trip on:
 
 This is presented as illustrative pseudo-code, but the index arithmetic contradicts the prose in a way that will confuse readers. Needs an author rewrite, not a copy-edit.
 
-### ASLR example appears backwards — security/security.tex:231-234
-
-> "This is so that an attacker with a running executable has to randomly guess where sensitive information could be hidden. For example, an attacker may use this to easily perform a `return-to-libc` attack."
-
-ASLR *hinders* return-to-libc; as written it reads as though ASLR enables it. Likely the sentence meant "without this, an attacker may ...". Technical claim, so not fixed.
-
 ### "each user has a certain set of permissions that they can do" — security/security.tex:227
 
 Grammatically mismatched ("permissions ... do") and conflates capabilities with permissions. Suggest "a certain set of capabilities" / "set of actions they are permitted to perform", but the wording sits inside a technical definition, so leaving to a human.
-
-### sudo attributed to OpenBSD — security/security.tex:268-272
-
-> "Sudo is an openBSD project that runs everywhere!"
-
-sudo originated at SUNY/CU-Boulder and is maintained by Todd Miller (who is an OpenBSD developer), but it is not an OpenBSD project; OpenBSD's own tool is `doas`, and OpenBSD removed sudo from base in 2015. Attribution needs a human. ("openBSD" is also miscapitalized here vs "OpenBSD" elsewhere.)
-
-### Containers described as "virtual machines" — security/security.tex:288
-
-> "Containers are virtual machines that don't emulate all motherboard peripherals and instead share with the host operating system, adding in additional layers of security."
-
-Containers are not VMs (they share the host kernel), and containers are generally considered a *weaker* isolation boundary than VMs, not "additional layers of security". Technical claim — flagged, not changed.
 
 ### DNS trust sentence is confusing — security/security.tex:324
 
@@ -1318,12 +1141,6 @@ Five commented lines ("How to add a new system call?", "What is a kernel module?
 ---
 
 ## appendix
-
-### appendix/appendix.tex:137 — `||` described incorrectly
-
-> "\keyword{&&} only executes a command if the previous command succeeds, and \keyword{||} always executes the next command."
-
-`||` runs the next command only if the previous one *fails*, not "always". The example immediately below (`false || echo "Hello!"`) is consistent with the correct semantics, so the prose contradicts the example. Also "The \keyword{&&} and \keyword{||} operator are operators that execute a command sequentially" is doubly awkward. Needs an author rewrite (technical claim).
 
 ### appendix/appendix.tex:358 — garbled sentence in the Fork-FILE explanation
 
@@ -1438,15 +1255,6 @@ Not a grammatical sentence; probably intended "kqueue is descriptor-agnostic in 
 ---
 
 ## post_mortems
-
-### "Ghandi" misspelled throughout (section title + prose)
-`post_mortems/post_mortems.tex:162,166,168,170` — The section is titled `\section{Civilization and Ghandi}` and the prose repeats "Ghandi" three times. The correct spelling is **Gandhi** (the linked URL itself says `why-gandhi-is-always-a-warmongering-jerk-in-civilization`). I did not fix it because changing a `\section{}` title alters the ToC entry and any generated HTML anchor, and I was told not to touch names. A human should decide whether to rename the section (and fix all four occurrences together) — a half-fix would leave the chapter inconsistent.
-
-### The "Gandhi nuclear aggression" story is a widely debunked myth
-`post_mortems/post_mortems.tex:168-171` — "In the original, the game kept aggressiveness as an unsigned integer. During the game, the integer could be decremented and then the problem ensued because Ghandi was already at zero. This caused him to become the most aggressive character in the game." Sid Meier has stated in his memoir (*Sid Meier's Memoir!*, 2020) that this underflow bug never existed in *Civilization I*; the story is an internet legend that post-dates the game by ~20 years. Since this is presented to students as a real post-mortem with a concrete "lessons learned", a human should decide whether to remove it, or keep it and explicitly label it as apocryphal/illustrative.
-
-### `$0` is described as "the first parameter passed into a script"
-`post_mortems/post_mortems.tex:190` — "What happens if \$0 or the first parameter passed into a script doesn't exist?" In shell, `$0` is the *name/path of the script itself*, not the first parameter (`$1`). This is a technical inaccuracy in a C/shell course, and it is right next to a code listing I must not edit, so it needs a human. Also worth checking against the actual Steam bug, which hinged on `$STEAMROOT` being empty, not on `$0`.
 
 ### AT&T 1990: "operable when they weren't" may be backwards
 `post_mortems/post_mortems.tex:215` — "A series of network delays that caused some telephone switches across the country to think that other switches were operable when they weren't." The usual account of the January 1990 AT&T collapse is that a switch went down for maintenance, and the *recovery* message it sent when coming back up crashed its neighbours via a misplaced `break` in C code — i.e. switches wrongly concluded peers were *inoperable*/failing. Either wording direction is a factual claim about a real incident, so I left it. Also note this sentence is a fragment ("A series of network delays that caused...") with no main verb.
