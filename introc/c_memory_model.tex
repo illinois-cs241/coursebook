@@ -82,7 +82,7 @@ person->length = length;
 \begin{figure}[H]
 \centering
 \includegraphics[width=.7\textwidth,alt={The same 11 byte boxes of *person after the length is assigned: the first 4 boxes hold 0, 0, 0 and 6, the big-endian bytes of the length 6, and the remaining 7 boxes are still empty.}]{introc/drawings/memory_model_length.eps}
-\caption{Struct pointing to 11 boxes, 4 filled with 0006, 7 junk}
+\caption{Struct pointing to 11 boxes, 4 filled with 0006, 7 empty}
 \end{figure}
 
 Now, we can write a string to the end of our struct with the following call.
