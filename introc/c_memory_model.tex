@@ -208,8 +208,11 @@ printf("%p : %s\n", ptr, ptr);
 strcpy(ptr, "World"); // OK because now ptr is pointing to mutable memory (the array)
 \end{lstlisting}
 
-Unlike pointers, that hold addresses to variables on the heap, or stack, char arrays (string literals) point to read-only memory located in the data section of the program. This means that pointers are more flexible than arrays, even though the name of an array is a pointer to its starting address.
+Here \keyword{ptr} initially points to a string literal, which lives in read-only memory, so it cannot be modified.
+\keyword{ary}, by contrast, is not a pointer at all: it is an array holding its own writable copy of the characters (on the stack, or in static memory if declared globally).
+In most expressions the array's name is converted to a pointer to its first element, which is why \keyword{ary} can be passed to \keyword{printf} or \keyword{strcpy}, but the array itself cannot be reassigned.
+Pointers are more flexible because they can be pointed at different memory, but whether that memory is writable depends on what they point to.
 
-In a more common case, pointers will point to heap memory in which case the memory referred to by the pointer \textbf{can} be modified.
+Commonly, pointers point to heap memory (from \keyword{malloc}), which \textbf{can} be modified.
 
 
