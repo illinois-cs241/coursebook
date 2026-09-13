@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Regenerate: docker run --rm -v "$PWD":/book -w /book <image with inkscape 1.x> sh -c 'inkscape introc/drawings/memory_model_full.svg --export-area-page --export-type=eps --export-filename=introc/drawings/memory_model_full.eps; inkscape introc/drawings/memory_model_full.svg --export-area-page --export-dpi=96 --export-filename=introc/drawings/memory_model_full.png' -->
 <!-- Created with Inkscape (http://www.inkscape.org/) -->
 
 <svg
@@ -26,8 +27,8 @@
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
      inkscape:zoom="2.8"
-     inkscape:cx="167.85463"
-     inkscape:cy="121.19435"
+     inkscape:cx="565.89034"
+     inkscape:cy="106.90864"
      inkscape:document-units="mm"
      inkscape:current-layer="layer1"
      showgrid="false"
@@ -45,7 +46,7 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title />
+        <dc:title></dc:title>
       </cc:Work>
     </rdf:RDF>
   </metadata>
@@ -76,6 +77,7 @@
        height="50.839783"
        x="1.0384402"
        y="245.12175" />
+    <text xml:space="preserve" style="font-style:normal;font-weight:normal;font-size:10.58333302px;line-height:1.25;font-family:sans-serif;text-anchor:end;text-align:end;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332" x="92.6" y="273.47" id="text827"><tspan sodipodi:role="line" id="tspan827" x="92.6" y="273.47">*person =</tspan></text>
     <rect
        style="opacity:1;fill:none;fill-opacity:1;stroke:#000000;stroke-width:1.08479166;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;paint-order:stroke markers fill"
        id="rect829"
@@ -254,46 +256,55 @@
          style="stroke-width:0.26458332;fill:#900048;fill-opacity:1;">6</tspan></text>
     <text
        xml:space="preserve"
-       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:10.58333302px;line-height:1.25;font-family:sans-serif;-inkscape-font-specification:'sans-serif, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;fill:#240041;fill-opacity:1;stroke:none;stroke-width:0.26458332"
-       x="173.62337"
-       y="264.66412"
+       style="font-style:normal;font-weight:normal;font-size:10.58333302px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#240041;fill-opacity:1;stroke:none;stroke-width:0.26458332;"
+       x="174.75729"
+       y="264.75861"
        id="text1053"><tspan
          sodipodi:role="line"
-         id="tspan5744"
-         x="173.62337"
-         y="264.66412">'p'</tspan></text>
+         id="tspan1051"
+         x="174.75729"
+         y="264.75861"
+         style="font-size:9.17222214px;stroke-width:0.26458332;fill:#240041;fill-opacity:1;">'p'</tspan></text>
     <text
        xml:space="preserve"
-       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:9.17222222px;line-height:1.25;font-family:sans-serif;-inkscape-font-specification:'sans-serif, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;letter-spacing:0px;word-spacing:0px;writing-mode:lr;text-anchor:start;fill:#240041;fill-opacity:1;stroke:none;stroke-width:0.26458332;"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:9.17222214px;line-height:1.25;font-family:sans-serif;-inkscape-font-specification:'sans-serif, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;fill:#240041;fill-opacity:1;stroke:none;stroke-width:0.26458332;"
        x="193.2636"
        y="264.99997"
        id="text1053-7"><tspan
          sodipodi:role="line"
-         id="tspan5746">'e'</tspan></text>
+         id="tspan1073"
+         x="193.2636"
+         y="264.99997">'e'</tspan></text>
     <text
        xml:space="preserve"
-       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:9.17222222px;line-height:1.25;font-family:sans-serif;-inkscape-font-specification:'sans-serif, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;letter-spacing:0px;word-spacing:0px;writing-mode:lr;text-anchor:start;fill:#240041;fill-opacity:1;stroke:none;stroke-width:0.26458332;"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:9.17222214px;line-height:1.25;font-family:sans-serif;-inkscape-font-specification:'sans-serif, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;fill:#240041;fill-opacity:1;stroke:none;stroke-width:0.26458332;"
        x="109.86317"
        y="282.86115"
        id="text1053-0"><tspan
          sodipodi:role="line"
-         id="tspan5748">'r'</tspan></text>
+         id="tspan1133"
+         x="109.86317"
+         y="282.86115">'r'</tspan></text>
     <text
        xml:space="preserve"
-       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:9.17222222px;line-height:1.25;font-family:sans-serif;-inkscape-font-specification:'sans-serif, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;letter-spacing:0px;word-spacing:0px;writing-mode:lr;text-anchor:start;fill:#240041;fill-opacity:1;stroke:none;stroke-width:0.26458332;"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:9.17222214px;line-height:1.25;font-family:sans-serif;-inkscape-font-specification:'sans-serif, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;fill:#240041;fill-opacity:1;stroke:none;stroke-width:0.26458332;"
        x="128.54651"
        y="282.86115"
        id="text1053-4"><tspan
          sodipodi:role="line"
-         id="tspan5750">'s'</tspan></text>
+         id="tspan1135"
+         x="128.54651"
+         y="282.86115">'s'</tspan></text>
     <text
        xml:space="preserve"
-       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:9.17222222px;line-height:1.25;font-family:sans-serif;-inkscape-font-specification:'sans-serif, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;letter-spacing:0px;word-spacing:0px;writing-mode:lr;text-anchor:start;fill:#240041;fill-opacity:1;stroke:none;stroke-width:0.26458332;"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:9.17222214px;line-height:1.25;font-family:sans-serif;-inkscape-font-specification:'sans-serif, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;fill:#240041;fill-opacity:1;stroke:none;stroke-width:0.26458332;"
        x="147.00749"
        y="282.86115"
        id="text1053-9"><tspan
          sodipodi:role="line"
-         id="tspan5752">'o'</tspan></text>
+         id="tspan1137"
+         x="147.00749"
+         y="282.86115">'o'</tspan></text>
     <text
        xml:space="preserve"
        style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:9.17222214px;line-height:1.25;font-family:sans-serif;-inkscape-font-specification:'sans-serif, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;fill:#240041;fill-opacity:1;stroke:none;stroke-width:0.26458332;"
@@ -314,18 +325,5 @@
          id="tspan1141"
          x="183.44701"
          y="282.08307">'\0'</tspan></text>
-    <text
-       xml:space="preserve"
-       style="font-style:normal;font-weight:normal;font-size:10.58333302px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332"
-       x="9.7328873"
-       y="274.60489"
-       id="text5756"
-       inkscape:export-xdpi="96"
-       inkscape:export-ydpi="96"><tspan
-         sodipodi:role="line"
-         id="tspan5754"
-         x="9.7328873"
-         y="274.60489"
-         style="stroke-width:0.26458332">person_name =</tspan></text>
   </g>
 </svg>

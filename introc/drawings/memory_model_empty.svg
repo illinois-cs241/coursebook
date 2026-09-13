@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Regenerate: docker run --rm -v "$PWD":/book -w /book <image with inkscape 1.x> sh -c 'inkscape introc/drawings/memory_model_empty.svg --export-area-page --export-type=eps --export-filename=introc/drawings/memory_model_empty.eps; inkscape introc/drawings/memory_model_empty.svg --export-area-page --export-dpi=96 --export-filename=introc/drawings/memory_model_empty.png' -->
 <!-- Created with Inkscape (http://www.inkscape.org/) -->
 
 <svg
@@ -26,7 +27,7 @@
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
      inkscape:zoom="1.4"
-     inkscape:cx="377.83615"
+     inkscape:cx="376.40758"
      inkscape:cy="158.44419"
      inkscape:document-units="mm"
      inkscape:current-layer="layer1"
@@ -45,7 +46,7 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title />
+        <dc:title></dc:title>
       </cc:Work>
     </rdf:RDF>
   </metadata>
@@ -76,6 +77,7 @@
        height="50.839783"
        x="1.0384402"
        y="245.12175" />
+    <text xml:space="preserve" style="font-style:normal;font-weight:normal;font-size:10.58333302px;line-height:1.25;font-family:sans-serif;text-anchor:end;text-align:end;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332" x="92.6" y="273.47" id="text827"><tspan sodipodi:role="line" id="tspan827" x="92.6" y="273.47">*person =</tspan></text>
     <rect
        style="opacity:1;fill:none;fill-opacity:1;stroke:#000000;stroke-width:1.08479166;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;paint-order:stroke markers fill"
        id="rect829"
@@ -208,16 +210,5 @@
        d="m 183.38519,286.77856 h 13.17293 v -13.1493"
        id="path887-2-2-7"
        inkscape:connector-curvature="0" />
-    <text
-       xml:space="preserve"
-       style="font-style:normal;font-weight:normal;font-size:10.58333302px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332"
-       x="10.772321"
-       y="272.80951"
-       id="text5093"><tspan
-         sodipodi:role="line"
-         id="tspan5091"
-         x="10.772321"
-         y="272.80951"
-         style="stroke-width:0.26458332">person_name =</tspan></text>
   </g>
 </svg>

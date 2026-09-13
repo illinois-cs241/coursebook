@@ -71,7 +71,7 @@ Implied from the name, imagine a page table as a table.
 	 
 \begin{figure}[H]
 	\centering
-	\includegraphics[width=.5\textwidth,alt={A two-column page table: each row maps a page number, counting 0, 1, 2 and so on, to the number of the physical frame that holds that page. Consecutive pages can map to frames anywhere in physical memory.}]{ipc/drawings/frame_table.eps}
+	\includegraphics[width=.5\textwidth,alt={A two-column page table with columns Page Number and Frame Number: page 0 maps to frame 42, page 1 to frame 45, page 2 to frame 30, and the table continues. Consecutive pages can map to frames anywhere in physical memory.}]{ipc/drawings/frame_table.eps}
 	\caption{Explicit Frame Table}
 \end{figure}
 	 
@@ -144,7 +144,7 @@ As an example, a two-level page table for a 32-bit architecture is shown below.
 	 
 \begin{figure}[H]
 	\centering
-	\includegraphics[width=.5\textwidth,alt={The same 32-bit address 11110000111100001111000010101010 split into three fields: a 10-bit index into the top-level table, a 10-bit index into a second-level table, and a 12-bit offset within the frame.}]{ipc/drawings/three_address_split.eps}
+	\includegraphics[width=.5\textwidth,alt={The same 32-bit address 11110000111100001111000010101010 split into three fields: Index 1, the top 10 bits 1111000011, which index the top-level table; Index 2, the next 10 bits 1100001111, which index a second-level table; and Offset, the low 12 bits 000010101010, which locate the byte within the frame.}]{ipc/drawings/three_address_split.eps}
 	\caption{Three Way Address Split}
 \end{figure}
 	 

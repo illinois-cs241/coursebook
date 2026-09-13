@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Regenerate: docker run --rm -v "$PWD":/book -w /book <image with inkscape 1.x> sh -c 'inkscape scheduling/drawings/psjf.svg --export-area-page --export-type=eps --export-filename=scheduling/drawings/psjf.eps; inkscape scheduling/drawings/psjf.svg --export-area-page --export-dpi=96 --export-filename=scheduling/drawings/psjf.png' -->
 <!-- Created with Inkscape (http://www.inkscape.org/) -->
 
 <svg
@@ -1625,7 +1626,7 @@
     <rect
        style="opacity:1;fill:#579d1c;fill-opacity:1;stroke:none;stroke-width:5.63716745;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
        id="rect1242-1-2-5-8-7-0"
-       width="43.223202"
+       width="57.630936"
        height="11.111178"
        x="190.99785"
        y="-83.136337" />
