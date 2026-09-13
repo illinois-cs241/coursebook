@@ -186,7 +186,7 @@ For this exposition, we will simplify this discussion to use the total running t
 \subsection{Preemptive Shortest Job First (PSJF)}
 
 Preemptive shortest job first is like shortest job first but if a new job comes in with a shorter runtime than the total runtime of the current job, it is run instead.
-If it is equal like our example our algorithm can choose.
+If the runtimes are equal, our algorithm can choose either.
 The scheduler uses the \emph{total} runtime of the process.
 If the scheduler wants to compare the shortest \emph{remaining} time left, that is a variant of PSJF called Shortest Remaining Time First (SRTF).
 
@@ -212,12 +212,13 @@ If the scheduler wants to compare the shortest \emph{remaining} time left, that 
 
 Here's what our algorithm does.
 It runs P2 because it is the only thing to run.
-Then P1 comes in at 1000ms, P2 runs for 2000ms, so our scheduler preemptively stops P2, and lets P1 run all the way through.
-This is completely up to the algorithm because the times are equal.
+Then P1 comes in at 1000ms, P2 runs for 2000ms, so our scheduler preemptively stops P2, and lets P1 run all the way through, because P1's total runtime (1000ms) is shorter than P2's (2000ms).
+P2 then runs to completion.
 Then, P5 comes in -- since no processes are running, the scheduler will run process 5.
-P4 comes in, and since the runtimes are equal to P5, the scheduler stops P5 and runs P4.
+P4 comes in, and since its total runtime (4000ms) is shorter than P5's (5000ms), the scheduler stops P5 and runs P4.
 Finally, P3 comes in, preempts P4, and runs to completion.
 Then P4 runs, then P5 runs.
+Under SRTF (shortest remaining time first), which compares remaining rather than total time, each of these preemptions (when P1, P4 and P3 arrive) would be a tie.
 
 \textbf{Advantages}
 
@@ -281,8 +282,8 @@ You can see the convoy effect for P5.
 Processes are scheduled in order of their arrival in the ready queue.
 After a small time step though, a running process will be forcibly removed from the running state and placed back on the ready queue.
 This ensures long-running processes refrain from starving all other processes from running.
-The maximum amount of time that a process can execute before being returned to the ready queue is called the time quanta.
-As the time quanta approaches infinity, Round Robin will be equivalent to FCFS.
+The maximum amount of time that a process can execute before being returned to the ready queue is called the time quantum.
+As the time quantum approaches infinity, Round Robin will be equivalent to FCFS.
 
 \begin{figure}[H]
 \centering

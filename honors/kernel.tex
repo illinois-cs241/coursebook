@@ -10,14 +10,14 @@ We will mostly be focusing on the Linux kernel in this chapter, so please assume
 As it stands, most of you are probably familiar with the Linux kernel, at least in terms of interacting with it via system calls.
 Some of you may also have explored the Windows kernel, which we won't talk about too much in this chapter,
 or \keyword{Darwin}, the UNIX-like kernel for macOS (a derivative of BSD).
-Those of you who might have done a bit more digging might have also encountered projects such as \keyword{GNU HURD} or \keyword{zircon}.
+Those of you who might have done a bit more digging might have also encountered projects such as \keyword{GNU HURD} or \keyword{Zircon}.
 
 Kernels can generally be classified into one of two categories, a monolithic kernel or a micro-kernel. A monolithic
 kernel is essentially a kernel and all of its associated services as a single program. A micro-kernel on the other hand
 is designed to have a \textit{main} component which provides the bare-minimum functionality that a kernel needs. This
-involves setting up important device drivers, the root filesystem, paging or other functionality that is imperative for
-other higher-level features to be implemented. The higher-level features (such as a networking stack, other filesystems,
-and non-critical device drivers) are then implemented as separate programs that can interact with the kernel by some
+typically means scheduling, memory management and paging, and IPC, the functionality that is imperative for
+other higher-level features to be implemented. The higher-level features (such as a networking stack, filesystems,
+and device drivers) are then implemented as separate programs that can interact with the kernel by some
 form of IPC, typically RPC. As a result of this design, micro-kernels have traditionally been slower than monolithic
 kernels due to the IPC overhead.
 
@@ -26,7 +26,7 @@ We will devote our discussion from here onwards to focusing on monolithic kernel
 
 \subsection{System Calls Demystified}
 
-System Calls use an instruction that can be run by a program operating in userspace that \textit{traps} to the kernel (by use of a signal) to complete the call.
+System Calls use an instruction that can be run by a program operating in userspace that \textit{traps} to the kernel (for example, the \keyword{syscall} instruction on x86-64, not a POSIX signal) to complete the call.
 This includes actions such as writing data to disk, interacting directly with hardware in general or operations related to gaining or relinquishing privileges (e.g.  becoming the root user and gaining all capabilities).
 
 In order to fulfill a user's request, the kernel will rely on \keyword{kernel calls}.
@@ -65,10 +65,4 @@ GFP_ATOMIC - Allocation will not sleep. May use emergency pools. For example, us
 
 You'll note that some flags are marked as potentially causing sleeps.
 This tells us whether we can use those flags in special scenarios, like interrupt contexts, where speed is of the essence, and operations that may block or wait for another process may never complete.
-
-%* How to add a new system call?
-%* What are processes and threads according to the kernel?
-%* How is a scheduler actually implemented in the kernel?
-%* What is a kernel module?
-%* Example kernel module.
 

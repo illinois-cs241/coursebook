@@ -480,7 +480,7 @@ The following snippet contains only one description.
 
 \begin{lstlisting}[language=C]
   int file = open(...);
-  if(!fork) {
+  if(!fork()) {
     read(file, ...);
   } else {
     read(file, ...);
@@ -491,7 +491,7 @@ One process will read one part of the file, the other process will read another 
 In the following example, there are two descriptions caused by two different file handles.
 
 \begin{lstlisting}[language=C]
-  if(!fork) {
+  if(!fork()) {
     int file = open(...);
     read(file, ...);
   } else {
@@ -516,8 +516,7 @@ size_t buffer_cap = 0;
 char * buffer = NULL;
 ssize_t nread;
 FILE * file = fopen("test.txt", "r");
-int count = 0;
-while((nread = getline(&buffer, &buffer_cap, file) != -1) {
+while((nread = getline(&buffer, &buffer_cap, file)) != -1) {
   printf("%s", buffer);
   if(fork() == 0) { 
     exit(0);
@@ -546,8 +545,7 @@ size_t buffer_cap = 0;
 char * buffer = NULL;
 ssize_t nread;
 FILE * file = fopen("test.txt", "r");
-int count = 0;
-while((nread = getline(&buffer, &buffer_cap, file) != -1) {
+while((nread = getline(&buffer, &buffer_cap, file)) != -1) {
   printf("%s", buffer);
   fflush(file);
   if(fork() == 0) { 
@@ -581,6 +579,7 @@ waitpid(child, NULL, 0);
 If you are interested in how this works, check out the appendix for a description of the Fork-file problem.
 
 \section{Waiting and Executing}
+\label{sec:waiting_and_executing}
 
 If the parent process wants to wait for the child to finish, it must use \keyword{waitpid} (or \keyword{wait}), both of which wait for a child to change process states, which can be one of the following:
 
@@ -809,7 +808,7 @@ int main() {
 }
 \end{lstlisting}
 
-The example writes "Captain's Log" to a file then prints everything in /usr/include to the same file.
+The example writes "Captain's log" to a file then prints everything in /usr/include to the same file.
 There's no error checking in the above code (we assume close, open, chdir etc. work as expected).
 
 \begin{enumerate}
@@ -926,7 +925,8 @@ setenv("HOME", "/home/user", 1 /*set overwrite to true*/ );
 \end{lstlisting}
 
 Environment variables are important because they are inherited between processes and can be used to specify a standard set of behaviors \cite{env_std_2018}, although you don't need to memorize the options.
-Another security related concern is that environment variables cannot be read by an outside process, whereas argv can be.
+Another security related concern is that argv is visible to other users, for example in the output of \keyword{ps}, whereas environment variables are not displayed there.
+However, environment variables are not secret: on Linux, a process running as the same user (or as root) can read them from \keyword{/proc/<pid>/environ}.
 
 \section{Further Reading}
 

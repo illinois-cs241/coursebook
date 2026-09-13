@@ -11,7 +11,7 @@ This section is a short review of System Architecture topics that you'll need fo
 What is assembly? Assembly is the lowest that you'll get to machine language without writing 1's and 0's.
 Each computer has an architecture, and that architecture has an associated assembly language.
 Each assembly command has a 1:1 mapping to a set of 1's and 0's that tell the computer exactly what to do.
-For example, the following in the widely used x86 Assembly language adds one to the memory address 20 \cite{wiki:xxx} -- you can also look in \cite{guide2011intel} Section 2A under the add instruction though it is more verbose.
+For example, the following in the widely used x86 Assembly language adds one to the byte at memory address \keyword{0x20} \cite{wiki:xxx} -- you can also look in \cite{guide2011intel} Section 2A under the add instruction though it is more verbose.
 
 \begin{lstlisting}[language={[x86masm]Assembler}]
 add BYTE PTR [0x20], 1
@@ -22,7 +22,7 @@ Serious implications arise for race conditions and atomic operations.
 
 \subsection{Atomic Operations}
 
-An operation is atomic if no other processor should interrupt it. Take for example the above assembly code to add one to a register.
+An operation is atomic if no other processor should interrupt it. Take for example the above assembly code to add one to a memory address.
 In the architecture, it may actually have a few different steps on the circuit.
 The operation may start by fetching the value of the memory from the stick of ram, then storing it in the cache or a register, and then finally writing back \cite{schweizer2015evaluating} -- under the description for \textit{fetch-and-add} though your micro-architecture may vary.
 Or depending on performance operations, it may keep that value in cache or in a register which is local to that process -- try dumping the \keyword{-O2} optimized assembly of incrementing a variable.
@@ -79,7 +79,8 @@ Operating system developers and instruction set developers alike didn't like the
 What safely means is obviously out of the scope for this class, but it persists.
 \subsection{Optional: Hyperthreading}
 
-Hyperthreading is a new technology and is in no way shape or form multithreading.
+Hyperthreading is Intel's name for simultaneous multithreading (SMT), a hardware technology that Intel first shipped in 2002.
+Despite the name, it is not the same thing as software multithreading: one physical core presents two logical CPUs that share its execution units.
 Hyperthreading allows one physical core to appear as many virtual cores to the operating system \cite[P.51]{guide2011intel}.
 The operating system can then schedule processes on these virtual cores and one core will execute them.
 Each core interleaves processes or threads.
@@ -123,7 +124,7 @@ If you don't want to type your password out every time, you can generate an ssh 
 If you still think that that is too much typing, you can always alias hosts.
 You may need to restart your VM or reload sshd for this to take effect.
 The config file is available on Linux and Mac distros.
-For Windows, you'll have to use the Windows Linux Subsystem or configure any aliases in PuTTY
+For Windows, you'll have to use the Windows Subsystem for Linux (WSL) or configure any aliases in PuTTY
 
 \begin{lstlisting}[language=bash]
 > cat ~/.ssh/config
@@ -136,9 +137,10 @@ Host vm
 \subsection{git}
 
 What is `git`? Git is a version control system. What that means is git stores the entire history of a directory. We refer to the directory as a repository. So what you need to know is a few things. First, create your repository with the repo creator. If you haven't already signed into enterprise GitHub, make sure to do so otherwise your repository won't be created for you. After that, your repository is created on the server. Git is a decentralized version control system, meaning that you'll need to get a repository onto your VM. We can do this with a clone. Whatever you do, \textbf{do not go through the README.md tutorial}.
+Replace \keyword{<semester>} with the current semester code (for example, \keyword{fa26}) and \keyword{<netid>} with your NetID.
 
 \begin{lstlisting}[language=bash]
-$ git clone https://github.com/illinois-cs-coursework/fa23_cs341_<netid>
+$ git clone https://github.com/illinois-cs-coursework/<semester>_cs341_<netid>
 \end{lstlisting}
 
 This will create a local repository. The workflow is you make a change on your local repository, add the changes to a current commit, actually commit, and push the changes to the server.
@@ -200,7 +202,7 @@ nothing to commit, working directory clean
 
 Don't panic, but your repository may be in an unworkable state.
 If you aren't nearing a deadline, come to office hours or ask your question on Edstem, and we'd be happy to help.
-In an emergency scenario, delete your repository and re-clone (you'll have to add the \keyword{release} as above).
+In an emergency scenario, delete your repository and re-clone.
 \textbf{This will lose any local uncommitted changes. Make sure to copy any files you were working on outside the directory, remove and copy them back in.}
 
 If you want to learn more about git, there are all but an endless number of tutorials and resources online that can help you.
@@ -335,7 +337,7 @@ Suppose we have a simple program like this:
 void dummy_function() {
 	int* x = malloc(10 * sizeof(int));
 	x[10] = 0;        // error 1: Out of bounds write, as you can see here we write to an out of bound memory address.
-}                    // error 2: Memory Leak, x is allocated at function exit.
+}                    // error 2: Memory Leak, x is not freed at function exit.
 
 int main(void) {
 	dummy_function();
@@ -348,22 +350,27 @@ Let's see what Valgrind will output.
 
 \begin{lstlisting}[language=C]
 ==29515== Memcheck, a memory error detector
-==29515== Copyright (C) 2002-2015, and GNU GPL'd, by Julian Seward et al.
-==29515== Using Valgrind-3.11.0 and LibVEX; rerun with -h for copyright info
+==29515== Copyright (C) 2002-2022, and GNU GPL'd, by Julian Seward et al.
+==29515== Using Valgrind-3.22.0 and LibVEX; rerun with -h for copyright info
 ==29515== Command: ./a
 ==29515==
 ==29515== Invalid write of size 4
-==29515==    at 0x400544: dummy_function (in /home/rafi/projects/exocpp/a)
-==29515==    by 0x40055A: main (in /home/rafi/projects/exocpp/a)
-==29515==  Address 0x5203068 is 0 bytes after a block of size 40 alloc'd
-==29515==    at 0x4C2DB8F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
-==29515==    by 0x400537: dummy_function (in /home/rafi/projects/exocpp/a)
-==29515==    by 0x40055A: main (in /home/rafi/projects/exocpp/a)
+==29515==    at 0x108774: dummy_function (in /home/user/a)
+==29515==    by 0x10878F: main (in /home/user/a)
+==29515==  Address 0x4a7e068 is 0 bytes after a block of size 40 alloc'd
+==29515==    at 0x4885250: malloc (in /usr/libexec/valgrind/vgpreload_memcheck-arm64-linux.so)
+==29515==    by 0x108767: dummy_function (in /home/user/a)
+==29515==    by 0x10878F: main (in /home/user/a)
 ==29515==
 ==29515==
 ==29515== HEAP SUMMARY:
 ==29515==     in use at exit: 40 bytes in 1 blocks
 ==29515==   total heap usage: 1 allocs, 0 frees, 40 bytes allocated
+==29515==
+==29515== 40 bytes in 1 blocks are definitely lost in loss record 1 of 1
+==29515==    at 0x4885250: malloc (in /usr/libexec/valgrind/vgpreload_memcheck-arm64-linux.so)
+==29515==    by 0x108767: dummy_function (in /home/user/a)
+==29515==    by 0x10878F: main (in /home/user/a)
 ==29515==
 ==29515== LEAK SUMMARY:
 ==29515==    definitely lost: 40 bytes in 1 blocks
@@ -371,10 +378,9 @@ Let's see what Valgrind will output.
 ==29515==      possibly lost: 0 bytes in 0 blocks
 ==29515==    still reachable: 0 bytes in 0 blocks
 ==29515==         suppressed: 0 bytes in 0 blocks
-==29515== Rerun with --leak-check=full to see details of leaked memory
 ==29515==
-==29515== For counts of detected and suppressed errors, rerun with: -v
-==29515== ERROR SUMMARY: 1 errors from 1 contexts (suppressed: 0 from 0)
+==29515== For lists of detected and suppressed errors, rerun with: -s
+==29515== ERROR SUMMARY: 2 errors from 2 contexts (suppressed: 0 from 0)
 \end{lstlisting}
 
 \textbf{Invalid write}: It detected our heap block overrun, writing outside of an allocated block.
@@ -460,13 +466,13 @@ $ gdb --args ./main
 (gdb) r
 [...]
 Program received signal SIGTRAP, Trace/breakpoint trap.
-main () at main.c:6
-6     val = 7;
+main () at main.c:5
+5     val = 7;
 (gdb) p val
 $1 = 42
 \end{lstlisting}
 
-You can also set breakpoints programmatically.
+You can also set breakpoints interactively from within gdb.
 Assume that we have no optimization and the line numbers are as follows
 
 \begin{lstlisting}[language=bash]
@@ -483,6 +489,8 @@ We can now set the breakpoint before the program starts.
 $ gcc main.c -g -o main
 $ gdb --args ./main
 (gdb) break main.c:4
+[...]
+(gdb) r
 [...]
 (gdb) p val
 $1 = 42
@@ -530,7 +538,7 @@ Breakpoint 1, main () at main.c:4
 (gdb)
 \end{lstlisting}
 
-Here, by using the \keyword{x} command with parameters \keyword{16xb}, we can see that starting at memory address \keyword{0x7fff5fbff9c} (value of \keyword{bad\_string}), \keyword{printf} would actually see the following sequence of bytes as a string because we provided a malformed string without a null terminator.
+Here, by using the \keyword{x} command with parameters \keyword{16xb}, we can see that starting at memory address \keyword{0x7fff5fbff9cd} (value of \keyword{bad\_string}), \keyword{printf} would actually see the following sequence of bytes as a string because we provided a malformed string without a null terminator.
 
 \subsection{Involved gdb example}
 
@@ -610,11 +618,11 @@ Okay, flip the sign it should work now right?
 (gdb) print/x deg # print the hex value of degree
 $1 = 0x167
 (gdb) print (31415/1000)
-$2 = 0x31
+$2 = 31
 (gdb) print (31415/1000.0)
-$3 = 201.749
+$3 = 31.414999999999999
 (gdb) print (31415.0/10000.0)
-$4 = 3.1414999999999999
+$4 = 3.1415000000000002
 
 \end{lstlisting}
 
@@ -678,14 +686,15 @@ int main() {
 
 \begin{lstlisting}[language=bash]
 > ltrace ./a.out
- __libc_start_main(0x8048454, 1, 0xbfc19db4, 0x80484c0, 0x8048530 <unfinished ...>
- fopen("I don't exist", "r")                          = 0x0
- fwrite("Invalid Write\n", 1, 14, 0x0 <unfinished ...>
- --- SIGSEGV (Segmentation fault) ---
- +++ killed by SIGSEGV +++
+__libc_start_main(0xaaaaab1a0818, 1, 0xffffc0fdaa28, 0 <unfinished ...>
+fopen("I don't exist", "r")                      = 0
+fputc('a', 0 <no return ...>
+--- SIGSEGV (Segmentation fault) ---
++++ killed by SIGSEGV +++
 
 \end{lstlisting}
 
+Notice that the compiler has replaced the one-character \keyword{fprintf} with a call to \keyword{fputc}, and that the \keyword{FILE*} it is given is \keyword{0} (\keyword{NULL}), the value \keyword{fopen} returned.
 ltrace output can clue you in to weird things your program is doing live.
 Unfortunately, ltrace can’t be used to inject faults, meaning that ltrace can tell you what is happening, but it can't tamper with what is already happening.
 
@@ -724,10 +733,10 @@ read(3, "# C Datastructures\n\n[![Build Sta"..., 8192) = 1250
 
 \end{lstlisting}
 
-Newer versions of strace can actually inject faults into your program.
+Newer versions of strace can actually inject faults into your program with the \keyword{-e inject=} option.
+For example, \keyword{strace -e inject=read:error=EIO head README.md} makes every \keyword{read} call fail with \keyword{EIO}.
 This is useful when you want to occasionally make reads and writes fail for example in a networking application, which your program should handle.
-The problem is as of early 2019, that version is missing from Ubuntu repositories.
-Meaning that you'll have to install it from the source.
+The strace in current Ubuntu releases supports fault injection, so the package installed above is all you need.
 
 \subsection{printfs}
 
@@ -806,7 +815,7 @@ if(!fork()) {
 }
 
 if(!fork()) {
-    execlp("make","make", "snowman", (char*)0); execlp("make","make", (char*)0));
+    execlp("make","make", "snowman", (char*)0); execlp("make","make", (char*)0);
 }
 
 exit(0);
@@ -818,7 +827,7 @@ exit(0);
 int main(int argc, char** argv) {
 	puts("Great! We have plenty of useful resources for you, but it's up to you to");
 	puts(" be an active learner and learn how to solve problems and debug code.");
-	puts("Bring your near-completed answers the problems below");
+	puts("Bring your near-completed answers to the problems below");
 	puts(" to the first lab to show that you've been working on this.");
 	printf("A few \"don't knows\" or \"unsure\" is fine for lab 1.\n");
 	puts("Warning: you and your peers will work hard in this class.");
@@ -893,11 +902,11 @@ char *ptr = "hello";
 
 \item What is the value of the variable \keyword{str\_size}?
 \begin{lstlisting}[language=C]
-ssize_t str_size = sizeof("Hello\0World")
+ssize_t str_size = sizeof("Hello\0World");
 \end{lstlisting}
 \item What is the value of the variable \keyword{str\_len}
 \begin{lstlisting}[language=C]
-ssize_t str_len = strlen("Hello\0World")
+ssize_t str_len = strlen("Hello\0World");
 \end{lstlisting}
 \item Give an example of X such that \keyword{sizeof(X)} is 3.
 \item Give an example of Y such that \keyword{sizeof(Y)} might be 4 or 8 depending on the machine.
@@ -1010,7 +1019,7 @@ Oh, and did I mention that this is an easy way to score points with your interns
 \item Did I Google the error message and a few permutations thereof if necessary? How about StackOverflow.
 \item Did I try commenting out, printing, and/or stepping through parts of the code bit by bit to find out precisely where the error occurs?
 \item \textbf{Did I commit my code to git in case the TAs need more context?}
-\item Did I include the console/GDB/Valgrind output **AND** code surrounding the bug in my class forum post?
+\item Did I include the console/GDB/Valgrind output \textbf{AND} code surrounding the bug in my class forum post?
 \item Have I fixed other segmentation faults unrelated to the issue I'm having?
 \item Am I following good programming practice? (i.e. encapsulation, functions to limit repetition, etc)
 \end{enumerate}

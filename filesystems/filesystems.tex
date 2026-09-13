@@ -367,9 +367,9 @@ closedir(dirp);
 \end{lstlisting}
 
 One final note of caution.
-\keyword{readdir} is not thread-safe!
-You shouldn't use the re-entrant version of the function.
-Synchronizing the filesystem within a process is important, so use locks around \keyword{readdir}.
+\keyword{readdir} is not guaranteed to be thread-safe when several threads share the same directory stream.
+Don't reach for the re-entrant version \keyword{readdir\_r}; it is deprecated in glibc.
+Instead, threads that read from separate \keyword{DIR*} streams need no extra care, while threads that share one \keyword{DIR*} stream must use a lock around each call to \keyword{readdir}.
 
 See the \href{https://linux.die.net/man/3/readdir}{man page of readdir} for more details.
 
@@ -423,7 +423,7 @@ link("file1.txt", "blip.txt");
 
 \begin{verbatim}
 $ ln -s file1.txt file2.txt
-$ ls -i file1.txt blip.txt
+$ ls -i file1.txt file2.txt blip.txt
 134235 file1.txt
 134236 file2.txt
 134235 blip.txt
@@ -438,13 +438,13 @@ $ cat file1.txt
 file1!
 edited file2
 $ cat file2.txt
-I'm file1!
+file1!
 edited file2
 $ cat blip.txt
 file1!
 edited file2
-$ readlink myfile.txt
-file2.txt
+$ readlink file2.txt
+file1.txt
 \end{verbatim}
 
         Note that \keyword{file2.txt} and \keyword{file1.txt} have different inode numbers, unlike the hard link, \keyword{blip.txt}.
@@ -690,7 +690,7 @@ The octal number is the sum of three values given to the three types of permissi
 Example: \keyword{chmod 755 myfile}
 
 \begin{enumerate}
-\item r + w + x = digit * user has 4+2+1, full permission
+\item user has 4+2+1, read, write and execute (full) permission
 \item group has 4+0+1, read and execute permission
 \item all users have 4+0+1, read and execute permission
 \end{enumerate}
@@ -808,7 +808,7 @@ Device & Use Case \\ \hline
 If we want a continuous stream of 0s, we can run \keyword{cat /dev/zero}.
 
 Another example is the file \keyword{/dev/null}, a great place to store bits that you never need to read.
-Bytes sent to \keyword{/dev/null/} are never stored and simply discarded.
+Bytes sent to \keyword{/dev/null} are never stored and simply discarded.
 A common use of \keyword{/dev/null} is to discard standard output.
 For example,
 
@@ -947,7 +947,7 @@ This means the speed of the transfer is unaffected by hardware power.
 
         \begin{lstlisting}[language=bash]
         $ mkdir arch
-        $ sudo mount -o loop archlinux-2015.04.01-dual.iso ./arch
+        $ sudo mount -o loop archlinux-2014.11.01-dual.iso ./arch
         $ cd arch
         \end{lstlisting}
 
@@ -1161,7 +1161,7 @@ It is laid out sequentially on disk, and the first section is the superblock.
 The superblock stores important metadata about the entire filesystem.
 Since we want to be able to read this block before we know anything else about the data on disk, this needs to be in a well-known location so the start of the disk is a good choice.
 After the superblock, we'll keep a map of which inodes are being used.
-The nth bit is set if the nth inode -- $0$ being the inode root -- is being used.
+The nth bit is set if the nth inode -- $0$ being the root inode -- is being used.
 Similarly, we store a map recording which data blocks are used.
 Finally, we have an array of inodes followed by the rest of the disk - implicitly partitioned into data blocks.
 One data block may be identical to the next from the perspective of the hardware components of the disk.
@@ -1257,7 +1257,7 @@ We perform our write and go on our merry way.
 
 Some questions to consider.
 
-\begin {itemize}
+\begin{itemize}
     \item How would a program perform a write that goes across data block boundaries?
     \item How would a program perform a write after adding the offset would extend the length of the file?
     \item How would a program perform a write where the offset is greater than the length of the original file?

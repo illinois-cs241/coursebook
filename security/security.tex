@@ -179,14 +179,14 @@ The following snippet is a high-level proof of concept.
 
 \begin{lstlisting}[language=C]
 char *a[10];
-for (int i = 10; i != 1; --i) {
-  a[i] = calloc(1, 1);
+for (int k = 9; k != 0; --k) {
+  a[k] = calloc(1, 1);
 }
-a[0] = 0xCAFE;
+a[0] = (char *) 0xCAFE;
 int val;
-int j = 10; // This will be in a register
-int i = 10; // This will be in main memory
-for (int i = 10; i != 0; --i, --j) {
+int j = 9; // This will be in a register
+int i;     // This will be in main memory
+for (i = 9; i >= 0; --i, --j) {
   if (i) {
     val = *a[j];
   }
@@ -194,8 +194,9 @@ for (int i = 10; i != 0; --i, --j) {
 \end{lstlisting}
 
 Let's analyze this code.
-The first loop allocates 9 elements through a valid malloc.
-The last element is \keyword{0xCAFE}, meaning a dereference should result in a SEGFAULT.
+The first loop allocates 9 elements, \keyword{a[1]} through \keyword{a[9]}, through a valid calloc.
+The last element that the second loop visits, \keyword{a[0]}, is \keyword{0xCAFE}, meaning a dereference should result in a SEGFAULT.
+The second loop runs 10 times.
 For the first 9 iterations, the branch is taken and \keyword{val} is assigned to a valid value.
 The interesting part happens in the last iteration.
 The resulting behavior of the program is to skip the last iteration.
@@ -317,7 +318,7 @@ As more and more of our systems are hacked over the web, it is important to unde
 \begin{enumerate}
 \item Encryption.
   \textbf{TCP is unencrypted!} This means any data that is sent over a TCP connection is in plain text.
-  If one needs to send encrypted data, one needs to use a higher level protocol such as HTTPs or develop their own.
+  If one needs to send encrypted data, one needs to use a higher level protocol such as HTTPS or develop their own.
 \item Identity Verification.
   In TCP, there is no way to verify the identity of who the program is connecting to.
   There are no checks or federated databases in place.
@@ -341,11 +342,13 @@ As more and more of our systems are hacked over the web, it is important to unde
 
 \subsection{Security at the DNS Level}
 
-As of 2019, the United States Department of Homeland Security released a directive to switch all services from DNS to DNSSec \url{https://www.cisa.gov/news-events/directives/ed-19-01-mitigate-dns-infrastructure-tampering-closed}.
-This directive is an inherent flaw of the DNS system.
-First, DNS doesn't offer any sort of verification on domain name requests.
+In January 2019, the United States Department of Homeland Security issued Emergency Directive 19-01, which required federal agencies to audit and lock down their DNS records after a wave of DNS infrastructure tampering \url{https://www.cisa.gov/news-events/directives/ed-19-01-mitigate-dns-infrastructure-tampering-closed}.
+Attacks like these exploit weaknesses built into DNS itself.
+DNSSEC is an extension to DNS, not a replacement for it, that lets a resolver verify that a response was signed by the owner of the domain.
+First, plain DNS doesn't offer any sort of verification on domain name requests.
 That is, it is easy to spoof DNS nameservers such that they point your browser to potentially malicious servers.
-Remember that DNS requests are sent as unsecured UDP packets, which are prone to tampering. This means that if an attacker snags a plain-text request for a DNS server, that attacker can now send the result back to the requester.
+Remember that traditional DNS requests are sent as unsecured UDP packets, which are prone to tampering. This means that if an attacker snags a plain-text request for a DNS server, that attacker can now send the result back to the requester.
+Many operating systems and browsers can now send DNS requests over an encrypted connection instead, using DNS-over-TLS (DoT) or DNS-over-HTTPS (DoH), which protects them from being read or altered on the way to the resolver.
 More commonly instead of just attacking one person, they will connect to a public wifi station and poison the cache of the router -- meaning that all who are connected will get a bad IP address when requesting a domain name.
 This can get into serious spoofing attacks if one tries to pretend they are a major bank.
 

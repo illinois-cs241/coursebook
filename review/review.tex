@@ -147,7 +147,9 @@ char* toString(int a, char*mesg, double val, void* ptr) {
 \subsection{Input parsing}
 
 \begin{enumerate}
-\item Why should you check the return value of sscanf and scanf? \#\# Q 5.2 Why is `gets' dangerous?
+\item Why should you check the return value of sscanf and scanf?
+
+\item Why is \keyword{gets} dangerous?
 
 \item Write a complete program that uses \keyword{getline}. Ensure your program has no memory leaks.
 
@@ -155,8 +157,10 @@ char* toString(int a, char*mesg, double val, void* ptr) {
 
 \item What mistake did the programmer make in the following code? Is it possible to fix it?
 
-i) using heap memory?
-ii) using global (static) memory?
+\begin{enumerate}
+\item using heap memory?
+\item using global (static) memory?
+\end{enumerate}
 
 \begin{lstlisting}[language=C]
 static int id;
@@ -563,7 +567,7 @@ $ chmod 000 secret.txt
 
 \item Which common protocol is stream-based and will resend data if packets are lost?
 
-\item What is the SYN ACK ACK-SYN handshake?
+\item What is the SYN, SYN-ACK, ACK handshake?
 
 \item Which one of the following is NOT a feature of TCP?
   \begin{enumerate}
@@ -604,7 +608,7 @@ $ chmod 000 secret.txt
 
 \item How does Network Address Translation (NAT) work?
 
-\item Assuming a network has a 20ms One Way Transit Time between Client and Server, how much time would it take to establish a TCP Connection?
+\item Assuming a network has a 20ms One Way Transit Time between Client and Server, how much time does the TCP three-way handshake (SYN, SYN-ACK, ACK) take to complete, measured from when the client sends the SYN until the server receives the final ACK?
   \begin{enumerate}
   \item 20ms
   \item 40ms

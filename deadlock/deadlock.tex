@@ -34,7 +34,7 @@ It is a simple yet powerful tool to illustrate how interacting processes can dea
 If a process is \emph{using} a resource, an arrow is drawn from the resource node to the process node.
 If a process is \emph{requesting} a resource, an arrow is drawn from the process node to the resource node.
 If there is a cycle in the Resource Allocation Graph and each resource in the cycle provides only one instance, then the processes will deadlock.
-For example, if process 1 holds resource A, process 2 holds resource B and process 1 is waiting for B and process 2 is waiting for A, then processes 1 and 2 will be deadlocked \ref{ragfigure}.
+For example, if process 1 holds resource A, process 2 holds resource B and process 1 is waiting for B and process 2 is waiting for A, then processes 1 and 2 will be deadlocked (see Figure~\ref{ragfigure}).
 We'll make the distinction that the system is in deadlock by definition if all workers cannot perform an operation other than waiting.
 So, as long as every resource offers a single instance, detecting deadlock means searching the graph for a cycle.
 Both the processes and the resources are nodes, and every edge has a direction, so this is cycle detection in a \emph{directed} graph.
@@ -171,7 +171,7 @@ Consider the scenario where two students need to write both pen and paper and th
 Breaking mutual exclusion means that the students share the pen and paper.
 Breaking circular wait could be that the students agree to grab the pen then the paper.
 As proof by contradiction, say that deadlock occurs under the rule and the conditions.
-Without loss of generality, that means a student would have to be waiting on a pen while holding the paper and the other waiting on a pen and holding the paper.
+Without loss of generality, that means a student would have to be waiting on the pen while holding the paper and the other waiting on the paper while holding the pen.
 We have contradicted ourselves because one student grabbed the paper without grabbing the pen, so deadlock fails to occur.
 Breaking hold and wait could be that the students try to get the pen and then the paper and if a student fails to grab the paper then they release the pen.
 This introduces a new problem called \textit{livelock} which will be discussed later.
@@ -382,7 +382,7 @@ The system is about to deadlock, but the approach resolves it.
 \begin{figure}[H]
 	\centering
 	\includegraphics[width=.9\textwidth]{deadlock/drawings/dining_stalling.eps}
-	\caption{Stallings solution almost deadlock}
+	\caption{Stallings' solution almost deadlock}
 \end{figure}
 
 
@@ -424,7 +424,7 @@ This prioritizes philosophers that have already eaten but can be made fairer by 
 \begin{figure}[H]
 	\centering
 	\includegraphics[width=.9\textwidth]{deadlock/drawings/dining_partial.eps}
-	\caption{Stallings solution partial deadlock}
+	\caption{Dijkstra's partial ordering solution}
 \end{figure}
 
 There are a few other solutions (clean/dirty forks and the actor model) in the appendix.

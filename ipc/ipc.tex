@@ -127,8 +127,7 @@ The remaining upper bits will be the page number (111100001111000011110000). Thi
 	 
 We do have a problem with 64-bit operating systems.
 For a 64-bit machine with 4KiB pages, each entry needs 52 bits.
-Meaning we need roughly
-With $2^{52}$ entries, that's $2^{55}$ bytes (roughly 40 petabytes).
+Rounding each entry up to 8 bytes, with $2^{52}$ entries that's $2^{55}$ bytes (32 PiB, roughly 36 petabytes).
 So our page table is too large.
 In 64-bit architecture, memory addresses are sparse, so we need a mechanism to reduce the page table size, given that most of the entries will never be used.
 We'll talk about this below. There is one last piece of terminology that needs to be covered.
@@ -201,7 +200,7 @@ To overcome this overhead, the MMU includes an associative cache of recently-use
 This cache is called the TLB (``translation lookaside buffer'').
 Every time a virtual address needs to be translated into a physical memory location, the TLB is queried in parallel to the page table.
 For most memory accesses of most programs, there is a significant chance that the TLB has cached the results.
-However, if a program has inadequate cache coherence, the address will be missing in the TLB, meaning the MMU must use the much slower page table translation.
+However, if a program has poor locality of reference, the address will often be missing in the TLB, meaning the MMU must use the much slower page table translation.
 	 
 \subsection{MMU Algorithm}
 	 
@@ -328,18 +327,18 @@ Page faults are so powerful because they let the operating system take control o
 	 
 \keyword{mmap} does more than take a file and map it to memory.
 It is the general interface for creating shared memory among processes.
-Currently it only supports regular files and POSIX \keyword{shmem} \cite{mmap_2018}.
+POSIX requires it to support regular files and POSIX \keyword{shmem} objects \cite{mmap_2018}; Linux also supports anonymous mappings that are not backed by any file, which we use later in this chapter.
 Naturally, you can read all about it in the reference above, which references the current working group POSIX standard.
 Some other options to note in the page will follow.
 	 
-The first option is that the \keyword{flags} argument of mmap can take many options.
+The \keyword{prot} and \keyword{flags} arguments of mmap can take many options: the \keyword{PROT\_*} values go in \keyword{prot} and the \keyword{MAP\_*} values go in \keyword{flags}.
 	 
 \begin{enumerate}
 	\item \keyword{PROT\_READ} This means the process can read the memory. This isn't the only flag that gives the process read permission, however! The underlying file descriptor, in this case, must be opened with read privileges.
-	\item \keyword{PROT\_WRITE} This means the process can write to the memory. This has to be supplied for a process to write to a mapping. If this is supplied and \keyword{PROT\_NONE} is also supplied, the latter wins and no writes can be performed. The underlying file descriptor, in this case, must either be opened with write privileges or a private mapping must be supplied below.
-	\item \keyword{PROT\_EXEC} This means the process can execute this piece of memory. Although this is not stated in POSIX documents, this shouldn't be supplied with WRITE or NONE because that would make this invalid under the NX bit or not being able to execute (respectively).
-	\item \keyword{PROT\_NONE} This means the process can't do anything with the mapping. This could be useful if you implement guard pages in terms of security. If you surround critical data with many more pages that can't be accessed, that decreases the chance of various attacks.
-	\item \keyword{MAP\_SHARED} This mapping will be synchronized to the underlying file object. The file descriptor must've been opened with write permissions in this case.
+	\item \keyword{PROT\_WRITE} This means the process can write to the memory. This has to be supplied for a process to write to a mapping. The underlying file descriptor, in this case, must either be opened with write privileges or a private mapping must be supplied below.
+	\item \keyword{PROT\_EXEC} This means the process can execute this piece of memory. Although this is not stated in POSIX documents, this shouldn't be supplied with WRITE because that would make this invalid under the NX bit.
+	\item \keyword{PROT\_NONE} This means the process can't do anything with the mapping. Its value is zero, so it can't be combined with the other \keyword{PROT\_*} values to take permissions away. This could be useful if you implement guard pages in terms of security. If you surround critical data with many more pages that can't be accessed, that decreases the chance of various attacks.
+	\item \keyword{MAP\_SHARED} This mapping will be synchronized to the underlying file object. If the mapping is also writable (\keyword{PROT\_WRITE}), the file descriptor must've been opened with write permissions.
 	\item \keyword{MAP\_PRIVATE} This mapping will only be visible to the process itself. Useful to not thrash the operating system.
 \end{enumerate}
 	 
@@ -382,7 +381,7 @@ Then, we make the call to mmap, here is the order of arguments.
 	\item PROT\_READ, we want to read the file
 	\item MAP\_PRIVATE, tell the OS, we don't want to share our mapping
 	\item fd, object descriptor that we refer to
-	\item pa\_offset, the page aligned offset to start from
+	\item page\_offset, the page aligned offset to start from
 \end{enumerate}
 	 
 \begin{lstlisting}[language=C]
@@ -395,7 +394,7 @@ After, we have to unmap the file and close the file descriptor to make sure othe
 	 
 \begin{lstlisting}[language=C]
 	write(1, addr + offset - page_offset, length);
-	munmap(addr, length + offset - pa_offset);
+	munmap(addr, length + offset - page_offset);
 	close(fd);
 \end{lstlisting}
 	 
@@ -500,7 +499,7 @@ First, it lists the current directory.
 The -1 means that it outputs one entry per line.
 The \keyword{cut} command then takes everything before the first period.
 \keyword{sort} sorts all the input lines, \keyword{uniq} makes sure all the lines are unique.
-Finally, \keyword{tee} outputs the contents to the file \keyword{dir\_contents} and the terminal for your perusal.
+Finally, \keyword{tee} outputs the contents to the file \keyword{dirents} and the terminal for your perusal.
 The important part is that bash creates \textbf{5 separate processes} and connects their standard outs/stdins with pipes. The trail looks something like this.
 	 
 \begin{figure}[H]
@@ -768,15 +767,18 @@ If the program already has a file descriptor, it can `wrap' it into a FILE point
 	#include <sys/types.h>
 	#include <sys/stat.h>
 	#include <fcntl.h>
-	 
+	#include <stdio.h>
+
 	int main() {
 	 char *name="Fred";
 	 int score = 123;
-	 int filedes = open("mydata.txt", "w", O_CREAT, S_IWUSR | S_IRUSR);
-	 
+	 int filedes = open("mydata.txt", O_WRONLY | O_CREAT | O_TRUNC, S_IWUSR | S_IRUSR);
+
 	 FILE *f = fdopen(filedes, "w");
 	 fprintf(f, "Name:%s Score:%d\n", name, score);
-	 fclose(f);
+	 fclose(f); // also closes filedes
+	 return 0;
+	}
 \end{lstlisting}
 	 
 For writing to files, this is unnecessary.
@@ -856,7 +858,7 @@ Reads and writes hang on Named Pipes until there is at least one reader and one 
 	Hello
 \end{lstlisting}
 	 
-Any time \keyword{open} is called on a named pipe, the kernel blocks until another process calls the opposite open. Meaning, echo calls \keyword{open(..,\ O\_RDONLY)} but that blocks until cat calls \keyword{open(..,\ O\_WRONLY)}, then the programs are allowed to continue.
+Any time \keyword{open} is called on a named pipe, the kernel blocks until another process calls the opposite open. Meaning, echo calls \keyword{open(..,\ O\_WRONLY)} but that blocks until cat calls \keyword{open(..,\ O\_RDONLY)}, then the programs are allowed to continue.
 	 
 \subsection{Race condition with named pipes}
 	 
@@ -895,7 +897,7 @@ Sometimes it looks like it works because the execution of the code looks somethi
 			Time 1 & open(O\_RDWR) \& write() &                           \\
 			Time 2 &                          & open(O\_RDONLY) \& read() \\
 			Time 3 & close() \& exit()        &                           \\
-			Time 4 & print() \& exit()        &                           \\
+			Time 4 &                          & print() \& exit()         \\
 		\end{tabular}
 	\end{table}
 \end{center}
