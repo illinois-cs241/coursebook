@@ -1217,7 +1217,8 @@ close(epfd);
 
 In addition to non-blocking \keyword{read()} and \keyword{write()}, any calls to \keyword{connect()} on a non-blocking socket will also be non-blocking.
 To wait for the connection to complete, use \keyword{select()} or epoll to wait for the socket to be writable.
-There are reasons to use epoll over select but due to interface, there are fundamental problems with doing so.
+There are good reasons to prefer epoll over select, because select's interface has fundamental problems.
+It can only watch descriptor numbers below \keyword{FD\_SETSIZE} (usually 1024), and every call costs time proportional to the number of descriptors watched.
 
 \href{https://idea.popcount.org/2017-01-06-select-is-fundamentally-broken/}{Blogpost about select being broken}
 

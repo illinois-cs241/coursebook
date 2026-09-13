@@ -384,9 +384,11 @@ int atomic_compare_exchange_pseudo(int* addr1, int* addr2, int val){
 
 Except it is all done \emph{atomically} meaning in one uninterruptible operation.
 What does the \emph{weak} part mean?
-Atomic instructions are prone to \textbf{spurious failures} meaning that there are two versions to these atomic functions a \emph{strong} and a \emph{weak} part, strong guarantees the success or failure while weak may fail even when the operation succeeds.
-These are the same spurious failures that you'll see in condition variables below.
-We are using weak because weak is faster, and we are in a loop!
+C11 provides two versions of compare-and-swap.
+The \emph{strong} version fails only if the value really differed from what was expected.
+The \emph{weak} version may also fail \textbf{spuriously}, even when the value matched, which lets it compile to faster instructions on some CPUs, such as ARM.
+These are similar to the spurious wakeups that you'll see in condition variables below.
+We retry in a loop anyway, so a spurious failure only costs one more iteration, and we use the faster weak version.
 That means we are okay if it fails a little bit more often because we will keep spinning around anyway.
 
 Inside the while loop, we have failed to grab the lock!
@@ -481,8 +483,9 @@ sem_post(&s);
 \end{lstlisting}
 
 But be warned, it isn't the same!
-A mutex can handle what we call lock inversion well.
-Meaning the following code breaks with a traditional mutex, but produces a race condition with threads.
+A mutex has an owner: only the thread that locked it may unlock it.
+A semaphore has no owner, so any thread can call \keyword{sem\_post}, even one that never waited.
+In the following code, thread 2's stray \keyword{sem\_post} lets threads 1 and 3 into the critical section at the same time.
 
 \begin{lstlisting}[language=C]
 // Thread 1
@@ -500,7 +503,8 @@ sem_wait(&s);
 sem_post(&s);
 \end{lstlisting}
 
-If we replace it with mutex lock, it won't work now.
+With a mutex, thread 2's unlock is an error, because thread 2 does not own the mutex.
+An error-checking mutex returns \keyword{EPERM}; with a default mutex the behavior is undefined, so don't rely on it.
 
 \begin{lstlisting}[language=C]
 // Thread 1
