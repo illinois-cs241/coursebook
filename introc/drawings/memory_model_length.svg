@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Regenerate: docker run --rm -v "$PWD":/book -w /book <image with inkscape 1.x> sh -c 'inkscape introc/drawings/memory_model_length.svg --export-area-page --export-type=eps --export-filename=introc/drawings/memory_model_length.eps; inkscape introc/drawings/memory_model_length.svg --export-area-page --export-dpi=96 --export-filename=introc/drawings/memory_model_length.png' -->
 <!-- Created with Inkscape (http://www.inkscape.org/) -->
 
 <svg
@@ -15,10 +16,7 @@
    version="1.1"
    id="svg8"
    inkscape:version="0.92.4 (5da689c313, 2019-01-14)"
-   sodipodi:docname="memory_model_length.svg"
-   inkscape:export-filename="C:\Users\bhuvy\systems\coursebook\introc\drawings\memory_model_length.png"
-   inkscape:export-xdpi="96"
-   inkscape:export-ydpi="96">
+   sodipodi:docname="memory_model_length.svg">
   <defs
      id="defs2" />
   <sodipodi:namedview
@@ -29,7 +27,7 @@
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
      inkscape:zoom="2.8"
-     inkscape:cx="236.3388"
+     inkscape:cx="505.80309"
      inkscape:cy="135.48007"
      inkscape:document-units="mm"
      inkscape:current-layer="layer1"
@@ -79,6 +77,7 @@
        height="50.839783"
        x="1.0384402"
        y="245.12175" />
+    <text xml:space="preserve" style="font-style:normal;font-weight:normal;font-size:10.58333302px;line-height:1.25;font-family:sans-serif;text-anchor:end;text-align:end;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332" x="92.6" y="273.47" id="text827"><tspan sodipodi:role="line" id="tspan827" x="92.6" y="273.47">*person =</tspan></text>
     <rect
        style="opacity:1;fill:none;fill-opacity:1;stroke:#000000;stroke-width:1.08479166;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;paint-order:stroke markers fill"
        id="rect829"
@@ -255,18 +254,5 @@
          x="158.08104"
          y="265.33978"
          style="stroke-width:0.26458332;fill:#900048;fill-opacity:1;">6</tspan></text>
-    <text
-       xml:space="preserve"
-       style="font-style:normal;font-weight:normal;font-size:10.58333302px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332"
-       x="8.1264877"
-       y="272.99847"
-       id="text7032"
-       inkscape:export-xdpi="96"
-       inkscape:export-ydpi="96"><tspan
-         sodipodi:role="line"
-         id="tspan7030"
-         x="8.1264877"
-         y="272.99847"
-         style="stroke-width:0.26458332">person_name =</tspan></text>
   </g>
 </svg>

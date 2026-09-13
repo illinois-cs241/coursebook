@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Regenerate: docker run --rm -v "$PWD":/book -w /book <image with inkscape 1.x> sh -c 'inkscape ipc/drawings/three_address_split.svg --export-area-page --export-type=eps --export-filename=ipc/drawings/three_address_split.eps; inkscape ipc/drawings/three_address_split.svg --export-area-page --export-dpi=96 --export-filename=ipc/drawings/three_address_split.png' -->
 <!-- Created with Inkscape (http://www.inkscape.org/) -->
 
 <svg
@@ -1002,7 +1003,7 @@
          id="tspan4656"
          x="95.729179"
          y="253.1801"
-         style="stroke-width:0.26458332">Index 1</tspan></text>
+         style="stroke-width:0.26458332">Index 2</tspan></text>
     <text
        xml:space="preserve"
        style="font-style:normal;font-weight:normal;font-size:10.58333302px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332"
@@ -1013,6 +1014,6 @@
          id="tspan4660"
          x="24.291674"
          y="296.30716"
-         style="stroke-width:0.26458332">Index 2</tspan></text>
+         style="stroke-width:0.26458332">Index 1</tspan></text>
   </g>
 </svg>

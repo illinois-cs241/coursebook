@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Regenerate: docker run --rm -v "$PWD":/book -w /book <image with inkscape 1.x> sh -c 'inkscape ipc/drawings/frame_table.svg --export-area-page --export-type=eps --export-filename=ipc/drawings/frame_table.eps; inkscape ipc/drawings/frame_table.svg --export-area-page --export-dpi=96 --export-filename=ipc/drawings/frame_table.png' -->
 <!-- Created with Inkscape (http://www.inkscape.org/) -->
 
 <svg
@@ -1043,7 +1044,7 @@
          sodipodi:role="line"
          id="tspan18947-9"
          x="158.11372"
-         y="299.82693">30</tspan></text>
+         y="299.82693">45</tspan></text>
     <text
        xml:space="preserve"
        style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:10.58333302px;line-height:1.25;font-family:sans-serif;-inkscape-font-specification:'sans-serif, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332"
@@ -1054,7 +1055,7 @@
          sodipodi:role="line"
          id="tspan18967-5"
          x="158.11372"
-         y="321.52948">24</tspan></text>
+         y="321.52948">30</tspan></text>
     <circle
        style="opacity:1;fill:#000000;fill-opacity:1;stroke:#000000;stroke-width:1.04606879;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
        id="path19009-7"

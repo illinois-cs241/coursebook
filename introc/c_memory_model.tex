@@ -65,7 +65,7 @@ There is nothing in those boxes.
 
 \begin{figure}[H]
 \centering
-\includegraphics[width=.7\textwidth]{introc/drawings/memory_model_empty.eps}
+\includegraphics[width=.7\textwidth,alt={*person shown as a row of 11 empty byte boxes: 4 for the int length field and 7 for the characters of c\_str.}]{introc/drawings/memory_model_empty.eps}
 \caption{Struct pointing to 11 empty boxes}
 \end{figure}
 
@@ -81,8 +81,8 @@ person->length = length;
 
 \begin{figure}[H]
 \centering
-\includegraphics[width=.7\textwidth]{introc/drawings/memory_model_length.eps}
-\caption{Struct pointing to 11 boxes, 4 filled with 0006, 7 junk}
+\includegraphics[width=.7\textwidth,alt={The same 11 byte boxes of *person after the length is assigned: the first 4 boxes hold 0, 0, 0 and 6, the big-endian bytes of the length 6, and the remaining 7 boxes are still empty.}]{introc/drawings/memory_model_length.eps}
+\caption{Struct pointing to 11 boxes, 4 filled with 0006, 7 empty}
 \end{figure}
 
 Now, we can write a string to the end of our struct with the following call.
@@ -93,7 +93,7 @@ strcpy(person->c_str, to_convert);
 
 \begin{figure}[H]
 \centering
-\includegraphics[width=.7\textwidth]{introc/drawings/memory_model_full.eps}
+\includegraphics[width=.7\textwidth,alt={The 11 byte boxes of *person after the strcpy: the first 4 hold 0, 0, 0 and 6, and the last 7 hold the characters 'p', 'e', 'r', 's', 'o', 'n' and the terminating '\textbackslash 0'.}]{introc/drawings/memory_model_full.eps}
 \caption{Struct pointing to 11 boxes, 4 filled with 0006, 7 the string ``person''}
 \end{figure}
 

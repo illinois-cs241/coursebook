@@ -24,28 +24,6 @@ file is the leftovers.
 
 ## Figures
 
-Found while viewing every figure to assess alt text (none of the 48
-figures has any). Fix these before writing alt text that states the
-figures' contents.
-
-### introc/c_memory_model.tex:66-98 — the three memory-model figures are blank
-`memory_model_empty.eps`, `memory_model_length.eps` and
-`memory_model_full.eps` are identical apart from a timestamp: 11 empty
-boxes, with no "0006" and no string, contradicting their captions. Commit
-a620438 (2020-01-12) replaced them. The 521ba93 originals had the content,
-but spelled the string "bhuvan" rather than "person", so they need
-redrawing.
-
-### scheduling/drawings/psjf.eps — P5 gets 4 s of CPU
-The text gives P5 5000ms, but its bars total 4 s.
-
-### ipc/drawings/three_address_split.eps — index labels look swapped
-The "Index 1" / "Index 2" labels appear reversed relative to the prose.
-
-### ipc/drawings/frame_table.eps — numbers differ from the prose
-The figure maps page 1 → frame 30 and page 2 → 24; the prose says 1 → 45
-and 2 → 30.
-
 ### Alt text — mechanism
 `\includegraphics[alt={...}]` compiles on the CI toolchain (TeX Live 2023)
 but is currently discarded everywhere: the PDF is untagged, and pandoc 2.7
@@ -54,7 +32,7 @@ but is currently discarded everywhere: the PDF is untagged, and pandoc 2.7
 Pandoc 3.x does honour `alt=`, but then figures without it get empty alt,
 which the EPUB filters' `NoAltTagException` rejects, so the filters should
 fall back to the caption when pandoc is upgraded. Alt text has been added
-to 45 of the 48 figures (all but the three blank memory-model figures),
+to all 48 figures,
 plus a sentence of prose wherever a figure carried facts the text did not;
 that prose is the only part that reaches readers of every format today.
 
