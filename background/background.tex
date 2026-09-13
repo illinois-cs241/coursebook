@@ -301,7 +301,7 @@ But for the sake of debugging, it may benefit you in the long run to adopt some 
 Use assertions to make sure your code works up to a certain point -- and importantly, to make sure you don't break it later.
 For example, if your data structure is a doubly-linked list, you can do something like \keyword{assert(node == node->next->prev)} to assert that the next node has a pointer to the current node.
 You can also check the pointer is pointing to an expected range of memory addresses, non-null, -\textgreater{}size is reasonable, etc.
-The \keyword{DEBUG} macro will disable all assertions, so don't forget to set that once you finish debugging \cite{cplusplus_assert}.
+Defining the \keyword{NDEBUG} macro (for example, compiling with \keyword{-DNDEBUG}) will disable all assertions, so you can set it once you finish debugging \cite{cplusplus_assert}.
 
 Here is a quick example with an assert.
 Let's say that we are writing code using memcpy.

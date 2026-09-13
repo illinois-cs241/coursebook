@@ -271,9 +271,9 @@ You can see the convoy effect for P5.
 
 \textbf{Disadvantages}
 \begin{itemize}
-\item Simple algorithm and implementation
-\item Context switches infrequent when there are long-running processes
-
+\item Convoy effect: short processes that arrive behind a long-running process must wait for it to finish
+\item Poor average waiting and response times when job lengths vary
+\item No preemption, so it is unsuitable for interactive systems
 \end{itemize}
 
 \subsection{Round Robin (RR)}

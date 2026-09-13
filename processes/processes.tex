@@ -654,7 +654,7 @@ A process can only have 256 return values, the rest of the bits are informationa
 However, the kernel has an internal way of keeping track of signaled, exited, or stopped processes.
 This API is abstracted so that the kernel developers are free to change it at will.
 Remember: these macros only make sense if the precondition is met.
-For example, a process' exit status won't be defined if the process isn't signaled.
+For example, a process' exit status (\keyword{WEXITSTATUS}) is only defined if the process exited normally (\keyword{WIFEXITED}), and the signal that killed it (\keyword{WTERMSIG}) is only defined if the process was signaled (\keyword{WIFSIGNALED}).
 The macros will not do the checking for the program, so it's up to the programmer to make sure the logic is correct.
 As an example above, the program should use the \keyword{WIFSTOPPED} to check if a process was stopped and then the \keyword{WSTOPSIG} to find the signal that stopped it.
 As such, there is no need to memorize the following. This is a high-level overview of how information is stored inside the status variables. From the \keyword{sys/wait.h} of an old Berkeley Standard Distribution (BSD) kernel \cite{sys/wait.h}:

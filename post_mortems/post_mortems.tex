@@ -159,21 +159,6 @@ Needless to say, people were angry.
 
 Lessons Learned: Get an antivirus and/or apparmor and make sure that an application is only requesting permissions that make sense. If you are torn, try something like Windows sandbox or keep a Sacrificial VM around to see if installing it makes your computer horrible. Don't trust certificates, trust code.
 
-\section{Civilization and Ghandi}
-
-Required Sections: Intro to C
-
-\href{https://web.archive.org/web/20191216004115/https://www.geek.com/games/why-gandhi-is-always-a-warmongering-jerk-in-civilization-1608515/}{Ghandi's Aggressiveness}
-
-This is probably well known to gamers why someone as (in real life) non-violent as Ghandi was aggressive in the video game civilization.
-In the original, the game kept aggressiveness as an unsigned integer.
-During the game, the integer could be decremented and then the problem ensued because Ghandi was already at zero.
-This caused him to become the most aggressive character in the game.
-
-Lessons Learned: The take away from this is \textbf{never} use unsigned numbers unless you have an express written reason for it (reasons include you need to know about the overflow behavior, you are bit shifting, you are bit masking).
-In every other case, cast it.
-
-
 \section{The Woes of Shell Scripting}
 
 Required Sections: Intro to C/Appending
@@ -183,11 +168,13 @@ Required Sections: Intro to C/Appending
 There was a simple bug in Steam that caused Steam to remove all of your files in the form of something like this
 
 \begin{lstlisting}[language=bash]
-$ ROOT=$(cd $0/; echo $PWD);
-$ rm -rf $ROOT
+STEAMROOT="$(cd "${0%/*}" && echo $PWD)"
+# ...
+rm -rf "$STEAMROOT/"*
 \end{lstlisting}
 
-What happens if \$0 or the first parameter passed into a script doesn't exist? You move to root, and you delete your entire computer.
+In a shell script, \$0 is the path of the script itself (not the first parameter, which is \$1), so the first line tries to find the directory the script lives in.
+What happens if that directory doesn't exist, for example because the user moved it? The \keyword{cd} fails, \keyword{STEAMROOT} is empty, and the second line deletes everything under the root directory that the user can write to.
 
 Lessons Learned: Do parameter checks, always always always \keyword{set -e} on a script and if you expect a command to fail, explicitly list it. You can also alias rm to mv and then delete the trash later.
 
