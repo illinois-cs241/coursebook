@@ -23,7 +23,7 @@ Even though it is a common statistical phrase that all models are wrong, the mor
 
 \begin{figure}[H]
 	\centering
-	\includegraphics[width=.6\textwidth]{deadlock/drawings/rag.eps}
+	\includegraphics[width=.6\textwidth,alt={Resource allocation graph with three processes and two resources. Resource 1 is held by process 1 and requested by processes 2 and 3; resource 2 is held by process 2 and requested by process 3. The graph has no cycle.}]{deadlock/drawings/rag.eps}
 	\caption{Resource allocation graph}
 	\label{ragfigure}
 \end{figure}
@@ -34,7 +34,7 @@ It is a simple yet powerful tool to illustrate how interacting processes can dea
 If a process is \emph{using} a resource, an arrow is drawn from the resource node to the process node.
 If a process is \emph{requesting} a resource, an arrow is drawn from the process node to the resource node.
 If there is a cycle in the Resource Allocation Graph and each resource in the cycle provides only one instance, then the processes will deadlock.
-For example, if process 1 holds resource A, process 2 holds resource B and process 1 is waiting for B and process 2 is waiting for A, then processes 1 and 2 will be deadlocked (see Figure~\ref{ragfigure}).
+For example, if process 1 holds resource A, process 2 holds resource B and process 1 is waiting for B and process 2 is waiting for A, then processes 1 and 2 will be deadlocked (see Figure~\ref{deadlockfigure}).
 We'll make the distinction that the system is in deadlock by definition if all workers cannot perform an operation other than waiting.
 So, as long as every resource offers a single instance, detecting deadlock means searching the graph for a cycle.
 Both the processes and the resources are nodes, and every edge has a direction, so this is cycle detection in a \emph{directed} graph.
@@ -104,9 +104,13 @@ If a resource in the cycle offers several interchangeable instances, a process o
 
 \begin{figure}[H]
 	\centering
-	\includegraphics[width=.5\textwidth]{deadlock/drawings/deadlock.eps}
+	\includegraphics[width=.5\textwidth,alt={The resource allocation graph with one more edge: process 1 now also requests resource 2. Dashed edges mark the resulting cycle between processes 1 and 2 and the two resources.}]{deadlock/drawings/deadlock.eps}
 	\caption{Graph based Deadlock}
+	\label{deadlockfigure}
 \end{figure}
+
+In this graph, process 1 holds resource 1 and is requesting resource 2, while process 2 holds resource 2 and is requesting resource 1.
+The dashed edges mark that cycle, so processes 1 and 2 are deadlocked, and process 3, which is requesting both resources, is stuck behind them.
 
 \section{Coffman Conditions}
 
@@ -227,7 +231,7 @@ However, these chopsticks are shared with his neighbor.
 
 \begin{figure}[H]
 	\centering
-	\includegraphics[width=.5\textwidth]{deadlock/drawings/dining.eps}
+	\includegraphics[width=.5\textwidth,alt={Six philosophers, drawn as plates, sit around a round table with one fork between each neighbouring pair. The philosophers are the processes and the forks are the resources.}]{deadlock/drawings/dining.eps}
 	\caption{Dining Philosophers}
 \end{figure}
 
@@ -263,7 +267,7 @@ Here is a simple resource allocation graph that shows how the system could be de
 
 \begin{figure}[H]
 	\centering
-	\includegraphics[width=.9\textwidth]{deadlock/drawings/dining_naive.eps}
+	\includegraphics[width=.9\textwidth,alt={Three stages at the table: first idle, then every philosopher picks up their left fork, then every philosopher waits for the right fork that a neighbour already holds. The waits form a cycle, marked as deadlock.}]{deadlock/drawings/dining_naive.eps}
 	\caption{Left right dining philosopher cycle}
 \end{figure}
 
@@ -304,7 +308,7 @@ Here is what a time evolution of the system would look like.
 
 \begin{figure}[H]
 	\centering
-	\includegraphics[width=.9\textwidth]{deadlock/drawings/dining_livelock.eps}
+	\includegraphics[width=.9\textwidth,alt={A time sequence in which every philosopher repeatedly picks up their left fork, fails to get the right one, puts the left fork down, and tries again. The pattern repeats forever and nobody eats.}]{deadlock/drawings/dining_livelock.eps}
 	\caption{Livelock Failure}
 \end{figure}
 
@@ -339,7 +343,7 @@ He would make forward progress and the system would make forward progress but th
 
 \begin{figure}[H]
 	\centering
-	\includegraphics[width=.9\textwidth]{deadlock/drawings/dining_arbitrator.eps}
+	\includegraphics[width=.9\textwidth,alt={Every philosopher asks a single central lock, the arbitrator, for permission. Only the philosopher holding the lock picks up both forks, so no cycle of waiting can form.}]{deadlock/drawings/dining_arbitrator.eps}
 	\caption{Arbitrator Diagram}
 \end{figure}
 
@@ -381,9 +385,12 @@ The system is about to deadlock, but the approach resolves it.
 
 \begin{figure}[H]
 	\centering
-	\includegraphics[width=.9\textwidth]{deadlock/drawings/dining_stalling.eps}
+	\includegraphics[width=.9\textwidth,alt={The table with one seat crossed out, leaving five philosophers and six forks. As the philosophers pick up forks and reach for their neighbours, the extra fork lets at least one of them eat, so the system avoids deadlock.}]{deadlock/drawings/dining_stalling.eps}
 	\caption{Stallings' solution almost deadlock}
 \end{figure}
+
+Because one seat is empty, there are more forks than philosophers.
+Even if all five remaining philosophers hold their left fork, one fork is still free, so at least one philosopher can pick up a second fork and eat.
 
 
 \subsection{Partial Ordering (Dijkstra's Solution)}
@@ -423,7 +430,7 @@ This prioritizes philosophers that have already eaten but can be made fairer by 
 
 \begin{figure}[H]
 	\centering
-	\includegraphics[width=.9\textwidth]{deadlock/drawings/dining_partial.eps}
+	\includegraphics[width=.9\textwidth,alt={The same stages under Dijkstra ordering: every philosopher reaches for their lower-numbered fork first, so one philosopher reaches the opposite way from the rest. That breaks the circular wait, and the system does not deadlock.}]{deadlock/drawings/dining_partial.eps}
 	\caption{Dijkstra's partial ordering solution}
 \end{figure}
 

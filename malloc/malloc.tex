@@ -198,9 +198,11 @@ Let's say that our heap looks like the following table.
 
 \begin{figure}[H]
 \centering
-\includegraphics[width=.9\textwidth]{malloc/drawings/heap_empty.eps}
+\includegraphics[width=.9\textwidth,alt={A heap of seven blocks in address order: 16KiB free, 10KiB allocated, 1KiB free, 1KiB allocated, 30KiB free, 4KiB allocated, and 2KiB free.}]{malloc/drawings/heap_empty.eps}
 \caption{Empty heap blocks}
 \end{figure}
+
+From the lowest address, the blocks are 16KiB free, 10KiB allocated, 1KiB free, 1KiB allocated, 30KiB free, 4KiB allocated, and 2KiB free.
 
 If a new malloc request for 2KiB is executed (\keyword{malloc(2048)}), where should \keyword{malloc} reserve the memory?
 It could use the last 2KiB hole, which happens to be the perfect size!
@@ -212,7 +214,7 @@ A perfect-fit strategy finds the smallest hole that is of sufficient size (at le
 
 \begin{figure}[H]
 \centering
-\includegraphics[width=.9\textwidth]{malloc/drawings/heap_best_fit.eps}
+\includegraphics[width=.9\textwidth,alt={Best fit walks the whole list of blocks and picks the 2KiB free block at the end, an exact match for the 2KiB request.}]{malloc/drawings/heap_best_fit.eps}
 \caption{Best fit finds an exact match}
 \end{figure}
 
@@ -220,9 +222,11 @@ A worst-fit strategy finds the largest hole that is of sufficient size so break 
 
 \begin{figure}[H]
 \centering
-\includegraphics[width=.9\textwidth]{malloc/drawings/heap_worst_fit.eps}
+\includegraphics[width=.9\textwidth,alt={Worst fit picks the largest hole, the 30KiB free block, and splits it into a 2KiB block for the request and a 28KiB free remainder.}]{malloc/drawings/heap_worst_fit.eps}
 \caption{Worst fit finds the worst match}
 \end{figure}
+
+The request takes 2KiB of that hole and leaves a 28KiB hole behind it.
 
 
 A first-fit strategy finds the first available hole that is of sufficient size so break the 16KiB hole into two.
@@ -230,7 +234,7 @@ We don't even have to look through the entire heap!
 
 \begin{figure}[H]
 \centering
-\includegraphics[width=.5\textwidth]{malloc/drawings/heap_first_fit.eps}
+\includegraphics[width=.5\textwidth,alt={First fit stops at the first hole that is large enough, the 16KiB free block, and splits it into a 2KiB block for the request and a 14KiB free remainder.}]{malloc/drawings/heap_first_fit.eps}
 \caption{First fit finds the first match}
 \end{figure}
 
@@ -305,7 +309,7 @@ bt is short for boundary tag.
 
 \begin{figure}[H]
 \centering
-\includegraphics[width=.7\textwidth]{malloc/drawings/malloc_patching.eps}
+\includegraphics[width=.7\textwidth,alt={Three adjacent blocks, each laid out as metadata, then space, then a boundary tag: a free block, a used block about to be freed, and another free block.}]{malloc/drawings/malloc_patching.eps}
 \caption{3 Adjacent Memory blocks}
 \end{figure}
 
@@ -314,7 +318,7 @@ This is in contrast to an explicit \keyword{metadata *next} field in our meta bl
 
 \begin{figure}[H]
 \centering
-\includegraphics[width=.5\textwidth]{malloc/drawings/malloc_addition.eps}
+\includegraphics[width=.5\textwidth,alt={Pointer arithmetic on one block: p points at the metadata, p plus sizeof(meta) at the usable space, adding the block size reaches the boundary tag, and adding the tag size reaches the start of the next block.}]{malloc/drawings/malloc_addition.eps}
 \caption{Malloc addition}
 \end{figure}
 
@@ -413,9 +417,12 @@ The split we'll have to do is the following.
 
 \begin{figure}[H]
 \centering
-\includegraphics[width=.7\textwidth]{malloc/drawings/malloc_split.eps}
+\includegraphics[width=.7\textwidth,alt={A 52-byte block, with 8 bytes of metadata, 40 bytes of space and a 4-byte boundary tag, split for a 16-byte request into a block with 16 bytes of space ending at 0x1C and a new block with 12 bytes of space ending at 0x34.}]{malloc/drawings/malloc_split.eps}
 \caption{Malloc split}
 \end{figure}
+
+The original block is 52 (0x34) bytes: 8 bytes of metadata, 40 bytes of space, and a 4-byte boundary tag.
+After the split, the first block keeps 16 bytes of space and ends at 0x1C, and the remaining 24 bytes become a new block with 8 bytes of metadata, 12 bytes of space, and its own 4-byte tag.
 
 This is before alignment concerns as well.
 
@@ -478,7 +485,7 @@ If we wanted to free the middle block we need to turn the surrounding blocks int
 
 \begin{figure}[H]
 \centering
-\includegraphics[width=.9\textwidth]{malloc/drawings/malloc_double_coalesce.eps}
+\includegraphics[width=.9\textwidth,alt={Freeing a used block that sits between two free blocks. The two free spaces, the freed block, and all the metadata and boundary tags between them merge into one large free block with a single metadata header and a single tag.}]{malloc/drawings/malloc_double_coalesce.eps}
 \caption{Free double coalesce}
 \end{figure}
 
@@ -515,7 +522,7 @@ Here is what that would look like along with our implicit linked list.
 
 \begin{figure}[H]
 \centering
-\includegraphics[width=.7\textwidth]{malloc/drawings/free_list.eps}
+\includegraphics[width=.7\textwidth,alt={An explicit free list: dotted pointers link only the free blocks, running from the first free block to the next free block and skipping the used block between them, while the blocks stay next to each other in memory.}]{malloc/drawings/free_list.eps}
 \caption{Free list}
 \end{figure}
 
@@ -533,9 +540,12 @@ We've included a figure with a common mistake.
 
 \begin{figure}[H]
 \centering
-\includegraphics[width=.7\textwidth]{malloc/drawings/free_list_ptrs.eps}
+\includegraphics[width=.7\textwidth,alt={Freeing and coalescing a used block between two free blocks, shown with the free-list pointers. The version marked wrong leaves a pointer aimed at the old header of the absorbed block, now inside the merged block; the version marked correct links the merged block straight to the next free block.}]{malloc/drawings/free_list_ptrs.eps}
 \caption{Free list good and bad coalesce}
 \end{figure}
+
+In the incorrect version, the merged block still points to where the right-hand block used to start, which is now in the middle of the merged block.
+In the correct version, the merged block takes over the right-hand block's link, so the list goes from the merged block straight to the next free block.
 
 We recommend when trying to implement malloc that you draw out all the cases conceptually and then write the code.
 

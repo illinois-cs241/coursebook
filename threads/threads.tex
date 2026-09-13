@@ -47,7 +47,7 @@ In a multi-threaded program, there are multiple stacks but only one address spac
 
 \begin{figure}[H]
 \centering
-\includegraphics[width=.5\textwidth]{threads/drawings/thread_stack.eps}
+\includegraphics[width=.5\textwidth,alt={One address space with reserved space at the top, then the first thread stack, then the second thread stack below it, and room for more stacks.}]{threads/drawings/thread_stack.eps}
 \caption{Thread stack visualization}
 \end{figure}
 
@@ -63,7 +63,7 @@ Thus they can all see the heap, the global variables, and the program code.
 
 \begin{figure}[H]
 \centering
-\includegraphics[width=.5\textwidth]{threads/drawings/thread_stack_pointer.eps}
+\includegraphics[width=.5\textwidth,alt={Pointer b on the first thread stack and pointer a on the second thread stack both point to the same integer, holding 1, on the heap. The threads have separate stacks but share the heap.}]{threads/drawings/thread_stack_pointer.eps}
 \caption{Threads pointing to the same place in the heap}
 \end{figure}
 
@@ -240,7 +240,7 @@ Consider this access pattern.
 
 \begin{figure}[H]
 \centering
-\includegraphics[width=.7\textwidth]{threads/drawings/thread_nonrace_timing.eps}
+\includegraphics[width=.7\textwidth,alt={Timeline in which thread 2 reads data as 1, doubles it and writes 2 before thread 1 starts. Thread 1 then reads 2, doubles it and writes 4, so data ends at 4.}]{threads/drawings/thread_nonrace_timing.eps}
 \caption{Thread access - not a race condition}
 \end{figure}
 
@@ -249,7 +249,7 @@ The problem is when the instructions are executed in parallel.
 
 \begin{figure}[H]
 \centering
-\includegraphics[width=.5\textwidth]{threads/drawings/thread_race_timing.eps}
+\includegraphics[width=.5\textwidth,alt={Timeline in which both threads read data as 1 before either writes back. Both compute 2 and store 2, so one update is lost and data ends at 2 instead of 4.}]{threads/drawings/thread_race_timing.eps}
 \caption{Thread access - race condition}
 \end{figure}
 

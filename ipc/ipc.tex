@@ -71,7 +71,7 @@ Implied from the name, imagine a page table as a table.
 	 
 \begin{figure}[H]
 	\centering
-	\includegraphics[width=.5\textwidth]{ipc/drawings/frame_table.eps}
+	\includegraphics[width=.5\textwidth,alt={A two-column page table: each row maps a page number, counting 0, 1, 2 and so on, to the number of the physical frame that holds that page. Consecutive pages can map to frames anywhere in physical memory.}]{ipc/drawings/frame_table.eps}
 	\caption{Explicit Frame Table}
 \end{figure}
 	 
@@ -94,7 +94,7 @@ How would we split it up using a one-page table to frame scheme?
 	 
 \begin{figure}[H]
 	\centering
-	\includegraphics[width=.5\textwidth]{ipc/drawings/address_split.eps}
+	\includegraphics[width=.5\textwidth,alt={The 32-bit virtual address 11110000111100001111000010101010 split into a 20-bit page number, 11110000111100001111, and a 12-bit offset, 000010101010.}]{ipc/drawings/address_split.eps}
 	\caption{Splitting Address}
 \end{figure}
 	 
@@ -103,7 +103,7 @@ In general, it looks like the following.
 	 
 \begin{figure}[H]
 	\centering
-	\includegraphics[width=1.0\textwidth]{ipc/drawings/level_split.eps}
+	\includegraphics[width=1.0\textwidth,alt={Single-level translation: the top 20 bits of the address index the page table to find a frame number, and the low 12 bits are the offset of the byte within that physical frame.}]{ipc/drawings/level_split.eps}
 	\caption{One level dereference}
 \end{figure}
 	 
@@ -111,9 +111,12 @@ The way to read from a particular address above is visualized below.
 	 
 \begin{figure}[H]
 	\centering
-	\includegraphics[width=1.0\textwidth]{ipc/drawings/level_split_filled.eps}
+	\includegraphics[width=1.0\textwidth,alt={The example address translated: its page number selects the page table entry holding frame 357, and its offset selects the byte inside physical frame 357.}]{ipc/drawings/level_split_filled.eps}
 	\caption{One level dereference example}
 \end{figure}
+
+In this example, the top 20 bits 11110000111100001111 select the page table entry that holds frame 357.
+The offset 000010101010 then selects the byte inside frame 357.
 	 
 And if we were reading from it, 'return' that value.
 This sounds like a perfect solution.
@@ -141,7 +144,7 @@ As an example, a two-level page table for a 32-bit architecture is shown below.
 	 
 \begin{figure}[H]
 	\centering
-	\includegraphics[width=.5\textwidth]{ipc/drawings/three_address_split.eps}
+	\includegraphics[width=.5\textwidth,alt={The same 32-bit address 11110000111100001111000010101010 split into three fields: a 10-bit index into the top-level table, a 10-bit index into a second-level table, and a 12-bit offset within the frame.}]{ipc/drawings/three_address_split.eps}
 	\caption{Three Way Address Split}
 \end{figure}
 	 
@@ -159,7 +162,7 @@ In one diagram, the dereference looks like the following image.
 	 
 \begin{figure}[H]
 	\centering
-	\includegraphics[width=1.0\textwidth]{ipc/drawings/multi_level_split.eps}
+	\includegraphics[width=1.0\textwidth,alt={Two-level translation: the top 10 bits index the base directory to find a sub-table, the next 10 bits index that sub-table to find a frame number, and the last 12 bits locate the byte within the physical frame.}]{ipc/drawings/multi_level_split.eps}
 	\caption{Full page table dereference}
 \end{figure}
 	 
@@ -167,9 +170,12 @@ Following our example, here is what the dereference would look like.
 	 
 \begin{figure}[H]
 	\centering
-	\includegraphics[width=1.0\textwidth]{ipc/drawings/multi_level_filled.eps}
+	\includegraphics[width=1.0\textwidth,alt={The example address translated through two levels: directory entry 173 leads to sub-table 173, whose entry gives frame 241, and the offset selects the byte inside frame 241.}]{ipc/drawings/multi_level_filled.eps}
 	\caption{Full page example dereference}
 \end{figure}
+
+Here the top 10 bits 1111000011 select directory entry 173, which points to sub-table 173.
+The middle 10 bits 1100001111 select the entry holding frame 241, and the offset 000010101010 selects the byte inside frame 241.
 	 
 \subsubsection{Calculating Size Concerns}
 	 
@@ -504,7 +510,7 @@ The important part is that bash creates \textbf{5 separate processes} and connec
 	 
 \begin{figure}[H]
 	\centering
-	\includegraphics[width=.8\textwidth]{ipc/drawings/pipe_process.eps}
+	\includegraphics[width=.8\textwidth,alt={Five processes in a pipeline: ls -1, cut, sort, uniq, and tee dirents. Arrows connect each process standard output, file descriptor 1, to the next process standard input, file descriptor 0.}]{ipc/drawings/pipe_process.eps}
 	\caption{Pipe Process Filedescriptor redirection}
 \end{figure}
 	 
