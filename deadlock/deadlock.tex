@@ -199,7 +199,7 @@ When the operating system detects deadlock, it does nothing out of the ordinary,
 An operating system preempts processes when stopping them for context switches.
 The operating system can interrupt any system call, potentially breaking a deadlock scenario.
 The OS also makes some files read-only thus making the resource shareable.
-What the algorithm refers to is that if there is an adversary that specifically crafts a program -- or equivalently a user who poorly writes a program -- that the OS deadlocks.
+The ostrich algorithm accepts that a malicious or badly written program can still deadlock; the operating system simply doesn't try to prevent it.
 For everyday life, this tends to be fine.
 When it is not we can turn to the following method.
 

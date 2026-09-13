@@ -638,7 +638,8 @@ Another solution could also exit the loop by checking for an end-of-message mark
 	 
 We know that when a process tries to read from a pipe where there are still writers, the process blocks.
 If a pipe has no writers, read returns 0.
-If a process tries to write with some reader's read goes through, or fails -- partially or completely -- if the pipe is full.
+If a process writes to a pipe that still has a reader, the write succeeds as long as the pipe's buffer has room.
+If the pipe is full, the write blocks until a reader makes room; on a non-blocking pipe it instead writes what fits and returns early, or fails with \keyword{EAGAIN} if nothing fits.
 What happens when a process tries to write when there are no readers left?
 	 
 \begin{verbatim}

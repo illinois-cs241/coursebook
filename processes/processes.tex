@@ -220,9 +220,11 @@ Note, this limit is only for the user, which means if you fork bomb, then you wo
 Quite unfortunate.
 One solution is to spawn another shell instance as another user (for example root) beforehand and kill processes from there.
 
-Another is to use the built-in \keyword{exec} command to kill all the user processes (you only have one attempt at this).
+Another is the shell's built-in \keyword{exec}, which replaces the shell instead of forking, so it works even when no new processes can be created.
+For example, \keyword{exec kill -9 -1} kills all of your processes.
+You only get one attempt, because your shell is replaced.
 
-Finally, you could reboot the system, but you only have one shot at this with the exec function.
+As a last resort, reboot the machine.
 
 When testing fork() code, ensure that you have either root and/or physical access to the machine involved.
 If you must work on fork() code remotely, remember that \textbf{kill -9 -1} will save you in the event of an emergency.
@@ -830,7 +832,7 @@ Note the following:
   The one exception to this is if the file descriptor has the Close-On-Exec flag set (O\_CLOEXEC) -- we will go over setting flags later.
 \item Various signal semantics: the executed processes preserve the signal mask and the pending signal set but do not preserve the signal handlers since it is a different program.
 \item Environment variables are preserved unless using an environ version of exec.
-\item The operating system may open up 0, 1, 2 -- stdin, stdout, stderr, if they are closed after exec; most of the time they leave them closed.
+\item Open file descriptors stay open across exec unless they are marked close-on-exec (\keyword{O\_CLOEXEC}), and closed ones stay closed. The exception is a setuid program: some systems open \keyword{/dev/null} on any of 0, 1 or 2 that are closed, so the program can't accidentally write into a file it opens later.
 \item The executed process runs as the same PID and has the same parent and process group as the previous process.
 \item The executed process is run on the same user and group with the same working directory.
 \end{enumerate}

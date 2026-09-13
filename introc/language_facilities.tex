@@ -121,7 +121,7 @@ void process_day(enum day foo) {
 }
 \end{lstlisting}
 
-	    \item \keyword{extern} is a special keyword that tells the compiler that the variable may be defined in another object file or a library, so the program compiles on missing variable because the program will reference a variable in the system or another file.
+	    \item \keyword{extern} declares a variable without defining it. It tells the compiler that the variable exists and is defined in another source file or library, so the file compiles, and the linker connects the name to its definition later.
 
 \begin{lstlisting}[language=C]
 // file1.c

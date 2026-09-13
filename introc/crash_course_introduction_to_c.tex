@@ -16,7 +16,8 @@ int main(void) {
 	\item The \keyword{int main(void)} is a function declaration.
     The first word \keyword{int} tells the compiler the return type of the function.
     The part before the parenthesis (\keyword{main}) is the function name.
-    In C, no two functions can have the same name in a single compiled program, although shared libraries may be able.
+    In C, no two functions in a program can have the same name, because C has no function overloading.
+    Two shared libraries can export the same symbol name, though, and the dynamic linker uses the first one it finds.
     Then, the parameter list comes after.
     When we provide the parameter list for regular functions \keyword{(void)} that means that the compiler should produce an error if the function is called with a non-zero number of arguments.
     For regular functions having a declaration like \keyword{void func()} means that the function can be called like \keyword{func(1, 2, 3)}, because there is no delimiter.

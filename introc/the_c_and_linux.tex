@@ -32,8 +32,8 @@ Before we dive into common C functions, we need to know what a system call is.
 If you are a student and have completed HW0, feel free to gloss over this section.
 
 A system call is an operation that the kernel carries out.
-First, the operating system prepares a system call.
-Next, the kernel executes the system call to the best of its ability in kernel space and is a privileged operation.
+First, the program places the system call number and its arguments in registers and executes a trap instruction.
+The kernel then carries out the call in kernel space, where it can perform privileged operations that user code cannot.
 In the previous example, we got access to a file descriptor object.
 We can now also write some bytes to the file descriptor object that represents a file, and the operating system will do its best to get the bytes written to the disk.
 

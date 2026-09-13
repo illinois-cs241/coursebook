@@ -114,18 +114,6 @@ Several sentences that introduce an enumerate/lstlisting end without a period (e
 
 ## introc
 
-### introc/the_c_and_linux.tex:36 — broken sentence about system calls
-"Next, the kernel executes the system call to the best of its ability in kernel space and is a privileged operation."
-The clause "and is a privileged operation" has no valid subject (the kernel is not the privileged operation). Needs a rewrite that a human should own, e.g. "...in kernel space; executing a system call is a privileged operation."
-
-### introc/crash_course_introduction_to_c.tex:19 — incomplete sentence
-"In C, no two functions can have the same name in a single compiled program, although shared libraries may be able."
-"may be able" is missing its complement ("may be able to have duplicates"?). The intended claim about shared libraries/symbol interposition is unclear enough that a human should decide the wording.
-
-### introc/language_facilities.tex:125 — garbled explanation of `extern`
-"...so the program compiles on missing variable because the program will reference a variable in the system or another file."
-"compiles on missing variable" is not grammatical and the causal clause is circular. Needs a real rewrite of the explanation.
-
 ### introc/language_facilities.tex:369 — ungrammatical struct definition
 "C-structs are contiguous regions of memory that one can access specific elements of each memory as if they were separate variables."
 The relative clause is broken; needs rewriting by someone who knows the intended sentence.
@@ -163,12 +151,6 @@ Presumably "In addition to being able to add integers to integers, you can add a
 
 ## processes
 
-### processes/processes.tex:225 — sentence appears to contradict/duplicate line 223
-"Another is to use the built-in \keyword{exec} command to kill all the user processes (you only have
-one attempt at this)." then "Finally, you could reboot the system, but you only have one shot at this
-with the exec function." The reboot option and the exec option are conflated, and the parenthetical is
-repeated. Needs an author to say what was meant.
-
 ### processes/processes.tex:142 — "starts at ... and starts at a constant size"
 "This section starts at the end of the text segment and starts at a constant size because the number of
 globals is known at compile time." The second "starts at" reads like it should be "stays at" / "has a
@@ -180,11 +162,6 @@ Line 127 says the program break is the top of the heap ("\keyword{malloc} may pu
 called the program break -- upward"); line 142 says "The end of the data segment is called the
 \keyword{program break}". Both are defensible historically, but stating both without comment will
 confuse students.
-
-### processes/processes.tex:834 — confusing claim about stdin/stdout/stderr after exec
-"The operating system may open up 0, 1, 2 -- stdin, stdout, stderr, if they are closed after exec; most
-of the time they leave them closed." Subject shifts from "operating system" to "they", and it is unclear
-what a student should take away. Needs rewording by someone who knows which behavior is intended.
 
 ### processes/processes.tex:977 — question is cut off mid-sentence
 "What is the difference between execs with a p and without a p? What does the operating system" — the
@@ -286,10 +263,6 @@ What are a few things that threads share in a process? What are a few things tha
 
 `synchronization/synchronization.tex:235-236` — "If a mutex is locked, the other threads will continue. It's only when a thread attempts to lock a mutex that is already locked, will the thread have to wait." The second sentence is ungrammatical (a mixed "It is only when… that…" / "Only when… will…" construction). Rewording touches a technical claim, so I left it.
 
-### Description of weak vs strong CAS is garbled and arguably backwards
-
-`synchronization/synchronization.tex:393` — "there are two versions to these atomic functions a \emph{strong} and a \emph{weak} part, strong guarantees the success or failure while weak may fail even when the operation succeeds." Missing punctuation, "part" is the wrong noun, and "may fail even when the operation succeeds" is a confusing way to state spurious failure (weak may fail even when the comparison succeeded). Needs an author rewrite.
-
 ### Confusing mutual-exclusion justification
 
 `synchronization/synchronization.tex:404-405` — "How does this guarantee mutual exclusion? When working with atomics we are unsure! But in this simple example, we can because the thread that can successfully expect the lock to be UNLOCKED (0) and swap it…". The sentence has no clear main clause ("we can" what?) and "successfully expect" is odd. Technical passage, left alone.
@@ -297,10 +270,6 @@ What are a few things that threads share in a process? What are a few things tha
 ### Semaphore-vs-mutex passage looks logically inverted
 
 `synchronization/synchronization.tex:472` — "That is usually why a mutex is used to implement a semaphore and vice versa." reads as a non-sequitur after the warning about breaking the mutex abstraction. (The related line 527 claim about unlocking a mutex from another thread has been fixed.)
-
-### Lock-inversion example explanation contradicts itself
-
-`synchronization/synchronization.tex:490-491` and `:509` — "A mutex can handle what we call lock inversion well. Meaning the following code breaks with a traditional mutex, but produces a race condition with threads." followed later by "If we replace it with mutex lock, it won't work now." Both sentences seem to say the opposite of the intended point (the mutex version *is* the safe one, per the code comments "Foiled!" / "Now it's thread-safe"). Needs an author rewrite.
 
 ### Run-on sentence spanning a technical claim
 
@@ -348,9 +317,6 @@ The livelock paragraph continues the pen-and-paper students example but says "if
 ### deadlock/deadlock.tex:148 — "You must formally prove in a system by what is known as an invariant."
 Missing an object ("prove *what*?"). Likely "You must formally prove freedom from livelock in a system by ...". Author's meaning needed.
 
-### deadlock/deadlock.tex:161 — "What the algorithm refers to is that if there is an adversary -- or equivalently a user who poorly writes a program -- that the OS deadlocks."
-The sentence has no main clause resolution ("if there is X ... that the OS deadlocks"). It is also the key point of the ostrich-algorithm paragraph, so a student is likely to be confused exactly where it matters.
-
 ### deadlock/deadlock.tex:188 — claim about the original problem
 "The original problem required each philosopher to have two forks, but one can eat with a single fork so we rule this out." The reasoning is unclear (the problem is defined with two utensils precisely to create contention), and it sits oddly beside the chopstick framing on lines 185-187. A human should decide whether to keep, reword, or drop it.
 
@@ -389,11 +355,6 @@ Run-on with words apparently missing ("provide the address" is unattached) and n
 > "it all depends on if your hardware says that a program can access."
 
 "can access" has no object (access what — that page?). Needs an author to complete.
-
-### ipc/ipc.tex:636 — Badly broken sentence about pipe writes
-> "If a process tries to write with some reader's read goes through, or fails -- partially or completely -- if the pipe is full."
-
-Words are clearly missing/garbled; the intended meaning (a write succeeds if there is a reader, and may block or partially fail when the pipe is full) needs an author to restate.
 
 ### ipc/ipc.tex:645 — "your special byte" mixes person
 > "a program could write your special byte (e.g.~0xff)"
@@ -468,10 +429,6 @@ Unclear as written — presumably means high-performance / error-tolerant code s
 ### HTTP version/RFC currency — networking/networking.tex:574
 
 "RFC 7231 has the most current specifications on the most common HTTP method today". RFC 7231 was obsoleted by RFC 9110 (HTTP Semantics, 2022), and the chapter's examples are all HTTP/1.0 while HTTP/1.1 and HTTP/2/3 dominate. A human should decide how much to update. Also line 553, "the HTTP/1.0 method" should probably be "protocol"/"version".
-
-### Vague claim about epoll vs select — networking/networking.tex:1214
-
-"There are reasons to use epoll over select but due to interface, there are fundamental problems with doing so." Ungrammatical and the point is unrecoverable — is the problem with select's interface or epoll's? Needs the author.
 
 ### "There are a variety of function calls available to send UDP sockets" — networking/networking.tex:902
 
