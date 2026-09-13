@@ -313,10 +313,6 @@ This is not a sentence and the itemize ends on it. Possibly a leftover note ("Wh
 ### introc/c_memory_model.tex:75-76 — endianness claim vs. the figure
 "We will assume that our machine is big endian. This means that the least significant byte is last." The following figure caption says the four bytes are "filled with 0006", which is the big-endian layout, so the text and figure agree — but the memory-layout example at lines 35-38 and the "zero length array" hack do not depend on endianness at all. Worth a human check that this aside is not confusing students.
 
-### introc/c_memory_model.tex:211 — contradicts the rest of the section
-"Unlike pointers, that hold addresses to variables on the heap, or stack, char arrays (string literals) point to read-only memory located in the data section of the program."
-The section just spent a page explaining that char arrays are *mutable* copies and that string literals are the read-only ones. Equating "char arrays" with "string literals" here is backwards.
-
 ### introc/c_memory_model.tex:66-98 — figures have no alt text
 The three \includegraphics figures (memory_model_empty.eps, memory_model_length.eps, memory_model_full.eps) rely on captions only. The captions are descriptive, but there is no alt-text mechanism for screen readers.
 
