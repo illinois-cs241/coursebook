@@ -52,9 +52,11 @@ but is currently discarded everywhere: the PDF is untagged, and pandoc 2.7
 (EPUB/wiki) uses the caption as alt and drops `alt=`. PDF tagging
 (`\DocumentMetadata`) fails with the book's listings setup under TL2023.
 Pandoc 3.x does honour `alt=`, but then figures without it get empty alt,
-which the EPUB filters' `NoAltTagException` rejects. Draft alt text for 45
-of the 48 figures exists from the assessment and can be applied when
-wanted.
+which the EPUB filters' `NoAltTagException` rejects, so the filters should
+fall back to the caption when pandoc is upgraded. Alt text has been added
+to 45 of the 48 figures (all but the three blank memory-model figures),
+plus a sentence of prose wherever a figure carried facts the text did not;
+that prose is the only part that reaches readers of every format today.
 
 ---
 

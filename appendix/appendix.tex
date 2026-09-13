@@ -170,7 +170,7 @@ One box is four bytes.
 
 \begin{figure}[H]
 \centering
-\includegraphics[width=.7\textwidth]{appendix/drawings/struct_clean.eps}
+\includegraphics[width=.7\textwidth,alt={Six 4-byte boxes in a row: one box for height, two for the data pointer, one for width, and two for the encoding pointer, with no gaps between the fields.}]{appendix/drawings/struct_clean.eps}
 \caption{Six box struct}
 \label{fig:clean_struct}
 \end{figure}
@@ -192,7 +192,7 @@ Visually, we'd add two extra boxes to our diagram
 
 \begin{figure}[H]
 \centering
-\includegraphics[width=.7\textwidth]{appendix/drawings/struct_slop.eps}
+\includegraphics[width=.7\textwidth,alt={The same struct drawn as eight 4-byte boxes: height, a padding box marked with a question mark, two boxes for data, width, a second padding box, then two boxes for encoding. The padding after each int keeps the following 8-byte pointer aligned.}]{appendix/drawings/struct_slop.eps}
 \caption{Eight box struct, two boxes of slop}
 \label{fig:sloppy_struct}
 \end{figure}
@@ -1407,7 +1407,7 @@ Datagrams are formatted as such
 
 \begin{figure}[H]
   \centering
-\includegraphics[width=.8\textwidth]{appendix/drawings/ip_datagram.eps}
+\includegraphics[width=.8\textwidth,alt={The IPv4 header drawn as 32-bit rows. Row one holds the version, header length, service type and total length; row two the identification, flags and fragment offset; row three the TTL, protocol and header checksum. Then come full-width rows for the source and destination addresses and a final row of variable-length options plus padding.}]{appendix/drawings/ip_datagram.eps}
 \caption{IP Datagram divisibility}
 \end{figure}
 

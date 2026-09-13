@@ -85,9 +85,12 @@ This book covers how IP deals with routing, fragmenting, and reassembling upper-
 
 \begin{figure}[H]
   \centering
-\includegraphics[width=.8\textwidth]{networking/drawings/ipv6_datagram.eps}
+\includegraphics[width=.8\textwidth,alt={The IPv6 header drawn as 32-bit rows: version, traffic class and flow label; then payload length, next header and hop limit; then large blocks for the source and destination addresses.}]{networking/drawings/ipv6_datagram.eps}
 \caption{IPv6 Datagram divisibility}
 \end{figure}
+
+In the header above, the first 32 bits hold a 4-bit version, an 8-bit traffic class, and a 20-bit flow label.
+The next 32 bits hold the 16-bit payload length, the 8-bit next header field, and the 8-bit hop limit, followed by the 128-bit source and destination addresses.
 
 One of the big features of IPv6 is the address space.
 The world ran out of IPv4 addresses years ago (IANA handed out its last free blocks in 2011) and has been using hacks to get around that.
@@ -234,9 +237,12 @@ The page may load slower.
 
 \begin{figure}[H]
   \centering
-\includegraphics[width=.8\textwidth]{networking/drawings/tcp_header.eps}
+\includegraphics[width=.8\textwidth,alt={The TCP header drawn as 32-bit rows: source and destination ports; sequence number; acknowledgment number; data offset, reserved bits, flags and window; checksum and urgent pointer; then variable-length options and padding.}]{networking/drawings/tcp_header.eps}
 \caption{Extra: TCP Header Specification}
 \end{figure}
+
+In the header above, each row is 32 bits wide.
+The 16-bit source and destination ports come first, then the 32-bit sequence and acknowledgment numbers, then the data offset, reserved bits, flags, and a 16-bit window size, then the checksum and urgent pointer, and finally any options, padded to a multiple of 32 bits.
 
 Most services on the Internet today use TCP because it efficiently hides the complexity of the lower, packet-level nature of the Internet.
 TCP or Transmission Control Protocol is a connection-based protocol that is built on top of IPv4 and IPv6 and therefore can be described as ``TCP/IP'' or ``TCP over IP''.

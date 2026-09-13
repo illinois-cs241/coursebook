@@ -145,7 +145,7 @@ Unless otherwise stated
 
 \begin{figure}[H]
 \centering
-\includegraphics[width=\textwidth]{scheduling/drawings/sjf.eps}
+\includegraphics[width=\textwidth,alt={Gantt chart of shortest job first with all five processes arriving at time 0. They run back to back from shortest to longest: P1 from 0 to 1 second, P2 from 1 to 3, P3 from 3 to 6, P4 from 6 to 10, and P5 from 10 to 15.}]{scheduling/drawings/sjf.eps}
 \caption{Shortest job first scheduling}
 \end{figure}
 
@@ -192,7 +192,7 @@ If the scheduler wants to compare the shortest \emph{remaining} time left, that 
 
 \begin{figure}[H]
 \centering
-\includegraphics[width=\textwidth]{scheduling/drawings/psjf.eps}
+\includegraphics[width=\textwidth,alt={Gantt chart of preemptive shortest job first with staggered arrivals. P2 starts first and is preempted when the shorter P1 arrives, then resumes. Later P5 is preempted by the shorter P4, which is in turn preempted by the shorter P3, and the preempted longer jobs finish afterwards.}]{scheduling/drawings/psjf.eps}
 \caption{Preemptive Shortest Job First scheduling}
 \end{figure}
 
@@ -237,7 +237,7 @@ Under SRTF (shortest remaining time first), which compares remaining rather than
 
 \begin{figure}[H]
 \centering
-\includegraphics[width=\textwidth]{scheduling/drawings/fcfs.eps}
+\includegraphics[width=\textwidth,alt={Gantt chart of first come first served: each process runs to completion in arrival order, P2 from 0 to 2 seconds, P1 from 2 to 3, P5 from 3 to 8, P4 from 8 to 12, and P3 from 12 to 15. The long P5 makes the shorter jobs behind it wait.}]{scheduling/drawings/fcfs.eps}
 \caption{First come first serve scheduling}
 \end{figure}
 
@@ -287,7 +287,7 @@ As the time quantum approaches infinity, Round Robin will be equivalent to FCFS.
 
 \begin{figure}[H]
 \centering
-\includegraphics[width=\textwidth]{scheduling/drawings/rr.eps}
+\includegraphics[width=\textwidth,alt={Gantt chart of round robin with a 1-second quantum and all five processes arriving at time 0. The processes take turns one quantum at a time; P1 finishes after its first turn, P2 at 6 seconds, P3 at 10 and P4 at 13, and P5 runs alone at the end until 15 seconds.}]{scheduling/drawings/rr.eps}
 \caption{Round Robin Scheduling}
 \end{figure}
 
