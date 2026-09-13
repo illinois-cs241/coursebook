@@ -41,7 +41,7 @@ int main() {
 }
 \end{lstlisting}
 
-A typical output of the above code is \keyword{ARGGGH sum is <some number less than expected>} because there is a race condition.
+A typical output of the above code is \keyword{ARRRRG sum is <some number less than expected>} because there is a race condition.
 The code allows two threads to read and write \keyword{sum} at the same time.
 For example, both threads copy the current value of sum into CPU that runs each thread (let's pick 123).
 Both threads increment one to their own copy.
@@ -203,9 +203,9 @@ return NULL;
 }
 \end{lstlisting}
 
-This process runs slower because we lock and unlock the mutex a million times, which is expensive - at least compared with incrementing a variable.
-In this simple example, we didn't need threads - we could have added up twice!
-A faster multi-thread example would be to add one million using an automatic (local) variable and only then adding it to a shared total after the calculation loop has finished:
+This process runs slower because we lock and unlock the mutex ten million times, which is expensive - at least compared with incrementing a variable.
+In this simple example, we didn't need threads.
+A faster multi-thread example would be to add ten million using an automatic (local) variable and only then adding it to a shared total after the calculation loop has finished:
 
 \begin{lstlisting}[language=C]
 int local = 0;
@@ -234,7 +234,7 @@ The following code creates a mutex that does effectively nothing.
 \begin{lstlisting}[language=C]
 int a;
 pthread_mutex_t m1 = PTHREAD_MUTEX_INITIALIZER,
-m2 = = PTHREAD_MUTEX_INITIALIZER;
+m2 = PTHREAD_MUTEX_INITIALIZER;
 // later
 // Thread 1
 pthread_mutex_lock(&m1);
@@ -302,7 +302,7 @@ void unlock(mutex_t *m) {
 Version 1 uses `busy-waiting' unnecessarily wasting CPU resources.
 However, there is a more serious problem.
 We have a race-condition!
-If two threads both called \keyword{lock} concurrently, it is possible that both threads would read \keyword{m\_locked} as zero.
+If two threads both called \keyword{lock} concurrently, it is possible that both threads would read \keyword{m->locked} as zero.
 Thus both threads would believe they have exclusive access to the lock and both threads will continue.
 
 We might attempt to reduce the CPU overhead a little by calling \keyword{pthread\_yield()} inside the loop - pthread\_yield suggests to the operating system that the thread does not use the CPU for a short while, so the CPU may be assigned to threads that are waiting to run.
@@ -345,7 +345,7 @@ int mutex_init(mutex* mtx){
 \end{lstlisting}
 
 This is the initialization code, nothing fancy here.
-We set the state of the mutex to unlocked and set the owner to locked.
+We set the state of the mutex to unlocked and set the owner to unassigned.
 
 \begin{lstlisting}[language=C]
 int mutex_lock(mutex* mtx){
@@ -776,7 +776,7 @@ int main() {
 
 Before we fix the problems with semaphores,
 how would we fix the problems with condition variables?
-Try it out before you look at the code in the previous section.
+Try it out before you look at the code below.
 We need to wait in push and pop if our stack is full or empty respectively.
 Attempted solution:
 
@@ -800,7 +800,7 @@ double pop(stack_t *s) {
 }
 \end{lstlisting}
 
-Does the following solution work?
+Does the above solution work?
 Take a second before looking at the answer to spot the errors.
 
 So did you catch all of them?
@@ -860,12 +860,13 @@ double pop() {
   // Wait until there's at least one item
   sem_wait(&sitems);
   ...
+}
 
-  void push(double v) {
-    // Wait until there's at least one space
-    sem_wait(&sremain);
-    ...
-  }
+void push(double v) {
+  // Wait until there's at least one space
+  sem_wait(&sremain);
+  ...
+}
 \end{lstlisting}
 
 Sketch \#2 has implemented the \keyword{post} too early.
@@ -926,7 +927,7 @@ sem_t sitems, sremain;
 
 void init() {
   sem_init(&sitems, 0, 0);
-  sem_init(&sremains, 0, SPACES); // 10 spaces
+  sem_init(&sremain, 0, SPACES); // 10 spaces
 }
 
 double pop() {
@@ -1191,8 +1192,8 @@ lower my flag
 \end{lstlisting}
 
 This solution satisfies Mutual Exclusion, Bounded Wait and Progress.
-If thread \#2 has set turn to 2 and is currently inside the critical section.
-Thread \#1 arrives, \emph{sets the turn back to 1} and now waits until thread 2 lowers the flag.
+Suppose thread \#2 has set turn to 1 and is currently inside the critical section.
+Thread \#1 arrives, \emph{sets the turn to 2} and now waits until thread 2 lowers the flag.
 
 \begin{enumerate}
 \item Mutual Exclusion. Let's try to sketch a simple proof again.
@@ -1225,7 +1226,7 @@ We don't want to call malloc while implementing a primitive, or we may deadlock!
 typedef struct sem_t {
   ssize_t count;
   pthread_mutex_t m;
-  pthread_condition_t cv;
+  pthread_cond_t cv;
 } sem_t;
 \end{lstlisting}
 \end{itemize}
@@ -1598,7 +1599,8 @@ Which brings us to attempt \#3.
 \subsection{Attempt \#3}
 
 Remember that \keyword{pthread\_cond\_wait} performs \emph{Three} actions.
-Firstly, it atomically unlocks the mutex and then sleeps (until it is woken by \keyword{pthread\_cond\_signal} or \keyword{pthread\_cond\_broadcast}).
+Firstly, it unlocks the mutex.
+Secondly, it sleeps (until it is woken by \keyword{pthread\_cond\_signal} or \keyword{pthread\_cond\_broadcast}); these first two actions happen atomically.
 Thirdly, the awoken thread must re-acquire the mutex lock before returning.
 Thus only one thread can actually be running inside the critical section defined by the lock and unlock() methods.
 
@@ -2084,27 +2086,29 @@ See \href{http://stackoverflow.com/questions/19172541/procs-fork-and-mutexes}{st
 So what should we do? We should use a shared mutex! Consider the following code.
 
 \begin{lstlisting}[language=C]
-pthread_mutex_t * mutex = NULL;
-pthread_mutexattr_t attr;
+pthread_mutex_t * pmutex = NULL;
+pthread_mutexattr_t attrmutex;
 
 void write_string(const char *data) {
-  pthread_mutex_lock(mutex);
+  pthread_mutex_lock(pmutex);
   int fd = open("my_file.txt", O_WRONLY);
   int bytes_to_write = strlen(data), written = 0;
   while(written < bytes_to_write) {
-    written += write(fd, data + written, bytes_to_write - written);
+    ssize_t result = write(fd, data + written, bytes_to_write - written);
+    if(result == -1) break; // give up on an error
+    written += result;
   }
   close(fd);
-  pthread_mutex_unlock(mutex);
+  pthread_mutex_unlock(pmutex);
 }
 
 int main() {
-  pthread_mutexattr_init(&attr);
-  pthread_mutexattr_setpshared(&attr, PTHREAD_PROCESS_SHARED);
+  pthread_mutexattr_init(&attrmutex);
+  pthread_mutexattr_setpshared(&attrmutex, PTHREAD_PROCESS_SHARED);
   pmutex = mmap (NULL, sizeof(pthread_mutex_t),
   PROT_READ|PROT_WRITE, MAP_SHARED|MAP_ANON, -1, 0);
   pthread_mutex_init(pmutex, &attrmutex);
-  if(!fork()) {
+  if(fork()) { // parent
     write_string("key1: value1");
     wait(NULL);
     pthread_mutex_destroy(pmutex);

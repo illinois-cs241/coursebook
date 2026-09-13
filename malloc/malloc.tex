@@ -234,12 +234,12 @@ We don't even have to look through the entire heap!
 \caption{First fit finds the first match}
 \end{figure}
 
-One thing to keep in mind is that those placement strategies don't need to replace the block.
+One thing to keep in mind is that those placement strategies don't need to split the block.
 For example, our first fit allocator could've returned the original block unbroken.
 Notice that this would lead to about 14KiB of space being unused by the user and the allocator.
 We call this internal fragmentation.
 
-In contrast, external fragmentation is that even though we have enough memory in the heap, it may be divided up in a way so a continuous block of that size is unavailable.
+In contrast, external fragmentation is that even though we have enough memory in the heap, it may be divided up in a way so a contiguous block of that size is unavailable.
 In our previous example, of the 64KiB of heap memory, 17KiB is allocated, and 47KiB is free.
 However, the largest available block is only 30KiB because our available unallocated heap memory is fragmented into smaller pieces.
 
@@ -263,7 +263,7 @@ For those who are interested, the paper concludes that actual memory usage over 
 The problem with this analysis is that few real-world applications need this type of one-shot allocation.
 Video game object allocations will typically designate a different subheap for each level and fill up that subheap if they need a quick memory allocation scheme that they can throw away.
 
-In practice, we'll be using the result from a more rigorous survey conducted in 2005 \cite{10.1007/3-540-60368-9_19}.
+In practice, we'll be using the result from a more rigorous survey conducted in 1995 \cite{10.1007/3-540-60368-9_19}.
 The survey makes sure to note that memory allocation is a moving target.
 A good allocation scheme to one program may not be a good allocation scheme for another program.
 Programs don't uniformly follow the distribution of allocations.
@@ -290,7 +290,7 @@ Some additional notes we make
   Using Fibonacci heaps, however, could be extremely inefficient.
 \item First-Fit needs to have a block order. Most of the time programmers will default to linked lists which is a fine choice. There aren't too many improvements you can make with a least recently used and most recently used linked list policy, but with address ordered linked lists you can speed up insertion from O(n) to O(log(n)) by using a randomized skip-list in conjunction with your singly-linked list.
   An insert would use the skip list as shortcuts to find the right place to insert the block and removal would go through the list as normal.
-\item There are many placement strategies that we haven't talked about, one is next-fit which is first fit on the next fit block. This adds deterministic randomness -- pardon the oxymoron. You won't be expected to know this algorithm, but know that as you are implementing a memory allocator as part of a machine problem, there are more than these.
+\item There are many placement strategies that we haven't talked about, one is next-fit, which is like first fit except that each search resumes where the previous search stopped instead of starting at the beginning of the heap. This adds deterministic randomness -- pardon the oxymoron. You won't be expected to know this algorithm, but know that as you are implementing a memory allocator as part of a machine problem, there are more than these.
   \end{enumerate}
 
 \section{Memory Allocator Tutorial}
@@ -337,15 +337,19 @@ typedef struct {
   size_t block_size;
   char data[0];
 } block;
+// Stored at the end of each block (bt in the figures above)
+typedef struct {
+  size_t block_size;
+} boundary_tag;
 block *p = sbrk(100);
-p->size = 100 - sizeof(*p) - sizeof(BTag);
+p->block_size = 100 - sizeof(*p) - sizeof(boundary_tag);
 // Other block allocations
 \end{lstlisting}
 
 We could navigate from one block to the next block by adding the block's size.
 
 \begin{lstlisting}[language=C]
-p + sizeof(metadata) + p->block_size + sizeof(BTag)
+p + sizeof(metadata) + p->block_size + sizeof(boundary_tag)
 \end{lstlisting}
 
 Make sure to get your casting right!
@@ -382,7 +386,7 @@ typedef struct {
   char data[0];
 } block;
 block *p = sbrk(100);
-p->size = 100 - sizeof(*p) - sizeof(boundary_tag);
+p->block_size = 100 - sizeof(*p) - sizeof(boundary_tag);
 // Other block allocations
 \end{lstlisting}
 
@@ -451,10 +455,10 @@ There is a \emph{lot} of overhead for that allocation which is what we are tryin
 
 When \keyword{free} is called we need to re-apply the offset to get back to the `real' start of the block -- to where we stored the size information.
 A naive implementation would simply mark the block as unused.
-If we are storing the block allocation status in a bitfield, then we need to clear the bit:
+If we are storing the block allocation status in a bitfield, then we need to set the \keyword{is\_free} bit:
 
 \begin{lstlisting}[language=C]
-p->info.is_free = 0;
+p->info.is_free = 1;
 \end{lstlisting}
 
 However, we have a bit more work to do.
@@ -643,7 +647,7 @@ See \href{http://man7.org/linux/man-pages/man3/malloc.3.html}{the man page} or t
 \item
   What is the First Fit Placement strategy? It's a little bit better with Fragmentation, right? Expected Time Complexity?
 \item
-  Let's say that we are using a buddy allocator with a new slab of 64kb. How does it go about allocating 1.5kb?
+  Let's say that we are using a buddy allocator with a new slab of 64KiB. How does it go about allocating 1.5KiB?
 \item
   When does the 5 line \keyword{sbrk} implementation of malloc have a use?
 \item

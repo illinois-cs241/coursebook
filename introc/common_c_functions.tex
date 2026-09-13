@@ -208,7 +208,7 @@ To have a library function parse input in addition to reading it, use \keyword{s
 All of those functions will return how many items were parsed.
 It is a good idea to check if the number is equal to the amount expected.
 Also naturally like \keyword{printf}, \keyword{scanf} functions require valid pointers.
-Instead of pointing to valid memory, they need to also be writable.
+In addition to pointing to valid memory, they need to also be writable.
 It's a common source of error to pass in an incorrect pointer value.
 For example,
 
@@ -220,7 +220,7 @@ char type;
 int ok = 2 == sscanf(line, "%c %d", &type, &data); // pointer error
 \end{lstlisting}
 
-We wanted to write the character value into c and the integer value into the malloc'd memory.
+We wanted to write the character value into \keyword{type} and the integer value into the malloc'd memory.
 However, we passed the address of the data pointer, not what the pointer is pointing to!
 So \keyword{sscanf} will change the pointer itself.
 The pointer will now point to address 10 so this code will later fail when free(data) is called.
@@ -249,12 +249,13 @@ Any behavior missing from the documentation, such as the result of \keyword{strl
 
 \begin{itemize}
 
-	\item \keyword{int strlen(const char *s)} returns the length of the string.
+	\item \keyword{size\_t strlen(const char *s)} returns the length of the string.
 
 	\item \keyword{int strcmp(const char *s1, const char *s2)} returns an integer determining the lexicographic order of the strings.
-    If s1 were to come before s2 in a dictionary, then a -1 is returned.
+    If s1 were to come before s2 in a dictionary, then a negative value is returned.
     If the two strings are equal, then 0.
-    Else, 1.
+    Else, a positive value.
+    Only the sign is guaranteed, so compare the result with 0 rather than with -1 or 1.
 
 	\item \keyword{char *strcpy(char *dest, const char *src)} Copies the string at \keyword{src} to \keyword{dest}.
     \textbf{This function assumes dest has enough space for src otherwise undefined behavior}
@@ -334,7 +335,7 @@ tricky
           const char *input = "0"; // or "!##@" or ""
           char* endptr;
           int saved_errno = errno;
-          errno = 0
+          errno = 0;
           long int parsed = strtol(input, &endptr, 10);
           if(parsed == 0 && errno != 0){
             // Definitely an error

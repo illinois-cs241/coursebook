@@ -23,11 +23,14 @@ if (answer = 42) { printf("The answer is %d", answer);}
 
 The quick way to fix that is to get in the habit of putting constants first.
 This mistake is common enough in while loop conditions.
-Most modern compilers disallow assigning variables a condition without parenthesis.
+Most modern compilers warn about an assignment used as a condition unless it is wrapped in an extra set of parentheses (for example, \keyword{gcc -Wall} enables \keyword{-Wparentheses}).
 
 \begin{lstlisting}[language=C]
   if (42 = answer) { printf("The answer is %d", answer);}
 \end{lstlisting}
+
+With the constant first, the missing \keyword{=} becomes a compile error, because you cannot assign to \keyword{42}.
+Once you notice the error, write \keyword{if (42 == answer)}.
 
 There are cases where we want to do it.
 A common example is getline.
@@ -49,7 +52,7 @@ time_t start = time();
 \end{lstlisting}
 
 The system function `time' actually takes as a parameter a pointer to some memory that can receive the time\_t structure or NULL.
-The compiler fails to catch this error because the programmer omitted the valid function prototype by including \keyword{time.h}.
+The compiler fails to catch this error because the programmer did not include \keyword{time.h}, so there is no valid function prototype to check the call against.
 
 More confusingly this could compile, work for decades and then crash.
 The reason for that is that time would be found at link time, not compile-time in the C standard library which almost surely is already in memory.

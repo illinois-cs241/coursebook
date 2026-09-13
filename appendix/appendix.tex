@@ -757,7 +757,7 @@ while (1) {
   pthread_mutex_lock(&m);
   count++;
   pthread_cond_signal(&cv);
-  /* Even though the other thread is woken up it cannot not return */
+  /* Even though the other thread is woken up it cannot return */
   /* from pthread_cond_wait until we have unlocked the mutex. This is */
   /* a good thing! In fact, it is usually the best practice to call */
   /* cond_signal or cond_broadcast before unlocking the mutex */
@@ -940,14 +940,15 @@ These examples are adapted from those.
 
 Sequentially consistent is the simplest, least error-prone and most expensive model. This model says that any change that happens, all changes before it will be synchronized between all threads.
 
+Suppose that \keyword{x} is atomic, \keyword{y} is an ordinary variable, and both start at 0.
+
 \begin{verbatim}
     Thread 1                    Thread 2
-    1.0 atomic_store(x, 1)
-    1.1 y = 10                  2.1 if (atomic_load(x) == 0)
-    1.2 atomic_store(x, 0);     2.2    y != 10 && abort();
+    1.1 y = 1;                  2.1 if (atomic_load(x) == 2)
+    1.2 atomic_store(x, 2);     2.2    assert(y == 1);
 \end{verbatim}
 
-Will never quit.
+The assert will never abort.
 This is because either the store happens before the if statement in thread 2 and y == 1 or the store happens after and x does not equal 2.
 
 \subsection{Relaxed}
@@ -964,11 +965,11 @@ One can have stale reads and writes, but after reading the new value, it won't b
 \end{verbatim}
 
 But that means that previous loads and stores don't need to affect other threads.
-In the previous example, the code can now fail.
+If the sequentially consistent example above used relaxed ordering, the code could now fail: thread 2 could see \keyword{x} == 2 but still read the old value \keyword{y} == 0, so the assert can abort.
 
 \subsection{Acquire/Release}
 
-The order of atomic variables doesn't need to be consistent -- meaning if atomic var y is assigned to 10 then atomic var x to be 0 those don't need to propagate, and a thread could get stale reads.
+The order of atomic variables doesn't need to be consistent -- meaning if atomic var y is assigned to 1 then atomic var x to be 2 those don't need to propagate, and a thread could get stale reads.
 Non-atomic variables have to get updated in all threads though.
 
 \subsection{Consume}
@@ -1134,7 +1135,7 @@ Here are some concepts from queueing theory that you'll need to know that will h
   A famous result in queueing theory is Little's Law which states $E[N] = \lambda E[W]$ meaning that the number of people waiting is the arrival rate times the expected waiting time (assuming the queue is in a steady state).
 \item We won't make many assumptions about how much time it takes to run each process except that it will take a finite amount of time -- otherwise this gets almost impossible to evaluate.
 We will denote two variables that $\frac{1}{\mu}$ is the mean of the waiting time and that the coefficient of variation $C$ is defined as $C^2 = \frac{var(S)}{E[S]^2}$ to help us control for processes that take a while to finish.
-An important note is that when $C > 1$ we say that the running times of the process are variadic. We will note below that this rockets up the wait and response times for FCFS quadratically.
+An important note is that when $C > 1$ we say that the running times of the process are highly variable. We will note below that this rockets up the wait and response times for FCFS quadratically.
 \item $\rho = \frac{\lambda}{\mu} < 1$ Otherwise, our queue would become infinitely long
 \item We will assume that there is one processor. This is known as an M/G/1 queue in queueing theory.
 \item We'll leave the service time as an expectation $S$ otherwise we may run into over-simplifications with the algebra.
@@ -1161,7 +1162,7 @@ All results are from Jorma Virtamo's lectures on the matter \cite{virtamo}.
   \]
   The response time is simple to calculate, it is the expected number of people ahead of the process in the queue times the expected time to service each of those processes.
   From Little's Law above, we can substitute that for this. Since we already know the value of the waiting time, we can reason about the response time as well.
-\item A discussion of the results shows something cool discovered by Conway and Al \cite{conway1967theory}.
+\item A discussion of the results shows something cool discovered by Conway et al. \cite{conway1967theory}.
   Any scheduling discipline that isn't preemptive and doesn't take into account the run time of the process or a priority will have the same wait, response, and turnaround time.
   We will often use this as a baseline.
 \end{enumerate}
@@ -1382,7 +1383,7 @@ We will also introduce an additional term $C_i$ which denotes the variation amon
   We incur the same cost on response time and then we have to suffer an additional cost based on what the probabilities are of lower priority jobs coming in and taking this job out.
   That is what we call the average interruption time.
   This follows the same laws as before.
-  Since we have a variadic, pyramid summation if we have a lot of jobs with small service times then the wait time goes down for both additive pieces.
+  Since we have a variable, pyramid summation if we have a lot of jobs with small service times then the wait time goes down for both additive pieces.
   It can be analytically shown that this is better given certain probability distributions.
   For example, try with the uniform versus FCFS or the non preemptive version.
   What happens?
@@ -1411,8 +1412,8 @@ Datagrams are formatted as such
 \end{figure}
 
 \begin{enumerate}
-  \item The first octet is the version number, either 4 or 6
-  \item The next octet is how long the header is.
+  \item The first four bits are the version number, which is 4 for IPv4.
+  \item The next four bits, completing the first octet, are the header length (IHL), counted in 4-octet words.
     Although it may seem that the header is a constant size, you can include optional parameters to augment the path that is taken or other instructions.
   \item The next two octets specify the total length of the datagram.
     This means this is the header, the data, the footer, and the padding.
@@ -1420,9 +1421,9 @@ Datagrams are formatted as such
   \item The next two are the Identification number.
     IP handles taking packets that are too big to be sent over the physical wire and chunks them up.
     As such, this number identifies what datagram this originally belonged to.
-  \item The next octet is various bit flags that can be set.
-  \item The next octet and half is fragment number.
-    If this packet was fragmented, this is the number this fragment represents.
+  \item The next three bits are flags that can be set, such as ``don't fragment'' and ``more fragments''.
+  \item The next thirteen bits, completing those two octets, are the fragment offset.
+    If this packet was fragmented, this says where this fragment's data belongs in the original datagram, counted in units of 8 octets.
   \item The next octet is time to live.
     So this is the number of "hops" (travels over a wire) a packet is allowed to go.
     This is set because different routing protocols could cause packets to go in circles, the packets must be dropped at some point.
@@ -1439,7 +1440,7 @@ Datagrams are formatted as such
     There is no verification of this, so one host can pretend to be any IP address possible.
   \item The destination address is where you want the packet to be sent to.
     Destinations are crucial to the routing process.
-  \item Additional options: Hosts of additional options, this is variadic in size.
+  \item Additional options: Hosts of additional options, this is variable in size.
   \item Footer: A bit of padding to make sure your data is a multiple of 4 octets.
   \item After: Your data! All data of higher-order protocols are put following the header.
 \end{enumerate}
@@ -1507,7 +1508,7 @@ Note that this will cause undue stress on the network, so a series of multicasts
 When it comes to Event-Driven IO, the name of the game is to be fast.
 One extra system call is considered slow.
 OpenBSD and FreeBSD have an arguably better model of asynchronous IO from the kqueue model.
-Kqueue is a system call that is exclusive to the BSDs and MacOs.
+Kqueue is a system call that is exclusive to the BSDs and macOS.
 It allows you to modify file descriptor events and read file descriptors all in a single call under a unified interface.
 So what are the benefits?
 

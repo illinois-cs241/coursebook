@@ -61,7 +61,7 @@ As for another definition, a protocol is a set of specifications put forward by 
 
 The following is a short introduction to internet protocol (IP), the primary way to send datagrams of information from one machine to another.
 ``IP4'', or more precisely, IPv4 is version 4 of the Internet Protocol that describes how to send packets of information across a network from one machine to another.
-Even as of 2018, IPv4 still dominates Internet traffic, but Google reports that 24 countries now supply 15\% of their traffic through IPv6 \cite{internet_society_2018}.
+IPv4 carried most Internet traffic for decades and is still widely used today, although IPv6 is catching up (see below).
 A significant limitation of IPv4 is that source and destination addresses are limited to 32 bits.
 IPv4 was designed at a time when the idea of 4 billion devices connected to the same network was unthinkable or at least not worth making the packet size larger.
 IPv4 addresses are written typically in a sequence of four octets delimited by periods "255.255.255.0" for example.
@@ -70,7 +70,8 @@ Each IPv4 datagram includes a small header - typically 20 octets, that includes 
 Conceptually the source and destination addresses can be split into two: a network number the upper bits and lower bits represent a particular host number on that network.
 
 A newer packet protocol IPv6 solves many of the limitations of IPv4 like making routing tables simpler and 128-bit addresses.
-However, little web traffic is IPv6 based on comparison as of 2018 \cite{internet_society_2018}.
+Adoption was slow at first: in 2018, only a small fraction of web traffic used IPv6 \cite{internet_society_2018}.
+By the mid-2020s, Google measured roughly half of its user traffic arriving over IPv6 \cite{google_ipv6_stats}.
 We write IPv6 addresses in a sequence of eight, four hexadecimal delimiters like "1F45:0000:0000:0000:0000:0000:0000:0000".
 Since that can get unruly, we can omit the zeros "1F45::". A machine can have an IPv6 address and an IPv4 address.
 
@@ -89,9 +90,8 @@ This book covers how IP deals with routing, fragmenting, and reassembling upper-
 \end{figure}
 
 One of the big features of IPv6 is the address space.
-The world ran out of IP addresses a while ago and has been using hacks to get around that.
+The world ran out of IPv4 addresses years ago (IANA handed out its last free blocks in 2011) and has been using hacks to get around that.
 With IPv6 there are enough internal and external addresses so even if we discover alien civilizations, we probably won't run out.
-The other benefit is that these addresses are leased not bought, meaning that if something drastic happens in let's say the Internet of things and there needs to be a change in the block addressing scheme, it can be done.
 
 Another big feature is security through IPsec.
 IPv4 was designed with little to no security in mind.
@@ -331,7 +331,7 @@ For network communications, we need to standardize on the agreed format.
 Any longer integers need to have the computers specify the order.
 
 These functions are read as `host to network'.
-The inverse functions (\keyword{ntohs}, \keyword{ntohl}) convert network ordered byte values to host-ordered ordering.
+The inverse functions (\keyword{ntohs}, \keyword{ntohl}) convert network ordered byte values to host byte ordering.
 So, is host-ordering little-endian or big-endian?
 The answer is - it depends on your machine!
 It depends on the actual architecture of the host running the code.
@@ -571,7 +571,7 @@ If the client had requested a non-existent path, e.g.
 HTTP/1.1 404 Not Found
 \end{lstlisting}
 
-For more information, RFC 7231 has the most current specifications on the most common HTTP method today \cite{rfc7231}.
+For more information, RFC 9110 (which replaced RFC 7231 in 2022) is the current specification of HTTP semantics, including the request methods and status codes \cite{rfc9110}.
 
 \section{Layer 4: TCP Server}
 
@@ -1029,7 +1029,7 @@ For example, a coffee shop internet connection could easily subvert your DNS req
 The way this is usually subverted is that after the IP address is obtained then a connection is usually made over HTTPS.
 HTTPS uses what is called the TLS (formerly known as SSL) to secure transmissions and verify that the hostname is recognized by a Certificate Authority.
 Certificate Authorities often get hacked so be careful of equating a green lock to secure.
-Even with this added layer of security, the United States government has recently issued a request for everyone to upgrade their DNS to DNSSec which includes additional security-focused technologies to verify with high probability that an IP address is truly associated with a hostname.
+Even with this added layer of security, the United States government has required its federal agencies to deploy DNSSEC since 2008; DNSSEC includes additional security-focused technologies to verify with high probability that an IP address is truly associated with a hostname.
 
 Digression aside, DNS works like this in a nutshell:
 \begin{enumerate}
@@ -1285,10 +1285,10 @@ Some of the more common ones will be detailed below.
 There are several problems with using epoll. Here we will detail a few.
 
 \begin{enumerate}
-\item There are two modes. Level triggered and edge-triggered. Level triggered means that while the file descriptor has events on it, it will be returned by epoll when calling the ctl function. In edge-triggered, the caller will only get the file descriptor once it goes from zero events to an event.
+\item There are two modes. Level triggered and edge-triggered. Level triggered means that while the file descriptor has events on it, it will be returned by every call to \keyword{epoll\_wait}. In edge-triggered, the caller will only get the file descriptor once it goes from zero events to an event.
   This means if you forget to read, write, accept etc on the file descriptor until you get an EWOULDBLOCK, that file descriptor will be dropped.
 \item If at any point you duplicate a file descriptor and add it to epoll, you will get an event from that file descriptor and the duplicated one.
-\item You can add an epoll object to epoll. Edge triggered and level-triggered modes are the same because ctl will reset the state to zero events.
+\item You can add an epoll object to epoll.
 \item Depending on the conditions, you may get a file descriptor that was closed from Epoll. This isn't a bug. The reason that this happens is epoll works on the kernel object level, not the file descriptor level.
   If the kernel object lives longer and the right flags are set, a process could get a closed file descriptor.
   This also means that if you close the file descriptor, there is no way to remove the kernel object.
@@ -1322,25 +1322,28 @@ The stub code is the necessary code to hide the complexity of performing a remot
 One of the roles of the stub code is to \emph{marshal} the necessary data into a format that can be sent as a byte stream to a remote server.
 
 \begin{lstlisting}[language=C]
-// On the outside, 'getHiscore' looks like a normal function call
+// On the outside, 'getHighScore' looks like a normal function call
 // On the inside, the stub code performs all of the work to send and receive data to and from the remote machine.
 
 int getHighScore(char* game) {
   // Marshal the request into a sequence of bytes:
   char* buffer;
-  asprintf(&buffer,"getHiscore(%s)!", name);
+  asprintf(&buffer,"getHighScore(%s)!", game);
 
   // Send down the wire (we do not send the zero byte; the '!' signifies the end of the message)
+  // fd is an already-connected socket to the remote server
   write(fd, buffer, strlen(buffer) );
+  free(buffer);
 
   // Wait for the server to send a response
-  ssize_t bytesread = read(fd, buffer, sizeof(buffer));
+  char response[64];
+  ssize_t bytesread = read(fd, response, sizeof(response) - 1);
+  if (bytesread < 0) return -1;
 
   // Example: unmarshal the bytes received back from text into an int
-  buffer[bytesread] = 0; // Turn the result into a C string
+  response[bytesread] = 0; // Turn the result into a C string
 
-  int score= atoi(buffer);
-  free(buffer);
+  int score = atoi(response);
   return score;
 }
 \end{lstlisting}

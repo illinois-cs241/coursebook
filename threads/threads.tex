@@ -29,7 +29,7 @@ On the other hand, creating threads is more useful when:
 \begin{itemize}
 \item You want to leverage the power of a multi-core system to do one task
 \item When you can't deal with the overhead of processes
-\item When you want communication between the processes simplified
+\item When you want communication between the threads simplified
 \item When you want threads to be part of the same process
 \end{itemize}
 
@@ -41,7 +41,7 @@ If the thread calls another function, we move our stack pointer down, so that we
 Once it returns from a function, we can move the stack pointer back up to its previous value.
 We keep a copy of the old stack pointer value - on the stack!
 This is why returning from a function is quick.
-It's easy to `free' the memory used by automatic variables because the program needs to change the stack pointer.
+It's easy to `free' the memory used by automatic variables because the program only needs to change the stack pointer.
 
 In a multi-threaded program, there are multiple stacks but only one address space. The pthread library allocates some stack space and uses the \keyword{clone} function call to start the thread at that stack address.
 
@@ -321,7 +321,7 @@ int main() {
 }
 \end{lstlisting}
 
-Race conditions aren't in our code.
+Race conditions aren't only in our code.
 They can be in provided code.
 Some functions like \keyword{asctime}, \keyword{getenv}, \keyword{strtok}, \keyword{strerror} are not thread-safe.
 Let's look at a simple function that is also not `thread-safe'.
@@ -346,15 +346,14 @@ Here is one valid solution.
 
 \begin{lstlisting}[language=C]
 int to_message_r(int num, char *buf, size_t nbytes) {
-  size_t written;
+  int written;
   if (num < 10) {
-    written = snprintf(buf, nbtytes, "%d : blah blah" , num);
+    written = snprintf(buf, nbytes, "%d : blah blah" , num);
   } else {
-    strncpy(buf, "Unknown", nbytes);
-    buf[nbytes] = '\0';
-    written = strlen(buf) + 1;
+    written = snprintf(buf, nbytes, "%s", "Unknown");
   }
-  return written <= nbytes;
+  // Nonzero if the whole message (and its '\0') fit in buf
+  return written >= 0 && (size_t) written < nbytes;
 }
 \end{lstlisting}
 
@@ -434,7 +433,8 @@ void merge_sort(int *arr, size_t len){
 With your new understanding of threads, all you need to do is create a thread for the left half, and one for the right half.
 Given that your CPU has multiple real cores, you will see a speedup following \href{https://en.wikipedia.org/wiki/Amdahl's_law}{Amdahl's Law}.
 The time complexity analysis gets interesting here as well.
-The parallel algorithm runs in $O(\log^3(n))$ running time because the analysis assumes that we have a lot of cores.
+Even if we assume that we have as many cores as we need, the algorithm as written runs in $O(n)$ time, because the final merge of the two halves is still done sequentially by a single thread.
+Parallelizing the merge step as well brings the running time down to $O(\log^2(n))$.
 
 In practice though, we typically do two changes.
 One, once the array gets small enough, we ditch the Parallel Merge Sort algorithm and do a conventional sort that works fast on small arrays, usually cache coherency rules at this level.
@@ -492,13 +492,13 @@ Take a look at the example code below.
 
 \begin{lstlisting}[language=C]
 
-// 8 KiB stacks
+// 8 MiB stacks
 #define STACK_SIZE (8 * 1024 * 1024)
 
 int thread_start(void *arg) {
   // Just like the pthread function
-  puts("Hello Clone!")
-  // This share the same heap and address space!
+  puts("Hello Clone!");
+  // This shares the same heap and address space!
   return 0;
 }
 
@@ -507,10 +507,10 @@ int main() {
   char *child_stack = malloc(STACK_SIZE);
   // Remember stacks work by growing down, so we need
   // to give the top of the stack
-  char *stack_top = stack + STACK_SIZE;
+  char *stack_top = child_stack + STACK_SIZE;
 
   // clone create thread
-  pid_t pid = clone(thread_start, stack_top, SIGCHLD, NULL);
+  pid_t pid = clone(thread_start, stack_top, CLONE_VM | SIGCHLD, NULL);
   if (pid == -1) {
     perror("clone");
     exit(1);
