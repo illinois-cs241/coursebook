@@ -52,7 +52,7 @@ If it isn't, the processor requests a chunk of memory from the memory chip and s
 This is done because the l3 processor cache is roughly three times faster to reach than the memory in terms of time \cite[p. 22]{levinthal2009performance} though exact speeds will vary based on the clock speed and architecture.
 Naturally, this leads to problems because there are two different copies of the same value, in the cited paper this refers to an unshared line.
 This isn't a class about caching, but you should know how this could impact your code.
-A short but non-complete list could be
+A short but non-complete list could be:
 
 \begin{enumerate}
 \item Race Conditions! If a value is stored in two different processor caches, then that value should be accessed by a single thread.
@@ -104,7 +104,7 @@ Let's go through some of the common tools that you'll be working on and need to 
 
 \keyword{ssh} is short for the Secure Shell \cite{openbsd_ssh}.
 It is a network protocol that allows you to spawn a shell on a remote machine.
-Most of the time in this class you will need to ssh into your VM like this
+Most of the time in this class you will need to ssh into your VM like this:
 
 \begin{lstlisting}[language=bash]
 $ ssh netid@sem-cs341-VM.cs.illinois.edu
@@ -124,7 +124,7 @@ If you don't want to type your password out every time, you can generate an ssh 
 If you still think that that is too much typing, you can always alias hosts.
 You may need to restart your VM or reload sshd for this to take effect.
 The config file is available on Linux and Mac distros.
-For Windows, you'll have to use the Windows Subsystem for Linux (WSL) or configure any aliases in PuTTY
+For Windows, you'll have to use the Windows Subsystem for Linux (WSL) or configure any aliases in PuTTY.
 
 \begin{lstlisting}[language=bash]
 > cat ~/.ssh/config
@@ -155,7 +155,7 @@ $ git push origin master
 Now to explain git well, you need to understand that git for our purposes will look like a linked list.
 You will always be at the head of master, and you will do the edit-add-commit-push loop. We have a separate branch on Github that we push feedback to under a specific branch which you can view on the Github website. The markdown file will have information on the test cases and results (like standard out).
 
-Every so often git can break. Here is a list of commands you probably won't need to fix your repo
+Every so often git can break. Here is a list of commands you probably won't need to fix your repo:
 
 \begin{enumerate}
 \item git-cherry-pick
@@ -167,7 +167,7 @@ Every so often git can break. Here is a list of commands you probably won't need
 \item git-branch
 \end{enumerate}
 
-If you are currently on a branch, and you don't see either
+Normally, \keyword{git status} shows that you are on a branch, with output like either
 
 \begin{lstlisting}[language=bash]
 $ git status
@@ -176,7 +176,7 @@ Your branch is up-to-date with 'origin/master'.
 nothing to commit, working directory clean
 \end{lstlisting}
 
-or
+or:
 
 \begin{lstlisting}[language=bash]
 $ git status
@@ -192,7 +192,7 @@ Changes not staged for commit:
 no changes added to commit (use "git add" and/or "git commit -a")
 \end{lstlisting}
 
-And something like
+If instead you see something like the following, with no branch at all:
 
 \begin{lstlisting}[language=bash]
 $ git status
@@ -201,12 +201,12 @@ nothing to commit, working directory clean
 \end{lstlisting}
 
 Don't panic, but your repository may be in an unworkable state.
-If you aren't nearing a deadline, come to office hours or ask your question on Edstem, and we'd be happy to help.
+If you aren't nearing a deadline, come to office hours or ask your question on the class forum, and we'd be happy to help.
 In an emergency scenario, delete your repository and re-clone.
 \textbf{This will lose any local uncommitted changes. Make sure to copy any files you were working on outside the directory, remove and copy them back in.}
 
 If you want to learn more about git, there are all but an endless number of tutorials and resources online that can help you.
-Here are some links that can help you out
+Here are some links that can help you out:
 
 \begin{enumerate}
 \item \url{https://git-scm.com/docs/gittutorial}
@@ -266,7 +266,7 @@ Many people will argue that editor gurus spend more time editing their editors t
 
 Make your code modular using helper functions. If there is a repeated task (getting the pointers to contiguous blocks in the malloc MP, for example), make them helper functions.
 And make sure each function does one thing well so that you don't have to debug twice.
-Let's say that we are doing selection sort by finding the minimum element each iteration like so,
+Let's say that we are doing selection sort by finding the minimum element each iteration like so:
 
 \begin{lstlisting}[language=C]
 void selection_sort(int *a, long len){
@@ -285,7 +285,7 @@ void selection_sort(int *a, long len){
 }
 \end{lstlisting}
 
-Many can see the bug in the code, but it can help to refactor the above method into
+Many can see the bug in the code, but it can help to refactor the above method into these functions:
 
 \begin{lstlisting}[language=C]
 long max_index(int *a, long start, long end);
@@ -473,7 +473,7 @@ $1 = 42
 \end{lstlisting}
 
 You can also set breakpoints interactively from within gdb.
-Assume that we have no optimization and the line numbers are as follows
+Assume that we have no optimization and the line numbers are as follows:
 
 \begin{lstlisting}[language=bash]
 1. int main() {
@@ -500,7 +500,7 @@ $1 = 42
 
 
 We can also use gdb to check the content of different pieces of memory.
-For example,
+For example, consider this program:
 
 \begin{lstlisting}[language=C]
 int main() {
@@ -509,7 +509,7 @@ int main() {
 }
 \end{lstlisting}
 
-Compiled we get
+Compiling and running it, we get:
 
 \begin{lstlisting}[language=bash]
 $ gcc main.c -g -o main && ./main
@@ -517,7 +517,7 @@ $ Cat ZVQ� $
 \end{lstlisting}
 
 
-We can now use gdb to look at specific bytes of the string and reason about when the program should've stopped running
+We can now use gdb to look at specific bytes of the string and reason about when the program should've stopped running:
 
 \begin{lstlisting}[language=bash]
 (gdb) l
@@ -853,8 +853,7 @@ The virtual machine-in-your-browser and the videos you need for HW0 are here:
 
 \url{http://cs-education.github.io/sys/}
 
-Questions? Comments? Use the current semester's CS341 Edstem:
-\url{https://edstem.org/}
+Questions? Comments? Use the current semester's CS 341 Ed Discussion board, linked from the \href{https://cs341.cs.illinois.edu/}{course home page}.
 
 The in-browser virtual machine runs entirely in JavaScript and is fastest in Chrome.
 Note the VM and any code you write is reset when you reload the page, \textbf{so copy your code to a separate document.}
@@ -865,7 +864,7 @@ HW0 questions are below. Copy your answers into a text document because you'll n
 
 \subsection{Chapter 1}
 
-In which our intrepid hero battles standard out, standard error, file descriptors and writing to files
+In which our intrepid hero battles standard out, standard error, file descriptors and writing to files.
 
 \begin{enumerate}
 \item \textbf{Hello, World! (system call style)} Write a program that uses \keyword{write()} to print out "Hi! My name is <Your Name>".
@@ -884,7 +883,7 @@ The triangle should look like this, for n = 3:
 
 \subsection{Chapter 2}
 
-Sizing up C types and their limits, \keyword{int} and \keyword{char} arrays, and incrementing pointers
+Sizing up C types and their limits, \keyword{int} and \keyword{char} arrays, and incrementing pointers.
 
 \begin{enumerate}
 \item How many bits are there in a byte?
@@ -914,7 +913,7 @@ ssize_t str_len = strlen("Hello\0World");
 
 \subsection{Chapter 3}
 
-Program arguments, environment variables, and working with character arrays (strings)
+Program arguments, environment variables, and working with character arrays (strings).
 
 \begin{enumerate}
 \item What are at least two ways to find the length of \keyword{argv}?
@@ -931,7 +930,7 @@ What are the values of \keyword{sizeof(ptr)} and \keyword{sizeof(array)}? Why?
 
 \subsection{Chapter 4}
 
-Heap and stack memory, and working with structs
+Heap and stack memory, and working with structs.
 
 \begin{enumerate}
 \item If I want to use data after the lifetime of the function it was created in ends, where should I put it? How do I put it there?
@@ -978,7 +977,7 @@ Text input and output and parsing using \keyword{getchar}, \keyword{gets}, and \
 \subsection{C Development}
 
 These are general tips for compiling and developing using a compiler and git.
-Some web searches will be useful here
+Some web searches will be useful here.
 
 \begin{enumerate}
 \item What compiler flag is used to generate a debug build?
@@ -1024,13 +1023,13 @@ Oh, and did I mention that this is an easy way to score points with your interns
 \item Am I following good programming practice? (i.e. encapsulation, functions to limit repetition, etc)
 \end{enumerate}
 
-The biggest tip that we can give you when asking a question on the class forum if you want a swift answer is to \textbf{ask your question like you were trying to answer it}. Like before you ask a question, try to answer it yourself. If you are thinking about posting
+The biggest tip that we can give you when asking a question on the class forum if you want a swift answer is to \textbf{ask your question like you were trying to answer it}. Like before you ask a question, try to answer it yourself. If you are thinking about posting:
 
 \begin{quote}
-Hi, My code got a 50% on the autograder. I tried testing it a lot, but couldn't get it to fail. Can you give me some hints as to the test cases
+Hi, My code got a 50\% on the autograder. I tried testing it a lot, but couldn't get it to fail. Can you give me some hints as to the test cases
 \end{quote}
 
-Sounds good and courteous, but course staff would much much prefer a post resembling the following
+Sounds good and courteous, but course staff would much much prefer a post resembling the following:
 
 \begin{quote}
 Hi, I recently failed test X, Y, Z which is about half the tests on this current assignment. I noticed that they all have something to do with networking and epoll, but couldn't figure out what was linking them together, or I may be completely off track. So to test my idea, I tried spawning 1000 clients with various get and put requests and verifying the files matched their originals. I couldn't get it to fail while running normally, the debug build, or valgrind or tsan. I have no warnings and none of the pre-syntax checks showed me anything. Could you tell me if my understanding of the failure is correct and what I could do to modify my tests to better reflect X, Y, Z? netid: bvenkat2

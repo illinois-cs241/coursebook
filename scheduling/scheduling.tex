@@ -54,7 +54,7 @@ The throughput might be measured by a system value, for example, the I/O through
 The latency might be measured by the response time -- elapsed time before a process can start to send a response -- or wait time or turnaround time -- the elapsed time to complete a task.
 Different schedulers offer different optimization trade-offs that may be appropriate for desired use.
 There is no optimal scheduler for all possible environments and goals.
-For example, Shortest Job First will minimize total wait time across all jobs but in interactive (UI) environments it would be preferable to minimize response time at the expense of some throughput, while FCFS seems intuitively fair and easy to implement but suffers from the Convoy Effect.
+For example, Shortest Job First will minimize total wait time across all jobs but in interactive (UI) environments it would be preferable to minimize response time at the expense of some throughput, while FCFS seems intuitively fair and easy to implement but suffers from the convoy effect.
 Arrival time is the time at which a process first arrives at the ready queue, and is ready to start executing.
 If a CPU is idle, the arrival time would also be the starting time of execution.
 
@@ -63,7 +63,7 @@ If a CPU is idle, the arrival time would also be the starting time of execution.
 Without preemption, processes will run until they are unable to utilize the CPU any further.
 For example the following conditions would remove a process from the CPU and the CPU would be available to be scheduled for other processes.
 The process terminates due to a signal, is blocked waiting for a concurrency primitive, or exits normally.
-Thus once a process is scheduled it will continue even if another process with a high priority appears on the ready queue.
+Thus once a process is scheduled it will continue even if another process with a higher priority appears on the ready queue.
 
 With preemption, the existing processes may be removed immediately if a more preferred process is added to the ready queue.
 For example, suppose at t=0 with a Shortest Job First scheduler there are two processes (P1 P2) with 10 and 20 ms execution times.
@@ -117,7 +117,7 @@ Here are measures of efficiency and their mathematical equations
 
 \subsection{Convoy Effect}
 
-The convoy effect is when a process takes up a lot of the CPU time, leaving all other processes with potentially smaller resource needs following like a Convoy Behind them.
+The convoy effect is when a process takes up a lot of the CPU time, leaving all other processes with potentially smaller resource needs following behind it like a convoy.
 
 Suppose the CPU is currently assigned to a CPU intensive task and there is a set of I/O intensive processes that are in the ready queue.
 These processes require a tiny amount of CPU time but they are unable to proceed because they are waiting for the CPU-intensive task to be removed from the processor.
@@ -127,11 +127,11 @@ For example, in the case of an FCFS scheduler, we must wait until the process is
 The I/O intensive processes can now finally satisfy their CPU needs, which they can do quickly because their CPU needs are small and the CPU is assigned back to the CPU-intensive process again.
 Thus the I/O performance of the whole system suffers through an indirect effect of starvation of CPU needs of all processes.
 
-This effect is usually discussed in the context of FCFS scheduler; however, a Round Robin scheduler can also exhibit the Convoy Effect for long time-quanta.
+This effect is usually discussed in the context of FCFS scheduler; however, a Round Robin scheduler can also exhibit the convoy effect for long time-quanta.
 
 \section{Scheduling Algorithms}
 
-Unless otherwise stated
+Unless otherwise stated, the examples in this section use the following processes:
 
 \begin{enumerate}
 \item Process 1: Runtime 1000ms
@@ -258,7 +258,7 @@ Under SRTF (shortest remaining time first), which compares remaining rather than
 Processes are scheduled in the order of arrival.
 One advantage of FCFS is that the scheduling algorithm is simple.
 The ready queue is a FIFO (first in first out) queue.
-FCFS suffers from the Convoy effect.
+FCFS suffers from the convoy effect.
 Here P2 arrives, then P1 arrives, then P5, then P4, then P3.
 You can see the convoy effect for P5.
 

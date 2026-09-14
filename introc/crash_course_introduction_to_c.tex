@@ -27,7 +27,8 @@ int main(void) {
     \keyword{printf} is defined as a part of \keyword{stdio.h}.
     The function has been compiled and lives somewhere else on our machine - the location of the C standard library.
     Just remember to include the header and call the function with the appropriate parameters (a string literal \keyword{"Hello World\textbackslash n"}).
-    If the newline isn't included, the buffer will not be flushed (i.e. the write will not complete immediately).
+    When standard output is a terminal it is usually line buffered, so without the newline the text may sit in the buffer and not appear immediately.
+    The buffer is still flushed when the program exits normally.
 	\item \keyword{return 0}.
     \keyword{main} has to return an integer.
     By convention, \keyword{return 0} means success and anything else means failure.
@@ -111,4 +112,4 @@ int* dynamic_array = malloc(10); // ARRAY_LENGTH(dynamic_array) = 2 or 1 consist
 
 What is wrong with the macro?
 Well, it works if a static array is passed in because \keyword{sizeof} a static array returns the number of bytes that array takes up and dividing it by the \keyword{sizeof(an\_element)} would give the number of entries.
-But if passed a pointer to a piece of memory, taking the sizeof the pointer and dividing it by the size of the first entry won't always give us the size of the array.
+But if passed a pointer to a piece of memory, taking the \keyword{sizeof} of the pointer and dividing it by the size of the first entry won't always give us the size of the array.

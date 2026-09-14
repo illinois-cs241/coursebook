@@ -227,7 +227,7 @@ Firstly, C Mutexes do not lock variables.
 A mutex is a simple data structure.
 It works with code, not data.
 If a mutex is locked, the other threads will continue.
-It's only when a thread attempts to lock a mutex that is already locked, will the thread have to wait.
+A thread only has to wait when it attempts to lock a mutex that is already locked.
 As soon as the original thread unlocks the mutex, the second (waiting) thread will acquire the lock and be able to continue.
 The following code creates a mutex that does effectively nothing.
 
@@ -397,8 +397,11 @@ When we wake up we try to grab the lock again.
 Once we successfully swap, we are in the critical section!
 We set the mutex's owner to the current thread for the unlock method and return successfully.
 
-How does this guarantee mutual exclusion? When working with atomics we are unsure!
-But in this simple example, we can because the thread that can successfully expect the lock to be UNLOCKED (0) and swap it to a LOCKED (1) state is considered the winner.
+How does this guarantee mutual exclusion?
+Reasoning about atomics is often tricky, but this simple example is easy to check.
+The compare-and-swap is atomic, so only one thread can change the lock from UNLOCKED (0) to LOCKED (1).
+That thread's compare-and-swap succeeds and it enters the critical section.
+Every other thread sees LOCKED instead of the UNLOCKED value it expected, so its compare-and-swap fails and it keeps waiting.
 How do we implement unlock?
 
 \begin{lstlisting}[language=C]
@@ -465,7 +468,7 @@ This becomes especially useful if you want to use a semaphore to implement a mut
 A mutex is a semaphore that always \keyword{waits} before it \keyword{posts}.
 Some textbooks will refer to a mutex as a binary semaphore.
 You do have to be careful to never add more than one to a semaphore or otherwise your mutex abstraction breaks.
-That is usually why a mutex is used to implement a semaphore and vice versa.
+With that care, a semaphore can stand in for a mutex, and later in this chapter we will go the other way and build a semaphore out of a mutex and a condition variable.
 
 \begin{itemize}
 \item Initialize the semaphore with a count of one.
@@ -526,7 +529,8 @@ Also, binary semaphores are different than mutexes because a mutex must be unloc
 
 \subsubsection{Signal Safety}
 
-Also, \keyword{sem\_post} is one of a handful of functions that can be correctly used inside a signal handler \keyword{pthread\_mutex\_unlock} is not.
+Also, \keyword{sem\_post} is one of a handful of functions that can be correctly used inside a signal handler.
+\keyword{pthread\_mutex\_unlock} is not.
 We can release a waiting thread that can now make all of the calls that we disallowed to call inside the signal handler itself e.g. \keyword{printf}.
 Here is some code that utilizes this:
 
@@ -1030,7 +1034,7 @@ There are three main desirable properties that we desire in a solution to the cr
 \begin{enumerate}
 \item Mutual Exclusion. The thread/process gets exclusive access.
   Others must wait until it exits the critical section.
-\item Bounded Wait. A thread/process cannot get superseded by another thread infinite amounts of time.
+\item Bounded Wait. A thread/process waiting to enter the critical section cannot be overtaken by other threads an unbounded number of times.
 \item Progress. If no thread/process is inside the critical section, the thread/process should be able to proceed without having to wait.
 \end{enumerate}
 
@@ -2262,7 +2266,7 @@ void* pop_elem(linked_list *ll, size_t index){
 \end{lstlisting}
 
 \item How tight can you make the critical section?
-\item What is a producer consumer problem? How might the above be a producer consumer problem be used in the above section? How is a producer consumer problem related to a reader writer problem?
+\item What is a producer consumer problem? How might a producer consumer queue be used in the above section? How is a producer consumer problem related to a reader writer problem?
 \item What is a condition variable? Why is there an advantage to using one over a \keyword{while} loop?
 \item Why is this code dangerous?
 
@@ -2352,7 +2356,7 @@ void withdraw(int amount) {
 }
 \end{lstlisting}
 \item
-  Sketch how to use a binary semaphore as a mutex. Remember in addition to mutual exclusion, a mutex can only ever be unlocked by the thread who called it.
+  Sketch how to use a binary semaphore as a mutex. Remember in addition to mutual exclusion, a mutex can only ever be unlocked by the thread that locked it.
 \begin{lstlisting}[language=C]
 sem_t sem;
 

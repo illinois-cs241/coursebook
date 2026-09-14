@@ -366,7 +366,7 @@ char *print_time(void) {
 \end{lstlisting}
 
 	    \item \keyword{struct} is a keyword that allows you to pair multiple types together into a new structure.
-        C-structs are contiguous regions of memory that one can access specific elements of each memory as if they were separate variables.
+        C structs are contiguous regions of memory whose individual members you can access as if they were separate variables.
         Note that there might be padding between elements, such that each variable is memory-aligned (starts at a memory address that is a multiple of its size).
 
 	      \begin{lstlisting}[language=C]
@@ -494,8 +494,10 @@ void foo(void);
 \end{lstlisting}
 
 
-	      The other use of \keyword{void} is when you are defining an \keyword{lvalue}.
-        A \keyword{void *} pointer is just a memory address. It is specified as an incomplete type meaning that you cannot dereference it but it can be promoted to any time to any other type. Pointer arithmetic with this pointer is undefined behavior.
+	      The other use of \keyword{void} is the generic pointer type \keyword{void *}.
+        A \keyword{void *} pointer is just a memory address.
+        \keyword{void} is an incomplete type, meaning that you cannot dereference a \keyword{void *}, but it can be converted to any other object pointer type without a cast.
+        Standard C does not allow pointer arithmetic on a \keyword{void *}, although gcc and clang permit it as an extension (see the Pointers section).
 
 	      \begin{lstlisting}[language=C]
 int *array = void_ptr; // No cast needed

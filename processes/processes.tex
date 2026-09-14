@@ -7,7 +7,7 @@ An operating system is a program that provides an interface between hardware and
 The operating system manages hardware and gives user programs a uniform way of interacting with hardware as long as the operating system can be installed on that hardware.
 Although this idea sounds like it is the end-all, we know that there are many different operating systems with their own quirks and standards.
 As a solution to that, there is another layer of abstraction: POSIX or portable operating systems interface.
-This is a standard (or many standards now) that an operating system must implement to be POSIX compatible -- most systems that we'll be studying are almost POSIX compatible due more to political reasons.
+This is a standard (or many standards now) that an operating system must implement to be POSIX compatible -- most systems that we'll be studying are ``mostly POSIX-compliant'' rather than officially certified, because formal certification is costly and many vendors don't bother.
 
 Before we talk about POSIX systems, we should understand what the idea of a kernel is generally.
 In an operating system (OS), there are two spaces: kernel space and user space.
@@ -98,7 +98,7 @@ printf("%d\n", secrets);
 \end{lstlisting}
 
 On two different terminals, they would both print out 1 not 2.
-Even if we changed the code to attempt to affect other process instances, there would be no way to change another process' state unintentionally.
+Even if we changed the code to attempt to affect other process instances, there would be no way to change another process's state unintentionally.
 However, there are other intentional ways to change the program states of other processes.
 
 \section{Process Contents}
@@ -139,7 +139,7 @@ Furthermore, the initialized data segment is divided into a readable and writabl
     \item \textbf{Initialized Data Segment}
           This contains all of a program's globals and any other static variables.
 
-          This section starts at the end of the text segment and starts at a constant size because the number of globals is known at compile time. The end of the data segment is called the \keyword{program break} and can be extended via the use of brk / sbrk.
+          This section starts at the end of the text segment and has a constant size because the number of globals is known at compile time. The end of the data segment is called the \keyword{program break} and can be extended via the use of brk / sbrk.
 
           This section is writable \cite[P. 124]{van1994expert}.
           Most notably, this section contains variables that were initialized with a static initializer, as follows:
@@ -455,7 +455,7 @@ Here is a summary of what is relevant:
     \item Since we have copy on write (COW), read-only memory addresses are shared between processes.
     \item If a program sets up certain regions of memory, they can be shared between processes.
     \item Signal handlers are inherited but can be changed.
-    \item The process' current working directory (often abbreviated to CWD) is inherited but can be changed.
+    \item The process's current working directory (often abbreviated to CWD) is inherited but can be changed.
     \item Environment variables are inherited but can be changed.
 \end{enumerate}
 
@@ -655,7 +655,7 @@ A process can only have 256 return values, the rest of the bits are informationa
 However, the kernel has an internal way of keeping track of signaled, exited, or stopped processes.
 This API is abstracted so that the kernel developers are free to change it at will.
 Remember: these macros only make sense if the precondition is met.
-For example, a process' exit status (\keyword{WEXITSTATUS}) is only defined if the process exited normally (\keyword{WIFEXITED}), and the signal that killed it (\keyword{WTERMSIG}) is only defined if the process was signaled (\keyword{WIFSIGNALED}).
+For example, a process's exit status (\keyword{WEXITSTATUS}) is only defined if the process exited normally (\keyword{WIFEXITED}), and the signal that killed it (\keyword{WTERMSIG}) is only defined if the process was signaled (\keyword{WIFSIGNALED}).
 The macros will not do the checking for the program, so it's up to the programmer to make sure the logic is correct.
 As an example above, the program should use the \keyword{WIFSTOPPED} to check if a process was stopped and then the \keyword{WSTOPSIG} to find the signal that stopped it.
 As such, there is no need to memorize the following. This is a high-level overview of how information is stored inside the status variables. From the \keyword{sys/wait.h} of an old Berkeley Standard Distribution (BSD) kernel \cite{sys/wait.h}:
@@ -681,15 +681,15 @@ Usually, UNIX programs are not designed to follow this policy, for the sake of s
 
 \subsection{Zombies and Orphans}
 
-It is good practice to wait on your process' children.
-If a parent doesn't wait on your children they become what are called zombies.
+It is good practice for a process to wait on its children.
+If a parent doesn't wait on its children, they become what are called zombies.
 Zombies are created when a child terminates and then takes up a spot in the kernel process table for your process.
 The process table keeps track of the following information about a process: PID, status, and how it was killed.
-The only way to get rid of a zombie is to wait on your children.
-If a long-running parent never waits for your children, it may lose the ability to fork.
+The only way to get rid of a zombie is for its parent to wait on it.
+If a long-running parent never waits for its children, it may lose the ability to fork.
 
-Having said that, a program doesn't always need to wait for your children!
-Your parent process can continue to execute code without having to wait for the child process.
+Having said that, a program doesn't always need to wait for its children!
+A parent process can continue to execute code without having to wait for the child process.
 If a parent dies without waiting on its children, a process can orphan its children.
 Once a parent process completes, any of its children will be assigned to \keyword{init} - the first process, whose PID is 1.
 Therefore, these children would see \keyword{getppid()} return a value of 1.
@@ -1008,7 +1008,7 @@ Note that we aren't expecting you to memorize the man page.
     \item
           My terminal is anchored to PID = 1337 and has become unresponsive. Write me the terminal command and the C code to send \keyword{SIGQUIT} to it.
     \item
-          Can one process alter another process' memory through normal means? Why?
+          Can one process alter another process's memory through normal means? Why?
     \item
           Where is the heap, stack, data, and text segment? Which segments can a program write to? What are invalid memory addresses?
     \item

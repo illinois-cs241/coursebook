@@ -4,7 +4,7 @@
 
 Signals are a convenient way to deliver low-priority information and for users to interact with their programs when other ways don't work (for example standard input being frozen).
 They allow a program to clean up or perform an action in the case of an event.
-Sometimes, a program can choose to ignore events which is supported.
+A program can also choose to ignore most signals, but \keyword{SIGKILL} and \keyword{SIGSTOP} can never be caught, blocked, or ignored.
 Crafting a program that uses signals well is tricky due to how signals are handled.
 As such, signals are usually for termination and clean up.
 Rarely are they supposed to be used in programming logic.
@@ -43,7 +43,7 @@ The overall process for how a kernel sends a signal is below.
   This tells the kernel that when the process gets signal X that it should jump to function Y.
 \item A signal that is created is in a "generated" state.
 \item The time between when a signal is generated and the kernel can apply the mask rules is called the pending state.
-\item Then the kernel checks the process' signal mask.
+\item Then the kernel checks the process's signal mask.
   If the mask says all the threads in a process are blocking the signal, then the signal is currently blocked and nothing happens until a thread unblocks it.
 \item If a single thread can accept the signal, then the kernel executes the action in the disposition table.
   If the action is a default action, then no threads need to be paused.
@@ -257,7 +257,8 @@ The \keyword{sig\_atomic\_t} type implies that all the bits of the variable can 
 It is impossible to read a value that is composed of some new bit values and old bit values.
 
 By specifying \keyword{pleaseStop} with the correct type \keyword{volatile\ sig\_atomic\_t}, we can write portable code where the main loop will be exited after the signal handler returns.
-The \keyword{sig\_atomic\_t} type can be as large as an \keyword{int} on most modern platforms but on embedded systems can be as small as a \keyword{char} and only able to represent (-127 to 127) values.
+The \keyword{sig\_atomic\_t} type can be as large as an \keyword{int} on most modern platforms but on embedded systems can be as small as a \keyword{char}.
+The C standard only guarantees that it can hold the values -127 to 127 if it is signed, or 0 to 255 if it is unsigned.
 
 \begin{lstlisting}[language=C]
 volatile sig_atomic_t pleaseStop;

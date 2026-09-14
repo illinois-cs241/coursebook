@@ -198,13 +198,12 @@ char* next_ticket() {
 \item What is a free list?
 \item What are some different ways of inserting into a free list?
 \item What are the benefits and drawbacks to first fit, worst fit, best fit?
-\item When would a trivial malloc implementation
+\item When would the following trivial malloc implementation be acceptable?
 \begin{lstlisting}[language=C]
 void *malloc(int size) {
   return (void *)sbrk(size);
 }
 \end{lstlisting}
-be acceptable?
 \end{enumerate}
 
 \section{Threading and Synchronization}
@@ -514,13 +513,13 @@ void xout(char* filename) {
 \item What is the sticky bit?
 \item What is a virtual file system?
 \item What is RAID?
-\item In an \keyword{ext2} filesystem how many inodes are read from disk to access the first byte of the file \keyword{/dir1/subdirA/notes.txt} ? Assume the directory names and inode numbers in the root directory (but not the inodes themselves) are already in memory.
+\item In an \keyword{ext2} filesystem how many inodes are read from disk to access the first byte of the file \keyword{/dir1/subdirA/notes.txt}? Assume the directory names and inode numbers in the root directory (but not the inodes themselves) are already in memory.
 
-\item In an \keyword{ext2} filesystem what is the minimum number of disk blocks that must be read from disk to access the first byte of the file \keyword{/dir1/subdirA/notes.txt} ? Assume the directory names and inode numbers in the root directory and all inodes are already in memory.
+\item In an \keyword{ext2} filesystem what is the minimum number of disk blocks that must be read from disk to access the first byte of the file \keyword{/dir1/subdirA/notes.txt}? Assume the directory names and inode numbers in the root directory and all inodes are already in memory.
 
 \item In an \keyword{ext2} filesystem with 32 bit addresses and 4KiB disk blocks, an inode can store 10 direct disk block numbers. What is the minimum file size required to require a single indirection table? ii) a double indirection table?
 
-\item Fix the shell command \keyword{chmod} below to set the permission of a file \keyword{secret.txt} so that the owner can read, write, and execute permissions the group can read and everyone else has no access.
+\item Fix the shell command \keyword{chmod} below to set the permission of a file \keyword{secret.txt} so that the owner can read, write, and execute it, the group can only read it, and everyone else has no access.
 
 \begin{lstlisting}[language=bash]
 $ chmod 000 secret.txt
@@ -586,7 +585,7 @@ $ chmod 000 secret.txt
 
 \item When would you call bind on a TCP client?
 
-\item What is the purpose of socket bind listen accept ?
+\item What is the purpose of \keyword{socket}, \keyword{bind}, \keyword{listen}, and \keyword{accept}?
 
 \item Which of the above calls can block, waiting for a new client to connect?
 

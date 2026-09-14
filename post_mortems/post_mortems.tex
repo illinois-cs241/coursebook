@@ -11,6 +11,7 @@ Sit back and scroll through this chapter as we tell you about the problems of pa
 Even if you are dealing with something much higher level like web-development, everything relates back to the system.
 
 \section{Shell Shock}
+\label{pm:shellshock}
 
 Required: Appendix/Shell
 
@@ -32,6 +33,7 @@ Also, you can harden your system to never perform exec calls to perform tasks (i
 Although you don't have flexibility, you have peace of mind about what you allow users to do.
 
 \section{Heartbleed}
+\label{pm:heartbleed}
 
 Required: Intro to C
 
@@ -45,6 +47,7 @@ Lessons Learned: Check your buffers!
 Know the difference between a buffer and a string.
 
 \section{Dirty Cow}
+\label{pm:dirtycow}
 
 Required: Processes/Virtual Memory
 
@@ -58,28 +61,42 @@ This can be done to the effective user id bit and the process can pretend it was
 Lessons Learned: Spinlocks in the kernel are hard.
 
 \section{Meltdown}
+\label{pm:meltdown}
 
-There is an example of this in the background section.
+Meltdown is a close cousin of Spectre: both abuse out-of-order execution to leak data the program shouldn't be able to read.
+See Section~\ref{sec:spectre} in the security chapter.
 
 \section{Spectre}
+\label{pm:spectre}
 
-Check in the security section.
+See Section~\ref{sec:spectre} in the security chapter.
 
 \section{Mars Pathfinder}
+\label{pm:pathfinder}
 
 Required sections: Synchronization and a bit of Scheduling
 
 \href{https://www.microsoft.com/en-us/research/people/mbj/#!just-for-fun}{Pathfinder Link}
 
-The Mars Pathfinder was a mission that tried to collect climate data on Mars. The finder uses a single bus to communicate with different parts. Since this was 1997, the hardware itself didn't have advanced features like efficient locking so it was up to the operating system developers to regulate that with mutexes. The architecture was pretty simple. There was a thread that controlled data along the information bus, communications thread, and data collection thread with high, regular, and low priorities with respect to scheduling. The other caveat is that if an interrupt happened at some interval and a task is running and a task is to be scheduled, the task that has the higher priority wins.
+The Mars Pathfinder was a 1997 mission that, among other things, collected weather data on Mars.
+The lander used a single ``information bus'' to pass data between its different parts, and access to the bus was protected by a mutex.
+The architecture was pretty simple.
+There was a bus management thread with high priority, a communications thread with medium priority, and a meteorological data collection thread with low priority.
+The scheduler was preemptive: whenever a higher-priority task became ready to run, it took the CPU from any lower-priority task.
 
-The pattern that caused everything to start failing was the data collection thread starts writing to the bus, the information bus thread is waiting on the data.
-Then the communication thread comes in to preempt the other lower priority thread \textbf{while the lower priority thread still held the mutex}. This means when the regular priority thread tried to lock the bus, the rover would deadlock.
-After some time the system would reset, but that isn't good to leave to chance.
+The pattern that caused everything to start failing went like this.
+The low-priority data collection thread locked the mutex to publish its data on the bus.
+The high-priority bus thread then tried to lock the same mutex and had to wait.
+Then the medium-priority communications thread became ready and preempted the low-priority thread \textbf{while the low-priority thread still held the mutex}.
+The communications thread ran for a long time, so the low-priority thread couldn't finish and release the mutex, and the high-priority bus thread stayed blocked behind both of them.
+This is called \keyword{priority inversion}: a medium-priority task effectively kept a high-priority task from running.
+After a while, a watchdog timer noticed that the bus thread hadn't run and reset the whole system, losing data each time.
+The fix, uploaded to the spacecraft, was to turn on \keyword{priority inheritance} for that mutex, so a low-priority thread holding the mutex temporarily runs at the priority of the highest-priority thread waiting for it.
 
 Moral of the lesson? Don't have the applications themselves deal with the synchronization. Define a module that handles mutex locking and have the module communicate through files, IPC, etc.
 
 \section{Mars Again}
+\label{pm:mars_memory}
 
 Required Sections: Malloc
 
@@ -88,6 +105,7 @@ Required Sections: Malloc
 The short of it is that they ran out of memory. The long of it is that they ran out of memory, disk space, and swap space. The moral of the story? Make sure to write code that can handle file failures and can handle files when they close and go out of memory, so the operating system can hot swap files to free up memory. Also clean up files, assume that your temp directory is roughly a hundredth or a thousandth of the total size and use that.
 
 \section{Year 2038}
+\label{pm:y2038}
 
 Required sections: Intro to C
 
@@ -103,6 +121,7 @@ Stay tuned to see what happens.
 Lessons learned: Plan like your application will be huge one day.
 
 \section{Northeast Blackout of 2003}
+\label{pm:blackout2003}
 
 Required Sections: Synchronization
 
@@ -115,6 +134,7 @@ Lessons Learned: Modularize your code to localize failures (i.e. keeping race co
 
 
 \section{Apple IOS Unicode Handling}
+\label{pm:ios_unicode}
 
 Required Sections: Intro to C
 
@@ -128,6 +148,7 @@ Undefined behavior means anything though, and a lot of varied things did happen 
 Lessons Learned: Fuzz your kernel.
 
 \section{Apple SSL Verification}
+\label{pm:apple_ssl}
 
 Required Sections: Intro to C
 
@@ -140,6 +161,7 @@ Naturally, hackers were able to get away with some pretty crazy site names.
 Lessons Learned: Always bracket if statements, use gotos sparingly. Chances are if you need to use a goto, write another function or a switch statement with fall throughs (still bad).
 
 \section{Sony Rootkit Installation}
+\label{pm:sony_rootkit}
 
 Required Sections: Intro to C/Processes
 
@@ -153,13 +175,14 @@ With 22 million Music CDs, they required users to install a rootkit on their ope
 
 Privacy concerns aside, and believe me there are a lot of them, the big problem was that this rootkit was a backdoor for everyone's systems if programmed incorrectly.
 A rootkit is a piece of code usually installed kernel-side that keeps track of almost anything that a user does.
-What websites visited, what clicks or keys typed etc.
+It can see which websites are visited, which buttons are clicked, which keys are typed, etc.
 If a hacker finds out about this and there is a way to access that API from the user space level, that means any program can find out important information about your device.
 Needless to say, people were angry.
 
 Lessons Learned: Get an antivirus and/or apparmor and make sure that an application is only requesting permissions that make sense. If you are torn, try something like Windows sandbox or keep a Sacrificial VM around to see if installing it makes your computer horrible. Don't trust certificates, trust code.
 
 \section{The Woes of Shell Scripting}
+\label{pm:steam_rm}
 
 Required Sections: Appendix/Shell
 
@@ -179,19 +202,22 @@ What happens if that directory doesn't exist, for example because the user moved
 Lessons Learned: Do parameter checks, always always always \keyword{set -e} on a script and if you expect a command to fail, explicitly list it. You can also alias rm to mv and then delete the trash later.
 
 \section{Appnexus Double Free}
+\label{pm:appnexus}
 
 Required Sections: Intro to C/Malloc
 
 \href{https://techblog.appnexus.com/2013-09-17-outage-postmortem-586b19ae4307}{Double Free}
 
 Appnexus uses an asynchronous garbage collector that reclaims different parts of the heap when it believes that objects are unused.
-The architecture is that an element is in the unavailable list and then it is taken out to a to-be-freed list.
-After a certain time if that element was unused, it is freed and added to the free list.
-This is fine until two threads try to delete the same object at once, adding to the list twice. After less time, one of the objects was deleted, the delete was announced to other computers.
+To keep latency low, when an in-memory object is deleted, it is unlinked from other objects and its memory is scheduled to be freed at a safe time in the future, when no thread could still be using it.
+In 2013, a rarely-changed object was deleted by a data update, and a bug in the code deleted that object twice.
+The update passed validation because the actual free hadn't happened yet, so it was distributed to all of the roughly 900 ad-serving servers.
+When the scheduled frees finally ran, the double free crashed all of them at nearly the same time.
 
 Lessons Learned: Avoid making hacky software if you need to. Modularize, and set memory limits, and monitor different parts of your code and optimize by hand. There is no general catch-all garbage collector that fits everyone. Even highly tested ones like the JVM need some nudges if you want to get performance out of them.
 
 \section{ATT Cascading Failures - 1990}
+\label{pm:att1990}
 
 Required Sections: Intro to C
 
@@ -199,9 +225,10 @@ Required Sections: Intro to C
 
 The bug is explained well at the link above.
 We recommend reading to learn more.
-A series of network delays that caused some telephone switches across the country to think that other switches were operable when they weren't.
-When the switches came back online, they realized they had a huge backlog of calls to route and began doing so.
-Other routing failures and restarts only compounded the problem.
+A switch in New York reset itself after a fault and told its neighbors that it was out of service.
+When it came back online, it began routing the backlog of calls that had built up and sent a burst of closely timed messages to other switches.
+Because of a misplaced \keyword{break} statement in the C code, a switch that received a second message while still processing the first overwrote its own data and reset itself.
+When each of those switches came back online, it sent its own burst of messages, so the resets cascaded across all 114 switches in the network for about nine hours.
 
 Lessons Learned: Not using C would've actually helped here because of more rigorous fuzzing (though C++ in this day and age would be worse with its language constructs).
 The real moral of the story is networks are random and expect any jump at any point in your code.

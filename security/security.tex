@@ -34,7 +34,7 @@ If not possible, try to go through the engineering steps.
   You can't solve a problem that you don't fully understand.
 \item Determine whether you need to ``hack'' the system.
   A hack is defined generally as trying to use a system unintendedly.
-  First, you should determine if your use is intended or unintended or somewhere in the middle -- get a decision from them.
+  First, you should determine if your use is intended or unintended or somewhere in the middle -- get a decision from the system's owners.
   If you can't get that, make a reasonable judgement as to what the intended use is.
 \item Figure out a reasonable estimate of what the cost is to ``hacking'' the system.
   Get that reasonable estimate checked out with a few engineers so they can highlight things that you may have missed.
@@ -48,7 +48,7 @@ This is often called a \keyword{policy vacuum}.
 This may seem like busy work and more on the ``business side'' than computer scientists are used to, but your career is at stake here.
 It is up to you as a computing professional to assess the risk and to decide whether to execute.
 Courts generally like sitting on precedent, but you can easily say that you aren't a legal scholar.
-In lieu, you must be able to say that you reacted as a ``reasonable'' engineer would react.
+Instead, you must be able to say that you reacted as a ``reasonable'' engineer would react.
 
 \todo{Link to some case studies of real engineers having to decide}
 
@@ -162,6 +162,7 @@ int main() {
 \end{lstlisting}
 
 \subsection{Out of order instructions \& Spectre}
+\label{sec:spectre}
 
 Out of order execution is an amazing development that has been recently adopted by many hardware vendors (think 1990s) \todo{citation needed}.
 Processors now instead of executing a sequence of instructions (let's say assigning a variable and then another variable) execute instructions before the current one is done \cite[P. 45]{guide2011intel}.
@@ -225,7 +226,7 @@ This could include important information such as passwords, payment information,
   The user gets matched with either the owner, the group, or `everyone else', and their access to the file is limited using these bits.
   Note that permissions work slightly differently on directories compared to files.
 \item Capabilities.
-  In addition to permissions on files, each user has a certain set of permissions that they can do.
+  In addition to permissions on files, a process can be given a certain set of capabilities: specific privileged actions that it is allowed to perform.
   For a full list, you can check capabilities(7).
   In short, allowing a capability allows a user to perform a set of actions.
   Some examples include controlling networking devices, creating special files, and peering into IPC or interprocess communication.
@@ -322,7 +323,7 @@ As more and more of our systems are hacked over the web, it is important to unde
 \item Identity Verification.
   In TCP, there is no way to verify the identity of who the program is connecting to.
   There are no checks or federated databases in place.
-  One just has to trust the DNS server gave a reasonable response which is almost always the incorrect answer.
+  One just has to trust that the DNS server gave the correct address, and blindly trusting it is almost always the wrong decision.
   Apart from systems that have an approved white list or a ``secret'' connection protocol, there is little at the TCP level that one can do to stop this.
 \item Syn-Ack Sequence Number.
   This is a security improvement.
