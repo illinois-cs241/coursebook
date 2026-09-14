@@ -323,7 +323,8 @@ As more and more of our systems are hacked over the web, it is important to unde
 \item Identity Verification.
   In TCP, there is no way to verify the identity of who the program is connecting to.
   There are no checks or federated databases in place.
-  One just has to trust that the DNS server gave the correct address, and blindly trusting it is almost always the wrong decision.
+  DNS answers are usually correct, but plain DNS gives the client no way to verify them.
+  A spoofed answer is accepted just as readily as a real one, and the program happily connects to whatever address it was handed.
   Apart from systems that have an approved white list or a ``secret'' connection protocol, there is little at the TCP level that one can do to stop this.
 \item Syn-Ack Sequence Number.
   This is a security improvement.

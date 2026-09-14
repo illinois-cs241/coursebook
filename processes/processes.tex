@@ -124,7 +124,8 @@ If the stack grows too far -- meaning that it either grows beyond a preset bound
 The heap is a contiguous, expanding region of memory \cite{mallocinternals}.
 If a program wants to allocate an object whose lifetime is manually controlled or whose size cannot be determined at compile-time, it would want to create a heap variable.
 
-The heap starts at the top of the text segment and grows upward, meaning \keyword{malloc} may push the heap boundary -- called the program break -- upward.
+The heap starts just above the data segments described below and grows upward.
+Its upper end is called the \keyword{program break}, and \keyword{malloc} may push it upward using \keyword{brk} or \keyword{sbrk}.
 
 We will explore this in more depth in our chapter on memory allocation.
 This area is also writable but not executable.
@@ -139,7 +140,7 @@ Furthermore, the initialized data segment is divided into a readable and writabl
     \item \textbf{Initialized Data Segment}
           This contains all of a program's globals and any other static variables.
 
-          This section starts at the end of the text segment and has a constant size because the number of globals is known at compile time. The end of the data segment is called the \keyword{program break} and can be extended via the use of brk / sbrk.
+          This section starts just after the text segment and has a constant size because the number of globals is known at compile time.
 
           This section is writable \cite[P. 124]{van1994expert}.
           Most notably, this section contains variables that were initialized with a static initializer, as follows:
@@ -994,7 +995,7 @@ Note that we aren't expecting you to memorize the man page.
 
 \begin{itemize}
     \item
-          What is the difference between execs with a p and without a p? What does the operating system
+          What is the difference between the \keyword{exec} functions with a p and without a p? When a program calls \keyword{execvp("ls", ...)}, who searches the \keyword{PATH} for \keyword{ls} -- the operating system or the C library?
     \item
           How does a program pass in command line arguments to \keyword{execl*}? How about \keyword{execv*}? What should be the first command line argument by convention?
     \item

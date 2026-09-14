@@ -80,8 +80,9 @@ int main() {
 \end{lstlisting}
 
 \item \keyword{calloc(size\_t nmemb, size\_t size)} initializes memory contents to zero and also takes two arguments: the number of items and the size in bytes of each item.
-An advanced discussion of these limitations is \href{http://locklessinc.com/articles/calloc/}{in this article}.
 Programmers often use \keyword{calloc} rather than explicitly calling \keyword{memset} after \keyword{malloc}, to set the memory contents to zero because certain performance considerations are taken into account.
+Doing that efficiently is harder than it looks: an implementation should skip zeroing memory that the operating system has already zeroed, and must catch the overflow when \keyword{nmemb} times \keyword{size} doesn't fit in a \keyword{size\_t}.
+An advanced discussion of both problems is \href{https://locklessinc.com/articles/calloc/}{in this article}.
 Note \keyword{calloc(x,y)} is identical to \keyword{calloc(y,x)}, but you should follow the conventions of the manual.
 A naive implementation of calloc is below.
 
@@ -291,7 +292,8 @@ Some additional notes we make
 \begin{enumerate}
 \item Best fit may take less time than a full heap scan. When a block of perfect size or perfect size within a threshold is found, that can be returned, depending on what edge-case policy you have.
 \item Worst fit follows this as well. Your heap could be represented with the max-heap data structure and each allocation call could simply pop the top off, re-heapify, and possibly insert a split memory block.
-  Using Fibonacci heaps, however, could be extremely inefficient.
+  Fancier heaps don't buy much here: a Fibonacci heap has better amortized bounds on paper, but each node carries parent, child, two sibling pointers, degree and mark fields.
+  In an allocator every free block would have to hold all of that overhead, which raises the minimum block size, and in practice its pointer chasing makes it slower than a simple binary heap anyway.
 \item First-Fit needs to have a block order. Most of the time programmers will default to linked lists which is a fine choice. There aren't too many improvements you can make with a least recently used and most recently used linked list policy, but with address ordered linked lists you can speed up insertion from O(n) to O(log(n)) by using a randomized skip-list in conjunction with your singly-linked list.
   An insert would use the skip list as shortcuts to find the right place to insert the block and removal would go through the list as normal.
 \item There are many placement strategies that we haven't talked about, one is next-fit, which is like first fit except that each search resumes where the previous search stopped instead of starting at the beginning of the heap. This adds deterministic randomness -- pardon the oxymoron. You won't be expected to know this algorithm, but know that as you are implementing a memory allocator as part of a machine problem, there are more than these.
@@ -436,11 +438,13 @@ Most of you have experienced this in your architecture classes if there was no m
 
 As \keyword{malloc} does not know how the user will use the allocated memory, the pointer returned to the program needs to be aligned for the worst case, which is architecture-dependent.
 
-From glibc documentation, the glibc \keyword{malloc} uses the following heuristic \cite{vma_paging}
+The glibc manual states the alignment guarantee \cite{vma_paging}:
 
 \begin{quote}
-The block that malloc gives you is guaranteed to be aligned so that it can hold any type of data. On GNU systems, the address is always a multiple of eight on most systems and a multiple of 16 on 64-bit systems." For example, if you need to calculate how many 16 byte units are required, don't forget to round up.
+The block that \keyword{malloc} gives you is guaranteed to be aligned so that it can hold any type of data. In the GNU system, the address is always a multiple of eight on most systems, and a multiple of 16 on 64-bit systems.
 \end{quote}
+
+So if your allocator hands out memory in 16-byte units, remember to round up when you work out how many units a request needs.
 
 This is what the math would look like in C.
 
