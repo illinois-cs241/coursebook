@@ -6,7 +6,7 @@
 
 Memory allocation is important!
 Allocating and deallocating heap memory is one of the most common operations in any application.
-The heap at the system level is a contiguous series of addresses that the program can expand or contract and use as its accord \cite{mallocinternals}.
+The heap at the system level is a contiguous series of addresses that the program can expand or contract and use as it sees fit \cite{mallocinternals}.
 In POSIX, this is called the system break.
 We use \keyword{sbrk} to move the system break.
 Most programs don't interact directly with this call, they use a memory allocation system around it to handle chunking up and keeping track of which memory is allocated and which is freed.
@@ -210,7 +210,7 @@ Or it could split one of the other two free holes.
 These choices represent different placement strategies.
 Whichever hole is chosen, the allocator will need to split the hole into two.
 The first is the newly allocated space, which will be returned to the program, and the second is a smaller hole if there is spare space left over.
-A perfect-fit strategy finds the smallest hole that is of sufficient size (at least 2KiB):
+A best fit strategy finds the smallest hole that is of sufficient size (at least 2KiB):
 
 \begin{figure}[H]
 \centering
@@ -495,7 +495,7 @@ With the above description, it's possible to build a memory allocator.
 Its main advantage is simplicity - at least simple compared to other allocators!
 Allocating memory is a worst-case linear time operation -- search linked lists for a sufficiently large free block.
 De-allocation is constant time.
-No more than 3 blocks will need to coalesce into a single block, and using a most recently used block scheme only one linked list entry.
+No more than 3 blocks will need to coalesce into a single block, and using a most recently used block scheme, only one linked list entry needs to be updated.
 
 Using this allocator it is possible to experiment with different placement strategies.
 For example, the allocator could start searching from the last deallocated block.

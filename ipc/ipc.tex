@@ -219,13 +219,13 @@ We will assume that this is for a single-level page table.
 	\item If the translation fails, report an invalid address
 	\item Otherwise,
 	      \begin{enumerate}
-	      	\item If the TLB contains the physical memory, get the physical frame from the TLB and perform the read and write.
+	      	\item If the TLB contains the physical memory, get the physical frame from the TLB and perform the read or write.
 	      	\item If the page exists in memory, check if the process has permissions
 	      	      to perform the operation on the page meaning the process has access
 	      	      to the page, and it is reading from the page/writing to a page
 	      	      that it has permission to do so.
 	      	      \begin{enumerate}
-	      	      	\item If so then do the dereference provide the address, cache the results in the TLB
+	      	      	\item If so, translate the address to the physical frame, perform the read or write, and cache the translation in the TLB.
 	      	      	\item Otherwise, trigger a hardware interrupt. The kernel
 	      	      	      will most likely send a SIGSEGV or a Segmentation Violation.
 	      	      \end{enumerate}
@@ -250,7 +250,7 @@ Read-only frames can then be safely shared between multiple processes.
 For example, the C-library instruction code can be shared between all processes that dynamically load the code into the process memory.
 Each process can only read that memory.
 Meaning that if a program tries to write to a read-only page in memory, it will \keyword{SEGFAULT}.
-That is why sometimes memory accesses SEGFAULT and sometimes they don't, it all depends on if your hardware says that a program can access.
+That is why sometimes memory accesses SEGFAULT and sometimes they don't, it all depends on whether the hardware says that the program can access that page in that way.
 	 
 Also, processes can share a page with a child process using the \keyword{mmap} system call.
 \keyword{mmap} is an interesting call because instead of tying each virtual address to a physical frame, it ties it to something else. It is an important distinction that we are talking about mmap and not memory-mapped IO in general. The \keyword{mmap} system call can't reliably be used to do other memory-mapped operations like communicate with GPUs and write pixels to the screen -- this is mainly hardware dependent.
@@ -648,7 +648,7 @@ What happens when a process tries to write when there are no readers left?
 \end{verbatim}
 	 
 Tip: Notice only the writer (not a reader) can use this signal.
-To inform the reader that a writer is closing their end of the pipe, a program could write your special byte (e.g.~0xff) or a message (\keyword{"Bye!"}).
+To inform the reader that a writer is closing their end of the pipe, a program could write a special byte (e.g.~0xff) or a message (\keyword{"Bye!"}).
 	 
 Here's an example of catching this signal that fails! Can you see why?
 	 
@@ -931,7 +931,7 @@ On Linux, there are two abstractions with files. The first is the Linux \keyword
 	\item \keyword{open} takes a path to a file and creates a file descriptor entry in the process table. If the file is inaccessible, it errors out.
 	\item \keyword{read} takes a certain number of bytes that the kernel has received and reads them into a user-space buffer. If the file is not open in read mode, this will break.
 	\item \keyword{write} outputs a certain number of bytes to a file descriptor. If the file is not open in write mode, this will break. This may be buffered internally.
-	\item \keyword{close} removes a file descriptor from a process' file descriptors. This always succeeds for a valid file descriptor.
+	\item \keyword{close} removes a file descriptor from a process's file descriptors. This always succeeds for a valid file descriptor.
 	\item \keyword{lseek} takes a file descriptor and moves it to a certain position. It can fail if the seek is out of bounds.
 	\item \keyword{fcntl} is the catch-all function for file descriptors. Set file locks, read, write, edit permissions, etc.
 \end{itemize}

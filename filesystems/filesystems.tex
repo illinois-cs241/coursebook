@@ -1139,7 +1139,7 @@ The one drawback is that you need more disks to have this setup, and there are m
 
 Failure is common.
 Google reports 2-10\% of disks fail per year.
-Multiplying that by 60,000+ disks in a single warehouse.
+Multiplied across 60,000+ disks in a single warehouse, that is roughly 1,200 to 6,000 failed disks a year, or about 3 to 16 every day.
 Services must survive single disk, rack of servers, or whole data center failures.
 
 \subsection{Solutions}
@@ -1259,15 +1259,15 @@ Some questions to consider.
 
 \begin{itemize}
     \item How would a program perform a write that goes across data block boundaries?
-    \item How would a program perform a write after adding the offset would extend the length of the file?
+    \item How would a program perform a write that starts inside the file but, once the offset is added, extends past the end of the file?
     \item How would a program perform a write where the offset is greater than the length of the original file?
 \end{itemize}
 
 \subsubsection{Writing to directories}
 Performing a write to a directory implies that an inode needs to be added to a directory.
-If we pretend that the example above is a directory.
+Let's pretend that the example above is a directory.
 We know that we will be adding at most one directory entry at a time.
-Meaning that we have to have enough space for one directory entry in our data blocks.
+That means we need enough free space for one directory entry in our data blocks.
 Luckily the last data block that we have has enough free space.
 This means we need to find the number of the last data block as we did above, go to where the data ends, and write one directory entry.
 Don't forget to update the size of the directory so that the next creation doesn't overwrite your file!

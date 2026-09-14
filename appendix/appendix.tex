@@ -355,7 +355,7 @@ In simplified terms, the descriptor needs to be closed, flushed, or read to its 
 For a handle to become the active handle, the application shall ensure that the actions below are performed between the last use of the handle (the current active handle) and the first use of the second handle (the future active handle). The second handle then becomes the active handle. All activity by the application affecting the file offset on the first handle shall be suspended until it again becomes the active file handle. (If a stream function has as an underlying function one that affects the file offset, the stream function shall be considered to affect the file offset.)
 \end{quote}
 
-Summarizing as if two file descriptors are actively being used, the behavior is undefined.
+In summary, if both processes actively use handles to the same open file description, the result is undefined.
 The other note is that after a fork, the library code must prepare the file descriptor as if the other process were to make the file active at any time.
 The last bullet point concerns itself with how a process prepares a file descriptor in our case.
 
@@ -589,7 +589,7 @@ While the API for most filesystems has stayed the same on POSIX over the years, 
 
 \subsection{Cutting Edge File systems}
 
-There are a few filesystem hardware nowadays that are truly cutting edge.
+There are a few filesystem hardware technologies nowadays that are truly cutting edge.
 The one we'd briefly like to touch on is AMD's StoreMI.
 We aren't trying to sell AMD chipsets, but the featureset of StoreMI warrants a mention.
 
@@ -938,7 +938,8 @@ These examples are adapted from those.
 
 \subsection{Sequentially Consistent}
 
-Sequentially consistent is the simplest, least error-prone and most expensive model. This model says that any change that happens, all changes before it will be synchronized between all threads.
+Sequentially consistent is the simplest, least error-prone and most expensive model.
+This model says that there is a single total order of all operations, consistent with each thread's program order, that all threads agree on.
 
 Suppose that \keyword{x} is atomic, \keyword{y} is an ordinary variable, and both start at 0.
 
@@ -982,7 +983,7 @@ This model was introduced so that there can be an Acquire/Release/Consume model 
 There are a \textit{lot} of other methods of concurrency than described in this book.
 Posix threads are the finest grained thread construct, allowing for tight control of the threads and the CPU.
 Other languages have their abstractions.
-We'll talk about a language go that is similar to C in terms of simplicity and design, go or golang
+We'll talk about a language that is similar to C in terms of simplicity and design: Go (or golang).
 To get the 5 minute introduction, feel free to read \href{https://learnxinyminutes.com/docs/go/}{the learn x in y guide} for go.
 Here is how we create a "thread" in go.
 
@@ -1284,7 +1285,7 @@ The last bit of notation is that we will assume that the probability of getting 
   \]
 
   Which says that the scheduler needs to wait for all jobs with a higher priority and the same to go before a process can go.
-  Imagine a series of FCFS queues that a process needs to wait your turn.
+  Imagine a series of FCFS queues that a process needs to wait through before it gets its turn.
   Using Little's Law for different colored jobs and the formula above we can simplify this
 
   \[
@@ -1389,7 +1390,8 @@ We will also introduce an additional term $C_i$ which denotes the variation amon
   What happens?
   As always the proof is left to the reader.
 
-\item Turnaround Time is the same formula $E[T] = E[S] + E[W]$. This means that given a distribution of jobs that has either low waiting time as described above, we will get low turnaround time -- we can't control the distribution of service times.
+\item Turnaround Time is the same formula $E[T] = E[S] + E[W]$.
+This means that given a distribution of jobs that has low waiting time as described above, we will get low turnaround time -- we can't control the distribution of service times.
 \end{enumerate}
 
 \subsection{Preemptive Shortest Job First}
@@ -1490,7 +1492,7 @@ The reasons are
 If the Internet Protocol receives a packet that is too big for the maximum size, it must chunk it up.
 TCP calculates how many datagrams that it needs to construct a packet and ensures that they are all transmitted and reconstructed at the end receiver.
 The reason that we barely use this feature is that if any fragment is lost, the entire packet is lost.
-Meaning that, assuming the probability of receiving a packet assuming each fragment is lost with an independent percentage, the probability of successfully sending a packet drops off exponentially as packet size increases.
+Assuming that each fragment is lost independently with the same probability, the probability of successfully sending a packet drops off exponentially as packet size increases.
 
 As such, TCP slices its packets so that it fits inside one IP datagram.
 The only time that this applies is when sending UDP packets that are too big, but most people who are using UDP optimize and set the same packet size as well.
@@ -1518,7 +1520,7 @@ So what are the benefits?
   In a high-performance server, this can easily happen 1000s of times a second.
   As such, having one system call to register and grab events saves the overhead of having a system call.
 \item The unified system call for all types.
-  kqueue is the truest sense of underlying descriptor agnostic.
+  kqueue is descriptor-agnostic in the truest sense.
   One can add files, sockets, pipes to it and get full or near full performance.
   You can add the same to epoll, but Linux's whole ecosystem with async file input-output has been messed up with \keyword{aio}, meaning that since there is no unified interface, you run into weird edge cases.
 \end{enumerate}

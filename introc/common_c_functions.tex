@@ -9,7 +9,7 @@ In the shell, \keyword{man -S2 open} or \keyword{man -S3 printf}.
 
 \subsection{Handling Errors}
 
-Before we get into the nitty gritty of all the functions, know that most functions in C handle errors return oriented.
+Before we get into the nitty gritty of all the functions, know that most functions in C report errors through their return value.
 This is at odds with programming languages like C++ or Java where the errors are handled with exceptions.
 There are a number of arguments against exceptions.
 
@@ -327,7 +327,7 @@ tricky
 	      Be careful though!
         Error handling is tricky because the function won't return an error code.
         If passed an invalid number string, it will return 0.
-        The caller has to be careful from a valid 0 and an error.
+        The caller has to be careful to distinguish a valid 0 from an error.
         This often involves an errno trampoline as shown below.
 
 	      \begin{lstlisting}[language=C]
@@ -351,7 +351,7 @@ tricky
         Consider the safer version \keyword{memmove}.
 
 	    \item \keyword{void *memmove(void *dest, const void *src, size\_t n)} does the same thing as above, but if the memory regions overlap then it is guaranteed that all the bytes will get copied over correctly.
-        \keyword{memcpy} and \keyword{memmove} both in \keyword{string.h}?
+        Both \keyword{memcpy} and \keyword{memmove} are declared in \keyword{string.h}.
 \end{itemize}
 
 

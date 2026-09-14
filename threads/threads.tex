@@ -145,7 +145,7 @@ The pthread library will automatically finish the process if no other threads ar
 \keyword{pthread\_exit(...)} is equivalent to returning from the thread's function; both finish the thread and also set the return value (void *pointer) for the thread.
 Calling \keyword{pthread\_exit} in the \keyword{main} thread is a common way for simple programs to ensure that all threads finish.
 For example, in the following program, the \keyword{myfunc} threads will probably not have time to get started.
-On the other hand \keyword{exit()} exits the entire process and sets the process' exit value.
+On the other hand \keyword{exit()} exits the entire process and sets the process's exit value.
 This is equivalent to \keyword{return ();} in the main method.
 All threads inside the process are stopped.
 Note the \keyword{pthread\_exit} version creates thread zombies; however, this is not a long-running process, so we don't care.
@@ -200,9 +200,9 @@ Here is a non-complete list:
 
 \section{Race Conditions}
 
-Race conditions are whenever the outcome of a program is determined by its sequence of events determined by the processor.
+A race condition is when the outcome of a program depends on the order in which its threads happen to run, which is decided by the scheduler.
 This means that the execution of the code is non-deterministic.
-Meaning that the same program can run multiple times and depending on how the kernel schedules the threads could produce inaccurate results.
+The same program can run multiple times and, depending on how the kernel schedules the threads, produce different (and incorrect) results.
 The following is the canonical race condition.
 
 \begin{lstlisting}[language=C]
@@ -227,12 +227,12 @@ int main() {
 \end{lstlisting}
 
 Breaking down the assembly there are many different accesses of the code.
-We will assume that data is stored in the \keyword{eax} register.
-The code to increment is the following with no optimization (assume int\_ptr contains eax).
+For simplicity, assume the shared integer lives in memory at \keyword{[rbp-4]}.
+Without optimization, the update compiles to something like the following: load the value from memory into the \keyword{eax} register, double it, and store it back.
 
 \begin{lstlisting}[language={[x86masm]Assembler}]
-mov eax, DWORD PTR [rbp-4]    ;Loads int_ptr
-add eax, eax                  ;Does the addition
+mov eax, DWORD PTR [rbp-4]    ;Loads the value from memory
+add eax, eax                  ;Doubles it
 mov DWORD PTR [rbp-4], eax    ;Stores it back
 \end{lstlisting}
 
@@ -301,11 +301,11 @@ The above code suffers from a \keyword{race condition} - the value of i is chang
 The new threads start later; in the example output, the last thread starts after the loop has finished.
 To overcome this race-condition, we will give each thread a pointer to its own data area.
 For example, for each thread we may want to store the id, a starting value and an output value.
-We will instead treat i as a pointer and cast it by value.
+Alternatively, for a single small integer, we can cast the value of \keyword{i} to a \keyword{void*} and pass that value directly.
 
 \begin{lstlisting}[language=C]
 void* myfunc(void* ptr) {
-  int data = ((int) ptr);
+  int data = (int) (intptr_t) ptr;
   printf("%d ", data);
   return NULL;
 }
@@ -315,7 +315,7 @@ int main() {
   int i;
   pthread_t tid;
   for(i =0; i < 10; i++) {
-    pthread_create(&tid, NULL, myfunc, (void *)i);
+    pthread_create(&tid, NULL, myfunc, (void *) (intptr_t) i);
   }
   pthread_exit(NULL);
 }
@@ -548,7 +548,7 @@ Guiding questions:
 \item What is the first argument to pthread create?
 \item What is the start routine in pthread create? How about arg?
 \item Why might pthread create fail?
-\item What are a few things that threads share in a process? What are a few things that threads have different?
+\item What are a few things that threads share in a process? What are a few things that differ between threads?
 \item How can a thread uniquely identify itself?
 \item What are some examples of non thread safe library functions? Why might they not be thread safe?
 \item How can a program stop a thread?
