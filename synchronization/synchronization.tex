@@ -877,6 +877,12 @@ void push(double v) {
 }
 \end{lstlisting}
 
+Sketch \#1 is only half of the story.
+With \keyword{sitems} starting at 0 and \keyword{sremain} starting at 10, \keyword{pop} blocks while the stack is empty and \keyword{push} blocks once 10 items are on it, which is what we want.
+But nobody ever calls \keyword{sem\_post}: \keyword{sitems} never goes up, so every \keyword{pop} blocks forever, and \keyword{sremain} never comes back up, so after 10 pushes every \keyword{push} blocks forever too.
+Each successful \keyword{push} creates an item, so it must post \keyword{sitems}; each successful \keyword{pop} frees a space, so it must post \keyword{sremain}.
+The question is \emph{where} to put those posts.
+
 Sketch \#2 has implemented the \keyword{post} too early.
 Another thread waiting in push can erroneously attempt to write into a full stack.
 Similarly, a thread waiting in the pop() is allowed to continue too early.
@@ -897,7 +903,7 @@ void push(double v) {
 }
 \end{lstlisting}
 
-Sketch 3 implements the correct semaphore logic, but can you spot the error?
+Sketch \#3 implements the correct semaphore logic, but can you spot the error?
 
 \begin{lstlisting}[language=C]
 // Sketch #3 (Error!)
@@ -917,7 +923,7 @@ void push(double v) {
 }
 \end{lstlisting}
 
-Sketch 3 correctly enforces buffer full and buffer empty conditions using semaphores.
+Sketch \#3 correctly enforces buffer full and buffer empty conditions using semaphores.
 However, there is no \emph{mutual exclusion}.
 Two threads can be in the \emph{critical section} at the same time, which would corrupt the data structure or at least lead to data loss.
 The fix is to wrap a mutex around the critical section:

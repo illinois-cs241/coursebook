@@ -180,13 +180,13 @@ The middle 10 bits 1100001111 select the entry holding frame 241, and the offset
 \subsubsection{Calculating Size Concerns}
 	 
 Now some calculations on size.
-Each \keyword{page\_table\_num} index is 10 bits wide because there are only $2^{10}$ possible \keyword{sub-tables}, so we need 10 bits to store each directory index.
-We'll round up to 2 bytes for the sake of reasoning.
-If 2 bytes are used for each entry in the top-level table and there are only $2^{10}$ entries, we only need 2KiB to store this entire first level page table.
+The top 10 bits of the address are an index \emph{into} the directory, but each directory entry has to say where its sub-table lives in physical memory, which takes a frame number.
+So, like the sub-table entries, each directory entry is 4 bytes.
+With $2^{10}$ entries of 4 bytes each, the whole top-level directory is 4KiB -- exactly one frame.
 Each subtable will point to physical frames, and each of their entries needs to be the required 4 bytes to be able to address all the frames as mentioned earlier.
 However, for processes with only tiny memory needs, we only need to specify entries for low memory addresses for the heap and program code and high memory addresses for the stack.
 	 
-Thus, the total memory overhead for our multi-level page table has shrunk from 4MiB for the single-level implementation to three page tables of memory or 2KiB for the top-level and 4KiB for the two intermediate levels of size 10KiB.
+Thus, the total memory overhead for our multi-level page table has shrunk from 4MiB for the single-level implementation to just three tables: the 4KiB top-level directory plus two 4KiB sub-tables, $3 \times 4\text{KiB} = 12$KiB in total.
 Here's why.
 We need at least one frame for the high-level directory and two frames for two sub-tables.
 One sub-table is necessary for the low addresses -- program code, constants and possibly a tiny heap.
@@ -961,8 +961,8 @@ You can change that with C options.
 	  
 \subsection{Determining File Length}
 	 
-For files less than the size of a long, using fseek and ftell is a
-simple way to accomplish this.
+Sometimes a program needs to know how big a file is, for example to allocate a buffer big enough to hold all of it.
+For files whose size fits in a \keyword{long} (see below), \keyword{fseek} and \keyword{ftell} are a simple way to find out.
 Move to the end of the file and find out the current position.
 	 
 \begin{lstlisting}[language=C]
@@ -980,14 +980,14 @@ length of the file!
 	fseek(f, posn, SEEK_SET); // Move to 'posn' in the file.
 \end{lstlisting}
 	 
-All future reads and writes in the parent or child processes will honor this position.
+All future reads and writes on this stream will honor this position.
 Note writing or reading from the file will change the current position.
 See the man pages for fseek and ftell for more information.
 	 
 \subsection{Use stat instead}
 	 
-This only works on some architectures and compilers.
-That quirk is that longs only need to be \textbf{4 Bytes big} meaning that the maximum size that \keyword{ftell} can return is a little under 2 Gibibytes.
+The \keyword{fseek}/\keyword{ftell} trick has a catch: \keyword{ftell} returns a \keyword{long}, and C only requires a \keyword{long} to be \textbf{4 bytes big}.
+Where that is the case -- 32-bit Linux, and even 64-bit Windows -- the largest position \keyword{ftell} can report is $2^{31}-1$ bytes, a little under 2 gibibytes.
 Nowadays, our files could be hundreds of gibibytes or even terabytes on a distributed file system.
 What should we do instead? Use \keyword{stat}! We will cover stat in a later part but here is some code that will tell a program the size of the file.
 	 

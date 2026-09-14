@@ -93,7 +93,9 @@ This is called \keyword{priority inversion}: a medium-priority task effectively 
 After a while, a watchdog timer noticed that the bus thread hadn't run and reset the whole system, losing data each time.
 The fix, uploaded to the spacecraft, was to turn on \keyword{priority inheritance} for that mutex, so a low-priority thread holding the mutex temporarily runs at the priority of the highest-priority thread waiting for it.
 
-Moral of the lesson? Don't have the applications themselves deal with the synchronization. Define a module that handles mutex locking and have the module communicate through files, IPC, etc.
+Lessons Learned: Understand priority inversion before you mix locks and priorities.
+If a lock is shared by tasks with different priorities, turn on priority inheritance (or use a priority ceiling) for it.
+Keep your debugging and tracing hooks in the deployed system, because that's how the engineers diagnosed and patched this one from Earth.
 
 \section{Mars Again}
 \label{pm:mars_memory}
@@ -206,7 +208,7 @@ Lessons Learned: Do parameter checks, always always always \keyword{set -e} on a
 
 Required Sections: Intro to C/Malloc
 
-\href{https://techblog.appnexus.com/2013-09-17-outage-postmortem-586b19ae4307}{Double Free}
+\href{https://medium.com/xandr-tech/2013-09-17-outage-postmortem-586b19ae4307}{Double Free} (\href{https://web.archive.org/web/20230303210004/https://medium.com/xandr-tech/2013-09-17-outage-postmortem-586b19ae4307}{archived copy})
 
 Appnexus uses an asynchronous garbage collector that reclaims different parts of the heap when it believes that objects are unused.
 To keep latency low, when an in-memory object is deleted, it is unlinked from other objects and its memory is scheduled to be freed at a safe time in the future, when no thread could still be using it.
@@ -221,7 +223,7 @@ Lessons Learned: Avoid making hacky software if you need to. Modularize, and set
 
 Required Sections: Intro to C
 
-\href{http://users.csc.calpoly.edu/~jdalbey/SWE/Papers/att_collapse.html}{Explanation}
+\href{https://users.csc.calpoly.edu/~jdalbey/SWE/Papers/att_collapse.html}{Explanation} (\href{https://web.archive.org/web/20260610030535/http://users.csc.calpoly.edu/~jdalbey/SWE/Papers/att_collapse.html}{archived copy})
 
 The bug is explained well at the link above.
 We recommend reading to learn more.
@@ -230,6 +232,7 @@ When it came back online, it began routing the backlog of calls that had built u
 Because of a misplaced \keyword{break} statement in the C code, a switch that received a second message while still processing the first overwrote its own data and reset itself.
 When each of those switches came back online, it sent its own burst of messages, so the resets cascaded across all 114 switches in the network for about nine hours.
 
-Lessons Learned: Not using C would've actually helped here because of more rigorous fuzzing (though C++ in this day and age would be worse with its language constructs).
-The real moral of the story is networks are random and expect any jump at any point in your code.
-That means writing simulations and running them with random delays to figure out bugs before they happen.
+Lessons Learned: A single misplaced \keyword{break} took down a national phone network.
+Know exactly what \keyword{break} exits in C: the innermost \keyword{switch} or loop, never an \keyword{if}.
+Test your failure and recovery paths, not just the happy path, for example with simulations or fuzzing that deliver messages with random timing.
+Recovery code runs rarely, so it is the least tested code you have, and when it misbehaves on many machines at once it can turn one failure into a cascade.

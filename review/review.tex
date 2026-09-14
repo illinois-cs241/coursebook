@@ -132,7 +132,7 @@ if(f) {
 fclose(f);
 \end{lstlisting}
 
-\item How would you print the values of the variables \keyword{a}, \keyword{mesg}, \keyword{val} and \keyword{ptr} to a string? Print a as an integer, mesg as C string, val as a double val and ptr as a hexadecimal pointer. You may assume the mesg points to a short C string(\textless{}50 characters). Bonus: How would you make this code more robust or able to cope with?
+\item How would you print the values of the variables \keyword{a}, \keyword{mesg}, \keyword{val} and \keyword{ptr} to a string? Print a as an integer, mesg as a C string, val as a double and ptr as a hexadecimal pointer. You may assume the mesg points to a short C string (\textless{}50 characters). Bonus: How would you make this code robust, so that it copes with any length of \keyword{mesg} and with \keyword{malloc} returning \keyword{NULL}? Hint: printing a large \keyword{val} with \keyword{\%f} can take over 300 characters.
 
 \begin{lstlisting}[language=C]
 char* toString(int a, char*mesg, double val, void* ptr) {
@@ -335,9 +335,9 @@ void set_edge(graph_t* graph, int i, int j, double time);
 
 \end{lstlisting}
 
-For performance, multiple threads must be able to call \keyword{shortest} at the same time but the graph can only be modified by one thread when no other threads are executing inside \keyword{shortest} or \keyword{set\_edge}.
-
-\item Use mutex lock and condition variables to implement a reader-writer solution. An incomplete attempt is shown below. Though this attempt is thread safe (thus sufficient for demo day!), it does not allow multiple threads to calculate \keyword{shortest} path at the same time and will not have sufficient throughput.
+For performance, multiple threads must be able to call \keyword{shortest} at the same time, but the graph can only be modified by one thread when no other threads are executing inside \keyword{shortest} or \keyword{set\_edge}.
+Use a mutex lock and condition variables to implement a reader-writer solution.
+An incomplete attempt is shown below. Though this attempt is thread safe (thus sufficient for demo day!), it does not allow multiple threads to calculate \keyword{shortest} path at the same time and will not have sufficient throughput.
 
 \begin{lstlisting}[language=C]
 path_t* shortest_safe(graph_t* graph, int i, int j) {

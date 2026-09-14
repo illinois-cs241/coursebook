@@ -439,7 +439,7 @@ The servicing actor may send a data request message to the database actor and a 
 While this seems like the perfect solution there are drawbacks.
 The first is the actual library of communication needs to be synchronized.
 If you don't have a framework that does this already -- like the Message Passing Interface or MPI for High-Performance Computing -- then the framework will have to be built and would most likely be as much work to build efficiently compared to direct synchronization.
-Also, the messages now encounter additional overhead for serializing and deserializing or at the least.
+Also, every message has to be serialized by the sender and deserialized by the receiver -- or, at the least, copied into and out of a mailbox.
 And a final drawback is that an actor could take an arbitrarily long time to respond to a message, spurring the need for shadow actors who service the same job.
 
 As mentioned, there are frameworks like \href{https://en.wikipedia.org/wiki/Message\_Passing\_Interface}{Message passing interface} that is somewhat based on the actor model and allows distributed systems in high-performance computing to work effectively, but your mileage may vary.
@@ -636,8 +636,9 @@ Although it is called the Fair Scheduler there are a fair number of problems.
 
 \subsection{Implementing Software Mutex}
 
-Yes
-With a bit of searching, it is possible to find it in production for specific simple mobile processors today.
+Is a pure-software mutex such as Peterson's algorithm ever used in real systems?
+Yes!
+With a bit of searching, it is possible to find Peterson's algorithm in production on specific simple mobile processors today.
 Peterson's algorithm is used to implement low-level Linux Kernel locks for the Tegra mobile processor (a system-on-chip ARM processor and GPU core by Nvidia) \href{https://android.googlesource.com/kernel/tegra.git/+/android-tegra-3.10/arch/arm/mach-tegra/sleep.S\#58}{Link to Lock Source}
 
 In general now, CPUs and C compilers can re-order CPU instructions or use CPU-core-specific local cache values that are stale if another core updates the shared variables.
@@ -1085,7 +1086,7 @@ If we wanted to scale this operation and do other things like increment by a num
 This differentiation of responsibilities is important to make sure your design scales well.
 There are even libraries that handle all of the boilerplate code as well.
 
-\section{Scheduling Conceptually}
+\section{Scheduling Conceptually}\label{sec:scheduling_conceptually}
 
 \textbf{This section could be useful for those that like to analyze these algorithms mathematically}
 
@@ -1123,19 +1124,19 @@ And here are the measures we are trying to optimize.
 \end{center}
 
 Different use cases will be discussed after.
-Let the maximum amount of time that a process runs be equal to $S$.
+Let $T$ be the maximum amount of time that a process runs; every process finishes in a finite amount of time.
 We will also assume that there are a finite number of processes running at any given time $c$.
 Here are some concepts from queueing theory that you'll need to know that will help simplify the theories.
 
 \begin{enumerate}
 \item Queueing theory involves a random variable controlling the interarrival time -- or the time between two different processes arriving.
-  We won't name this random variable, but we will assume that (1) it has a mean of $\lambda$ and (2) it is distributed as a Poisson random variable.
-  This means the probability of getting a process $t$ units after getting another process is $\lambda^t * \frac{\exp(-\lambda)}{t!}$ where $t!$ can be approximated by the gamma function when dealing with real values.
+  We won't name this random variable, but we will assume that processes arrive as a Poisson process with rate $\lambda$, meaning $\lambda$ processes arrive per unit of time on average.
+  This means the interarrival time is exponentially distributed with mean $\frac{1}{\lambda}$: the probability density of the next process arriving $t$ units after the previous one is $\lambda e^{-\lambda t}$.
 \item We will be denoting the service time $S$, and deriving the waiting time $W$, and the response time $R$; more specifically the expected values of all of those variables $E[S]$ deriving turnaround time is simply $S + W$.
   For clarity, we will introduce another variable $N$ that is the number of people currently in the queue.
   A famous result in queueing theory is Little's Law which states $E[N] = \lambda E[W]$ meaning that the number of people waiting is the arrival rate times the expected waiting time (assuming the queue is in a steady state).
 \item We won't make many assumptions about how much time it takes to run each process except that it will take a finite amount of time -- otherwise this gets almost impossible to evaluate.
-We will denote two variables that $\frac{1}{\mu}$ is the mean of the waiting time and that the coefficient of variation $C$ is defined as $C^2 = \frac{var(S)}{E[S]^2}$ to help us control for processes that take a while to finish.
+We will denote two variables that $\frac{1}{\mu}$ is the mean of the service time (so $\mu$ is the service rate) and that the coefficient of variation $C$ is defined as $C^2 = \frac{var(S)}{E[S]^2}$ to help us control for processes that take a while to finish.
 An important note is that when $C > 1$ we say that the running times of the process are highly variable. We will note below that this rockets up the wait and response times for FCFS quadratically.
 \item $\rho = \frac{\lambda}{\mu} < 1$ Otherwise, our queue would become infinitely long
 \item We will assume that there is one processor. This is known as an M/G/1 queue in queueing theory.
@@ -1314,7 +1315,7 @@ The last bit of notation is that we will assume that the probability of getting 
 \subsection{Shortest Job First}
 This is a wonderful reduction to priority.
 Instead of having discrete priorities, we'll introduce a process that takes $S_t$ time to get serviced.
-$T$ is the maximum amount of time a process can run for, our processes cannot run infinitely long.
+As before, $T$ is the maximum amount of time a process can run for, since our processes cannot run infinitely long.
 That means the following definitions hold, overriding the previous definitions in priority
 
 \begin{enumerate}
@@ -1459,15 +1460,16 @@ At a high level there are two types of routing
 \item Internal Routing Protocols.
   Internal protocols are routing designed for within an ISP's network.
   These protocols are meant to be fast and more trusting because all computers, switches, and routers are part of an ISP.
-  communication between two routers.
+  Common examples are OSPF and IS-IS, which are link-state protocols: every router learns the whole map of the ISP's network and calculates the shortest path to each destination.
 \item External Routing Protocols.
   These typically happen to be ISP to ISP protocol.
   Certain routers are designated as border routers.
   These routers talk to routers from ISPs who have different policies from accepting or receiving packets.
   If an evil ISP is trying to dump all network traffic onto your ISP, these routers would deal with that.
   These protocols also deal with gathering information about the outside world to each router.
-  In most routing protocols using link state or OSPF, a router must necessarily calculate the shortest path to the destination.
-  This means it needs information about the "foreign" routers which is disseminated according to these protocols.
+  The external routing protocol of today's Internet is BGP, the Border Gateway Protocol.
+  Instead of computing shortest paths, BGP routers advertise which networks they can reach, and this is how information about the "foreign" networks is disseminated to each ISP.
+  Each ISP then picks among the advertised routes according to its own policies.
 \end{enumerate}
 
 These two protocols have to interplay with each other nicely to make sure that packets are mostly delivered.
@@ -1762,3 +1764,6 @@ A system program \ldots{}
 Evolves until it can send email.
 
 Evolves until it has the potential to create, connect and kill other programs and consume all possible CPU, memory, network, \ldots{} resources on all possible devices but chooses not to. Today.
+
+\bibliographystyle{plainnat}
+\bibliography{appendix/appendix}

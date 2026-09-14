@@ -504,9 +504,12 @@ freeaddrinfo(result);
 The next piece of code sends the request. Here is what each header means.
 
 \begin{enumerate}
-  \item "GET \%s HTTP/1.0" This is the request verb interpolated with the path. This means to perform the GET verb on the path using the HTTP/1.0 protocol version.
-  \item "Connection: close" Means that as soon as the request is over, please close the connection. This line won't be used for any other connections.
-    This is a little redundant given that HTTP 1.0 doesn't allow you to send multiple requests, but it is better to be explicit given there are non-conformant technologies.
+  \item "GET \%s HTTP/1.1" This is the request method interpolated with the path. This means to perform the GET method on the path using the HTTP/1.1 protocol version.
+  \item "Host: \%s" The name of the server we want to talk to.
+    HTTP/1.1 requires this header because one IP address often hosts many different websites, and the server needs to know which one we meant.
+  \item "Connection: close" Means that as soon as the response is over, please close the connection.
+    HTTP/1.1 keeps connections open by default so that more requests can reuse them.
+    Asking the server to close keeps our client simple: the end of the response is just the end of the file, so we don't have to parse \keyword{Content-Length}.
   \item "Accept: */*" This means that the client is willing to accept anything.
 \end{enumerate}
 
@@ -515,10 +518,11 @@ A more robust piece of code would also check if the write fails or if the call w
 \begin{lstlisting}[language=C]
 char *buffer;
 asprintf(&buffer,
-  "GET %s HTTP/1.0\r\n"
+  "GET %s HTTP/1.1\r\n"
+  "Host: %s\r\n"
   "Connection: close\r\n"
   "Accept: */*\r\n\r\n",
-  info->resource);
+  info->resource, info->hostname);
 
 write(sock_fd, buffer, strlen(buffer));
 free(buffer);
@@ -560,9 +564,9 @@ In general, there are six parts:
 \begin{enumerate}
 \item The method. GET, POST, etc.
 \item The resource. ``/'' ``/index.html'' ``/image.png''
-\item The protocol ``HTTP/1.0''
+\item The protocol ``HTTP/1.1''
 \item A new line (\keyword{\textbackslash r\textbackslash n}). Requests always have a carriage return.
-\item Any other knobs or switch parameters
+\item Any other knobs or switch parameters, called headers, one per line. HTTP/1.1 requires at least the \keyword{Host} header.
 \item The actual body of the request, which follows a blank line (two new lines in a row).
   The receiver reads the body either for the number of bytes given in the \keyword{Content-Length} header or, if no size is specified, until the sender closes the connection.
 \end{enumerate}
@@ -574,13 +578,19 @@ HTTP/1.1 200 OK
 \end{lstlisting}
 
 If the client had requested a non-existent path, e.g.
-\keyword{GET /nosuchfile.html HTTP/1.0} Then the first line includes the well-known \keyword{404} response code.
+\keyword{GET /nosuchfile.html HTTP/1.1} Then the first line includes the well-known \keyword{404} response code.
 
 \begin{lstlisting}
 HTTP/1.1 404 Not Found
 \end{lstlisting}
 
 For more information, RFC 9110 (which replaced RFC 7231 in 2022) is the current specification of HTTP semantics, including the request methods and status codes \cite{rfc9110}.
+
+HTTP/1.1 is not the end of the story.
+Without \keyword{Connection: close}, an HTTP/1.1 connection stays open after the response (a persistent connection), so a browser can send many requests without paying for a new TCP handshake each time.
+HTTP/2 keeps the same methods, headers, and status codes, but sends them as binary frames and multiplexes many requests at once over a single TCP connection \cite{rfc9113}.
+HTTP/3 goes further and runs over QUIC, which is built on UDP, so that one lost packet doesn't stall every request behind it the way it does on a single TCP stream (TCP head-of-line blocking) \cite{rfc9114}.
+Your browser speaks all of these, but the text protocol above is still what you'll see when you talk to a server by hand.
 
 \section{Layer 4: TCP Server}
 
